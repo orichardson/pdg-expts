@@ -47,3 +47,10 @@ X = list(range(1,20))
 Y = [avgscore(0.005, agentk(x)) for x in X]
 Y2 = [avgscore(0.005, agentk_rand(x)) for x in X]
 plt.plot(X,Y,'bo-', X,Y2, 'ro-')
+
+X = [1,2,3,4,5,7,10,15,20,30,50]
+E = [0.5, 0.1, 0.05, 0.01, 0.005, 0.001]
+Z = [[avgscore(ϵ, agentk(x)) for x in X] for ϵ in E]
+
+Z[0]
+plt.matshow(Z, cmap='Blues');
