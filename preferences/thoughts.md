@@ -24,6 +24,8 @@ It is very important to figure out how we want preferences + meta-preferences to
 How are we going to model this? 
 
 
+We also want an agent embedded in an environment, and we want to model the preferences and changes of state as 
+
 
 # § 
 
@@ -73,3 +75,64 @@ All together, we have $P_0 = (D_0, \leq_0)$, or
 
 But for meta-preferneces, we have 
  
+
+
+-----
+
+- Cartesian, non-embedded agents have the same preferences as meta-preferences
+- Can the development of preferences be attributed to Hebbian dynamics? Correlation causing things to happen?
+
+
+
+Given a constraint, imagine the "typical worlds" satisfying this constraint. Sometimes have some implicit odering between typical worlds. This is more likely if the constraints are structurally similar --- involve the same variables, etc.
+
+	"Imagine a world where pizza is illegal". is this preferable to a world where "shoes are worn on ears". Maybe have an initial preference, followed by some simulation, world-building, and imagination in both worlds. Then preferences over these things change.
+	
+	But why do they change? Do we already have some implicit preference over simulated worlds, and are trying to get to that? How did we get such a preference? How does it change when the representation of the world and how it evolves gets better?
+	
+	It is formed by example / experiences, obviously. This is in turn bootstrapped by a biological reward: (pain / pleasure), various experiences with phenomena, which are then fit to a view of the external world. So we learn:
+		Hot --> Bad,
+		Sugar --> Good
+		
+		or better:
+		Touching hot things --> bad.
+		Eating sugar --> good
+		
+		But they're context dependent. Sometimes it's ok to touch hot things (wearing gloves, have to weigh against things like moving a soldering iron off of your child) or bad to eat sugar. Figuring out the appropriate context is a learning problem; the context is part of the information we get to make the good / bad decision.
+		
+		Right, so using biological reward, we have a function [X × Γ → Good, Bad]. Call the (X, \Gamma) an "experience". We sample experiences to get a learned version of this. 
+		
+		So what about more general preferences? And what about meta-preferences? How do you get the general preferences? Examples:
+		 	"I want there to be more freedom"
+			"this is the coding style I want to follow"
+			"Poverty is bad"
+			"We should be more environmental"
+			"You should not steal things"
+			
+		Possibly all learned from different experiences. Can be changed by having more experiences. What about meta-preferences?
+			"I want to not be gay" [because it would be easier, making these choices causes me pain]
+			"I wish I liked broccoli" [because it would be easier, making these choices is not good for me]
+			"I want to bean ethical person"
+			"I wish I didn't feel anything"
+			"I want to be more rational"
+			"I want to prefer tofu to meat"
+		
+			==> Sometimes formed due to negative experiences associated with making choices according to other preferences. Sometimes formed with reasoning: this preference has these consequences, which are bad (conflict with my other preferences) and so I need to re-update my  
+			
+			Also common to have meta-preferences which align with preferences:
+				"It's a good thing I like exercise"
+				"I prefer to choose coffee over tea (for these reasons?) and I do"
+		
+		Also have preferences over other peoples' preferences:
+			"I want people to love me"
+			"I want more peole to "
+			
+			.. but these are actually kind of just like preferences over the environment.
+			
+			
+		How do people's preferences change?
+			- New experience changes the internal preference model to be closer to the biological one
+			- 
+	
+Simluating preferences with just good / bad operators: 
+	it's good that (I choose X over Y) and not good that (I choose Y over X)
