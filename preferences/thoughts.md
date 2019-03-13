@@ -1,3 +1,6 @@
+
+
+
 # Problems with CP networks:
 
 - CP networks rely heavily on the fact that all variables "exist" --- that is to say, that each variable takes on particular values, and that they can be assigned
@@ -58,7 +61,7 @@ Design systems that have meta-preferences in addition to preferences, which form
 
 Connection to adversarial models: avoid overfitting to objective function because objective function (meta-preferences) have an adversarial relationship.
 
-
+Do inverse reinforcement learning at the same time as normal reinforcement learning. Make 
 
 # Formalization Sketches
 
@@ -112,7 +115,7 @@ Given a constraint, imagine the "typical worlds" satisfying this constraint. Som
 		Possibly all learned from different experiences. Can be changed by having more experiences. What about meta-preferences?
 			"I want to not be gay" [because it would be easier, making these choices causes me pain]
 			"I wish I liked broccoli" [because it would be easier, making these choices is not good for me]
-			"I want to bean ethical person"
+			"I want to be an ethical person"
 			"I wish I didn't feel anything"
 			"I want to be more rational"
 			"I want to prefer tofu to meat"
@@ -122,10 +125,14 @@ Given a constraint, imagine the "typical worlds" satisfying this constraint. Som
 			Also common to have meta-preferences which align with preferences:
 				"It's a good thing I like exercise"
 				"I prefer to choose coffee over tea (for these reasons?) and I do"
+				
+			Using meta-preferences
+				"I want to only want things that are possible"
 		
 		Also have preferences over other peoples' preferences:
 			"I want people to love me"
 			"I want more peole to "
+			"I prefer if people wanted to learn"
 			
 			.. but these are actually kind of just like preferences over the environment.
 			
@@ -136,3 +143,37 @@ Given a constraint, imagine the "typical worlds" satisfying this constraint. Som
 	
 Simluating preferences with just good / bad operators: 
 	it's good that (I choose X over Y) and not good that (I choose Y over X)
+
+
+Without a model of the world, it cannot be possible to ensure that your preferences are actually things that could be acted on. Emperically, as people discover things about the world, their preferences for impossible things go away (no more dreaming of discovinng unicorns or perpetual motion machines). 
+
+Your preferences are OVER possible worlds, so it doesn't make sense not to have them change as your beliefs about the world and what is possible change. 
+
+Need to explain: why not just wirehead? Why not just do a bunch of drugs that make you happy? Answer: this doesn't satisfy some preferences about the real world that we've already collected. By Hebbian mechanics, the original reward function has rubbed off on other things (self-actutalization, sport, etc.,) and now these carry real value --- so maximizing the original thing won't work anymore. 
+
+----------------------
+
+# Wishlist
+
+PREVIOUS WISHLIST:
+ - Death: how to incorporate deaths of agents into theory
+ - Connections to runs/systems framework + epistemic logic
+ - macro-micro / zooming effects of drawing agent boundaries in different places
+ - actions as dependent types
+ - reductions to well-known theories if you provide certain oracles
+ - sub-agents
+ - connections to other leraning theory: particuarly MAML and active learning
+ - connections to bounded complexity 
+ - connections to causal models
+ - definitions of power / influence between agents
+
+
+NEW IDEAS:
+ - Formalization of Hebbian mechanics
+ - Explanation of cognitive biases in this model + illustration that 
+
+  
+THEOREM WISHLIST:
+ - 
+	
+	Intuition: 
