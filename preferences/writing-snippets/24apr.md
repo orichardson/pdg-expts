@@ -27,5 +27,46 @@ THings I want to capture / Application Cases / Examples
 	- Value Capture
 
 
+AGENDA
+	EXAMPLES
+		- Using meaningless variables to percieve the world -> reformulate preferences in terms of more stable variables 
+		- Gamification creates intrinsic value
+			- Value capture
+				- grades, steps, points, money, GDP, levels 
+				- Preference changes when reasoning bases are undercut
+					- vegetarianism b/c good for environment, but what if we discover 
+		- Consumer effect 
+			- Joe biden eating a sandwich
+			- Wine tastings
+			
+		- Biological Examples:
+			- parasitism >> mutualism
+			
+		- Cultural Revolutions [Many are multi-person]
+			- Aesthetic revolutions: minimalism on internet design as reaction to very complicated pages
+			- Historical revolutions
+			
+		- Depression when you don't do anything
+		- 
 
-My full pipeline
+	THEORIES
+		- Cognitive Dissonance as a basis
+
+		- Mechanisms: 
+			- New Samples
+				- Empathy
+			- Underlying belief updates
+			- Negative Value Rubbing
+				- Boredom  (adopting this means no steady state sol'ns)
+				- Rebellion against authority / mainstream
+				- Trying to be different: hipster value change
+			- 
+
+		- 	Objects: proposition x attitude
+			Arrows: causal, logical, correlational / inferential
+			propogation by 
+			
+	OTHER:
+		- Savage O=Y, ordering on policies subject to constraints ==> utility on actions, probabilty on states.
+		
+		- The entire process being cached optimization, dynamicism and lingering echos of SGD which has memory.
