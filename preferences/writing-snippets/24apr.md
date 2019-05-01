@@ -25,7 +25,3 @@ THings I want to capture / Application Cases / Examples
 	- Cultural Revolution
 	- Art History 
 	- Value Capture
-
-
-
-My full pipeline
