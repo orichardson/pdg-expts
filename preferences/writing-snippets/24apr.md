@@ -26,7 +26,6 @@ THings I want to capture / Application Cases / Examples
 	- Art History 
 	- Value Capture
 
-
 AGENDA
 	EXAMPLES
 		- Using meaningless variables to percieve the world -> reformulate preferences in terms of more stable variables 
