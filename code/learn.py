@@ -75,7 +75,7 @@ X_comp_SR = np.exp(X_comp2)
 _, zs = maxevec(X_comp_SR.to_numpy())
 
 X_comp_SR
-plt.matshow(X_comp_SR)
+#plt.matshow(X_comp_SR)
 ############### PLOTTING ##############
 from matplotlib import pyplot as plt
 from matplotlib.colors import ListedColormap

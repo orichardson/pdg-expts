@@ -30,14 +30,71 @@
 
 \newtheorem*{remark}{Remark}
 
+\title{A Theory of Dynamic Preferences and Robot Empathy}
+\author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
 
 \begin{document}
+	\maketitle
+	\section{A Broad Picture of Decision Making}
+	If you already have a (A) model of the world which is detailed enough to describe all possible things that can happen, and in addition you have both (B) beliefs about how the world is likely to evolve in response to any of your actions, and (C) preferences over all possible sequences of events that could happen, then classical decision theories such as Savage's \cite{savage1972foundations} or Jeffrey's \cite{jeffrey1990logic} gives satisfying answers to (D) decision problems  --- at least, given enough computational power.
+	
+	Unfortunately, all three of these components are difficult to get. A perfect world representation (A) seems impossible, but by providing models at a higher abstraction, we can bypass this and proceed with the caveat that decisions can only be as good as the model. Given (A) and some not entirely broken guess at (B), Bayesian updating tells you how to iteratively refine (B) from observations. Representation learning provides some answers about how to refine (A) and (B) at the same time if you already have a task (C) in mind. Model-free reinforcement learning skips the decision theory bit entirely, and uses a reward function (C) to infer actions (D) directly, implicitly refining both (A) and (B) based on experiences.
+		
+	The work done in search of acquiring preferences (C) preferences has been much less thorough, in part because preferences have always been the grounding used to evaluate the other components of the decision making process. However with so many advances in the other areas of decision making, acquiring the right preferences has recently become a bottleneck, and extremely important: 
+	
+	\begin{itemize}[]
+		\item Recommender systems, such as the YouTube sidebar, targeted advertising, internet radio, and even search algorithms, have the job of learning users' preferences (both individual and collective) about content. This makes models of preferences and how people acquire them immediately useful.
+		
+		\item These learning systems and others have objective functions which they optimize---preferences of their own---but getting these objective functions ``wrong'' can result in systems that are totally useless, such as game playing agents that incur no loss by pausing the game, ad delivery systems that plaster the page in ads to maximize ad clicks. Worse, they can appear right at first, but have nasty side effects: unfairly reinforcing inequality, serving news that reinforces confirmation biases, and so forth.
+		
+		\item Both markets and democracies can also be thought of as optimization procedures for specific objectives (defined by the currency and voting systems, respectively). Both have well-documented failure cases, and in response, many have come up with alternative ways of regulating trade and counting votes. But how do we determine if they're any good? We would need a model of preference updates.
+		
+		\item  Many now worry that an artificial general intelligence (AGI), smart enough to out-maneuver humanity, but with undesirable preferences (``unaligned'') is becoming increasingly likely. Many serious AI practitioners take this concern seriously: DeepMind, OpenAI, MIRI, and FHI all have AI safety divisions for this reason. OpenAI and Google Brain's seminal paper \cite{amodei2016concrete} details many of the particular concerns and the current ideas we have for solving them.
+		
+	\end{itemize}
+
+	I think it is important to mention that, while these are all issues that have only recently become problematic, the general problem of having to figure out what to care about has been a (and arguably the only) fundamental problem in philosophy for a long time: ethics is a field dedicated to deciding what we should care about; meta-ethics a field about how to make those decisions. Sociological accounts of cultural revolution and art history both are also both theories of preference change in specific domains.
+	
+	%More indirectly, philosophy of physics can be thought of as a clarification of what physicists should care about, etc.
+	
+	Even the specific worries about mis-specifying objectives to powerful optimizing procedures have ancient cultural roots: there are endless stories and jokes of leprechauns, genies, and monkey paws granting wishes that turned out to have unintended side effects. 
+	
+	This is all to say: the problem at hand is enormously important, and people have already put an enormous of work into it. And yet, none of few formal theories of preference acquisition and updating has received much attention, and none of them are in dialog with ML theory. It is crazy to expect that the single contribution I make here could single-handedly render all of this other work obsolete, but it is rather intended that this will provide a unified language and formalism that others can use to represent their own models and solutions, some general results which could be used as support for positions in any of these fields, and also some that are more specific to the setting of machine preference updates.
+		
+	\subsection*{Responses to some preliminary concerns}
+	Nobody doubts that getting the ``right'' preferences are important, but there are a number of reasons that people might see this as a garbage research agenda; before continuing, I'd like to quickly address a few of these:
+	
+	\textbf{There's no such thing as ``right''.} The first issue has to do with the quotation marks that I've put around the morally loaded words I've used up until now. Moral relativism, perhaps in combination with an intuition of preferences that comes from classical economic theory, would suggest that every preference is equally valid. This viewpoint also meshes well with the distinction emotion / reason dichotomy people like to draw, and the orthogonality thesis \cite{bostrom2012superintelligent}. In this view, the merit of something can only be evaluated with respect to your own preferences, and so 
+	
+%	That's just like, your 
+	
+	
+	\textbf{This all just boils down to one more objective you've put on top.}
+	
+
+
+	\subsection*{Relevant Work in Representing, Acquiring, and Updating Preferences}
+	
+	 %The so-called Gandhi-Folk theorem 
+	
+	Bayesian Networks are a particularly relevant technique for representing (2), and represent a factorization of a joint probability distribution across a number of variables $N$ as the product of conditional probability distributions associated with the edges of a graph whose nodes are $N$.	
+	
+	
+
+	 CP Nets \cite{boutilier2004cp} are one attempt to factor preferences analogously to Bayesian Networks, but they suffer from a number of issues, which we will explore in section \ref{sec:bad-cpnets}. 
+	
+	
+	Drawing the analogy further, observations 	
+	
+	\subsection*{A Broad Intuition For This Theory}
+	
+	
 	\section{What I want to do}
 	I'm trying to get a theory of preference dynamics.
 	
 	Currently preferences are thought of as static objects, fixed as part of the structure and identity of an agent, independent of beliefs, complete, and over some fixed domain. This is clearly not at all how human preferences work, and I posit that it's not the right way to think of preference for synthetic agents either.
 	
-	Perhaps among other things, desiderata for a model of preference dynamics include:
+	Perhaps among other things, desiderata for a model of preference dynamics should:
 	\begin{enumerate}[noitemsep]
 		\item Provide an answer to the `value loading' problem: show how you can acquire ``reasonable'' preferences by interacting with the world
 		\item Reduce to static models for some parameter settings
@@ -49,16 +106,19 @@
 %	We might also require that a theory be useful for explaining human behavior. We expect ours to be able to explain:
 	Because the view of preferences we adopt here is different from the standard ones in economics (in particular, it lends itself naturally to incorporating boundedness), we have a hope of explaining some behavior which was previously classified irrational, as an optimal in some sense. The following psychological effects lend themselves to explanation:
 	\begin{enumerate}[noitemsep]
-		\item Value Capture in Gamification
-		\item Framing Effects
-		\item The Conniseur Effect (adaptive preferences)
+		\item \textbf{Value Capture.} You really care about $X$ (say, learning maths), which is vague and hard to measure, so you come up with some metric $Y$ (say, scores on undergrad math exams). Over time, optimizing for $Y$ will cause you to optimize less effectively for $X$ and assign intrinsic value to $Y$ (getting good exam scores becomes valuable, independent of whether you learn math\footnote{Social signaling plays into this}). Related to Goodhart and Cambell's laws.
+		\item \textbf{Framing Effects.} It is well-documented that the style of presentation, even for logically equivalent scenarios, can have a significant impact on a person's choice. But if we formalize these as the same outcome, there's no way for utility-maximizing agent to behave this way.
+		\item \textbf{The Conniseur Effect (adaptive preferences).} 
 		\item The Novelty Effect (anti-adaptive preferences)
 %		\item Cultural Revolution
 	\end{enumerate}
+
+
 	
 %	\section{Why This is Useful}
 	
 	\section{Examples and Use Cases}
+	
 	
 	\subsection{Serving Content}
 	Since humans' preferences are not always dynamic, it is a mistake to design recommender systems as though they were. The problem of designing a recommender system is almost always framed as the task of deciding what content to display to what user at a single point in time, based on information about the content and the user, which hides potentially dynamic elements of preferences. Such a model can still accurately predict that a user's preferences have changed by looking at updated user data and considering the new user an entirely different person, but the approach of fixing this issue by trying to get more recent feature data, necessarily lags behind that source of data. While in principle it is may be possible to predict where a person's tastes are likely to go in the future, this kind of thinking mirrors only the recent past.
@@ -116,7 +176,7 @@
 
 	\section{Formalism}
 	\subsection{Representation}
-	At each point in time, a representation of the agent's state $(\mathcal D_t, \mathcal B_t, W_t)$ consists of a collection of domains $\mathcal D_t$, each of which has a preference ordering, a collection of beliefs connecting some subset of pairs of domains together, and a weight $W_t : \mathcal D \to [-1,1]$ on each domain.
+	At each point in time, a representation of the agent's state $(\mathcal D_t, \mathcal B_t, W_t)$ consists of a collection of domains $\mathcal D_t$, each of which has some preference data preference ordering, a collection of beliefs connecting some subset of pairs of domains together.
 	
 	There are multiple ways of nailing down the formalism further by explicating the ordering requirements from the domains, and structure of the beliefs\footnote{For example, we could also have used joint probabilities and undirected models to get a Markov Network, or possibly even used a causal model, where the structural equations are edges, and the nodes are variables. However, this would require a different consistency metric.}; as a first pass, we will assume only that the ordering $\leq_D$ on each domain $D \in \mathcal D_t$ is transitive and reflexive (making it a pre-order), and give the beliefs the structure of a conditional probability distribution:
 	
@@ -206,5 +266,7 @@
 	Suppose that I'm choosing from 
 	
 	\subsubsection{Causes problems for Logical and Causal Structure}
+	
+	\printbibliography
 	
 \end{document}

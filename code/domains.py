@@ -53,7 +53,7 @@ class Domain(object):
         
     @classmethod
     def from_list_order( cls, objects, certainty=0):
-        rslt = defaultdict(dict)
+        rslt = defaultdict(lambda: defaultdict(lambda: 0))
         for i,r in enumerate(objects):
             for j,c in enumerate(objects[i:], i):
                 rslt[r][c] = 1 - certainty
@@ -80,6 +80,11 @@ class Link(object):
         pdargs = dict(index=list(set(dom) | set(d.values()))) if dom else {}
         Pr = pd.DataFrame(dd, **pdargs).fillna(0)
         
+        return cls(Pr.index, Pr.columns, Pr )
+    
+    @classmethod
+    def from_ddict( cls, dictdict ):
+        Pr = pd.DataFrame(dictdict).fillna(0)
         return cls(Pr.index, Pr.columns, Pr )
         
     @classmethod
