@@ -77,7 +77,7 @@
 \newcommand\mat[1]{\mathbf #1}
 \newcommand{\indi}[1]{\mathbbm{1}_{\left[\vphantom{\big[}#1 \vphantom{\big]}\right]}}
 
-\title{A Theory of Dynamic Preferences and Robot Empathy}
+\title{A Theory of Dynamic Preferences}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
 
 \begin{document}
@@ -226,7 +226,7 @@
 	According to the diagram, we endorse the following decision making process: start with your ambient (prior, in analogy to Bayesian updating) preference for the decision at hand: which drink to order. Then, consider other domains you have ambient preferences attached to, the way in which this decision impacts them, and nudge your current preference in the appropriate way. While the two things on the edges look like they have some causal flavor, the one on the bottom is different: there's no way that having a drink can cause you to have one of your previous experiences. Instead, your experiences have the property of \todo{}
 
 
-	Now that we have more information, let's consider what the standard modeling approach would be in this situation: we would need (1) utilities $U : \mathcal W \to \mathbb R$ over worlds, which in this case would be modeled as an assignment $\mathcal W = (D \times W \times C \times E)$ to each of the four variables (or selection of a point from each of the domains in the picture above), and also (2) a conditional probability distribution over worlds $\Pr(\mathcal W | D)$, for each choice of drink. At this point we compute expected utilities,
+	Now that we have added more information to the model, let's consider what the standard modeling approach would be in this situation: we would need (1) utilities $U : \mathcal W \to \mathbb R$ over worlds, which in this case would be modeled as an assignment $\mathcal W = (D \times W \times C \times E)$ to each of the four variables (or selection of a point from each of the domains in the picture above), and also (2) a conditional probability distribution over worlds $\Pr(\mathcal W | D)$, for each choice of drink. At this point we compute expected utilities,
 	
 	\[  \mathop{\mathbb E} \Big(U ~\Big|~ \text{coffee}\Big) = \sum\limits_{w \in \mathcal W} U(w) \Pr(w | \mathrm{coffee}) 
 	\hspace{2cm} 
@@ -259,6 +259,19 @@
 			\draw[arr] (W) -- node[above]{$U_{\cal W}$} (U);
 		\end{tikzpicture}
 	\end{center}\vspace{1em}
+	
+	Note also that if the preferences on $\cal W$ did not come from a utility function, but rather you simply had preferences over possible worlds, we have an even simpler picture:
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded, dashed, active] (D) at (0,0) {Drink};
+			\node[dpadded, thick](W) at (4,0) {$\mathcal W$} ;	
+			
+			\draw[arr] (D) -- node[above]{$\Pr(\mathcal W| D)$}(W);
+		\end{tikzpicture}
+	\end{center}\vspace{1em}
+	
+	This is a quick graphical illustration of why preferences representable by utility functions are a strict sub-class of preferences over worlds. Also, it suggests that a utility function is mathematically a ``belief-like'' object, tying two domains together, which is why it makes sense to define products between it and probability distributions. 
 
 	Moreover, if the only thing we cared about was the special utility box anyway, both the additive separability and conditional independence assumptions have a graphical interpretation if we represent them in this manner. Consider the diagram below:
 	\begin{center}
@@ -289,12 +302,13 @@
 	\end{center}
 	The line from Drink to $\mathcal W$ has to be inferred somehow, if the only way we can compute value is by going to $\sf U$ via $U_{\cal W}$. Doing this by assuming that all of the variables are independent is the only option we really have available, which fully utilizes all of the information we have in the diagram.
 	
-	More specifically, every triangle should commute: inferring your caffeination from the drink choice should be the same as inferring the impact of drink choice on the world, followed by a determination of your caffeination in that impact. Requiring that this hold for all three of the triangles on the left is related to the conditional independence assumption, and requiring that it hold for the three on the right is related to the additive separability one.
+%	This is false:
+%	More specifically, every triangle should commute: inferring your caffeination from the drink choice should be the same as inferring the impact of drink choice on the world, followed by a determination of your caffeination in that impact. Requiring that this hold for all three of the triangles on the left is related to the conditional independence assumption, and requiring that it hold for the three on the right is related to the additive separability one.
 	
 	
 %	\subsubsection{Uses}
 	
-	The decision of what drink to have does not exist in a vacuum. Suppose you also have to decide what restaurant to go to get lunch $(L)$, and also where to buy appliances $(A)$, and groceries $(G)$. Each of these depend on what drinks you like, among other things. This might look something like the diagram below.
+	The decision of what drink to have does not exist in a vacuum. Suppose you also have to decide what restaurant to go to get lunch, and also where to buy appliances, and groceries. Each of these depend on what drinks you like, among other things. This might look something like the diagram below.
 	\begin{center}
 		\begin{tikzpicture}
 		\node[dpadded,active] (A) at (-2,2){Appliance Store};
@@ -334,10 +348,10 @@
 	\end{center}
 	Having to re-compute your preference for drinks every time you have to make a decision is expensive, and while it is always possible that your drink preference would have changed in the mean time if you had re-computed it, this is probably not a very effective use of your computation, which could be spent sorting through the many other relevant features of grocery stores and restaurants. 
 	
-	This can be thought of 
+	Once again, this can be thought of in two ways: the classical one is to state that 
 
 	\subsection{Framing Problems}
-	\subsection{Freedom}
+	\subsection{Heuritics: Freedom}
 	
 %		We can consider what would need to happen in order for this to 
 					
@@ -685,25 +699,28 @@
 	
 	
 	
-	For each link, whose conditional distribution we imagine being parameterized by some latent variables $\theta$, we define the inconsistency as 
-	\[ \]
- 	 	
+	For each link, whose conditional distribution we imagine being parameterized by some latent variables $\theta$, we define the inconsistency at a domain $D$ as the sum of differences between 
+	\[ \zeta_\Theta(D) = \left\lVert \sum_{B[D \to X]} B^T \mat X B - \mat D \right\rVert_F \]
+	where $\Theta$ contains the parameters required to generate each of these: the link $B$, and the preferences $\mat X$ and $\mat D$.
  	\footnote{In the previous version, we defined the consistency of a link $B : X \to \Delta Y$ as 
- 	\[ \zeta\big(B[X \to Y]\big) =  \sigma \left( \left(1- \frac{|W_X - W_Y|}{W_X + W_Y}\right) \sum_{x,x' \in X}\sum_{y,y' \in Y} X(x,x') Y(y,y') B(x)(y) B(x')(y') \right) \]
-% 	where $\sigma : \mathbb R \to [-1, 1]$ is an activation function such as sigmoid or $\tanh$, $B(y)(x)$ is the probability mass on $y$ in the distribution $B(x)$, and for a domain $D$, $D(d, d')$ is a signed preference indicator, defined as 
-	where 
- 	$ D(d, d') := \begin{cases}
- 		1 & d \prec_D d' \\
- 		-1 & d \succ_D d' \\
- 		0 & \text{otherwise}
- 	\end{cases} $.  }
- 	 	
+ 	 	\[ \zeta\big(B[X \to Y]\big) =  \sigma \left( \left(1- \frac{|W_X - W_Y|}{W_X + W_Y}\right) \sum_{x,x' \in X}\sum_{y,y' \in Y} X(x,x') Y(y,y') B(x)(y) B(x')(y') \right) \]
+ 	% 	where $\sigma : \mathbb R \to [-1, 1]$ is an activation function such as sigmoid or $\tanh$, $B(y)(x)$ is the probability mass on $y$ in the distribution $B(x)$, and for a domain $D$, $D(d, d')$ is a signed preference indicator, defined as 
+ 		where 
+ 	 	$ D(d, d') := \begin{cases}
+ 	 		1 & d \prec_D d' \\
+ 	 		-1 & d \succ_D d' \\
+ 	 		0 & \text{otherwise}
+ 	 	\end{cases} $.  \todo{Show relationship}}	
  	We can also sum across the entire graph to get a measure for the whole model:
- 	\[ \zeta(\mathcal D, \mathcal B, W) = \sum_{B[X\to Y] \in \mathcal B}~ \zeta(B) \]
+ 	\[ \zeta(\mathcal D, \mathcal B) = \sum_{D \in \mathcal D} \zeta_\Theta(D) \]
+ 	
+ 	The update rule is now just gradient descent on the parameters $\Theta$ with respect to the global inconsistency:
+ 	
+ 	\[ \frac{\partial \Theta}{\partial t} = - \eta \nabla_\Theta \sum_{D \in \mathcal D} \zeta_\Theta(D) \]
  	
  	
  	\begin{remark}
- 		If $\mathcal D$ consists of only a dingle domain $D$, with the identity distribution $\mathcal B = {B(x,y) = \delta_{x,y}: D \to D}$, then $\mathcal D$ is consistent, i.e., $\zeta(\mathcal D, \mathcal B, W) = 1$.
+ 		If $\mathcal D$ consists of only a dingle domain $D$, with the identity distribution $\mathcal B = {B(x,y) = \delta_{x,y}: D \to D}$, then $\mathcal D$ is consistent, i.e., $\zeta(\mathcal D, \mathcal B) = 0$. Similarly, if there are no links, (or only identity links), then the model is consistent, because in each case the sum is vacuously zero. 
  	\end{remark}
  	
 % 	Finally, the update rule is just backpropagation of the consistency through the parameters: for each parameter 
@@ -711,24 +728,21 @@
 
 %	\[ \frac{\partial \zeta(B) }{\partial B(x)(y) } \]
 	
-	\subsection{Explanation of Update Rule}
-	Suppose 
-	
 		
 	\section{Revisited Examples}
 %	Now that we have some formalism,
 	
 	\subsection{Framing Problems}
-	Suppose there are two framings of a decision problem, one between the alternatives $X$ and the other between the alternatives $Y$. At first, suppose you do not know how $X$ and $Y$ relate to each other, but are instead separately given hypothetical scenarios in which you are asked to choose in both cases. You decide that:	
-	\[ x \prec x' \qquad\text{and}\qquad y \succ y' \]
-	You are reasonably confident about both of these decision, but you have more confidence in your preference on $X$, because you've had to make the choice in this context before $(W_X = 0.95, W_Y=0.8)$. Upon looking at the situation more closely, however, you discover that there is actually a logical equivalence between $x$ and $y$, and between $x'$ and $y'$ (denote this bijection $f : X\to Y$). Your preferences are now in conflict, and we calculate
-	\begin{align*}
-		\zeta(f) &= \sigma \left( \left(1- \frac{0.15}{1.75}\right) \sum_{a,a' \in X}\sum_{b,b' \in Y} X(a,a') Y(b,b') B(a)(b) B(a')(b') \right) \\
-		&= \sigma \left( 0.914 \sum_{a,a' \in X} X(a,a') Y(f(a), f(a'))  \right) \\
-		&= \sigma~ \bigg( 0.914 \Big(  X(x,x') Y(f(x), f(x')) + X(x',x) Y(f(x'), f(x))  \Big) \bigg) \\
-		&= \sigma~ \bigg( 0.914 \Big(  1 \cdot Y(y, y') + (-1) \cdot Y(y', y)  \Big) \bigg) \\
-		&= \sigma (-1.83)
-	\end{align*}
+%	Suppose there are two framings of a decision problem, one between the alternatives $X$ and the other between the alternatives $Y$. At first, suppose you do not know how $X$ and $Y$ relate to each other, but are instead separately given hypothetical scenarios in which you are asked to choose in both cases. You decide that:	
+%	\[ x \prec x' \qquad\text{and}\qquad y \succ y' \]
+%	You are reasonably confident about both of these decision, but you have more confidence in your preference on $X$, because you've had to make the choice in this context before $(W_X = 0.95, W_Y=0.8)$. Upon looking at the situation more closely, however, you discover that there is actually a logical equivalence between $x$ and $y$, and between $x'$ and $y'$ (denote this bijection $f : X\to Y$). Your preferences are now in conflict, and we calculate
+%	\begin{align*}
+%		\zeta(f) &= \sigma \left( \left(1- \frac{0.15}{1.75}\right) \sum_{a,a' \in X}\sum_{b,b' \in Y} X(a,a') Y(b,b') B(a)(b) B(a')(b') \right) \\
+%		&= \sigma \left( 0.914 \sum_{a,a' \in X} X(a,a') Y(f(a), f(a'))  \right) \\
+%		&= \sigma~ \bigg( 0.914 \Big(  X(x,x') Y(f(x), f(x')) + X(x',x) Y(f(x'), f(x))  \Big) \bigg) \\
+%		&= \sigma~ \bigg( 0.914 \Big(  1 \cdot Y(y, y') + (-1) \cdot Y(y', y)  \Big) \bigg) \\
+%		&= \sigma (-1.83)
+%	\end{align*}
 	
 	
 	\subsection{Learning from Samples}	
@@ -739,12 +753,12 @@
 	\subsection{Gamification}
 	\subsection{Specification of Robot Preferences}
 	
-	\section{Plausible Theoretical Results to Chase}
-	
-	\begin{itemize}
-		\item If we fix a maximum representation size (number of bits, comparisons, or the like), then the optimal strategy (relative to the ``true'' experience domain, which we cannot represent forever) in terms of preference fidelity is to utilize a large number of domains, rather than just a few big ones. Reasons: combinatorial explosion of orderings for big sets; generalization to unseen examples.
-		
-	\end{itemize}
+%	\section{Plausible Theoretical Results to Chase}
+%	
+%	\begin{itemize}
+%		\item If we fix a maximum representation size (number of bits, comparisons, or the like), then the optimal strategy (relative to the ``true'' experience domain, which we cannot represent forever) in terms of preference fidelity is to utilize a large number of domains, rather than just a few big ones. Reasons: combinatorial explosion of orderings for big sets; generalization to unseen examples.
+%		
+%	\end{itemize}
 	
 	\section{Relation to Other Models}
 			
