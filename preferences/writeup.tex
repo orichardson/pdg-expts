@@ -146,7 +146,7 @@
 	
 	Perhaps among other things, desiderata for a model of preference dynamics should:
 	\begin{enumerate}[noitemsep]
-		\item Provide an answer to the `value loading' problem: show how you can acquire ``reasonable'' preferences by interacting with the world
+		\item Provide an answer to the `value loading' problem: show how you can learn ``reasonable'' preferences by interacting with the world
 		\item Reduce to static models for some parameter settings
 		\item Behave reasonably when combined with changes of perspective 
 		\item Be resistant to standard challenges to irrationality, such as dutch booking
@@ -161,6 +161,8 @@
 		\item \textbf{Connoisseur Effects.} Someone who listens to a lot of rap music has more nuanced, complicated preferences on rap music than someone who has not heard as much. Similarly, people work to develop palates for wine, and ``all Indian food tastes the same'' is an insult, indicating a shallow experience with the cuisine. Technically, we want to capture the fact that additional experiences increase preference complexity.
 		
 		\item \textbf{Adaptive Preferences.} Even things we find objectionable are normalized over time, and people often change to prefer things they're used to, even if they are initially opposed. This is sometimes thought of as a prioritization of safety, and is maybe best thought of as a thought-saving feature: the things you're used to have gotten you this far already. 
+		
+		\item \textbf{}
 		 
 		\item \textbf{Novelty Effects (anti-adaptive preferences).} 
 
@@ -176,6 +178,8 @@
 	\section{Coffee vs Beer}
 	\begin{example}
 		At one time you were a baby, who had never encountered coffee or beer. Your parents are from a part of the world where neither was common, and so the preference could not have been genetically determined. But now you have a strong preference for coffee over beer. At some point, something must have changed.
+		
+		On the other hand, you've always had a sense of good and bad experiences
 	\end{example}
 	
 	\begin{example}
@@ -218,13 +222,207 @@
 		You like coffee more than beer. Maybe even by a lot. Somebody offers you a choice between a coffee that will re-wire your brain to make you want to kill your family, and a beer. You don't take the coffee; why would you? You report them to the police instead.
 	\end{example}
 
-	\subsection{Framing Problems}
+	\subsection{Other Examples}
+	\begin{example}
+		You believe that the rich should not get a larger federal tax exemption (than the poor do) for having children.
+		At the same time, you believe that if the default number of children were 2, and people paid a surcharge to the government for foregoing them, that the rich should pay a larger surcharge (than the poor do) for this.
+		
+		You come to realize that these preferences are logically in conflict; you then update your beliefs about both of them, causing yourself to be less sure, until the more entrenched one wins, and your viewpoint on the other issue has swapped.
+	\end{example}
+
+	\begin{example}
+		Your family lives in Hong Kong. You hate flying; you also dislike China. But you love your family, and this is an immensely positive thing which out-weighs flying. As a result, you would fly to Hong Kong if (and only if) you could visit your family; the experiences are perfectly correlated and causally linked.
+		
+		Consider two cases:
+		\begin{enumerate}[nosep]
+			\item You have no reason (or have since forgotten) why you hate flying to HK, and discover no new reasons to hate the journey: you get a reasonable amount of work done and the entertainment is just as good as you would have done for yourself. As your preference for seeing your family is in conflict with your dis-preference for flying to HK, but the former is much stronger than the latter (which is unfounded) and so eventually you actually start to like flying to HK.
+			\item On the other hand, suppose there are good reasons for disliking the flight: it is long, expensive, there's no leg room, people are assholes, and it comes at an opportunity cost. You reach a stable equilibrium where you hate the flight while simultaneously loving your family, even though the two events happen together.
+		\end{enumerate}
+	\end{example}
+
 	\subsection{Heuritics: Freedom}
 	
 %		We can consider what would need to happen in order for this to 
 					
 
-
+	\section{Failure of Classical Approaches to Capture These Examples}
+	\subsection{Coffee and Beer}
+	Suppose you are trying to chose between coffee and beer. Had you been forced to make the decision instantly, you may have already had an answer that you could spit out: maybe you have a cached preference for beer from the last time you made this decision, or perhaps you already think of yourself as the kind of person who prefers beer over coffee. At this point, we could stop modeling, and merely state that this is one of those axiomatic things we require to make decisions. This corresponds to the following diagram, which requires no computation:
+	\begin{center}
+		\begin{tikzpicture}
+		\node[pt=coffee] at (0,1){};
+		\node[pt=beer, right=1.8em of coffee] {};
+		\draw[arr,->, thin] (coffee) to[bend right=10](beer);
+		\node[Dom={Drink : \lab{coffee}\lab{beer}}, active] (D) {};
+		\end{tikzpicture}
+	\end{center}
+	
+	
+	On the other hand, given enough time to think, you may remember you had reasons for choosing beer the last time. Some considerations might include:
+	\begin{enumerate}[nosep]
+		\item The coffee is not fair trade, and contributes to poor working conditions in Columbia
+		\item Your previous experiences with coffee have been better than your previous experiences with beer
+		\item Coffee has more caffeine than beer	
+	\end{enumerate}
+	
+	Note that each of these considerations consists of two parts: another thing you assign value to (the pleasure of your previous experiences, exploited workers, caffeine), plus some belief about how a decision in one domain will impact the others (what impact does coffee have on the world, what do I remember about my experiences, what do I know about the caffeine content). We can picture this with the following diagram:
+	
+	\begin{center}
+		\begin{tikzpicture}
+		\node[pt=coffee] at (0,1){};
+		\node[pt=beer, below=1.5em of coffee] {};
+		\node[Dom={Drink : \lab{coffee}\lab{beer}}, active] (D) {};
+		
+		
+		\node[pt=lots] at (4,0){};
+		\node[pt={some}, below=1.5em of lots] {};
+		\node[pt={none}, below=1.5em of {some}] {};
+		\node[Dom={Caffiene : \lab{lots}\lab{none}}] (C) {};
+		
+		\node[pt={great}] at (-4,0){};
+		\node[pt={ok}, below=1.5em of great] {};
+		\node[pt={awful}, below=1.5em of ok] {};
+		\node[Dom={Worker Conditions : \lab{great}\lab{awful}}] (W) {};
+		
+		
+		\foreach [evaluate=\x as \y using \x/2-1.75] \x in {0, 1, ...,7} {
+			%					\pgfmathmacro{\tmp}{-1 + 0.2*\x}
+			\node[mpt={e\x | $e_\x$}] (e\x) at (\y,-3) {};
+		}
+		\node[bDom={Experiences : \lab{e0}\lab{e7}}] (E) {};
+		
+		\draw[arr] (D) -- (C);
+		\draw[arr] (D) -- (W);
+		\draw[arr, dashed] (D) to[bend left] (E);
+		\draw[arr] (E) -- (D);
+		\end{tikzpicture}
+	\end{center}
+	According to the diagram, we endorse the following decision making process: start with your ambient (prior, in analogy to Bayesian updating) preference for the decision at hand: which drink to order. Then, consider other domains you have ambient preferences attached to, the way in which this decision impacts them, and nudge your current preference in the appropriate way. While the two things on the edges look like they have some causal flavor, the one on the bottom is different: there's no way that having a drink can cause you to have one of your previous experiences. Instead, your experiences have the property of \todo{}
+	
+	
+	Now that we have added more information to the model, let's consider what the standard modeling approach would be in this situation: we would need (1) utilities $U : \mathcal W \to \mathbb R$ over worlds, which in this case would be modeled as an assignment $\mathcal W = (D \times W \times C \times E)$ to each of the four variables (or selection of a point from each of the domains in the picture above), and also (2) a conditional probability distribution over worlds $\Pr(\mathcal W | D)$, for each choice of drink. At this point we compute expected utilities,
+	
+	\[  \mathop{\mathbb E} \Big(U ~\Big|~ \text{coffee}\Big) = \sum\limits_{w \in \mathcal W} U(w) \Pr(w | \mathrm{coffee}) 
+	\hspace{2cm} 
+	\mathop{\mathbb E} \Big(U ~\Big|~ \text{beer}\Big) = \sum\limits_{w \in \mathcal W} U(w) \Pr(w | \mathrm{tea}) \]
+	
+	and compare the results. Doing this computation directly has a number of draw-backs:
+	\begin{itemize}[nosep]
+		\item There's not a clear way of making use of partial computations: if you're halfway through your expected utility computations, you still haven't made a decision.
+		\item It requires a joint distribution over all variables you care about: in our example, we would have needed to know how our experiences related to worker conditions in Columbia, how both of these relate to your caffeination levels.
+		
+		\item From the modeler's perspective, this whole setup changes drastically if it turns out we at the last minute remember that social signaling is relevant to the decision. Such a change causes even the collection of worlds to be different, and it's not immediately obvious if we can recycle our old utility function and probability distributions.
+		
+		%			\item All inconsistencies have to be sorted out at all times: there are no intermediate steps where your views can be 
+	\end{itemize}
+	
+	%		Now, since the last time you've examined your preferences, 
+	It may seem at this point like we have merely introspected a hacky algorithm which does not suffer from these issues by design, ignored the rationality guarantees provided by expected utility, and hidden the fact that the expected utility computations can often be approximated quickly with some straightforward tricks. From the classical point of view, all we needed to do was assume that $U$ is additively separable, that the independence assumptions that accord with the interpretation of the above diagram as a Bayesian Net hold, and just compute the correct answer directly. From this perspective, it looks as though our procedure is a special case of expected utility but implemented in a riskier, incremental way. 
+	
+	On the other hand, expected utility can be seen as a special, particularly brittle and centralized, case of our updating method, in which the only thing that matters is a special domain $\mathbb R$, there is always exactly one path that can be used to compute it, which involves integrating over all possible worlds, and we don't save any computations. In particular, by using a dashed boundary to denote a domain which does \textbf{not} accrue value, this corresponds to running our updating on the following diagram, and just computing until it converges:\\
+	%		Moreover, the expected utility calculations correspond to to 
+	
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded, dashed, active] (D) at (0,0) {Drink};
+		\node[dpadded, dashed](W) at (4,0) {$\mathcal W$} ;
+		\node[dpadded, thick](U) at (6.7,0)  {$\mathsf U \cong \mathbb R$} ;
+		
+		
+		\draw[arr] (D) -- node[above]{$\Pr(\mathcal W| D)$}(W);
+		\draw[arr] (W) -- node[above]{$U_{\cal W}$} (U);
+		\end{tikzpicture}
+	\end{center}\vspace{1em}
+	
+	Note also that if the preferences on $\cal W$ did not come from a utility function, but rather you simply had preferences over possible worlds, we have an even simpler picture:
+	
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded, dashed, active] (D) at (0,0) {Drink};
+		\node[dpadded, thick](W) at (4,0) {$\mathcal W$} ;	
+		
+		\draw[arr] (D) -- node[above]{$\Pr(\mathcal W| D)$}(W);
+		\end{tikzpicture}
+	\end{center}\vspace{1em}
+	
+	This is a quick graphical illustration of why preferences representable by utility functions are a strict sub-class of preferences over worlds. Also, it suggests that a utility function is mathematically a ``belief-like'' object, tying two domains together, which is why it makes sense to define products between it and probability distributions. 
+	
+	Moreover, if the only thing we cared about was the special utility box anyway, both the additive separability and conditional independence assumptions have a graphical interpretation if we represent them in this manner. Consider the diagram below:
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded, dashed, active](D) at (1.2,0) {Drink};
+		\node[dpadded, dashed](C) at (4,1.2) {Caffiene} ;
+		\node[dpadded, dashed](W) at (4.1,3) {Worker Conditions} ;
+		\node[dpadded, dashed](E) at (4,-1.2) {Experiences} ;
+		\node[dpadded, dashed](WW) at (7.4,0) {$\mathcal W$} ;
+		\node[dpadded,thick](U) at (9.9,0) {$\mathsf U $} ;
+		
+		
+		\draw[arr] (D) -- (C.west);
+		\draw[arr] (D) -- (W.south west);
+		\draw[arr] (D) -- (E.west);
+		\draw[arr, dashed] (D) -- (WW);
+		
+		\draw[arr, dashed] (W) to[bend left] (U);
+		\draw[arr, dashed] (C.east) to[bend left=10] (U);
+		\draw[arr, dashed] (E) to[bend right] (U);
+		
+		\draw[arr] (WW) -- node[below]{$U_{\cal W}$} (U);
+		\draw[arr] (WW) -- (C.east);
+		\draw[arr] (WW) -- (W.east);
+		\draw[arr] (WW)  -- (E.east);
+		
+		\end{tikzpicture}
+	\end{center}
+	The line from Drink to $\mathcal W$ has to be inferred somehow, if the only way we can compute value is by going to $\sf U$ via $U_{\cal W}$. Doing this by assuming that all of the variables are independent is the only option we really have available, which fully utilizes all of the information we have in the diagram.
+	
+	%	This is false:
+	%	More specifically, every triangle should commute: inferring your caffeination from the drink choice should be the same as inferring the impact of drink choice on the world, followed by a determination of your caffeination in that impact. Requiring that this hold for all three of the triangles on the left is related to the conditional independence assumption, and requiring that it hold for the three on the right is related to the additive separability one.
+	
+	
+	%	\subsubsection{Uses}
+	
+	The decision of what drink to have does not exist in a vacuum. Suppose you also have to decide what restaurant to go to get lunch, and also where to buy appliances, and groceries. Each of these depend on what drinks you like, among other things. This might look something like the diagram below.
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded,active] (A) at (-2,2){Appliance Store};
+		\node[dpadded,active] (L) at (-2.4,0){Lunch Restaurant};
+		\node[dpadded,active] (G) at (-1,-2){Grocery Store};
+		
+		\node[dpadded, dashed] (D) at (1.5,0) {Drink};
+		\node[dpadded, ](C) at (4,1.2) {Caffiene} ;
+		\node[dpadded, ](W) at (4.1,3) {Worker Conditions} ;
+		\node[dpadded, ](E) at (4,-1.2) {Experiences} ;
+		%		\node[dpadded, dashed](WW) at (6.7,0) {$\mathcal W$} ;
+		%		\node[dpadded,thick](U) at (9.0,0) {$\mathsf U $} ;
+		
+		
+		\draw[arr] (D) -- (C.west);
+		\draw[arr] (D) -- (W.south west);
+		\draw[arr] (D) -- (E.west);
+		%		\draw[arr, dashed] (D) -- (WW);
+		
+		\draw[arr] (A) -- (D);
+		\draw[arr] (L) -- (D);
+		\draw[arr] (G) -- (D);
+		
+		\draw[arr, gray!30] (G) -- +(3,-1.2);
+		\draw[arr, gray!30] (G) -- +(0,-1.8);
+		\draw[arr, gray!30] (A) -- +(0,2);
+		\draw[arr, gray!30] (A) -- +(-2,1.8);
+		\draw[arr, gray!30] (L) -- +(-3,-1);
+		\draw[arr, gray!30] (L) -- +(-3,1);
+		
+		%		\draw[arr] (WW) -- node[above]{$U_{\cal W}$} (U);
+		%		\draw[arr] (WW) -- (C.east);
+		%		\draw[arr] (WW) -- (W.south east);
+		%		\draw[arr] (WW)  -- (E.east);
+		
+		\end{tikzpicture}
+	\end{center}
+	Having to re-compute your preference for drinks every time you have to make a decision is expensive, and while it is always possible that your drink preference would have changed in the mean time if you had re-computed it, this is probably not a very effective use of your computation, which could be spent sorting through the many other relevant features of grocery stores and restaurants. 
+	
+	Once again, this can be thought of in two ways: the classical one is to state that 
 	
 
 	\section{Some Intuition about the Framework}
@@ -550,7 +748,7 @@
 	
 	
 	For each link, whose conditional distribution we imagine being parameterized by some latent variables $\theta$, we define the inconsistency at a domain $D$ as the sum of differences between 
-	\[ \zeta_\Theta(D) = \left\lVert \sum_{B[D \to X]} B^T \mat X B - \mat D \right\rVert_F \]
+	\[ \zeta_\Theta(D) = \left\lVert \mat D  - \sum_{B[D \to X]} B^T \mat X B \right\rVert_F \]
 	where $\Theta$ contains the parameters required to generate each of these: the link $B$, and the preferences $\mat X$ and $\mat D$.
  	\footnote{In the previous version, we defined the consistency of a link $B : X \to \Delta Y$ as 
  	 	\[ \zeta\big(B[X \to Y]\big) =  \sigma \left( \left(1- \frac{|W_X - W_Y|}{W_X + W_Y}\right) \sum_{x,x' \in X}\sum_{y,y' \in Y} X(x,x') Y(y,y') B(x)(y) B(x')(y') \right) \]
@@ -581,183 +779,7 @@
 		
 	\section{Revisited Examples}
 	
-	\subsection{Coffee and Beer}
-	Suppose you are trying to chose between coffee and beer. Had you been forced to make the decision instantly, you may have already had an answer that you could spit out: maybe you have a cached preference for beer from the last time you made this decision, or perhaps you already think of yourself as the kind of person who prefers beer over coffee. At this point, we could stop modeling, and merely state that this is one of those axiomatic things we require to make decisions. This corresponds to the following diagram, which requires no computation:
-	\begin{center}
-		\begin{tikzpicture}
-		\node[pt=coffee] at (0,1){};
-		\node[pt=beer, right=1.8em of coffee] {};
-		\draw[arr,->, thin] (coffee) to[bend right=10](beer);
-		\node[Dom={Drink : \lab{coffee}\lab{beer}}, active] (D) {};
-		\end{tikzpicture}
-	\end{center}
 	
-	
-	On the other hand, given enough time to think, you may remember you had reasons for choosing beer the last time. Some considerations might include:
-	\begin{enumerate}[nosep]
-		\item The coffee is not fair trade, and contributes to poor working conditions in Columbia
-		\item Your previous experiences with coffee have been better than your previous experiences with beer
-		\item Coffee has more caffeine than beer	
-	\end{enumerate}
-	
-	Note that each of these considerations consists of two parts: another thing you assign value to (the pleasure of your previous experiences, exploited workers, caffeine), plus some belief about how a decision in one domain will impact the others (what impact does coffee have on the world, what do I remember about my experiences, what do I know about the caffeine content). We can picture this with the following diagram:
-	
-	\begin{center}
-		\begin{tikzpicture}
-		\node[pt=coffee] at (0,1){};
-		\node[pt=beer, below=1.5em of coffee] {};
-		\node[Dom={Drink : \lab{coffee}\lab{beer}}, active] (D) {};
-		
-		
-		\node[pt=lots] at (4,0){};
-		\node[pt={some}, below=1.5em of lots] {};
-		\node[pt={none}, below=1.5em of {some}] {};
-		\node[Dom={Caffiene : \lab{lots}\lab{none}}] (C) {};
-		
-		\node[pt={great}] at (-4,0){};
-		\node[pt={ok}, below=1.5em of great] {};
-		\node[pt={awful}, below=1.5em of ok] {};
-		\node[Dom={Worker Conditions : \lab{great}\lab{awful}}] (W) {};
-		
-		
-		\foreach [evaluate=\x as \y using \x/2-1.75] \x in {0, 1, ...,7} {
-			%					\pgfmathmacro{\tmp}{-1 + 0.2*\x}
-			\node[mpt={e\x | $e_\x$}] (e\x) at (\y,-3) {};
-		}
-		\node[bDom={Experiences : \lab{e0}\lab{e7}}] (E) {};
-		
-		\draw[arr] (D) -- (C);
-		\draw[arr] (D) -- (W);
-		\draw[arr, dashed] (D) to[bend left] (E);
-		\draw[arr] (E) -- (D);
-		\end{tikzpicture}
-	\end{center}
-	According to the diagram, we endorse the following decision making process: start with your ambient (prior, in analogy to Bayesian updating) preference for the decision at hand: which drink to order. Then, consider other domains you have ambient preferences attached to, the way in which this decision impacts them, and nudge your current preference in the appropriate way. While the two things on the edges look like they have some causal flavor, the one on the bottom is different: there's no way that having a drink can cause you to have one of your previous experiences. Instead, your experiences have the property of \todo{}
-	
-	
-	Now that we have added more information to the model, let's consider what the standard modeling approach would be in this situation: we would need (1) utilities $U : \mathcal W \to \mathbb R$ over worlds, which in this case would be modeled as an assignment $\mathcal W = (D \times W \times C \times E)$ to each of the four variables (or selection of a point from each of the domains in the picture above), and also (2) a conditional probability distribution over worlds $\Pr(\mathcal W | D)$, for each choice of drink. At this point we compute expected utilities,
-	
-	\[  \mathop{\mathbb E} \Big(U ~\Big|~ \text{coffee}\Big) = \sum\limits_{w \in \mathcal W} U(w) \Pr(w | \mathrm{coffee}) 
-	\hspace{2cm} 
-	\mathop{\mathbb E} \Big(U ~\Big|~ \text{beer}\Big) = \sum\limits_{w \in \mathcal W} U(w) \Pr(w | \mathrm{tea}) \]
-	
-	and compare the results. Doing this computation directly has a number of draw-backs:
-	\begin{itemize}[nosep]
-		\item There's not a clear way of making use of partial computations: if you're halfway through your expected utility computations, you still haven't made a decision.
-		\item It requires a joint distribution over all variables you care about: in our example, we would have needed to know how our experiences related to worker conditions in Columbia, how both of these relate to your caffeination levels.
-		
-		\item From the modeler's perspective, this whole setup changes drastically if it turns out we at the last minute remember that social signaling is relevant to the decision. Such a change causes even the collection of worlds to be different, and it's not immediately obvious if we can recycle our old utility function and probability distributions.
-		
-		%			\item All inconsistencies have to be sorted out at all times: there are no intermediate steps where your views can be 
-	\end{itemize}
-	
-	%		Now, since the last time you've examined your preferences, 
-	It may seem at this point like we have merely introspected a hacky algorithm which does not suffer from these issues by design, ignored the rationality guarantees provided by expected utility, and hidden the fact that the expected utility computations can often be approximated quickly with some straightforward tricks. From the classical point of view, all we needed to do was assume that $U$ is additively separable, that the independence assumptions that accord with the interpretation of the above diagram as a Bayesian Net hold, and just compute the correct answer directly. From this perspective, it looks as though our procedure is a special case of expected utility but implemented in a riskier, incremental way. 
-	
-	On the other hand, expected utility can be seen as a special, particularly brittle and centralized, case of our updating method, in which the only thing that matters is a special domain $\mathbb R$, there is always exactly one path that can be used to compute it, which involves integrating over all possible worlds, and we don't save any computations. In particular, by using a dashed boundary to denote a domain which does \textbf{not} accrue value, this corresponds to running our updating on the following diagram, and just computing until it converges:\\
-	%		Moreover, the expected utility calculations correspond to to 
-	
-	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded, dashed, active] (D) at (0,0) {Drink};
-		\node[dpadded, dashed](W) at (4,0) {$\mathcal W$} ;
-		\node[dpadded, thick](U) at (6.7,0)  {$\mathsf U \cong \mathbb R$} ;
-		
-		
-		\draw[arr] (D) -- node[above]{$\Pr(\mathcal W| D)$}(W);
-		\draw[arr] (W) -- node[above]{$U_{\cal W}$} (U);
-		\end{tikzpicture}
-	\end{center}\vspace{1em}
-	
-	Note also that if the preferences on $\cal W$ did not come from a utility function, but rather you simply had preferences over possible worlds, we have an even simpler picture:
-	
-	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded, dashed, active] (D) at (0,0) {Drink};
-		\node[dpadded, thick](W) at (4,0) {$\mathcal W$} ;	
-		
-		\draw[arr] (D) -- node[above]{$\Pr(\mathcal W| D)$}(W);
-		\end{tikzpicture}
-	\end{center}\vspace{1em}
-	
-	This is a quick graphical illustration of why preferences representable by utility functions are a strict sub-class of preferences over worlds. Also, it suggests that a utility function is mathematically a ``belief-like'' object, tying two domains together, which is why it makes sense to define products between it and probability distributions. 
-	
-	Moreover, if the only thing we cared about was the special utility box anyway, both the additive separability and conditional independence assumptions have a graphical interpretation if we represent them in this manner. Consider the diagram below:
-	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded, dashed, active](D) at (1.2,0) {Drink};
-		\node[dpadded, dashed](C) at (4,1.2) {Caffiene} ;
-		\node[dpadded, dashed](W) at (4.1,3) {Worker Conditions} ;
-		\node[dpadded, dashed](E) at (4,-1.2) {Experiences} ;
-		\node[dpadded, dashed](WW) at (7.4,0) {$\mathcal W$} ;
-		\node[dpadded,thick](U) at (9.9,0) {$\mathsf U $} ;
-		
-		
-		\draw[arr] (D) -- (C.west);
-		\draw[arr] (D) -- (W.south west);
-		\draw[arr] (D) -- (E.west);
-		\draw[arr, dashed] (D) -- (WW);
-		
-		\draw[arr, dashed] (W) to[bend left] (U);
-		\draw[arr, dashed] (C.east) to[bend left=10] (U);
-		\draw[arr, dashed] (E) to[bend right] (U);
-		
-		\draw[arr] (WW) -- node[below]{$U_{\cal W}$} (U);
-		\draw[arr] (WW) -- (C.east);
-		\draw[arr] (WW) -- (W.east);
-		\draw[arr] (WW)  -- (E.east);
-		
-		\end{tikzpicture}
-	\end{center}
-	The line from Drink to $\mathcal W$ has to be inferred somehow, if the only way we can compute value is by going to $\sf U$ via $U_{\cal W}$. Doing this by assuming that all of the variables are independent is the only option we really have available, which fully utilizes all of the information we have in the diagram.
-	
-	%	This is false:
-	%	More specifically, every triangle should commute: inferring your caffeination from the drink choice should be the same as inferring the impact of drink choice on the world, followed by a determination of your caffeination in that impact. Requiring that this hold for all three of the triangles on the left is related to the conditional independence assumption, and requiring that it hold for the three on the right is related to the additive separability one.
-	
-	
-	%	\subsubsection{Uses}
-	
-	The decision of what drink to have does not exist in a vacuum. Suppose you also have to decide what restaurant to go to get lunch, and also where to buy appliances, and groceries. Each of these depend on what drinks you like, among other things. This might look something like the diagram below.
-	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded,active] (A) at (-2,2){Appliance Store};
-		\node[dpadded,active] (L) at (-2.4,0){Lunch Restaurant};
-		\node[dpadded,active] (G) at (-1,-2){Grocery Store};
-		
-		\node[dpadded, dashed] (D) at (1.5,0) {Drink};
-		\node[dpadded, ](C) at (4,1.2) {Caffiene} ;
-		\node[dpadded, ](W) at (4.1,3) {Worker Conditions} ;
-		\node[dpadded, ](E) at (4,-1.2) {Experiences} ;
-		%		\node[dpadded, dashed](WW) at (6.7,0) {$\mathcal W$} ;
-		%		\node[dpadded,thick](U) at (9.0,0) {$\mathsf U $} ;
-		
-		
-		\draw[arr] (D) -- (C.west);
-		\draw[arr] (D) -- (W.south west);
-		\draw[arr] (D) -- (E.west);
-		%		\draw[arr, dashed] (D) -- (WW);
-		
-		\draw[arr] (A) -- (D);
-		\draw[arr] (L) -- (D);
-		\draw[arr] (G) -- (D);
-		
-		\draw[arr, gray!30] (G) -- +(3,-1.2);
-		\draw[arr, gray!30] (G) -- +(0,-1.8);
-		\draw[arr, gray!30] (A) -- +(0,2);
-		\draw[arr, gray!30] (A) -- +(-2,1.8);
-		\draw[arr, gray!30] (L) -- +(-3,-1);
-		\draw[arr, gray!30] (L) -- +(-3,1);
-		
-		%		\draw[arr] (WW) -- node[above]{$U_{\cal W}$} (U);
-		%		\draw[arr] (WW) -- (C.east);
-		%		\draw[arr] (WW) -- (W.south east);
-		%		\draw[arr] (WW)  -- (E.east);
-		
-		\end{tikzpicture}
-	\end{center}
-	Having to re-compute your preference for drinks every time you have to make a decision is expensive, and while it is always possible that your drink preference would have changed in the mean time if you had re-computed it, this is probably not a very effective use of your computation, which could be spent sorting through the many other relevant features of grocery stores and restaurants. 
-	
-	Once again, this can be thought of in two ways: the classical one is to state that 
 	
 %	Now that we have some formalism,
 	
