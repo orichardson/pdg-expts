@@ -77,6 +77,8 @@
 \newcommand\leqc{\preccurlyeq}
 \newcommand\mat[1]{\mathbf #1}
 \newcommand{\indi}[1]{\mathbbm{1}_{\left[\vphantom{\big[}#1 \vphantom{\big]}\right]}}
+\newcommand\m[1]{\mathbf m_{\mathsf #1}}
+
 
 \title{A Theory of Dynamic Preferences}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
@@ -177,9 +179,7 @@
 
 	\section{Coffee vs Beer}
 	\begin{example}
-		At one time you were a baby, who had never encountered coffee or beer. Your parents are from a part of the world where neither was common, and so the preference could not have been genetically determined. But now you have a strong preference for coffee over beer. At some point, something must have changed.
-		
-		On the other hand, you've always had a sense of good and bad experiences
+		At one time you were a baby, who had never encountered coffee or beer. Your parents are from a part of the world where neither was common, and so such a preference could not have been genetically determined. Now you have a strong preference for coffee over beer, which is informed by your experiences --- things you've always had preferences over.
 	\end{example}
 	
 	\begin{example}
@@ -189,7 +189,7 @@
 	\begin{example}
 		You initially have no preference between beer and coffee. Through a process unknown to you, interesting people are more likely to sit down and talk to you if you have coffee than if you have beer. Your experiences shape your preferences between the two drinks; also, you learn to enjoy the taste of coffee more.
 		
-		After having formed the preference for coffee, you move to a new place where all of the interesting hip people drink beer, and coffee drinkers sit alone with their headphones. Despite having originally chosen coffee (unintentionally) to make friends, you now intrinsically value its taste. 
+		After having formed the preference for coffee, you move to a new place where all of the interesting hip people drink beer, and coffee drinkers sit alone with their headphones. Despite having originally chosen coffee (unintentionally) to make friends, you now value its taste. 
 	\end{example}
 
 	\begin{example}
@@ -730,15 +730,34 @@
 
 	\section{Present Formalism}
 	\subsection{Representation}
-	At each point in time, a representation of the agent's state $(\mathcal D_t, \mathcal B_t)$ consists of a collection of preference domains $\mathcal D_t = \{ (D, \mat D) \}$, as well as a collection of links $\mathcal B_t$ between connecting some subset of pairs of domains together,	
+	\begin{defn}
+		A \emph{preference domain} $\mathsf D = (D, \vartheta, S, \m D)$ is a non-empty set of alternatives $D$, some parameter space $\vartheta$, a semiring $S$, and a method $\m D$ of getting a preference matrix $\mat D: D \times D \to S$ from any setting of parameters $\theta \in \vartheta$.
+	\end{defn}
+
+	\begin{defn}
+		A \emph{preference link} $L [\mathsf A \to \mathsf B]$ between the preference domains $\mathsf A = (A, \vartheta_A, S_A, \m A)$ and $\mathsf B = (B, \vartheta_B, S_B, \m B)$ is a parameterized function 
+		\[ L : \vartheta \to (B \times B \to S_B) \to (A \times A \to S_A)  \]
+	\end{defn}
 	
-	\[  \mathcal B_t \subseteq \prod_{A, B \in \mathcal D_t} \Big( A \to \Delta B \Big) \] 
+	At each point in time, a representation of the agent's state $(\mathcal D_t, \mathcal B_t)$ consists of 
 	
-	i.e., for some subset of pairs of domains $\{ (A_i, B_i) \}_i$, we have a probability distribution $\Delta B_i$ over $B_i$ associated each element of $A_i$. We will write $B [X \to Y]$ or $\Pr(Y | X)$ to denote this conditional distribution $B \in \mathcal B$ over $Y$ whose co-domain is $X$.
+	\begin{itemize}
+		\item a collection of preference domains $\mathcal D_t$, each element $\mathsf D = (D, \vartheta, S, \m D, \theta)$ of which is a set of alternatives $D$, some parameter space $\vartheta$, a semiring $S$, and a way of getting a preference matrix $\mat D$ from a particular setting of parameters $\theta \in \vartheta$
+		\[ \m D: \vartheta \to M_D(S) \quad\text{or equivalently}\quad \m D : \vartheta \to D \to D \to S \]
+		For ease of notation, if $\mathsf D$ is a preference domain, define $\mat D := \m d(\theta)$
+		to describe the system statically, it is enough to give the set $D$ and the matrix $\mat D$, but by allowing this more general form, we can deal with compressed representations in a more satisfying way, without requiring that agents carry these matrices around.
+		
+		\item a collection of links $\mathcal B_t$ between connecting some subset of pairs of domains together,	
+		
+		\[  \mathcal B_t \subseteq \prod_{A, B \in \mathcal D_t} \Big( A \to \Delta B \Big) \] 
+		
+		i.e., for some subset of pairs of domains $\{ (A_i, B_i) \}_i$, we have a probability distribution $\Delta B_i$ over $B_i$ associated each element of $A_i$. We will write $B [X \to Y]$ or $\Pr(Y | X)$ to denote this conditional distribution $B \in \mathcal B$ over $Y$ whose co-domain is $X$.
+	\end{itemize}
+	
 	
 	
 	\begin{remark}
-		Fixing a time $t$, if we were to forget the orderings and treat the domains as sets, and the edges formed by $\mathcal B_t$ are acyclic, then $(\mathcal D_t, \mathcal B_t)$ forms a Bayesian Network.
+		Fixing a time $t$, if we were to forget the orderings and treat the domains as their underlying sets, the edges formed by $\mathcal B_t$ are acyclic, and every non-empty domain has at least one link into it, then $(\mathcal D_t, \mathcal B_t)$ forms a Bayesian Network.
 	\end{remark}
  
  	
@@ -747,8 +766,12 @@
 	
 	
 	
-	For each link, whose conditional distribution we imagine being parameterized by some latent variables $\theta$, we define the inconsistency at a domain $D$ as the sum of differences between 
-	\[ \zeta_\Theta(D) = \left\lVert \mat D  - \sum_{B[D \to X]} B^T \mat X B \right\rVert_F \]
+	For each link, whose conditional distribution we imagine being parameterized by some latent variables $\theta$, we define the inconsistency at a domain $\sf D$ as the difference between the computed preference matrix $\mat D$, and the sum of all of the images of contributions from any given link.
+	\begin{align*}
+		\zeta_{\mathsf D}(\Theta) &= \left\lVert \mat D  - \sum_{B[D \to X]} B^T \mat X B \right\rVert_F \\
+			&= \left\lVert \m D(\Theta)  - \sum_{B[\sf D \to X]} B^T \m X(\Theta) B \right\rVert_F
+	\end{align*}
+
 	where $\Theta$ contains the parameters required to generate each of these: the link $B$, and the preferences $\mat X$ and $\mat D$.
  	\footnote{In the previous version, we defined the consistency of a link $B : X \to \Delta Y$ as 
  	 	\[ \zeta\big(B[X \to Y]\big) =  \sigma \left( \left(1- \frac{|W_X - W_Y|}{W_X + W_Y}\right) \sum_{x,x' \in X}\sum_{y,y' \in Y} X(x,x') Y(y,y') B(x)(y) B(x')(y') \right) \]
