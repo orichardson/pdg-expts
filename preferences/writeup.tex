@@ -1,7 +1,8 @@
 \documentclass{article}
 
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb, bbm}
+\usepackage{mathtools} %also loads amsmath
+\usepackage{amssymb, bbm}
 \usepackage[backend=biber,
 	style=alphabetic,
 	%	citestyle=authoryear,
@@ -12,6 +13,7 @@
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
 
+\usepackage{blkarray} % for matrices with labels
 \usepackage{microtype}
 \usepackage{relsize}
 \usepackage{tikz}
@@ -64,9 +66,8 @@
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
-
+\usepackage{xstring}
 \usepackage{enumitem}
-
 
 %\newcommand\duplicat[1]{\gdef\mylist{}\foreach \x in {#1}{\xdef\mylist{\mylist (\x) (lab-\x) }}\mylist} %% this doesn't work :((
 \newcommand\lab[1]{(#1)(lab-#1)}
@@ -79,6 +80,45 @@
 \newcommand{\indi}[1]{\mathbbm{1}_{\left[\vphantom{\big[}#1 \vphantom{\big]}\right]}}
 \newcommand\m[1]{\mathbf m_{\mathsf #1}}
 
+%\newenvironment{idxmat}[1]{
+%	\begin{matrix} & \begin{matrix} \footnotesize\noexpandarg\StrSubstitute{#1}{,}{&\footnotesize}\end{matrix} \\[0.2em]
+%		\begin{matrix*}[r]   \footnotesize\noexpandarg\StrSubstitute{#1}{,}{\\\footnotesize}  \end{matrix*} &\left[ \begin{matrix}		
+%}{
+%	\end{matrix}\hfill\right]\end{matrix}
+%}
+
+
+%OMG THIS WORKS
+\def\hwrapcells#1[#2]{
+	\expandafter#2{\expandarg\StrBefore{#1}{,}}
+	\expandarg\StrBehind{#1}{,}[\tmp] 
+	\xdef\tmp{\expandafter\unexpanded\expandafter{\tmp}}
+	&	
+	% {~~\color{gray} \tmp~~~~}
+	\expandarg\IfSubStr{\tmp}{,}{\hwrapcells{\tmp}[#2]}{ \expandafter#2{\tmp} }
+}
+\def\vwrapcells#1[#2]{
+	\expandafter#2{\expandarg\StrBefore{#1}{,}}
+	\expandarg\StrBehind{#1}{,}[\tmp] 
+	\xdef\tmp{\expandafter\unexpanded\expandafter{\tmp}}
+	\\	
+	% {~~\color{gray} \tmp~~~~}
+	\expandarg\IfSubStr{\tmp}{,}{\vwrapcells{\tmp}[#2]}{ \expandafter#2{\tmp} }
+}
+
+
+\newenvironment{idxmat}[1]{%\footnotesize\noexpandarg\StrSubstitute{#1}{,}{&\footnotesize}
+	\def\idxstyle{\footnotesize\color{gray}\text}
+	\def\itemlist{#1}
+	\begin{matrix}  \begin{matrix} \hwrapcells{\itemlist}[\idxstyle]  \end{matrix} \\[0.2em]
+		 \left[ 
+			\begin{matrix}
+				\hwrapcells{\itemlist}[\idxstyle\phantom]  \\[-1em]
+}{
+		\end{matrix}\right]&
+		\begin{matrix*}[l] \vwrapcells{\itemlist}[\idxstyle] \end{matrix*} 
+	\end{matrix}
+}
 
 \title{A Theory of Dynamic Preferences}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
@@ -233,7 +273,7 @@
 	\end{example}
 
 	\begin{example}
-		Your family lives in Hong Kong. You hate flying; you also dislike China. But you love your family, and this is an immensely positive thing which out-weighs flying. As a result, you would fly to Hong Kong if (and only if) you could visit your family; the experiences are perfectly correlated and causally linked.
+		Your family lives in Hong Kong. You hate flying; you also dislike the city. But you love your family, and this is an immensely positive thing which out-weighs flying. As a result, you would fly to Hong Kong if (and only if) you could visit your family; the experiences are perfectly correlated and causally linked.
 		
 		Consider two cases:
 		\begin{enumerate}[nosep]
@@ -816,8 +856,8 @@
 	\[ \mathrm{LinkInst}[{\sf A \to B}] := A \to \Delta B \] 
 	which is to say, a probability distribution $\Delta B$ over the alternatives in $B$ associated each alternative in $A$. We will write $\Pr(Y | X)$ to denote this conditional distribution $B \in \mathcal B$ over $Y$ whose co-domain is $X$. We can use the conditional probability distribution $P$ (thought of as a stochastic matrix) to generate the link function
 	\begin{align*}
-		L  &: (B\times B \to \mathbb R) \to (A \times A \to \mathbb R)\\
-		&\mat B \mapsto P^T \mat B P 
+		L  : (B\times B \to \mathbb R) &\to (A \times A \to \mathbb R)\\
+		\mat B \quad&\mapsto\quad P^T \mat B P 
 	\end{align*}
 	Writing this out more carefully, this is
 	
@@ -825,12 +865,12 @@
 	
 	We define the link instances first, because they are the more important piece of the puzzle. The parameterization for the links corresponds to the entrenchment knobs we want to expose for belief revision, and so when we ultimately tie this into belief revision, gradient descent on parameters will allow us to keep both preferences and reject the belief that they are related. For the examples here, we are primarily concerned with demonstrating preference rather than belief updates, so we will leave this unformalized so we can manipulate link updates with words.
 	
-	\begin{prop}
-		Fixing a time $t$, if we were to forget the orderings and treat the domains as their underlying sets, the edges formed by $\mathcal B_t$ are acyclic, and every non-empty domain has at least one link into it, then $(\mathcal D_t, \mathcal B_t)$ forms a Bayesian Network.
-	\end{prop}
-	\begin{proof}
-		\todo{make argument from initial object $\bf 1$}
-	\end{proof}
+%	\begin{prop}
+%		Fixing a time $t$, if we were to forget the orderings and treat the domains as their underlying sets, the edges formed by $\mathcal B_t$ are acyclic, and every non-empty domain has at least one link into it, then $(\mathcal D_t, \mathcal B_t)$ forms a Bayesian Network.
+%	\end{prop}
+%	\begin{proof}
+%		\todo{make argument from initial object $\bf 1$}
+%	\end{proof}
  	\begin{remark}
  		If $\mathcal D$ consists of only a dingle domain $D$, with the identity distribution $\mathcal B = {B(x,y) = \delta_{x,y}: D \to D}$, then $\mathcal D$ is consistent, i.e., $\zeta(\mathcal D, \mathcal B) = 0$. Similarly, if there are no links, (or only identity links), then the model is consistent, because in each case the sum is vacuously zero. 
  	\end{remark}
@@ -850,9 +890,34 @@
 	\subsection{}
 	Consider example \ref{ex:caffeiene}. At time $t=0$, we have $\mathsf{Drink} \in \mathcal D_t$;  with an initial preference for beer over coffee represented by the matrix 
 	\[ \mat{D} =~~\begin{matrix} & \begin{matrix}\text{coffee} & \text{beer}\end{matrix} \\[0.2em]
-					\begin{matrix} \text{coffee} \\ \text{beer} \end{matrix} & \begin{bmatrix}
+					\begin{matrix*}[r] \text{coffee} \\ \text{beer} \end{matrix*} &\left[ \begin{matrix}
 						0 & 1 \\ -1 & 0 
-					\end{bmatrix}\end{matrix} \] 
+					\end{matrix}\hfill\right]\end{matrix} \] 
+					
+	%%%%%%%%%% TESTS %%%%%%%
+%	\[ \mat{D} =~~\begin{matrix} & \begin{matrix}\text{coffee} & \text{beer} & \text{n3} & \text{another} \end{matrix} \\[0.2em]
+%		\begin{matrix*}[r] \text{coffee} \\ \text{beer} \end{matrix*} &\left[ \begin{matrix}
+%			0 & 1 & 0 & 0\\ -1 & 0 & 0 & 0
+%		\end{matrix}\hspace*{1cm}\right]\end{matrix} \] 	
+%					
+%	\[ \mat{D} = \begin{blockarray}{ccc} 
+%			&\text{coffee}& \text{beer} \\
+%			\begin{block}{r[cc]} 
+%				\text{coffee} & 0 & 1 \\ \text{beer} &-1 & 0 \\
+%			 \end{block}
+%		\end{blockarray} \] 
+		
+	\[ \begin{idxmat}{coffee,beer} 1 & 2 \\ 3 & 4 \end{idxmat} \]
+	
+	
+	
+	\[ \begin{matrix}
+		\begin{matrix}
+			a & \text{asdfffdsa} &\text{v}\\
+			\text{bafds} & q & zz\gamma\zeta
+		\end{matrix}
+	\end{matrix}\]
+	
 					
 	This preference is additively represented by a utility function. This encoding is the simplest, which is why we start with it, but it is not sufficient to distinguish between weakly held strong preferences, and strongly held weak preferences.
 	
@@ -869,9 +934,10 @@
 						\end{bmatrix}\end{matrix}   \]  
 	
 	As a result, we have 
-	\[ L(\mat C) = L^T \mat C L = \begin{bmatrix}
-		0 & -1.7 \\ 1.7 & 0
-	\end{bmatrix}\]
+	\[ L(\mat C) = L^T \mat C L =\begin{matrix} & \begin{matrix}\text{coffee} & \text{beer}\end{matrix} \\[0.2em]
+	\begin{matrix} \text{coffee} \\ \text{beer} \end{matrix} & \begin{bmatrix}
+	0 & -1.7 \\ 1.7 & 0
+	\end{bmatrix}\end{matrix} \]
 	which we interpret as the preference for drinks that we \textit{should} have, looking at it exclusively through the lens of caffeine. Note that 1.7 is not as large as 2, because there is some uncertainty, but points in the opposite direction from our original preference on $D$. Before we continue with the updating rule, we want to distinguish this case from the framing problem: why should your preference for caffeine not change much? Presumably it is anchored by some reason you want caffeine; this is probably because we want to get work done --- we have another domain $\sf W$, which looks like this:\\
 	
 	
@@ -889,7 +955,14 @@
 	Without modeling the exact dynamics of what happens with the work domain, it will in turn be linked to other things, perhaps with cycles, and this portion of the graph will have a great deal of weight --- we will simplify this by just assuming that $W$ does not change, and that the link $L[{\sf C \to W}]$ results in our original preference for caffeine, with small deviations from $\mat C$ resulting in a much higher impact on the global inconsistency than any of the parts of the picture we've already modeled.
 	
 	Now, we can apply our update rule:
-	\[ \zeta_{\sf D}(\mat D) =  \] 
+	\begin{align*}
+		\zeta_{\sf D}(\mat D) &= \left\lVert \m D(\Theta)  - \sum_{B[\sf D \to X]} B\big[\m X(\Theta) \big] \right\rVert_F 
+		= \Big\lVert \mat D  - L(\mat C) \Big\rVert_F \\
+		&= \Big\lVert \begin{bmatrix}
+		content
+		\end{bmatrix}  - L(\mat C) \Big\rVert_F
+	\end{align*}
+
 	
 	
 %	Now that we have some formalism,
