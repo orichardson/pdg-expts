@@ -17,7 +17,7 @@
 	There are two components involved: 
 	\begin{enumerate}[nosep]
 		\item Representation: An account of an agent's values as distributed across a network, whose nodes are preferences on small sets of alternatives, and whose edges are beliefs about the impact of one choice on another.
-		\item Dynamics: A formulation of how to revise preferences due to inconsistencies that may arise as beliefs change.
+		\item Dynamics: A formulation of how to revise preferences due to inconsistencies that may arise as beliefs change, and the representation shifts due to new concepts.
 	\end{enumerate}
 		
 
@@ -156,51 +156,94 @@
 	\end{center}
 	There are alternatives in each of the domains, preferences among the alternatives (we draw $w_1 \to w_2$ to communicate that $w_1 \leqc w_2$, i.e., that $w_2$ has higher utility than $w_1$), and links (conditional probability distributions, whose values are not drawn here) between them. 
 	
-	\subsubsection{Reasons for This Choice of Representation}
-	It allows us to:
+	\subsubsection{Benefits of this Representation}
+	It allows us:
 	\begin{itemize}[nosep]
-		\item represent inconsistent preferences
-		\item accommodate the formation of new preferences on new domains which 
-		\item represent expected utility as a special case of filtering through beliefs
-		\item store preferences about common choices so they can be re-used and nudged without fully recomputing everything for each decision
+		\item to represent inconsistent and redundant preferences
+		\item to introduce new choices, and to modify or delete preference information without needing to globally re-compile a joint preference
+		\item to emulate other preference descriptions (section \ref{sec:emulation})
+		\item to store preferences about common choices so they can be re-used and nudged without fully recomputing everything for each decision
 	\end{itemize}
+	Of course, the real reason for thinking about them this way is because it facilitates change of preferences:
 %	It does not fully specify a joint preference on all of the nodes, but neither does a CP net, which only defines a partial order on the product of all variables. I argue that this complete preference on all possible outcomes is not a feature we need to represent, because we will never have a choice between them all. The only reason to do so is so that we can compute expected utility.
 	
 %	While we no longer always have an explicit answer to the question ``is this world better than that one'' (a choice we rarely need to make), we still have a decision making apparatus, and in the case where there's no inconsistency, we're still implicitly defining a joint utility function.
 	
 %	Moreover, maintaining it as more domains are added to the picture becomes very expensive.
 	
-	\subsubsection{Departure from BNs and CP Nets}
-	
-	This differs from a Bayseian Network in several important ways:
-	\begin{enumerate}
-		\item It encodes additional preference information in the domains.
-	
-		
-		\item Unlike a Bayseian Network, the fact that there are two arrows into $\sf C$ in the diagram above does not mean that there is a distribution $\Pr({\sf C \mid D, E})$, but rather two different ones $\Pr\sf( C \mid E)$ and $\Pr\sf(C \mid D)$. It is possible to recover this meaning if we are allowed to introduce new product nodes:
-		\begin{center}
-			\begin{tikzpicture}
-				\node[dpadded] (D) at (0,0) {$\sf D$};
-				\node[dpadded] (E) at (0,-2) {$\sf E$};
-				\node[dpadded] (DE) at (2.5,-1) {$\sf D \times E$};
-				\node[dpadded] (C) at (5,-1) {$\sf C$};
-				
-				\draw[arr] (DE) -- (D);
-				\draw[arr] (DE) -- (E);
-				\draw[arr] (DE) -- (C);
-			\end{tikzpicture}
-		\end{center}
-	
-		\item There is no need to have a probability distribution 
-		
-	\end{enumerate}
-	As a result, a model like this does not always represent a factorization of the joint distribution on the product of the variables. In some sense, it does represent a factorization of joint preferences on the variables, but not in a way analogous to the BN approach (this is what CP Nets do).
 
-	While it is true that I have implicitly defined a utility function, 
 	
 	\subsection{Dynamics}
 	
+	Now, given a representation, we can compute some measure of inconsistency, and then try to move preferences (or even beliefs) around so as to reduce the total inconsistency. This simple procedure has a number of interesting consequences.
+	% reasonable utility functions from strange starting places
+	% value capture
 	
+	\subsubsection{Preference Formation}
+	Suppose you're trying to decide what your preference for $X$ is: a standard procedure that humans rely on is the compilation of a (weighted) list of pros and cons. In other words, you examine the impact of a decision in $X$ on other things you care about, say variables $A, B, C\ldots$. Maybe $x_1$ makes $a_1$ more likely, which is a good thing, also $b_3$ and $c_2$ which are both bad. On the other hand, maybe $x_2$ doesn't impact $A$ as much, but makes $b_1$ and $c_1$ more likely, which is ideal, making $x_2$ better than $x_1$. Now, we have external reason to prefer $x_2$ to $x_1$ --- which means that there's a preference conflict if we were initially indifferent between the alternatives in $X$! By revising our preferences in $X$ to reflect $x_2 \geqc x_1$, we have reduced the conflict. 
+
+	\begin{center}
+		\begin{tikzpicture}
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
+				\node[bpt={x\x | $x_\x$}] at (\y,2) {};
+			}
+			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[Dom={$\sf X$ (X) around \lab{x1}\lab{x\N}}] {};
+			
+			%A
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5-3] \x in {1, ..., \N} {
+				\node[bpt={a\x | $a_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (a2) to[bend left=50](a1);
+			\node[bDom={$\sf A$ (A) around \lab{a1}\lab{a\N}}] {};
+			
+			%B
+			\def\N{3}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
+				\node[bpt={b\x | $b_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (b3) to[bend left=30](b1);
+			\draw[arr,->, thin, gray] (b2) to[bend right=10](b1);
+			\node[bDom={$\sf B$ (B) around \lab{b1}\lab{b\N}}] {};
+			
+			%C
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+ 5] \x in {1, ..., \N} {
+				\node[bpt={c\x | $c_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (c2) to[bend left=50](c1);
+			\node[bDom={$\sf C$ (C) around \lab{c1}\lab{c\N}}] {};
+			
+			\draw[arr] (X) -- (A);
+			\draw[arr] (X) -- (B);
+			\draw[arr] (X) -- (C);
+		\end{tikzpicture}
+	\end{center}
+
+	Note what we have done: we have a link for how a choice in $X$ impacts downstream things, and so existing preferences flow backwards against the flow of causality, to form a preference on $X$. This is the standard, deductive way of making decisions. To see this more clearly, consider the diagram before, except where 
+	
+	\begin{center}
+		\begin{}
+			content
+		\end{}
+	\end{center}
+	
+%	This is somehow the most natural, and computationally easy way to compute 
+	
+	\subsubsection{Preference Learning}
+	
+	There is also 
+	
+	
+%	One way of representing this is as a diffusion of computation across the network
+	
+%	Intuitively, a 
+	
+		
+	% axioms are cycles
+	% topology of the graph 
 	
 	
 	\section{Examples}
@@ -221,7 +264,7 @@
 	\end{quotation}
 	
 	This creates a conflict--- it is impossible to have all four of
-	\[ \Big\{\text{consistency},\qquad a_1 \geqc a_2,\qquad b_1 \leqc b_2,\qquad\text{the belief that}~a_1 \equiv b_1 \land a_2 \equiv b_2\Big\}\]
+	\[ \Big\{\text{consistency},\qquad a_1 \geqc a_2,\qquad b_1 \leqc b_2,\qquad\text{the belief that}~(a_1 \equiv b_1) \land( a_2 \equiv b_2)\Big\}\]
 	
 	Before we go any further, notice that there's not even an obvious, natural representation of this conundrum in terms of classical decision theory: if utilities are over outcomes, and the two descriptions pick out the same set of outcomes (without changing their relative probabilities), then you will never be in a situation like this. Let's try to salvage this from the classical point of view in a few ways.
 	%Let's try a few. 
@@ -242,7 +285,7 @@
 	Clearly, this is a flimsy model as it stands, but it's not clear how to fix it. If we add independence of description as an axiom, we're back to our original representation problem. 
 	
 	\subsubsection{}
-	Another tactic we compatible with the classical decision theory perspective\footnote{the model described here corresponds to an influence diagram (where there are two variables, each is a sequence of three nodes: decision $\to$ uncertainty $\to$ value) \todo{diagram} }, this time much closer to our own formulation, is to define utility by additively separable components, each arising from a variable (we have once again implicitly given ourselves utilities over descriptions of the world), relying on belief revision to effectively make some worlds impossible.
+	Another tactic we compatible with the classical decision theory perspective\footnote{the model described here actually corresponds to an influence diagram with two decision and two value nodes}, this time much closer to our own formulation, is to define utility by additively separable components, each arising from a variable (we have once again implicitly given ourselves utilities over descriptions of the world), relying on belief revision to effectively make some worlds impossible.
 	
 	The set of possible worlds which we have utilities over is once again all possible assignments to variables, and hence includes ``impossible possible worlds'', such as the one where $a_1$ and $b_2$ are simultaneously true. By belief updating, the likelihood of these worlds can be driven to zero, and when we say ``$a_1 \geqc a_2$'', we really mean that the variable $A$ has an additively separable component of our total utility function (resp. for $B$), and it is merely an unfortunate fact of life that good things are attached to bad ones. If the two preferences carry the same weight, then as the possibility of achieving impossible worlds vanish, the two given preferences annihilate one another and we are left indifferent, as far as the total utility function is concerned.
 	
@@ -264,9 +307,9 @@
 	
 	We propose a slight modification of the previous model, where preferences actually flow along the beliefs that link them: In our case, this means we consider what it would look like to make a decision about variable $B$ looking only at what we care about in $A$. At this point, we should be a bit more concrete. 
 
-	 To avoid numbers and keep this as simple as possible, let's further 
+	To avoid numbers and keep this as simple as possible, let's further 
 	
-	Suppose our preference on $A$ ($a_1 \geqc a_2$) has an image of 
+	Suppose our preference on ($a_1 \geqc a_2$) has an image of 
 	\begin{center}
 	\begin{tikzpicture}
 		\node[dpadded] (A) {$A$};
@@ -286,10 +329,86 @@
 	We can use the same technique of reducing conflict to also 
 	
 %	\subsection{
-	\section{Addressing some Concerns}
+	\section{Ties To Existing Models}
 	
-	\subsection{Why is this not an Influence Diagram?}
-	The nodes and beleifs are not static, and inconsistency is not a problem for them. 
+	\subsection{Emulating Other Structures}\label{sec:emulation}
+	
+	\subsection{Important Differences}
+	
+	\subsubsection{Departure from BNs and CP Nets}
+	
+	Although this representation looks like a Bayseian Network, and in fact any BN can be encoded in this way, the two formulations differ at face value in several important ways:
+	\begin{enumerate}
+		\item We encode preference information in each domains, 
+		
+		
+		\item The existence of two arrows into $\sf C$ in the diagram above does not mean that there is a distribution $\Pr({\sf C \mid D, E})$, but rather two different ones $\Pr\sf( C \mid E)$ and $\Pr\sf(C \mid D)$. It is possible to recover this meaning if we are allowed to introduce new product nodes:
+		\begin{center}
+			\begin{tikzpicture}
+			\node[dpadded] (D) at (0,0) {$\sf D$};
+			\node[dpadded] (E) at (0,-2) {$\sf E$};
+			\node[dpadded] (DE) at (2.5,-1) {$\sf D \times E$};
+			\node[dpadded] (C) at (5,-1) {$\sf C$};
+			
+			\draw[arr] (DE) -- (D);
+			\draw[arr] (DE) -- (E);
+			\draw[arr] (DE) -- (C);
+			\end{tikzpicture}
+		\end{center}
+		
+		\item Similarly, a node without any parents has a probability distribution on it in a BN; this is not the case for us (think of this as the zero-arity product, making this a special case of the above). Once again, this can be represented by explicitly adding an edge, from the singleton preference domain:
+		\begin{center}
+			\begin{tikzpicture}
+			\node[dpadded] (1) at (0,0) {$\sf 1$};
+			\node[dpadded] (D) at (4,0) {$\sf D$};
+			
+			
+			\draw[arr] (1) to node[above]{$\Pr(D)$} (D);
+			\end{tikzpicture}
+		\end{center}
+		
+	\end{enumerate}
+	As a result, a model like this does not always represent a factorization of the joint distribution on the product of the variables. In some sense, it does represent a factorization of joint preferences on the variables, but not in a way analogous to the BN approach (this is what CP Nets do).
+	
+	While it is true that I have implicitly defined a utility function, 
+	
+	
+	\subsubsection{Static description in terms of Influence Diagrams}
+	Our rounded nodes function somewhat like a hybrid of the three nodes used in influence diagrams: aleatory variables (circles), decisions (squares), and values (octagons). \todo{}
+	
+	\begin{center}
+		\begin{tikzpicture}[baseline=(current bounding box.center)]
+		\node[dpadded] (D) at (0,0) {$\sf D$};
+		\node[dpadded] (C) at (2,0) {$\sf C$};
+		\node[dpadded] (E) at (1,-1.6) {$\sf E$};
+		\draw[arr] (D) -- (C); \draw[arr] (E) -- (C); \draw[arr] (E) -- (D);
+		\end{tikzpicture}
+		$\quad\stackrel{?}{\cong}\quad$
+		\begin{tikzpicture}[lesspad/.style={inner sep=0.6em,outer sep=0.2em},baseline=(current bounding box.center)]
+		\node[dpadded, square, lesspad] (dD) at (0,3) {$\sf D$};
+		\node[dpadded, circle, lesspad] (aD) at (-0.8,1.5) {$\sf D$};
+		\node[dpadded, octagon, lesspad] (vD) at (-1.6,0) {$\sf D$};
+		\draw[arr] (dD) -- (aD); \draw[arr] (aD) -- (vD);
+		
+		\node[dpadded, square, lesspad] (dC) at (2,3.0) {$\sf C$};
+		\node[dpadded, circle, lesspad] (aC) at (2.8,1.5) {$\sf C$};
+		\node[dpadded, octagon, lesspad] (vC) at (3.6,0) {$\sf C$};
+		\draw[arr] (dC) -- (aC); \draw[arr] (aC) -- (vC);
+		
+		\node[dpadded, square, lesspad] (dE) at (-0.5,-1) {$\sf E$};
+		\node[dpadded, circle, lesspad] (aE) at (1,-1) {$\sf E$};
+		\node[dpadded, octagon, lesspad] (vE) at (2.5,-1) {$\sf E$};
+		\draw[arr] (dE) -- (aE); \draw[arr] (aE) -- (vE);
+		
+		\draw[arr] (dD) -- (aC);
+		\draw[arr] (dE) -- (aD);
+		\draw[arr] (dE) -- (aC);
+		
+		%		\draw[arr] (DE) -- (D);
+		%		\draw[arr] (DE) -- (E);
+		%		\draw[arr] (DE) -- (C);
+		\end{tikzpicture}
+	\end{center}
 	
 	
 \end{document}
