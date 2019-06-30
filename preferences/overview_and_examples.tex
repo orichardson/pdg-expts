@@ -12,7 +12,7 @@
 	I will use no numbers, prove nothing here, and just make some arguments and provide examples.
 	
 	\section{A Very Brief Description}
-	This is an attempt at a model of joint preference and belief revision. It allows for representational flexibility, so that agents need not always have a perfectly consistent picture of reality, and is intended to capture phenomena such as learning preferences from data and revising them when they're inconsistent, while also disallowing value changes which would be objectionable from an agent's current perspective.
+	This is an attempt at a model of joint preference and belief revision. The representation is flexible: agents need not always have a perfectly consistent picture of reality, intermediate representations have meanings, and we can capture phenomena such as learning preferences from data and revising them when they're inconsistent --- while also disallowing value changes which would be objectionable from an agent's current perspective.
 	
 	There are two components involved: 
 	\begin{enumerate}[nosep]
@@ -86,8 +86,8 @@
 		\item Our model reduces to standard expected utility calculations in the degenerate case where the agent has preferences over possible histories of worlds, the representation of a world never changes, and the agent is cognitively unbounded
 		\item It has a categorical interpretation which has some features I'd like to explore: in particular, meta-preferences seem to be related to higher order structure, a total utility function is like a limit, a total probability function is like a co-limit, preference-preserving beliefs are functorial, and the nodes already form a 2-category, whose objects are themselves enriched flat categories.
 		\item There also a natural interpretation of this as an artificial neural network. If the underlying graph is a DAG with one sink, then it is a feed-forward network for calculating expected utility. In most interesting cases, it will have recurrent connections and no special output.
-		\item If we throw out the preference information, it can be converted to a Baysian Network with a simple transformation
-		\item If the nodes are all propositions with a preference for truth, and we add some explicit rules for creating and deleting nodes, it becomes an inductive theorem prover.
+		\item For agents that have priors, the beliefs encoded in this way can be converted to a Baysian Network with a simple transformation
+%		\item If the nodes are all propositions with a preference for truth, and we add some explicit rules for creating and deleting nodes, it becomes an inductive theorem prover.
 		\item The preference propagation is a bit like broadcasting on a network (of physical machines) to compute path lengths. This can be done Dijkstra / Distributed Bellman Ford \footnote{depending on whether we take right or left powers of matices} and can be computed by taking iterative powers of a giant matrix over the tropical semi-ring. Funnily enough, this is exactly how you compute the transitive closure of preference matrices on a small scale (except with a different semi-ring), which lends more credibility to the higher order categorical interpretation.
 	\end{itemize}
 
@@ -157,7 +157,7 @@
 	There are alternatives in each of the domains, preferences among the alternatives (we draw $w_1 \to w_2$ to communicate that $w_1 \leqc w_2$, i.e., that $w_2$ has higher utility than $w_1$), and links (conditional probability distributions, whose values are not drawn here) between them. 
 	
 	\subsubsection{Representing Utilities, Probabilities}
-	While I will explain more details of the correspondence between this presentation and other standard ones in section \ref{sec:emulation}, the examples make more sense if 
+	While I will explain more details of the correspondence between this presentation and other standard ones in section \ref{sec:emulation}, the examples may be more informative if we can see how utilities and credence enter the picture.
 	
 	Suppose the only thing in my model is a single variable $A$, which can take on values $a_1, a_2, \ldots$. A preference on the alternatives often takes the form of an order, and if the order is complete and transitive, then it can be represented as a utility function. We can capture this explicitly with our model: think of utility as a separate preference domain $\sf U \cong (\mathbb R, \leq)$, whose elements are the real numbers, with a preference given by the usual ordering. Now a choice of $A$ has an impact on what happens in $\sf U$, and if we know that each choice of $A$ gives us a deterministic utility, then this impact is actually just a function, and in particular can be represented as a degenerate probability distribution $\Pr( \mathsf U \mid A)$, which is just a function from $A$ to $\mathbb R$.
 	
@@ -169,7 +169,7 @@
 	\end{tikzpicture}
 	\end{center}
 	
-	In this sense, we can think of utility functions as a way of representing preferences on $A$ as a belief about how $A$ impacts a standard universal preference domain of ``goodness''
+	In this sense, we can think of utility functions as a way of representing preferences on $A$ as a belief about how $A$ impacts a standard universal preference domain of ``goodness''. Similarly, if we have multiple variables which impact one another, 
 	
 	\todo{Refactor}{\color{gray}
 	
@@ -211,10 +211,10 @@
 	\begin{itemize}[nosep]
 		\item to represent inconsistent and redundant preferences
 		\item to introduce new choices, and to modify or delete preference information without needing to globally re-compile a joint preference
-		\item to emulate other preference descriptions (section \ref{sec:emulation})
+		\item to emulate other preference descriptions (see above, and section \ref{sec:emulation})
 		\item to store preferences about common choices so they can be re-used and nudged without fully recomputing everything for each decision
 	\end{itemize}
-	Of course, the real reason for thinking about them this way is because it facilitates change of preferences:
+	The most important reason for representing preferences this way is to facilitate preference change, described in a bit more detail below.
 %	It does not fully specify a joint preference on all of the nodes, but neither does a CP net, which only defines a partial order on the product of all variables. I argue that this complete preference on all possible outcomes is not a feature we need to represent, because we will never have a choice between them all. The only reason to do so is so that we can compute expected utility.
 	
 %	While we no longer always have an explicit answer to the question ``is this world better than that one'' (a choice we rarely need to make), we still have a decision making apparatus, and in the case where there's no inconsistency, we're still implicitly defining a joint utility function.
@@ -225,12 +225,14 @@
 	
 	\subsection{Dynamics}
 	
-	Now, given a representation, we can compute some measure of inconsistency, and then try to move preferences (or even beliefs) around so as to reduce the total inconsistency. This simple procedure has a number of interesting consequences.
+	Given a network representation of preferences, we can compute some measure of inconsistency, and then try to move preferences (or even beliefs) around so as to reduce the total inconsistency. This simple procedure has a number of interesting consequences, which we will go through in this section. 
+	%
+	Later, when we further specify the way this can be done, we will be able to explain several additional phenomena.
 	% reasonable utility functions from strange starting places
 	% value capture
 	
-	\subsubsection{Preference Formation}
-	Suppose you're trying to decide what your preference for $X$ is: a standard procedure that humans rely on is the compilation of a (weighted) list of pros and cons. In other words, you examine the impact of a decision in $X$ on other things you care about, say variables $A, B, C\ldots$. Maybe $x_1$ makes $a_1$ more likely, which is a good thing, also $b_3$ and $c_2$ which are both bad. On the other hand, maybe $x_2$ doesn't impact $A$ as much, but makes $b_1$ and $c_1$ more likely, which is ideal, making $x_2$ better than $x_1$. Now, we have external reason to prefer $x_2$ to $x_1$ --- which means that there's a preference conflict if we were initially indifferent between the alternatives in $X$! By revising our preferences in $X$ to reflect $x_2 \geqc x_1$, we have reduced the conflict. 
+	\subsubsection{Deductive Preference Formation}
+	Suppose you're trying to decide what your preference for $X$ is: a standard procedure that humans rely on is the compilation of a (weighted) list of pros and cons. In other words, you examine the impact of a decision in $X$ on other things you care about, say variables $A, B, C\ldots$. Maybe $x_1$ makes $a_1$ more likely, which is a good thing, also $b_3$ and $c_2$ which are both bad. On the other hand, maybe $x_2$ doesn't impact $A$ as much, but makes $b_1$ and $c_1$ more likely, which is ideal, making $x_2$ better than $x_1$. Now, we have external reason to prefer $x_2$ to $x_1$ --- which means that there's a preference conflict if we were initially indifferent between the alternatives in $X$! By revising our preferences in $X$ to reflect $x_2 \geqc x_1$, we can remove the conflict. 
 
 	\begin{center}
 		\begin{tikzpicture}
@@ -272,16 +274,64 @@
 		\end{tikzpicture}
 	\end{center}
 
-	Note what we have done: we have a link for how a choice in $X$ impacts downstream things, and so existing preferences flow backwards against the flow of causality, to form a preference on $X$. This is the standard, deductive way of making decisions. To see why  more clearly, consider the diagram before, except where we represent
+	Note what we have done: we have a link for how a choice in $X$ impacts downstream things, and so existing preferences flow backwards against the flow of causality, to form a preference on $X$. This is the standard, deductive way of making decisions.
 	
+	
+	To see more clearly why preferences form \textit{backwards} along links, consider the diagram before, except where we represent preferences are represented by utility functions. If we have a conditional probability $\Pr(W \mid X)$ and a utility function $U_W = \Pr(U \mid W)$, then we can simply compose them to get a utility on $X$. Note that there is not an easy way to combine a utility function on $W$ and a conditional probability that goes the other direction (see the diagram below).
+	
+	\begin{minipage}{0.48\linewidth}\centering
+		\textit{Easy to compose (deductive formation):}\\[0.5em]
+		\begin{tikzpicture}
+		\node[dpadded] (X) at (0,0){$\sf X$};
+		\node[dpadded] (W) at (2,1){$\sf W$};
+		\node[dpadded] (U) at (4,0){$\sf U$};
+		
+		\draw[archain] (X) -- (W) -- (U);
+		\draw[arr, gray] (X) to[bend left=10] (U);%node[below=0.5em]{\small$\sum_{a : A} \Pr(a \mid x) U(a)$}
+		\end{tikzpicture}\\
+		\textit{\small Existing preference $W\to U$ can be extended naturally to $X$ by precomposition, backwards along $X \to W$}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.48\linewidth}\centering
+		\textit{Hard to compose (inductive formation):}\\[0.5em]
+		\begin{tikzpicture}
+		\node[dpadded] (X) at (0,0){$\sf X$};
+		\node[dpadded] (W) at (2,1){$\sf W$};
+		\node[dpadded] (U) at (4,0){$\sf U$};
+		
+		\draw[arr] (W) to (U);
+		\draw[arr] (W) to (X);
+		\draw[arr,dashed,gray] (X) to node[below]{???} (U);
+		\end{tikzpicture}\\
+		\textit{\small Getting a utility on $X$ via $W$ requires the inversion of an arrow, or some other additional information}
+	\end{minipage}
+	\vspace{1em}
+	
+	One might wonder how this plays out if we have multiple variables instead of just one. In our earlier example, each of the three variables $A,B$ and $C$ has an additive component of the utility function, which can be visually identified as the three disjoint paths from $\sf X$ to $\sf U$.
 	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (X) at (0,1.6){$\sf X$};
+			\node[dpadded] (A) at (-3,0){$\sf A$};
+			\node[dpadded] (B) at (-1.5,0){$\sf B$};
+			\node[dpadded] (C) at (0,0){$\sf C$};
+			\node[dpadded] (U) at (0,-1.6){$\sf U$};
+			
+			\draw[archain] 	(X) -- (A.90)(A.-90) -- (U)
+							(X) -- (B.90)(B.-90) -- (U)
+							(X) -- (C) -- (U);
+							
+			\draw[arr, dashed] (X) to[bend left=70] (U);
+		\end{tikzpicture}
 	\end{center}
+	Now, our initial indifference between the alternatives in $X$ conflicts with the rest of the diagram, i.e., the other paths from $X$ to $U$. We can resolve this conflict by setting our preference on $X$ to be the sum of the other three components. 
 	
-%	This is somehow the most natural, and computationally easy way to compute 
+	This example shows that we don't need to make all diagrams commute; for consistency we rather require just that a link between $A$ and $B$ is the (weighted) sum of other paths from $A$ to $B$. Inconsistency therefore cannot be determined locally, because we need to see all of the paths.
 	
-	\subsubsection{Preference Learning}
+%	Of course, this picture cannot capture interaction effects---rather it visually encodes the additive separability assumption---but we can handle this by finding 
 	
-	There is also 
+	\subsubsection{Inductive Preference Formation: Learning}
+	
+	
 	
 	
 %	One way of representing this is as a diffusion of computation across the network
@@ -350,21 +400,27 @@
 	
 	More briefly, our complaint is that the components of the utility function didn't actually change, and that the set of variables is necessarily fixed.
 	
-	\subsubsection{In terms of preference networks}
+	\subsubsection{With Our Preference Network Model}
 	
-	We propose a slight modification of the previous model, where preferences actually flow along the beliefs that link them: In our case, this means we consider what it would look like to make a decision about variable $B$ looking only at what we care about in $A$. At this point, we should be a bit more concrete. 
-
-	To avoid numbers and keep this as simple as possible, let's further 
+	We propose a slight modification of the previous model, where preferences actually flow along the beliefs that link them: In our case, this means we consider what it would look like to make a decision about variable $B$ looking only at what we care about in $A$, and vice versa. Since the correspondence is a logical one, the ``impact'' works both ways, so for us this means we'll use two beliefs, to distinguish it from the case where one causes the other.
 	
-	Suppose our preference on ($a_1 \geqc a_2$) has an image of 
 	\begin{center}
-	\begin{tikzpicture}
+		\begin{tikzpicture}
 		\node[dpadded] (A) {$A$};
 		\node[dpadded, right=3 of A] (B) {$B$};
 		\draw[->, thick] (A.10) -- (B.170);
 		\draw[->, thick] (B.190) -- (A.350);
-	\end{tikzpicture}
+		\end{tikzpicture}
 	\end{center}
+
+	%At this point, we should be a bit more concrete. 
+
+	To keep this as simple as possible, let's consider the case where the beliefs linking the two domains form instantly, and consists of perfect correspondences, degenerate probability distributions with all of the mass on one point:
+	\[ \Pr(B \mid A) = \begin{cases} a_1 \mapsto b_1\\ a_2 \mapsto b_2 \end{cases} \qquad\qquad
+	   \Pr(A \mid B) = \begin{cases} b_1 \mapsto a_1\\ b_2 \mapsto a_2 \end{cases} \]
+	
+	With this, our preference ($a_1 \geqc a_2$) has an image of ($b_1 \geqc b_2$) under the link $B \to A$, which conflicts with our preference on $B$; similarly, ($b_2 \geqc b_1$) results in a preference ($a_2 \geqc a_1$) which conflicts with our preference on $A$. 
+	
 	
 	
 	
@@ -373,7 +429,7 @@
 	
 	\subsection{Learning from Experience}
 	
-	We can use the same technique of reducing conflict to also 
+	We can use the same technique of reducing conflict to model preferences learned from data. If $\sf Exp$ is a preference domain representing all of your experiences, we have a belief 
 	
 %	\subsection{
 	\section{Ties To Existing Models}
