@@ -1,6 +1,9 @@
 \documentclass{article}
 
+
 \input{prefs-commands.tex}
+\usetikzlibrary{cd}
+
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
 
@@ -10,13 +13,83 @@
 \begin{document}
 %	\maketitle
 
-	\section{The problem with expressing impact as conditional probability.}
+%	\section{The problem with expressing impact as conditional probability.}
+%	
+%	When we say we have a domain of ``goodness'' $\sf U$, and a conditional probability distribution $\Pr(U \mid A)$, we are not expressing the goodness of $A$, rather estimating the goodness of the world where $A$ takes on various values. This is obviously a belief, and does not work as an expected utility calculation.  How to fix?
+%	
+%	\subsection{Add more nodes: a separate node for each component}
+%	\subsection{Change impact arrows to be functions.}
+
+
+%	Suppose that we have a diagram
+%	
+%	\begin{tikzpicture}
+%		\node[dpadded](X){$X$};
+%		\node[dpadded](A) at (-1, -1.3) {$A$};
+%		\node[dpadded](B) at (1, -1.3) {$B$};
+%		\node[dpadded](U) at (0, -2.6) {$U$};
+%	\end{tikzpicture}
+
+%	Goal: learn preferences over variables, which changes as slowly as possible, to be used in prediction. The classical picture of decision theory is a limit point with infinite cognitive power. You have to coordinate the different levels of preferences, and be very careful to avoid conflicts. 
 	
-	When we say we have a domain of ``goodness'' $\sf U$, and a conditional probability distribution $\Pr(U \mid A)$, we are not expressing the goodness of $A$, rather estimating the goodness of the world where $A$ takes on various values. This is obviously a belief, and does not work as an expected utility calculation.  How to fix?
+	\section{Consistency}
+	Recall that we have a model of nodes, chained together with stochastic matrices. The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine the correct probability distribution.
 	
-	\subsection{Add more nodes: a separate node for each component}
+	In our case, the situation is different: each arrow has a meaning taken on its own. This is necessary for composition to work out properly for individual arrows. Since arrows are Markov Kernels (stochastic matrices in the finite case) is given, in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ we can obtain a stochastic matrix
 	
-	\subsection{Change impact arrows to be functions.}
+	\[ g\circ f : A \times C \to \mathbb R =  \int_{B} f( b \mid a) g(c \mid b) \]
+	
+	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. In our case, we also have the possibility of branching and merging. Let's now consider what it means for us to have a diagram 
+		\begin{tikzcd}
+			A \ar[r] & C & \ar[l] B
+		\end{tikzcd}.
+	This means an agent has probability distributions $\Pr(C\mid A)$ and $\Pr(C \mid B)$%
+	% (again, as opposed to the BN interpretation, which would be a single distribution $p(C \mid A, B)$)%
+	. Often, this is a perfectly coherent picture, and is in fact the kind of data people actually have:
+	
+	\begin{example}
+		After reading a number of empirical studies, you come to believe that smokers have a 70\% chance of developing cancer, compared to 20\% for non-smokers. At the same time, you believe that those who use tanning beds have a 80\% chance of developing cancer, compared to 18 \% for those who do not use them. You have no information about how the two interact.
+	\end{example}
+	
+	\begin{example}
+		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$.
+	\end{example}
 	
 	
+	This design decision also has the effect of proving multiple ways to calculate things, which leads to the somewhat counter-intuitive fact that that not all diagrams commute, even ignoring preferences entirely. We will begin by explaining why this might not be what one would expect. If the model is acyclic, every diagram (trivially) commutes, and even in our setting, many probability axioms require commuting diagrams.
+	
+	\begin{example}[Marginalization]
+		Recall how a probability can be obtained by marginalization:
+		\[ p(b) = {\color{gray}\sum_{a \in A} p(a \land b) = \sum_{a \in A} p(a) \frac{p(a\land b)}{p(a)} }= \sum_{a \in A} p(a) p(b\mid a) \]
+		below is an illustration of this fact:
+		\begin{center}
+			\begin{tikzcd}
+				& 1 \ar[ld, "\Pr(A)"']\ar[rd, "\Pr(B)"] \\
+				A \ar[rr]\ar[rr,"\Pr(B \mid A)"'] &  & B\\
+			\end{tikzcd}
+		\end{center}
+		The left part of the diagram represents the right side of the equation and vice versa. This can be used inductively to show that every pair of paths from the singleton object $1$ is equivalent, but before that we will deal with another important case:
+	\end{example} 
+
+	\begin{example}[Bayes Rule] 
+		We can also represent Bayes' rule, $\Pr(a \mid b) \Pr(b) = \Pr(b \mid a) \Pr(a)$ as an assertion that two paths from :
+		\begin{center}
+			\begin{tikzcd}
+				&1 \ar[dl, "\Pr(A)"']\ar[dr,"\Pr(B)"]\\
+				A \ar[dr, "\Pr(B \times A \mid A)"'] & & B  \ar[dl, "\Pr(B \times A \mid B)"]\\
+				& B \times A 
+			\end{tikzcd}
+		\end{center}
+	\end{example}
+	
+	
+	However, not all paths generated by composition of probabilities are strictly equal! In an extreme case, we can forget all of our information with the Markov assumption by going through a singleton object:
+	
+	\begin{center}
+		\begin{tikzcd}
+			A \ar[rd]\ar[rr,"\Pr(A\mid A) = \mathrm{id}_A"] &  & A\\&1 \ar[ru, "\Pr(A)"']
+		\end{tikzcd}
+	\end{center}
+	For this to happen, the only thing we need is to allow composition and provide a probability on $A$; there's nothing inconsistent about this picture. Therefore, the measure of consistency is weaker than ``all paths are equal''. Still, there are some blatantly inconsistent pictures one could draw. Anything that violates Bayes' rule or marginalization are in contention with the laws of probability.
+	% Also, in some sense, the picture above is somehow the worst one could do by composition:
 \end{document}
