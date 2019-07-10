@@ -4,8 +4,17 @@
 \input{prefs-commands.tex}
 \usetikzlibrary{cd}
 
+\usepackage{ wasysym }
+
+
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
+
+
+\newcommand{\mfem}{\mathclap\female\male}
+\newsavebox{\hourglassbox}
+\savebox{\hourglassbox}{\includegraphics[height=.8em]{hourglass.png}}
+\newcommand\hourglass{\usebox{\hourglassbox}}
 
 \title{Explanation of Consistency}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
@@ -32,12 +41,12 @@
 
 %	Goal: learn preferences over variables, which changes as slowly as possible, to be used in prediction. The classical picture of decision theory is a limit point with infinite cognitive power. You have to coordinate the different levels of preferences, and be very careful to avoid conflicts. 
 	
-	\section{Consistency}
+	\section{Composition of Stochastic Links}
 	Recall that we have a model of nodes, chained together with stochastic matrices. The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine the correct probability distribution.
 	
-	In our case, the situation is different: each arrow has a meaning taken on its own. This is necessary for composition to work out properly for individual arrows. Since arrows are Markov Kernels (stochastic matrices in the finite case) is given, in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ we can obtain a stochastic matrix
+	In our case, the situation is different: each arrow has a meaning taken on its own. This is necessary for composition to be defined for individual arrows. Since arrows are Markov kernels / matrices, composition is given in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ we can obtain a stochastic matrix
 	
-	\[ g\circ f : A \times C \to \mathbb R =  \int_{B} f( b \mid a) g(c \mid b) \]
+	\[ g\circ f : A \times C \to \mathbb R =  \sum_{b \in B} f( b \mid a) g(c \mid b) \]
 	
 	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. In our case, we also have the possibility of branching and merging. Let's now consider what it means for us to have a diagram 
 		\begin{tikzcd}
@@ -54,7 +63,21 @@
 	\begin{example}
 		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$.
 	\end{example}
+
+	However, this information may not be entirely complete, feel strange, be contradictory, or make it seem as though the choice is an illusion. This ``outside view'' is also important for constructing Newcomb's problem:
+	\begin{example}[Newcomb]
+		There are two boxes. Box 1 is clear and visibly contains \$1k; box 2 is opaque, and will contain \$1M if a predictor (which you know has been very accurate in the past) predicts you will leave box 1, and nothing if it predicts you will take both.
+		Now, you have a probability distribution of money based on predicted actions $\Pr(\$ \mid P)$, and also a causal mechanism that predicts the amount of money given your current actions $\Pr(\$ \mid A)$
+		\begin{center}
+			\begin{tikzcd}
+				A \ar[rd] &  & \ar[ld] P \\ & \$
+			\end{tikzcd}
+		\end{center}
+		More weirdness comes from the fact that $A$ and $P$ interact.
+	\end{example}
 	
+	
+	\subsection{Should paths be equal?}
 	
 	This design decision also has the effect of proving multiple ways to calculate things, which leads to the somewhat counter-intuitive fact that that not all diagrams commute, even ignoring preferences entirely. We will begin by explaining why this might not be what one would expect. If the model is acyclic, every diagram (trivially) commutes, and even in our setting, many probability axioms require commuting diagrams.
 	
@@ -68,11 +91,13 @@
 				A \ar[rr]\ar[rr,"\Pr(B \mid A)"'] &  & B\\
 			\end{tikzcd}
 		\end{center}
-		The left part of the diagram represents the right side of the equation and vice versa. This can be used inductively to show that every pair of paths from the singleton object $1$ is equivalent, but before that we will deal with another important case:
+		The left part of the diagram represents the right side of the equation and vice versa. 
 	\end{example} 
 
+	This can be used inductively to show that every pair of paths from the singleton object $1$ is equivalent, but before that we will deal with another important case:
+	
 	\begin{example}[Bayes Rule] 
-		We can also represent Bayes' rule, $\Pr(a \mid b) \Pr(b) = \Pr(b \mid a) \Pr(a)$ as an assertion that two paths from :
+		We can also represent Bayes' rule, $p(a \mid b) p(b) = p(b \mid a) p(a)$ as an assertion that two paths from:
 		\begin{center}
 			\begin{tikzcd}
 				&1 \ar[dl, "\Pr(A)"']\ar[dr,"\Pr(B)"]\\
@@ -80,6 +105,9 @@
 				& B \times A 
 			\end{tikzcd}
 		\end{center}
+		This can be seen as two applications of marginalization, one for each half. On the left, we have
+		\[ p(b, a) = \sum_{a' \in A} p(a')p(a,b \mid a') = \sum_{a' \in A} p(a') p(b \mid a') \delta_{a,a'} = p(a) p(b \mid a) \]
+		and similarly, the right gives $p(b,a) = p(b) p(a \mid b)$. One thing to take away is that one can avoid the integration over a variable by simply considering the conditional distribution to a different variable: namely, one which is the product of the input and output. 
 	\end{example}
 	
 	
@@ -90,6 +118,102 @@
 			A \ar[rd]\ar[rr,"\Pr(A\mid A) = \mathrm{id}_A"] &  & A\\&1 \ar[ru, "\Pr(A)"']
 		\end{tikzcd}
 	\end{center}
-	For this to happen, the only thing we need is to allow composition and provide a probability on $A$; there's nothing inconsistent about this picture. Therefore, the measure of consistency is weaker than ``all paths are equal''. Still, there are some blatantly inconsistent pictures one could draw. Anything that violates Bayes' rule or marginalization are in contention with the laws of probability.
+	For this to happen, the only thing we need is to allow composition and provide a probability on $A$; there's nothing inconsistent about this picture. Therefore, the measure of consistency is weaker than ``all paths are equal''. Still, there are some blatantly inconsistent pictures one could draw --- anything that violates Bayes' rule or marginalization, for example (see section \ref{sec:inconsistency-ex} for more).
+	
+	Our singleton example is a little bit annoying, but at least it's the best prediction that could be made after forgetting all of the information. It is natural to ask: can composition of conditional probabilities do \emph{worse} than ignoring everything? Or is every bit of signal helpful? % There are two competing intuitions here: on the one hand, correlations are not transitive; on the other, if an intermediate variable $Y$ is positi
+	
+	\begin{example}
+		Men earn more than women, and people who earn more are generally older, but women live longer than men, so the top composition in the picture below
+		\[ \begin{tikzcd}
+			& \$ \ar[rd] \\
+			\mfem \ar[rr]\ar[ru] &&  \hourglass
+		\end{tikzcd} \]
+		is worse than ignoring all information and just predicting age. Here it is with numbers. Suppose the truth is a conditional probability distribution $\Pr(\$, \hourglass \mid\mfem)$ given by
+		
+		\begin{center}
+		\begin{tabular}{r|ccccc|}
+			\multicolumn{1}{c}{}&\multicolumn{2}{c}{\male}  &&\multicolumn{2}{c}{\female} \\
+			&$<$40 yr & $\geq$40 yr &\vline& $<$40 yr & $\geq$40 yr \\\cline{2-6}
+			$<\$40$k & .225 & .05 && .185 & .19 \\
+			$\geq\$40$k & .075 & .15 && .065 & .06\\\cline{2-6}
+		\end{tabular}
+		\end{center}
+		We can now construct our chain, $\mfem \to \$ \to \hourglass$
+		\begin{center}
+		\begin{tikzcd}[column sep=1.5cm,row sep=1.2cm]
+			m \ar[r, ".55"]\ar[rd, ".45"description,pos=0.8] & <\$40k \ar[r,".63"]\ar[rd,".37"description,pos=0.8] & < \text{40 yr} \\
+			f \ar[r, ".25"']\ar[ru, ".75"description,pos=0.8] & \geq \$40k \ar[r,".60"']\ar[ru, ".40"description,pos=0.8] & \geq \text{40 yr}
+		\end{tikzcd}
+		\end{center}
+		Now, consider the following three arrows $\mfem \to \hourglass$, as estimates of $\Pr(\hourglass \mid \mfem)$:\\
+		
+		\begin{minipage}{.33\linewidth}\centering
+			(1) the truth, $\Pr(\hourglass \mid \mfem)$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .6 & .4 \\
+				\female & .5 & .5 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\begin{minipage}{.33\linewidth}\centering
+			(2) $\mfem\to 1\to \hourglass$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .55 & .45 \\
+				\female & .55 & .45 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\begin{minipage}{.33\linewidth}\centering
+			(3) $\mfem\to \$\to \hourglass$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .53 & .47 \\
+				\female & .57 & .43 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\vspace{1em}
+		
+		We can see that $(2)$, which kills all signal, is closer to the truth than (3) in every way. Still, the picture is entirely consistent. Moreover, all of the important details of the joint distribution are saved in the three arrows, and subjectively, I used the arrows to construct the joint distribution I wanted, rather than the other way around.
+		
+		Even though this triangle does not commute, still every pair of paths from $1$ to another node are equivalent; for instance, marginalizing out gender gives the same distribution on age in all three of the cases above.
+	\end{example}
+
+	\subsection{Some Results}
+	
+	\begin{prop}\label{prop:prob-eq}
+		If $\pi$ is a path of conditional probabilities $1 = A_0 \to A_1\to\cdots \to A_N = X$, then the composition $\pi^\circ$ of links in $\pi$ is equal to $\Pr(X)$.
+	\end{prop}
+
+	Similarly, we have the dual result for deterministic functions:
+	\begin{prop}\label{prop:det-eq}
+		If a variable $Q$ is completely determined by both $A$ and $B$, i.e., $g : A\to Q$ and $h : B\to Q$ are deterministic, and $f : A \to \Delta B$ is $\Pr(B \mid A)$, then $h \circ f = g$. 
+	\end{prop}
+	\begin{proof}
+		If there is a non-zero probability that $A = a$ while $B = b$, then it must be the case that $g(a) = h(b)$, since both $a$ and $b$ determine $Q$. So
+		\begin{align*}
+			h \circ f(a,q) &= \sum_{b \in B} f(a,b) \delta_{h(b),q}\\	
+					&= \sum_{b \in B} f(a,b) \delta_{g(a), q} \\
+					&= \delta_{g(a),q} \sum_{b \in B} f(a,b) \\
+					&= \delta_{g(a),q} 
+					\hspace{2cm}=~~g(a, q)
+		\end{align*}
+	\end{proof}
+	
+	\section{Inconsistency}
+	The thing that makes a picture inconsistent is an inability to assign any joint probability that marginalizes out to the conditional ones. However, it is not clear how to make this differentiable. Perhaps minimizing inconsistency by using the previous sum-of-paths technique while it is inconsistent is important.
+	
+	\subsection{Examples of Inconsistency}\label{sec:inconsistency-ex}
 	% Also, in some sense, the picture above is somehow the worst one could do by composition:
+	\subsubsection{A short list}
+	\begin{itemize}[nosep]
+		\item Violations of either propositions \ref{prop:prob-eq} or \ref{prop:det-eq}
+		\item Failure to obey entropy triangle inequality
+		\item Outside of entropic cone.
+	\end{itemize}
+	
+	\subsubsection{Inconsistency in Framing Problems}
+	\subsubsection{Inconsistency in Learning Problems}
+	
+	\subsection{Definitions of Inconsistency}
+	\subsection{Detecting Inconsistency}
 \end{document}
