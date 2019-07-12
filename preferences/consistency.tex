@@ -16,11 +16,13 @@
 \savebox{\hourglassbox}{\includegraphics[height=.8em]{hourglass.png}}
 \newcommand\hourglass{\usebox{\hourglassbox}}
 
-\title{Explanation of Consistency}
+\title{Discussion of \todo{need name for model} Semantics and Consistency}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
 
+\newcommand\modelname{{\color{green!50!black}$\langle$model name$\rangle$ }}
+
 \begin{document}
-%	\maketitle
+	\maketitle
 
 %	\section{The problem with expressing impact as conditional probability.}
 %	
@@ -40,18 +42,72 @@
 %	\end{tikzpicture}
 
 %	Goal: learn preferences over variables, which changes as slowly as possible, to be used in prediction. The classical picture of decision theory is a limit point with infinite cognitive power. You have to coordinate the different levels of preferences, and be very careful to avoid conflicts. 
+
+%	\section{A Defense of  Semantics.}
+	Recall that we have a model of nodes, chained together with Markov kernels / conditional probability distributions / stochastic matrices. Of course, there is already an enormous literature about diagrams which look somewhat like this, made up of nodes and conditional probability tables: Baysian Networks (BNs) and their many variants. The diagrams that we employ look very similar, but are intended for a different purpose, and hence have a different semantics. Whereas BN's are a factorization of a particular joint probability distribution and consistent by design, these models are merely constraints on the distribution, which might be so strong so as not to admit any joint distribution.
 	
-	\section{Composition of Stochastic Links}
-	Recall that we have a model of nodes, chained together with stochastic matrices. The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine the correct probability distribution.
+	We will go into the difference more carefully in the next section, but first here are some reasons to prefer this as a way of modeling agents, in the order of explanation rather than importance:
 	
-	In our case, the situation is different: each arrow has a meaning taken on its own. This is necessary for composition to be defined for individual arrows. Since arrows are Markov kernels / matrices, composition is given in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ we can obtain a stochastic matrix
+	\begin{enumerate}[nosep]
+		\item It is a strictly more general representation--- we can easily convert BNs to these diagrams.
+		\item This representation more closely matches standard human thought patterns
+		\item It is cleaner from a mathematical standpoint: utilities and probabilities are related, and we can make use of both information theoretic and category theoretic results.
+		\item This allows composition of arrows to be defined, and gives meanings to paths. 
+		\item When bits of these diagrams are added and removed, the meaning and form of the rest of the diagram remains the same.
+		\item We can now represent inconsistency, which we will use to drive preference change. While we agree with the classical picture in that inconsistency is bad, now we can talk about it. 
+
+		\item Due to the compositionality, it is possible to add typing rules to dynamically change beliefs, knowledge representations, and so forth.
+	\end{enumerate}
+
+	\subsection*{Recap: \modelname Definitions and Semantics}
+	\begin{defn}
+		A \modelname model $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a Markov kernel $A \to \Delta B$ representing beliefs about how a setting of $A$ will impact the value of $B$. 
+	\end{defn}
+	
+	In this document, we will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables. While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
+	
+	
+	\section{Defense of \modelname Models}
+	\subsection{Some Weak Types}
+	
+	\subsection{Converting BNs}
+	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine the correct probability distribution. We have a collection of nodes $\cal N$, and for each $N \in \cal N$, we have a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. Note that each of our arrows carries a meaning by itself, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
+	
+	The procedure for converting to a BN is simple: we simply take every node's incoming arrows, and insert the product of its parents as a node before it. With this procedure, if a node $N$ has just one parent $P$, we replace $P \to N$ with $P \to N ~=~ N$, which is redundant so we don't draw this. If a node had zero parents (i.e., the BN just gives it a probability distribution not dependent on anything), we insert the product of zero things, i.e., the singleton node $1 = \{*\}$, a variable which only takes one value, and set $\Pr(N \mid *) = \Pr(N)$. 
+	
+	This sound much more complicated than it is. Consider the example below, where the left is a BN, and the right is the corresponding \modelname.
+	\begin{center}
+		
+		\begin{tikzcd}[baseline={([yshift=-.8ex]current bounding box.center)}, column sep=2.5em]
+			& A \ar[dl]\ar[dr] \\
+			B \ar[dr] && C \ar[dl]\\
+			& D &
+		\end{tikzcd}
+		\hfil
+		\begin{tikzcd}[baseline={([yshift=-.8ex]current bounding box.center)}, column sep=2em]
+			& \mathsf 1 \ar[d] &\\
+			& A \ar[dl]\ar[dr] \ar[dashed, gray, dd] \\
+			B && C \\
+			& B \times C \ar[ul] \ar[ur]\ar[d] & \\
+			& D &
+		\end{tikzcd}
+	\end{center}
+	\vspace{0.5em}
+
+	We have effectively changed two things: first, visually encoded the probability distribution of $A$ as the arrow $1 \to A$ (which we are now allowed to omit; sometimes you don't want priors on things, such as your own actions). Second, we have 
+	
+	\subsection{Human Preferences}
+	
+	\subsection{Composition Of Arrows}
+	\todo{Reword}
+	This is necessary for composition to be defined for individual arrows. Since arrows are Markov kernels / matrices, composition is given in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ (this is the finite case) we can obtain a stochastic matrix
 	
 	\[ g\circ f : A \times C \to \mathbb R =  \sum_{b \in B} f( b \mid a) g(c \mid b) \]
 	
 	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. In our case, we also have the possibility of branching and merging. Let's now consider what it means for us to have a diagram 
-		\begin{tikzcd}
-			A \ar[r] & C & \ar[l] B
-		\end{tikzcd}.
+	\begin{tikzcd}
+		A \ar[r] & C & \ar[l] B
+	\end{tikzcd}.
 	This means an agent has probability distributions $\Pr(C\mid A)$ and $\Pr(C \mid B)$%
 	% (again, as opposed to the BN interpretation, which would be a single distribution $p(C \mid A, B)$)%
 	. Often, this is a perfectly coherent picture, and is in fact the kind of data people actually have:
@@ -61,10 +117,13 @@
 	\end{example}
 	
 	\begin{example}
-		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$.
+		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$. 
+		
+		Still, there is a possibility
 	\end{example}
 
 	However, this information may not be entirely complete, feel strange, be contradictory, or make it seem as though the choice is an illusion. This ``outside view'' is also important for constructing Newcomb's problem:
+	
 	\begin{example}[Newcomb]
 		There are two boxes. Box 1 is clear and visibly contains \$1k; box 2 is opaque, and will contain \$1M if a predictor (which you know has been very accurate in the past) predicts you will leave box 1, and nothing if it predicts you will take both.
 		Now, you have a probability distribution of money based on predicted actions $\Pr(\$ \mid P)$, and also a causal mechanism that predicts the amount of money given your current actions $\Pr(\$ \mid A)$
@@ -75,6 +134,10 @@
 		\end{center}
 		More weirdness comes from the fact that $A$ and $P$ interact.
 	\end{example}
+
+	\section{Composition of Stochastic Links}
+
+
 	
 	
 	\subsection{Should paths be equal?}
@@ -192,11 +255,11 @@
 	\begin{proof}
 		If there is a non-zero probability that $A = a$ while $B = b$, then it must be the case that $g(a) = h(b)$, since both $a$ and $b$ determine $Q$. So
 		\begin{align*}
-			h \circ f(a,q) &= \sum_{b \in B} f(a,b) \delta_{h(b),q}\\	
-					&= \sum_{b \in B} f(a,b) \delta_{g(a), q} \\
-					&= \delta_{g(a),q} \sum_{b \in B} f(a,b) \\
-					&= \delta_{g(a),q} 
-					\hspace{2cm}=~~g(a, q)
+			h \circ f(a,q) = \sum_{b \in B} f(a,b) \delta_{h(b),q}	
+					= \sum_{b \in B} f(a,b) \delta_{g(a), q} 
+					= \delta_{g(a),q} \sum_{b \in B} f(a,b) 
+					= \delta_{g(a),q} 
+					= g(a, q)
 		\end{align*}
 	\end{proof}
 
@@ -214,8 +277,14 @@
 
 
 	\begin{defn}
-		A 
+		A model $(\cal A, L)$, in which preferences are represented by a single utility node $U \in \cal A$, is \textit{pref-inconsistent} if it is inconsistent, but the model obtained by deleting $U$, $(\mathcal A \setminus U,~\mathcal L \setminus \{ L : -\to U \})$ is consistent.
 	\end{defn}
+
+%	\begin{defn}
+%		More generally, a model $(\cal A, L)$ is \emph{pref-inconsistent} 
+%	\end{defn}
+
+
 %	The thing that makes a picture inconsistent is an inability to assign any joint probability that marginalizes out to the conditional ones. %However, it is not clear how to make this differentiable. Perhaps minimizing inconsistency by using the previous sum-of-paths technique while it is inconsistent is important.
 	
 	\subsection{Examples of Inconsistency}\label{sec:inconsistency-ex}
@@ -230,6 +299,8 @@
 	\subsubsection{Inconsistency in Framing Problems}
 	\subsubsection{Inconsistency in Learning Problems}
 	
-	\subsection{Definitions of Inconsistency}
-	\subsection{Detecting Inconsistency}
+	\subsection{Sufficient Conditions for Inconsistency}
+	\begin{prop}
+		
+	\end{prop}
 \end{document}
