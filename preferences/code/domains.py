@@ -5,8 +5,8 @@ from collections import defaultdict
 from functools import partial
 #from scipy.linalg import expm
 
-class Domain(object):
-    def __init__( self, comparison_df, transformers = ['transitive', 'anti-symmetric']):
+class Dom(object):
+    def __init__( self, comparison_df):
         self.comp = comparison_df
         
     def __len__(self):
@@ -61,6 +61,12 @@ class Domain(object):
                 
         return cls(pd.DataFrame(rslt))
         
+    @classmethod
+    def randu( cls, name, number):
+        utildict = { name[0].lower()+"_"+str(i) : np.random.normal()
+                              for i in range(number) }
+        return cls.from_util(utildict)
+        
     ########################  Ensure Properties  ###########################
 
 
@@ -88,7 +94,7 @@ class Link(object):
         return cls(Pr.index, Pr.columns, Pr )
         
     @classmethod
-    def from_dfun( cls, f, A : Domain ):
+    def from_dfun( cls, f, A : Dom ):
         return cls.from_dict({ a : f(a) for a in A })
         
     @classmethod
@@ -129,7 +135,7 @@ def stoch(X):
 ############# TESTS ########
 # D = make_comp( "ABC", 0)
 # 
-# A = Domain.from_list_order(list("ABCDE")).comp
+# A = Dom.from_list_order(list("ABCDE")).comp
 # A
 # closure(A, stoch)
 # 
