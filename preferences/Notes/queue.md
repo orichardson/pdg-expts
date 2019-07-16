@@ -7,13 +7,15 @@
  - [!false] Utility representation: if you can represnt all preferences by utility functions, then there is a way to combine them such that decision making is the same. Ways to formalize "decision making the same"
 	- Probability of choice in each set is the same as before.
 
+ - admits utility function <==> consistency
+
  - Preference consistency is convex: taking mixtures of compositions is always consistent. Moreover, with high probability /accuracy we can represent the truth as a linear combination of compositions, in the limit as we incorporate more variables.
 
 # General Preditions
 
 
 
-***** All diagrams having limits => probability distributions. All diagrams having colimits => utility function.
+***** All diagrams having limits => probability distributions. All diagrams having colimits => utility function. Weaker version: final 
 
 # Examples / Observations.
 
