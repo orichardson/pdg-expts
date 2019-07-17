@@ -69,14 +69,14 @@
 	In this document, we will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables. While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
 	
-	\section{Defense of \modelname }
+	\section{Defense of Static \modelname Representation }
 	\subsection{The Possibility of Type Constructors}\label{sec:belief-typing}
 	The classical picture also features a fixed set of variables. In addition to allowing new concepts to form, we would like to have inductive ways of introducing new ones logically, as combinations of the existing variables. Interpreting variables as types, whose possible assignments are terms, the syntax of which variables we can construct and what beliefs we have about the resulting picture is a type theory. There are some obvious ways one might want to combine existing domains; the one we are concerned with here is products.
 	
 	In terms of beliefs, you might already have beliefs about how likely two  $A$ and $B$, then suddenly wonder about how they interact. For instance, you may already have beliefs about how likely you are to leave your keys in the ignition, and also how often your car is dead, and then wonder if there's a connection. 
 	In terms of preferences, you might think $a \geqc a'$ and $b \geqc b'$, but now wonder what you would do if you had to choose between $a b'$ and $a' b$. In both cases, you are slightly enlarging your picture to consider the relevant features that a classical agent would already have.
 	
-	For this reason, we introduce the possibility of creating a domain $A \times B$, if $A$ and $B$ are nodes in the picture, whose elements are the cartesian product of $A$ and $B$. %Moreover, this comes with projection links $\pi_A : A \times B \to \Delta(A)$, $\pi_B: A\times B \to \Delta B$ given by $\pi_A((a,b), a') = \delta_{a,a'}$ and $\pi_B((a,b), b') = \delta_{b,b'}$, as usual. Furthermore, we can construct a function $\langle f , g \rangle : X \to A \times B$ for any $f: X \to A$ and $g: X \to B$ that make the picture no more inconsistent.
+	For this reason, we introduce the ability to create a domain $A \times B$, if $A$ and $B$ are nodes in the picture, whose elements are the cartesian product of $A$ and $B$. %Moreover, this comes with projection links $\pi_A : A \times B \to \Delta(A)$, $\pi_B: A\times B \to \Delta B$ given by $\pi_A((a,b), a') = \delta_{a,a'}$ and $\pi_B((a,b), b') = \delta_{b,b'}$, as usual. Furthermore, we can construct a function $\langle f , g \rangle : X \to A \times B$ for any $f: X \to A$ and $g: X \to B$ that make the picture no more inconsistent.
 	This is represented graphically as:
 	\begin{center}
 		\begin{tikzcd}
@@ -93,7 +93,7 @@
 	
 	Taking unions does protect us from doing certain bad things: it would be a mistake to assign a distribution $\Pr(a, a') > 0$ for $ a \neq a'$, for instance --- but we're already in the business of allowing this kind of inconsistency --- in the picture below all the marginals are fine as far as the syntax is concerned, but there is no way to assign a probability distribution on all of the nodes.
 	\begin{center}
-		\begin{tikzcd}
+		\begin{tikzcd}[dpad]
 			&1 \ar[d, "p(A\times A)"] \\
 			 & A \times A \ar[ld]\ar[rd] & \\
 			 A \ar[rr,equal]&& A
@@ -102,7 +102,8 @@
 
 	It can also be very useful to keep extra copies of $A$ around even if (part of) one already exists buried in another variable, because we can delay integration using this trick, as in example \ref{ex:bayesrule} for instance. The most compelling reason for me is that one might not know that you're looking at two copies of $A$; maybe they've been framed differently --- but still you should be able to take a product and get two things, rather than a union, which immediately leaks the truth of their equivalence to an agent.
 	
-	
+	\subsubsection{Additional Types}
+	\todo{Gestures towards embedding logics; equivalence between logic and type theory; in particular: conditionals, coproducts, negation, higher order nodes (beliefs about prefs, prefs about beliefs)}	
 	
 	% Motivating example: why do we need A x B?  Why not just have a BN?
 	%	If $A$ and $B$ are random variables, 
@@ -119,13 +120,13 @@
 	This sound much more complicated than it is. Consider the example below, where the left is a BN, and the right is the corresponding \modelname.
 	\begin{center}
 		
-		\begin{tikzcd}[baseline={([yshift=-.8ex]current bounding box.center)}, column sep=2.5em]
+		\begin{tikzcd}[center base, column sep=2.5em]
 			& A \ar[dl]\ar[dr] \\
 			B \ar[dr] && C \ar[dl]\\
 			& D &
 		\end{tikzcd}
 		\hfil
-		\begin{tikzcd}[baseline={([yshift=-.8ex]current bounding box.center)}, column sep=2em]
+		\begin{tikzcd}[center base, column sep=2em, dpad]
 			& \mathsf 1 \ar[d] &\\
 			& A \ar[dl]\ar[dr ]% \ar[dd,dashed, gray] 
 			\\
@@ -138,69 +139,96 @@
 
 	We have effectively changed two things: first, visually encoded the probability distribution of $A$ as the arrow $1 \to A$ (which we are now allowed to omit; sometimes you don't want priors on things, such as your own actions). Second, we have combined the two arrows $B \to D$ and $C \to D$ into a single one, $B \times C \to D$. Though certainly more verbose, this is arguably visually clearer if want to follow arrows: you cannot compute $D$ from $B$; you need both $B$ and $C$.
 	
-	% The BN makes the assumption that the value of $D$ cannot depend on anything else; we're only 
-	This also illustrates another important point: the assumptions that you make to drawn a BN, even if locally sensible, build on one another and might not end up being what you wanted to model. On the left it visually looks like you can estimate $D$ from
-	% $B$, which is false. It also looks like you can estimate $D$ from 
-	$A$ --- which is true, but only if we've actually modeled all of the confounding factors! For instance, if $B$ has some small mostly negligible dependence on $C$ that we've failed to model, the estimation of $D$ can be arbitrarily bad, if it is sensitive to the correlation between $B$ and $C$.
+	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence in a weaker way.
 	
-	\subsection{Human Preferences}
+	\begin{defn}
+		The \emph{center} of a \modelname $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
+	\end{defn}
+
+	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}. In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. We also get:
+	
+	\begin{conj}
+		The center of the \modelname obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
+	\end{conj}
+
+	\begin{conj}
+		Products (defined in section \ref{sec:belief-typing}) in the center of a model $(\cal A, L)$ have the usual uniqueness to make them categorical limits.
+	\end{conj}
+
+	
+	% The BN makes the assumption that the value of $D$ cannot depend on anything else; we're only 
+%	This also illustrates another important point: the assumptions that you make to drawn a BN, even if locally sensible, build on one another and might not end up being what you wanted to model. On the left it visually looks like you can estimate $D$ from
+	% $B$, which is false. It also looks like you can estimate $D$ from 
+%	$A$ --- which is true, but only if we've actually modeled all of the confounding factors! For instance, if $B$ has some small mostly negligible dependence on $C$ that we've failed to model, the estimation of $D$ can be arbitrarily bad, if it is sensitive to the correlation between $B$ and $C$.
+	
+	\subsection{Human Beliefs as Marginals}
+	From a modeling perspective, the biggest reason for keeping track of marginals rather than joint probability distributions, is that it can represent lots of information tracked by people, that BNs regard as incomplete. As seen earlier, the major feature we admit that is prohibited in a Baysian Network is a merging of two paths, where neither is a projection.
+	
+	In our case, we also have the possibility of branching and merging. In our picture, a diagram $A \rightarrow C \leftarrow B$ represents two probability distributions $\Pr(C\mid A)$ and $\Pr(C \mid B)$.
+	Having this kind of information is both common and not representable as a (single) probability distribution. Scientific studies never control for everything that is relevant, so you're left with marginals which may not tell the whole story.
+	
 	\begin{example}
 		After reading a number of empirical studies, you come to believe that smokers have a 70\% chance of developing cancer, compared to 20\% for non-smokers. At the same time, you believe that those who use tanning beds have a 80\% chance of developing cancer, compared to 18 \% for those who do not use them. You have no information about how the two interact.
 	\end{example}
 	
 	\begin{example}
-		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$. 
-		
-		Still, there is a possibility
+		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$. In fact, having an accurate probability on $A$ alone would seem to undermine your agency.
 	\end{example}
 
 
+	So information of this form may not be entirely complete, be contradictory, or make it seem as though the choice is an illusion. This ``outside view'' is also important for constructing Newcomb's problem:
+	
+	\begin{example}[Newcomb]
+		There are two boxes. Box 1 is clear and visibly contains \$1k; box 2 is opaque, and will contain \$1M if a predictor (which you know has been very accurate in the past) predicts you will leave box 1, taking just this box, and will contain nothing if the predictor predicts you will take the first box. You have to choose whether or not to take the visible box (there's no reason not to take box 2).
+		
+		In the diagram below, you and your past choices determine the prediction $P$, as given by the blue line, but you do not have access to this information. They also determine your action $A$ in some sense, which is the right dashed arrow, which you only know for certain after you make your decision. Because the two processes cannot exchange information (i.e., the predictor cannot decide after your action has been made, and you don't get to know the prediction), these two processes determine the process $\mathrm{Identity} \to A \times P$.
+		\begin{center}
+			\begin{tikzcd}[dpad]
+				& \text{Identity}\ar[dr, blue, dashed]\ar[dl, dashed]\ar[d,dotted, gray]\\
+				\text{Action} & A \times P \ar[r]\ar[l]\ar[dl]\ar[d] & \text{Prediction} \\ \$\$ & A\stackrel{?}{=}P & \mathsf 1 \ar[l]
+			\end{tikzcd}
+		\end{center}
+		Now, on the one hand, you have a logical picture of how an action and prediction together will impact whether the predictor is right (the arrow $A \times P \to A \stackrel{?}{=} P$). On the other hand, you also have an outside view of how likely the predictor is to be right (the arrow $1 \to A \stackrel{?}{=} P$). We have not resolved the paradox; we have merely represented the beliefs in the setup, which make very little sense as a BN.
+%		More weirdness comes from the fact that $A$ and $P$ interact.
+	\end{example}
+
 	\subsection{Composition Of Arrows}
-	\todo{Reword}
-	This is necessary for composition to be defined for individual arrows. Since arrows are Markov kernels / matrices, composition is given in the usual way, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ (this is the finite case) we can obtain a stochastic matrix
+	One feature we really would like to have is the ability to chain these conditional distributions together. Among other things, a well-behaved notion of composition will:
+	\begin{itemize}[nosep]
+		\item give meanings to the visual paths
+		\item allow us to represent integrating out variables graphically
+		\item unlock parallels to other structures through category theory
+		\item think of expected utility, belief propagation, and inductive inference as simple juxtapositions of arrows
+	\end{itemize} 
+	
+	Since arrows are Markov kernels / matrices, we already have a natural way of doing this, by integration / summation over the intermediate variable --- if $f : A \times B \to \mathbb R$ and $g : B \times C \to \mathbb R$ (this is the finite case) we can obtain a stochastic matrix
 	
 	\[ g\circ f : A \times C \to \mathbb R =  \sum_{b \in B} f( b \mid a) g(c \mid b) \]
 	
-	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. In our case, we also have the possibility of branching and merging. Let's now consider what it means for us to have a diagram 
-	\begin{tikzcd}
-		A \ar[r] & C & \ar[l] B
-	\end{tikzcd}.
-	This means an agent has probability distributions $\Pr(C\mid A)$ and $\Pr(C \mid B)$%
-	% (again, as opposed to the BN interpretation, which would be a single distribution $p(C \mid A, B)$)%
-	. Often, this is a perfectly coherent picture, and is in fact the kind of data people actually have:
+	So are we done? We now have a notion of composition that lines up with matrix multiplication and gives us a marginal of the appropriate kind. Unfortunately, there are a few good reasons people are deterred from this formulation. 
+%	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. 
 	
 
-
-	However, this information may not be entirely complete, feel strange, be contradictory, or make it seem as though the choice is an illusion. This ``outside view'' is also important for constructing Newcomb's problem:
 	
-	\begin{example}[Newcomb]
-		There are two boxes. Box 1 is clear and visibly contains \$1k; box 2 is opaque, and will contain \$1M if a predictor (which you know has been very accurate in the past) predicts you will leave box 1, and nothing if it predicts you will take both.
-		Now, you have a probability distribution of money based on predicted actions $\Pr(\$ \mid P)$, and also a causal mechanism that predicts the amount of money given your current actions $\Pr(\$ \mid A)$
-		\begin{center}
-			\begin{tikzcd}
-				A \ar[rd] &  & \ar[ld] P \\ & \$
-			\end{tikzcd}
-		\end{center}
-		More weirdness comes from the fact that $A$ and $P$ interact.
-	\end{example}
-
-	\section{Composition of Stochastic Links}
-
+	\subsubsection{Should paths be equal?}
+	
+	This design decision also has the effect of proving multiple ways to calculate things, which leads to the somewhat counter-intuitive fact that that not all diagrams commute, even ignoring preferences entirely. We will begin by explaining why this might not be what one would expect. 
+	\begin{enumerate}
+		\item Markov processes behave this way, and most things can be modeled as Markov processes. Unfortunately, to do this, we require control over the state representation --- and many of our variables might have way less information capacity than would be required to make this work.
+		\item If your distribution can be described as a Bayesian network without any merging, then all diagrams commute (this is simply a result of the associativity of composition).
+		\item If everything were deterministic, all diagrams would commute
+		\item Even in our setting, many of them have to commute, and in fact several axioms of probability can be expressed as requirements that large classes of them must.
+	\end{enumerate}
 
 	
-	
-	\subsection{Should paths be equal?}
-	
-	This design decision also has the effect of proving multiple ways to calculate things, which leads to the somewhat counter-intuitive fact that that not all diagrams commute, even ignoring preferences entirely. We will begin by explaining why this might not be what one would expect. If the model is acyclic, every diagram (trivially) commutes, and even in our setting, many probability axioms require commuting diagrams.
-	
-	\begin{example}[Marginalization]
+	\begin{example}[Marginalization] \label{ex:margin}
 		Recall how a probability can be obtained by marginalization:
 		\[ p(b) = {\color{gray}\sum_{a \in A} p(a \land b) = \sum_{a \in A} p(a) \frac{p(a\land b)}{p(a)} }= \sum_{a \in A} p(a) p(b\mid a) \]
 		below is an illustration of this fact:
 		\begin{center}
-			\begin{tikzcd}
-				& 1 \ar[ld, "\Pr(A)"']\ar[rd, "\Pr(B)"] \\
-				A \ar[rr]\ar[rr,"\Pr(B \mid A)"'] &  & B\\
+			\begin{tikzcd}[dpad]
+				& 1 \ar[ld, "p(A)"']\ar[rd, "p(B)"] \\
+				A \ar[rr]\ar[rr,"p(B \mid A)"'] &  & B\\
 			\end{tikzcd}
 		\end{center}
 		The left part of the diagram represents the right side of the equation and vice versa. 
@@ -211,9 +239,9 @@
 	\begin{example}[Bayes Rule] \label{ex:bayesrule}
 		We can also represent Bayes' rule, $p(a \mid b) p(b) = p(b \mid a) p(a)$ as an assertion that two paths from:
 		\begin{center}
-			\begin{tikzcd}
-				&1 \ar[dl, "\Pr(A)"']\ar[dr,"\Pr(B)"]\\
-				A \ar[dr, "\Pr(B \times A \mid A)"'] & & B  \ar[dl, "\Pr(B \times A \mid B)"]\\
+			\begin{tikzcd}[dpad]
+				&1 \ar[dl, "p(A)"']\ar[dr,"p(B)"]\\
+				A \ar[dr, "p(B \times A \mid A)"'] & & B  \ar[dl, "p(B \times A \mid B)"]\\
 				& B \times A 
 			\end{tikzcd}
 		\end{center}
@@ -223,21 +251,26 @@
 	\end{example}
 	
 	
-	However, not all paths generated by composition of probabilities are strictly equal! In an extreme case, we can forget all of our information with the Markov assumption by going through a singleton object:
+	However, not all paths generated by composition of probabilities are strictly equal! 
 	
-	\begin{center}
-		\begin{tikzcd}
-			A \ar[rd]\ar[rr,"\Pr(A\mid A) = \mathrm{id}_A"] &  & A\\&1 \ar[ru, "\Pr(A)"']
-		\end{tikzcd}
-	\end{center}
+	\begin{example}
+		In an extreme case, we can forget all of our information with the Markov assumption by going through a singleton object:
+		
+		\begin{center}
+			\begin{tikzcd}[dpad]
+				A \ar[rd]\ar[rr,"p(A\mid A) = \mathrm{id}_A"] &  & A\\&1 \ar[ru, "p(A)"']
+			\end{tikzcd}
+		\end{center}
+	\end{example}
+	
 	For this to happen, the only thing we need is to allow composition and provide a probability on $A$; there's nothing inconsistent about this picture. Therefore, the measure of consistency is weaker than ``all paths are equal''. Still, there are some blatantly inconsistent pictures one could draw --- anything that violates Bayes' rule or marginalization, for example (see section \ref{sec:inconsistency-ex} for more).
 	
-	Our singleton example is a little bit annoying, but at least it's the best prediction that could be made after forgetting all of the information. It is natural to ask: can composition of conditional probabilities do \emph{worse} than ignoring everything? Or is every bit of signal helpful? % There are two competing intuitions here: on the one hand, correlations are not transitive; on the other, if an intermediate variable $Y$ is positi
+	Our singleton example is a little bit annoying, but at least it's the best prediction that could be made after forgetting all of the information. It is natural to ask: is ignoring everything the \emph{worst} we can do? Is every bit of signal helpful? The answer is no. % There are two competing intuitions here: on the one hand, correlations are not transitive; on the other, if an intermediate variable $Y$ is positi
 	
 	\begin{example}
 		Men earn more than women, and people who earn more are generally older, but women live longer than men, so the top composition in the picture below
-		\[ \begin{tikzcd}
-			& \$ \ar[rd] \\Types
+		\[ \begin{tikzcd}[dpad]
+			& \$ \ar[rd] \\
 			\mfem \ar[rr]\ar[ru] &&  \hourglass
 		\end{tikzcd} \]
 		is worse than ignoring all information and just predicting age. Here it is with numbers. Suppose the truth is a conditional probability distribution $\Pr(\$, \hourglass \mid\mfem)$ given by
@@ -290,12 +323,23 @@
 		Even though this triangle does not commute, still every pair of paths from $1$ to another node are equivalent; for instance, marginalizing out gender gives the same distribution on age in all three of the cases above.
 	\end{example}
 
-	\subsection{Some Results}
+	So. Why even bother with composition then, if it doesn't give you the truth? As mentioned in the beginning of the section, we can do some cool things with it. The beliefs we model clearly should not necessarily be closed under composition, but being able to form them is still useful:
+	\begin{itemize}[nosep]
+		\item If you only one path, and no other evidence it's the best guess you have.
+		\item If multiple, disjoint paths, this is good evidence that the final estimate is good --- like obtaining the same value from two different fermi estimates.
+		\item In some cases, the composition is guaranteed to equal or approximate the true probability.
+	\end{itemize}
+
+	\subsubsection{Some Results} \label{sec:commute-results}
 	Still, path equality is often expected; we would like to characterize when and why. Below are some necessary conditions for consistency, although more exploration is required.
 	
 	\begin{prop}\label{prop:prob-eq}
 		If $\pi$ is a path of conditional probabilities $1 = A_0 \to A_1\to\cdots \to A_N = X$, then the composition $\pi^\circ$ of links in $\pi$ is equal to $\Pr(X)$.
 	\end{prop}
+	\begin{proof}
+		This can be done by induction on the result from example \ref{ex:margin}, which is also the base case. The inductive step is as follows: if there is some joint probability $p$, and $\pi^{\circ k} := 1 \to \cdots \to A_k = p(A_k)$, then since we've assumed $p(A_{k+1} \mid A_k) = \pi_k$, we also have 
+		\[ \pi^{\circ k+1} = \sum_{a \in A_k} p(A_k)(a) p(A_{k+1} \mid A_k(a)) = p(A_{k+1}) \] again by the example.
+	\end{proof}
 
 	Similarly, we have the dual result for deterministic functions:
 	\begin{prop}\label{prop:det-eq}
@@ -312,13 +356,28 @@
 		\end{align*}
 	\end{proof}
 
-	To summarize: we have a picture containing conditional distriTypesbutions, particularly the ones which are most useful and actionable. Each conditional is a constraint on the world. We have a natural way of composing distributions, but sometimes the composition of two distributions is not the true probability.
+	\begin{conj}
+		A composition of arrows can only be as far off as its entropy permits: if we have marginals $A \xrightarrow{L} B \xrightarrow{P} C$, then
+		\[ \forall a \in A.~ \Big|  P\circ L (a) - \Pr(C \mid a) \Big|  \leq H(L) + H(P) \]
+		where $\Pr$ is any distribution consistent with $L$ and $P$.
+	\end{conj}
+%	\begin{proof}
+%		\[  H(L) + H(P) \geq \frac{1}{2}  \Big| H(\Pr(C \mid A)) - H( P \circ L) \Big | \]
+%	\end{proof}
+
+	To summarize: we have a picture containing conditional distributions, particularly the ones which are most useful and actionable. Each conditional is a constraint on the world. We have a natural way of composing distributions, but sometimes the composition of two distributions will not be consistent with the rest of your beliefs.
 	%Question: why even bother with composition, then? Why not just have arbitrary constriants?
 	% Answer (1): composition does the right thing under markov assumption, and we can always move the representation in such a way that we can get a markov assumption.
 	% Answer (2): If you have no other option this is the only estimate you have.
 	% Answer (3): Up to the entropic cone, it is still guaranteed to be accurate.
 	
-	\section{Inconsistency}
+	\subsection{Altering Diagrams}
+	
+	\subsection{Relations between Utilities and Probabilities}
+	
+	\subsection{Sub-stochasticity}
+	
+	\section{Inconsistency}\label{sec:inconsistency-ex}
 	% This is a predicate definition. We would also like to have a continuous definition so we can do gradient descent. 
 		
 	\begin{defn}[consistency]
@@ -330,7 +389,7 @@
 		A model $(\cal A, L)$, in which preferences are represented by a single utility node $U \in \cal A$, is \textit{pref-inconsistent} if it is inconsistent, but only because of the utility node --- i.e., the model obtained by deleting $U$ and all links to it, $\big(\mathcal A \setminus U,~~\mathcal L \setminus \{ L : \square\to U \}\big)$ is consistent.
 	\end{defn}
 
-	To get readers on board with these definitions, we will show how they correspond to other intuitions of inconsistent preferences through some examples and specific cases
+	To get readers on board with these definitions, we will show how they correspond to other intuitions of inconsistent preferences through some examples and specific cases.
 	
 	\subsection{Intransitivity of Preferences as Inconsistency}
 	
@@ -342,22 +401,12 @@
 
 %	The thing that makes a picture inconsistent is an inability to assign any joint probability that marginalizes out to the conditional ones. %However, it is not clear how to make this differentiable. Perhaps minimizing inconsistency by using the previous sum-of-paths technique while it is inconsistent is important.
 	
-	\subsection{Examples of Inconsistency}\label{sec:inconsistency-ex}
+	\subsection{Examples of Inconsistency}
 	% Also, in some sense, the picture above is somehow the worst one could do by composition:
-	\subsubsection{A short list}
-	\begin{itemize}[nosep]
-		\item Violations of either propositions \ref{prop:prob-eq} or \ref{prop:det-eq}
-		\item Failure to obey entropy triangle inequality
-		\item Outside of entropic cone.
-	\end{itemize}
 
-	\subsubsection{Belief Revision}
+
+	\subsection{Belief Revision}
 	
-	\subsubsection{Framing Problems}
-	\subsubsection{Learning Problems}
-	
-	\subsection{Sufficient Conditions for Inconsistency}
-	\begin{prop}
-		
-	\end{prop}
+	\subsection{Framing Problems}
+	\subsection{Learning Problems}
 \end{document}
