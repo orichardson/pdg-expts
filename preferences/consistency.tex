@@ -19,7 +19,7 @@
 \title{Discussion of \todo{need name for model} Semantics and Consistency}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
 
-\newcommand\modelname{{\color{green!50!black}$\langle$model name$\rangle$ }}
+\newcommand\modelname{{\color{blue!50!black}$\langle$\itshape model name$\rangle$ }}
 
 \begin{document}
 	\maketitle
@@ -61,15 +61,20 @@
 
 	\subsection*{Recap: \modelname Definitions and Semantics}
 	\begin{defn}
-		A \modelname model $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta (B \cup \{\bullet\})$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before.} representing beliefs about how a setting of $A$ will impact the value of $B$. 
+		A \modelname model $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta (B \cup \{\bullet\})$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before.} representing beliefs about how a setting of $A$ to $a \neq \bullet$ will impact the value of $B$. 
 	\end{defn}
 
-	
+	Variables can be thought of equivalently as:
+	\begin{itemize}[nosep]
+		\item random variables $X$ which can take on values $\{x_i\}$ (or possibly none, which we denote $\bullet$)
+		\item sets $X$ with elements $\{x_i\}$
+		\item partitions of the universe of outcomes into disjoint (but possibly not exhaustive) events $\{x_i\}$
+	\end{itemize}
 	
 	In this document, we will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables. While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
 	
-	\section{Defense of Static \modelname Representation }
+	\section{Defense of \modelname as a Static Representation }
 	\subsection{The Possibility of Type Constructors}\label{sec:belief-typing}
 	The classical picture also features a fixed set of variables. In addition to allowing new concepts to form, we would like to have inductive ways of introducing new ones logically, as combinations of the existing variables. Interpreting variables as types, whose possible assignments are terms, the syntax of which variables we can construct and what beliefs we have about the resulting picture is a type theory. There are some obvious ways one might want to combine existing domains; the one we are concerned with here is products.
 	
@@ -141,11 +146,11 @@
 	
 	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence in a weaker way.
 	
-	\begin{defn}
+	\begin{defn*}
 		The \emph{center} of a \modelname $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
-	\end{defn}
+	\end{defn*}
 
-	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}. In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. We also get:
+	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}.  In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. The principle of maximum entropy is well established\footnote{However, preferences are still thought of as things which need to be totally nailed down rather than maximum entropy; this project can be thought of as pushing in this direction} and there are many other, more complete arguments for it \todo{choose references}. We also get:
 	
 	\begin{conj}
 		The center of the \modelname obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
@@ -154,6 +159,8 @@
 	\begin{conj}
 		Products (defined in section \ref{sec:belief-typing}) in the center of a model $(\cal A, L)$ have the usual uniqueness to make them categorical limits.
 	\end{conj}
+
+	We will clarify this definition and explain the connection to thermodynamics more carefully (section \ref{sec:thermo}) once we have a numerical definition of consistency. In the mean time, we continue to argue for this collection of marginals as a way of representing beliefs.
 
 	
 	% The BN makes the assumption that the value of $D$ cannot depend on anything else; we're only 
@@ -191,6 +198,27 @@
 		Now, on the one hand, you have a logical picture of how an action and prediction together will impact whether the predictor is right (the arrow $A \times P \to A \stackrel{?}{=} P$). On the other hand, you also have an outside view of how likely the predictor is to be right (the arrow $1 \to A \stackrel{?}{=} P$). We have not resolved the paradox; we have merely represented the beliefs in the setup, which make very little sense as a BN.
 %		More weirdness comes from the fact that $A$ and $P$ interact.
 	\end{example}
+
+	At least classically, beliefs are only half of the picture. Keeping around marginals is also more psychologically plausible for preferences.
+
+	\subsection{Human Preferences as Marginals}	\label{sec:expected-util-good}
+	In this section we will argue that the distinction between `pure' utilities and `expected' ones does not make much psychological sense. Clearly from a mathematical perspective the two are different: the pure utilities can be used to make sure the whole picture is consistent in the classical setting, and are unchanged by beliefs. In our view these are both bad things for modeling people, and drawing this distinction also causes the math to be less unified in subtler ways. In any case
+	
+	\begin{example}
+		Suppose you really like ice cream, and assign high utility to it. But now your family and government collaborate to make sure that whenever you eat ice cream you get an unpleasant electric shock, and feel awful for a day. It's bad enough that it's definitely not worth eating ice cream. But in this new life of yours, do you like it? The classical answer is yes. You will always like ice cream, it's just that you dislike shock. But we know that experiences that co-occur blend into one another a lot; a bad meal or bad date can ruin a restaurant, and that's much more ephemeral than a shock collar that is now part of your life. It's even harder to argue this if you consider the collar being put on before you've ever had ice cream. Now ice cream tastes like pain, and you would avoid it either way.		
+		
+		It gets worse still: what if instead of an external device, the procedure was a hypnosis that made you feel this way? It seems hard to argue that the new version of you still likes ice cream.
+	\end{example}
+
+	When you can't separate two effects, there's no reason to talk about them, and no way to differentiate between them; such a representation should fade into the background. There's also no reason to restrict ourselves to trivial things such as tastes. The more important things, too (and perhaps especially, since they're further away from qualia) should be treated in context.
+	
+	\begin{example}
+		You think freedom is objectively valuable. Governments and organizations that restrict freedom give worlds negative utility in your view, and tools that give people more freedom are of positive utility. But why do you like freedom? Presumably it's in part based on experience, and reading, and thinking about the structure of how societies are set up. It's not just a preference which comes from nowhere. If you lived in an alternate reality where people were much more malevolent and freedom was always associated with murder--- where free societies collapsed immediately and tools that empowered people were invariably used for evil--- would you still think freedom is good?
+	\end{example}
+
+	What you really mean when you say, colloquially, that something has high utility, or that you like one thing more than another, is that you like it \emph{in context}. It's not that you would universally like it to be true over the alternative, as CP nets assume, or that you have some fixed platonic additive component of a utility function inside of you that gives you some number of points for freedom, as the classical view of economics would suggest. We're really talking about expected utility --- or more generally, the marginal distribution of ``good'' given different choices, given your current beliefs. Even this insistence on collapsing the distribution to its mean is problematic, and makes problems like risk aversion trickier to talk about. The risk associated with not feeling good even though the state of the world is exactly what you thought it would be is almost never accounted for, and yet seems like a big deal, especially for people who don't have clear purpose in life.
+	
+	We can now get back to more technical benefits of looking at the world as a collection of conditional distributions.
 
 	\subsection{Composition Of Arrows}
 	One feature we really would like to have is the ability to chain these conditional distributions together. Among other things, a well-behaved notion of composition will:
@@ -267,7 +295,7 @@
 	
 	Our singleton example is a little bit annoying, but at least it's the best prediction that could be made after forgetting all of the information. It is natural to ask: is ignoring everything the \emph{worst} we can do? Is every bit of signal helpful? The answer is no. % There are two competing intuitions here: on the one hand, correlations are not transitive; on the other, if an intermediate variable $Y$ is positi
 	
-	\begin{example}
+	\begin{example} \label{ex:badcommute}
 		Men earn more than women, and people who earn more are generally older, but women live longer than men, so the top composition in the picture below
 		\[ \begin{tikzcd}[dpad]
 			& \$ \ar[rd] \\
@@ -323,9 +351,26 @@
 		Even though this triangle does not commute, still every pair of paths from $1$ to another node are equivalent; for instance, marginalizing out gender gives the same distribution on age in all three of the cases above.
 	\end{example}
 
-	So. Why even bother with composition then, if it doesn't give you the truth? As mentioned in the beginning of the section, we can do some cool things with it. The beliefs we model clearly should not necessarily be closed under composition, but being able to form them is still useful:
+	There are more persuasive examples using preferences. Multiple paths from a domain to $U$ can be thought of as pieces of a pros/cons list; in this case, people are intimately familiar with the fact that paths are not always equal.
+	\begin{example}\label{ex:procon}
+		In expectation, if I eat this bagel, I'm less likely to be hungry, and when I'm not hungry, I'm likely to be happier. On the other hand, suppose I'm allergic to gluten, and if I eat the bagel, I'm also likely to be irritated and uncomfortable, and when irritated and uncomfortable, I'm likely to be less happy. 
+		\begin{center}
+			\begin{tikzcd}[dpad, row sep = 0.5em]
+				& \text{Hungry}\ar[dr] \\
+				\text{Bagel} \ar[ur]\ar[dr] && \mathsf U \\
+				& \text{Irritated} \ar[ur]
+			\end{tikzcd}
+		\end{center}
+		The two paths are opposite polarity and hence the two paths cannot be equal.
+	\end{example}
+
+	The very fact that we write down both pros and cons implies paths aren't in general equal. So. Why even bother with composition then, if it doesn't give you the truth? People still write down arguments in support of and refuting positions, and often this is helpful. In example \ref{ex:procon} the intuition is still that somehow by weighting the reasons appropriately and finding the centroid we're likely to reach a good decision.
+
+	% Why bother with composition? composition does the right thing under markov assumption, and we can always move the representation in such a way that we can get a markov assumption.
+
+	Also, as mentioned in the beginning of the section, we can do some cool things with composition. The beliefs we model clearly should not necessarily be closed under composition, but being able to form them is still useful:
 	\begin{itemize}[nosep]
-		\item If you only one path, and no other evidence it's the best guess you have.
+		\item In the absence of additional information, the composition of two links is in some sense the best available estimate, and is compatible with any distribution in the center of the \modelname.
 		\item If multiple, disjoint paths, this is good evidence that the final estimate is good --- like obtaining the same value from two different fermi estimates.
 		\item In some cases, the composition is guaranteed to equal or approximate the true probability.
 	\end{itemize}
@@ -354,7 +399,9 @@
 					= \delta_{g(a),q} 
 					= g(a, q)
 		\end{align*}
-	\end{proof}
+	\end{proof}'
+
+	We can also use information theory to obtain some bounds. Degenerate, deterministic marginals (zero entropy) must commute, and because the paths are guaranteed to be centered (see how even in example \ref{ex:badcommute} the means of the three compositions are the same) the possible deviation between paths is bounded by the entropy of the components. As a result, we will be able to show something in the spirit of the following (though it probably needs some revision):
 
 	\begin{conj}
 		A composition of arrows can only be as far off as its entropy permits: if we have marginals $A \xrightarrow{L} B \xrightarrow{P} C$, then
@@ -366,47 +413,273 @@
 %	\end{proof}
 
 	To summarize: we have a picture containing conditional distributions, particularly the ones which are most useful and actionable. Each conditional is a constraint on the world. We have a natural way of composing distributions, but sometimes the composition of two distributions will not be consistent with the rest of your beliefs.
-	%Question: why even bother with composition, then? Why not just have arbitrary constriants?
-	% Answer (1): composition does the right thing under markov assumption, and we can always move the representation in such a way that we can get a markov assumption.
-	% Answer (2): If you have no other option this is the only estimate you have.
-	% Answer (3): Up to the entropic cone, it is still guaranteed to be accurate.
-	
+		
 	\subsection{Altering Diagrams}
 	
 	\subsection{Relations between Utilities and Probabilities}
+	\todo{This is in the other documents. I can lift it if this becomes something more stable and we want it here}
 	
-	\subsection{Sub-stochasticity}
+	\subsection{Sub-stochastic Transitions and Conditionals}
+	
+	Often, an otherwise very useful variable might not apply. The variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``actually this doesn't make sense'' bucket. 
+	
+	Usually, this is not really a problem, because we can always just add that bucket as a real option that a variable can take: a variable which might not make sense can always take a \texttt{null} value, and so now the set of possibilities is once again exhaustive. For us, this resolution poses a problem: our marginals now require us to estimate the distribution of many things given a null value--- suppose you are trying to represent the belief that you're happier when you get the right answer as a marginal link $L[\mathrm{RightAns}\to \smiley]$. We now need a distribution on happiness when you get the right answer, when you get the wrong answer, and also for when the question doesn't apply. But why doesn't it apply? Are you not solving problems because you're skiing? Because you've been injured? Maybe you are solving problems but there are multiple right answers? You can't just answer with a prior over happiness if you want to have consistent beliefs, because solving problems and happiness might be correlated. To be fair, this is something you certainly \emph{could} have, but it's annoying that we cannot provide a belief about ``does the right answer make you happy?'' without also answering the much more difficult question, ``are you happier when `the right answer' is an applicable concept to your life?''.
+	
+	In addition to being psychologically implausible, it dramatically reduces the number of things we can represent; take implication, for instance. If $A, B$ are binary variables (taking values $a, \bar a$ and $b, \bar b$ respectively), we can easily represent $A = B$, $A = \lnot B$ as stochastic matrices
+	
+	\[ p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 1 & 0 \\ 0 & 1 \end{idxmatphant}
+		\qquad\text{and}\qquad p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 0 & 1 \\ 1 & 0 \end{idxmatphant}
+		 \]
+	
+	but you cannot (via stochastic matrices) believe that $A \Rightarrow B$ without also believing a prior over $B$ given $\bar a$. Maybe the best strategy is a uniform prior (principle of maximum entropy, used in theorem proving in \cite{logicalinduction}), but this makes your beliefs inconsistent if it happens that $B$ is always false for other, unrelated reasons. 
+	
+	For this reason, we drop the requirement that our null element, $\bullet$, indexes a distribution in marginals. Below is an example of transition matrix $A \to B$ including the extra element. As mentioned, the last row is not something we are keeping track of.
+	
+	\[ \begin{idxmat}{$a_0$, $a_1$, $a_2$, $\bullet$}{$b_0$, $b_1$,  $\bullet$}
+		.2 & .1 & 0.7 \\
+		0 & 0 & 1 \\
+		1 & 0 & 0\\\hline
+		{\color{gray}.2} & {\color{gray}.6} & {\color{gray}0}
+	\end{idxmat} \]
+	
+	Furthermore, because the final column is just whatever is necessary to make the rows sum to 1, we don't need to keep that either; as a result, it is sufficient to keep a smaller matrix without any $\bullet$-indices; the only price that we pay is that this matrix is \emph{sub}-stochastic rather than stochastic: its row entries sum to at most 1, rather than exactly 1. Composition works just as before; the product of sub-stochastic matrices is sub-stochastic.
+	
+	There is no way to get a Bayesian Network to do this, because we require the look-up tables to exactly match all possible values, so we get a real distribution at the end, rather than a weaker sub-distribution.
+	
+	There are several other technical results that we will eventually need to make sure that no tricks are being pulled when we later use standard formulae for probability distributions, but I'm going to skip fully typesetting and verifying them for now.
+	
+	\subsubsection{Substochastic Sanity Results} 
+	\todo{show we can still use Bayes rule, marginalization etc., under certain circumstances. Most should follow just by adding $\bullet$ as an absorbing state and interpreting in a larger space}
+
 	
 	\section{Inconsistency}\label{sec:inconsistency-ex}
 	% This is a predicate definition. We would also like to have a continuous definition so we can do gradient descent. 
-		
+	We will start with a simple predicate definition of \modelname consistency, of preference consistency, and give some examples before stating a less-brittle continuous generalization that will allow us to deal with inconsistent models.
+	
 	\begin{defn}[consistency]
-		A model $(\cal A, L)$ is \emph{consistent} if there exists some joint probability $\Pr(\cal A)$ on all of the variables, that is consistent with every link marginal $L \in \cal L$.
+		A \modelname $(\cal A, L)$ is \emph{consistent} if there exists some joint probability $\Pr(\cal A)$ on all of the variables, that is consistent with every link marginal $L \in \cal L$.
 	\end{defn}
 
 
 	\begin{defn}
-		A model $(\cal A, L)$, in which preferences are represented by a single utility node $U \in \cal A$, is \textit{pref-inconsistent} if it is inconsistent, but only because of the utility node --- i.e., the model obtained by deleting $U$ and all links to it, $\big(\mathcal A \setminus U,~~\mathcal L \setminus \{ L : \square\to U \}\big)$ is consistent.
+		A \modelname $(\cal A, L)$, in which preferences are represented by a single utility node $U \in \cal A$, is \textit{pref-inconsistent} if it is inconsistent, but only because of the utility node --- i.e., the model obtained by deleting $U$ and all links to it, $\big(\mathcal A \setminus U,~~\mathcal L \setminus \{ L : \square\to U \}\big)$ is consistent.
 	\end{defn}
 
-	To get readers on board with these definitions, we will show how they correspond to other intuitions of inconsistent preferences through some examples and specific cases.
+	We will now show how they correspond to other intuitions of inconsistent preferences through some examples and specific cases.
 	
 	\subsection{Intransitivity of Preferences as Inconsistency}
 	
 
-%	\begin{defn}
-%		More generally, a model $(\cal A, L)$ is \emph{pref-inconsistent} 
-%	\end{defn}
+	
+	While restricting ourselves to use preferences represented by a utility domain, we cannot represent intransitive preferences directly in the usual way. However, we can use the $\bullet$ and sub-stochasticity to break one domain into many smaller ones, each one representing a binary forced choice. For instance, suppose we have one variable $X$, which can take the three values $\{x_0, x_1, x_2\}$. Then we can form domains $X^{01}$, $X^{12}$, and $X^{02}$, where $X^{01}$ contains elements corresponding to $x_0$ and $x_1$, and so on. We also assume it has preferences on each subdomain represented by utilities. This gives our agent the following picture:
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (U) at (0:0){$\sf U$};
+			\node[dpadded] (X01) at (90:2.0){$X^{01}$};
+			\node[dpadded] (X12) at (210:2.5){$X^{12}$};
+			\node[dpadded] (X02) at (330:2.5){$X^{02}$};
+			
+			\draw[arr, <->] (X01) to[bend right=30] (X12);
+			\draw[arr, <->] (X12) to[bend right=30] (X02);
+			\draw[arr, <->] (X02) to[bend right=30] (X01);
+			
+%			\draw[arr] (X12) to[bend left=10] (X01);
+%			\draw[arr] (X02) to[bend left=10] (X12);
+%			\draw[arr] (X01) to[bend left=10] (X02);
+			
+						
+			\draw[arr] (X01) to (U);
+			\draw[arr] (X12) to (U);
+			\draw[arr] (X02) to (U);
+		\end{tikzpicture}
+	\end{center}
+	
+	The complete domain $X$, which we won't include in the agent's picture, could of course replace the entire clique as a simpler representation. The constraints between the domains are just the logical ones: $L[A \to B]_{a,b} = \delta_{a,b} $. We can expand further to give a more concrete sense of the shape of what's going on here--- each matrix between the subdomains is of the form
+	\[ L[X^{ab} \to X^{cd}] = \begin{idxmat}{$a$,$b$}{$c$, $d$}
+		\delta_{a,c} & \delta_{a,d} \\ \delta_{b,c} & \delta_{b,d}
+	\end{idxmat}\]
+	And more concretely still:
+	\[ 
+		L[X^{01} \to X^{12}] =\begin{idxmat}{$x_0$,$x_1$}{$x_1$,$x_2$}
+			0 & 0 \\ 1& 0
+			\end{idxmat} \qquad
+%
+		L[X^{12} \to X^{02}] = \begin{idxmat}{$x_1$,$x_2$}{$x_0$,$x_2$}
+			0 & 0 \\ 0 & 1
+			\end{idxmat}\qquad
+%
+		L[X^{02} \to X^{01}] = \begin{idxmat}{$x_0$,$x_2$}{$x_0$,$x_1$}
+			1 & 0 \\ 0 & 0
+			\end{idxmat}
+	\]
+	The other three are the transposes of these. Note that without the utility node, the \modelname is perfectly consistent: any distribution which assigns the same weight to identified values --- that is to say, any distribution on $X^{01} \times X^{12} \times X^{02}$ which sense as a distribution on $X$ --- will work.
+	
+	Now we can use this structure to encode any complete binary relation. Suppose that the agent's preferences on $X$ are intransitive. Without loss of generality, suppose this occurs as $x_0 \geqc x_1 \geqc x_2 \succ x_0$ (that is, $x_0 \geqc x_1$ and $x_1 \geqc x_2$ but not $x_0 \not\geqc x_2$). This scenario is represented with utility marginals such that, this gives us
+	\begin{equation}\label{eq:inequalities-for-eu}
+		\mathbb E U_{X^{01}} (x_0 ) \geq \mathbb E U_{X^{01}} (x_1 ) 
+		\qquad
+		\mathbb E U_{X^{12}} (x_1 ) \geq \mathbb E U_{X^{12}} (x_2 ) 
+		\qquad\text{and}\qquad
+		\mathbb E U_{X^{02}} (x_2 ) > \mathbb E U_{X^{12}} (x_0 ) 
+	\end{equation}
+	where $\mathbb E U_Y(y)$ is the mean of the distribution $U_Y(y)$ over $\mathsf U \cong \mathbb R$. Now, in search of a contradiction, suppose that there is a joint probability distribution $p$ over $X^{01}\times X^{12}\times X^{02}\times\sf U$ which marginalizes out to each of the links above, and whose marginals on $\sf U$ satisfy \eqref{eq:inequalities-for-eu}. Due to the logical links, we know that the same probability must be assigned to the same event in different domains; for example,
+	\[ p(X^{01} = x_0)~=~\frac{p(X^{01} = x_0 \mid X^{02} = x_0)}{p(X^{02} = x_0 \mid X^{01} = x_0)} p(X^{02} = x_0)~=~ p(X^{02} = x_0) =: p(x_0)\]
+	and also, since whenever $X^{01} = x_0$, $X^{02} = x_0$ with probability 1 and vice versa, conditioning on the two events is equivalent. Therefore,	
+%	\begin{align*}
+%		p(u \mid X^{01} = x_0) &= \frac{p(u \cap X^{01} = x_0)}{p(x_0)} \\
+%			&= \sum_{b \in X^{02} \cup \bullet} \frac{p(u \cap X^{01} = x_0 \cap X^{02} = b)}{p(x_0 \cap b)} p(b) \\
+%			&= \sum_{b \in X^{02} \cup \bullet} \frac{p(u \mid X^{01} = x_0 \cap X^{02} = b)  }{p(x_0 \cap b)} p(b) \\
+%			= \frac{p(u \cap X^{01} = x_0)}{p(x_0 \cap b)} p(b) 
+%	\end{align*}
+%	\[  \]	
+	\begin{align*}
+		u_0 := \int_{u: \mathbb R} u\cdot p(u \mid x_0)~\mathrm d \mu = \mathbb E U_{X^{01}} (x_0 ) &~\geq~ \mathbb E U_{X^{01}} (x_1 ) =	\int_{u: \mathbb R} u\cdot p(u \mid x_1)~\mathrm d \mu \\ 
+		=\mathbb E U_{X^{12}} (x_1 ) &~\geq~ \mathbb E U_{X^{12}} (x_2 ) = \int_{u: \mathbb R} u\cdot p(u \mid x_2)~\mathrm d \mu\\
+		=\mathbb E U_{X^{02}} (x_2 ) &~>~ \mathbb E U_{X^{02}} (x_0 ) = 	\int_{u: \mathbb R} u\cdot p(u \mid x_0)~\mathrm d \mu
+			= u_0
+	\end{align*}
+	which is a contradiction. Therefore, this intransitive set of preferences is pref-inconsistent.
+	
+	Without much effort this can easily be extended to show that in this encoding, an arbitrary sets and intransitive binary relations on it, results in a pref-inconsistent model.
+
 
 
 %	The thing that makes a picture inconsistent is an inability to assign any joint probability that marginalizes out to the conditional ones. %However, it is not clear how to make this differentiable. Perhaps minimizing inconsistency by using the previous sum-of-paths technique while it is inconsistent is important.
 	
-	\subsection{Examples of Inconsistency}
-	% Also, in some sense, the picture above is somehow the worst one could do by composition:
+%	\subsection{Examples of Inconsistency}
 
 
+
+
+	\subsection{Framing Problems as Inconsistency}
+	Consider once again a framing problem: there are two variables $A$ and $B$ which you have preferences over; maybe you think $a \geqc \bar a$ and $\bar b \geqc b$. Unfortunately, you later discover that they're the same variable. Below is a diagram of this:
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded](A) at (0,0) {$A$};
+			\node[dpadded](B) at (3,0) {$B$};
+			\node (AB) at (1.5,-1.5) {$A \times B$};
+			\node[dpadded](U) at (1.5,-3) {$\sf U$};
+			
+			\draw[arr] (B) to[bend left=20] (U);
+			\draw[arr] (A) to[bend right=20] (U);
+			\draw[arr] (A) to[bend right=10] (B);
+			\draw[arr] (B) to[bend right=10] (A);
+			\draw[archain=gray] (AB) to (A) (AB) to (B) (AB) to (U);
+		\end{tikzpicture}
+	\end{center}
+	It is easy to see that the logical correspondence between $A$ and $B$ alone admits plenty of joint distributions; any distribution on $A$ will extend to $B$ and vice versa. However, adding the utility makes it impossible to satisfy. This too should be clear: if $a$ corresponds exactly to $b$, then for any probability measure $p$ on $A \times B \times \mathsf U$,
+	\[ \E_p(U \mid a) > \E_p(U \mid \bar a) = \E_p(U \mid \bar b) > \E_p(U \mid b) = \E_p(U \mid a) \]
+	which is a contradiction.
+	
+	One might wonder if this is only true in the degenerate case--- but it is easy to be inconsistent even if the marginals have full support. Fix some small $\epsilon > 0$, and consider the case that is $\epsilon$ way from the one we just described. 
+	Any joint distribution on all three variables must factor into $p = \lambda a. \lambda b. p(a, b) p(u | a,b)$. The distribution $p(A, B)$ must therefore look something like
+	\[ \begin{idxmatphant}{$b$, $\bar b$}{$a$, $\bar a$}{} ? & \leq\epsilon \\ \leq\epsilon & ?
+	\end{idxmatphant}\]
+	
+	Once again, obviously consistent. So now, if $U_B$ is the marginal of $U$ on $B$ and $U_A$ is the marginal on $A$, and the utility classically is a function $u : A\times B \to U$, we can write:	
+	
+	\[ \E U_B(a') = \int_B p(a,b, u(a',b)) u(a',b) \mathrm d b = \sum_b  {\color{gray}\overbrace{\color{black} p\Big(u(a,b) \mid a,b\Big)}^{1}} p(a',b) u(a', b) = p(a', b) u(a', b) + p(a', \bar b) u(a', \bar b) \]
+	And similarly,
+	\[ \E U_A(b') = \int_A p(a,b', u(a,b')) u(a,b') \mathrm d b  = p(a,b') u(a, b') + p(\bar a, b') u(\bar a, b') \]
+	Defining $a'$ to be the variable which corresponds to $b'$ in the case of $U_B$, and $b'$ to be the one that corresponds to $a'$ in the case of $U_A$, i.e.,
+	\[
+		a' := \begin{cases}
+			a & \text{when } b' = b \\
+			\bar a & \text{when } b' = \bar b
+		\end{cases}
+		\hspace{1.5in}
+		b' := \begin{cases}
+		b & \text{when } a' = a \\
+		\bar b & \text{when } a' = \bar a
+		\end{cases}		
+	\]
+	we then have $\E U_B (b') \approx u(a',b') \approx \E U_A(a')$, which gives us a chain of inequalities leading to a contradiction:
+	
+	\[ u(a,b) \approx \E U_A(a) \gg U_A \bar a \approx u(\bar a, \bar b) \approx U_B \bar b \gg U_B b = \E U_B(b) \approx u(a,b) \]
+	
+	Note that this works even if utilities are classical functions rather than distributions! By replacing the platonic ideal of utility with expected utility, which interacts with the real world, as we've argued for (see section \ref{sec:expected-util-good}), we can quickly get preferences that conflict purely due to beliefs.
+	
+	\subsection{Learning Problems}
+	\todo{adapt from previous document. Most everything there is correct, but in context it doesn't flow. I don't think I got feedback on that section yet}
+	
+	\section{Dynamics}
+	\subsection{A Better Definition}
+	The definition of consistency provides no insight for how to reduce it, and leaves us requiring all of the marginals to be consistent in order to do anything, just as in the classical case. 
+	
+	\begin{equation}
+	\zeta(\mathcal A, \mathcal L) := \inf_{p : \mathrm{Prob}(\cal A)}~\sum_{L[A \to B]\in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{L(a) }{ p(B \mid a) } \right]
+	\end{equation}
+	
+	Although this looks like a complicated formula full of arbitrary symbols, it is in fact just the minimum total information needed to encode a distribution given your current beliefs. Note that if there is a distribution $p$ that marginalizes out to match each link $L$, then the KL divergence will be zero for each link and input, and therefore the inconsistency will be zero; thus this is a special case of our previous definition.
+	
+	Although it is not obviously differentiable, this function at least admits sub-gradients, which is a place to look in order to implement gradient descent. One can always also estimate a gradient by sampling, and $\zeta$ is at least continuous.
+	
 	\subsection{Belief Revision}
 	
-	\subsection{Framing Problems}
-	\subsection{Learning Problems}
+	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ (in their formulation, these are still distributions) to a new one consistent with the input $I$. 
+	
+	For us, belief revision is simply adding marginals to the picture, and then resolving inconsistencies. In fact, our representation makes this rather pretty: the observation of a Jeffrey input is simply a factorization of existing links through a new finite random variable; observing a Bayesian input is the the particular case where the variable is binary and the observation is certain.
+	Jeffrey's rule prescribes a posterior probability $p'$ by:
+	\[ p'(a) = \sum_{b \in B} p(a \mid b) \pi_b \qquad \text{for all outcomes $a \subseteq \cal W$} \]
+	
+	Since variables can be thought of as partitions of outcomes, and at this point we're looking at the classical picture, where $p$ is a distribution on all variables, we can draw a much cleaner picture, where the integration is implicit:
+	
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (1) at (0,3) {$\sf 1$};
+			\node[dpadded] (W) at (0,0) {$\cal W$};
+			\node[dpadded] (B) at (-2,1) {$B$};
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+			
+			\draw[arr, gray] (W) to[bend left=10] (B);
+			\draw[arr, dashed] (B) to[bend right=30] (W);	
+		\end{tikzpicture}
+	\end{center}
+
+	Now, $p' := p(\mathcal W \mid B)$ is just the left-most path. The gray arrow on the bottom left is just a projection / computation from the state of the world, and the dashed one is its inversion given by Bayes' rule, which is why the conditioning works out as in the formula. If we really want to match the formulation exactly we can put $a$ into the picture--- but rather than a subset of the outcomes, $a$ is now a value that some variable can take. We can even create a special indicator variable for it, $\mathbbm 1_a$.
+	
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (1) at (0,3) {$\sf 1$};
+			\node[dpadded] (W) at (0,0) {$\cal W$};
+			\node[dpadded] (B) at (-2,1) {$B$};
+			\node[dpadded] (1a) at (2.5, 0){$\mathbbm 1_a$};
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+			
+			\draw[arr, gray] (W) to[bend left=10] (B);
+			\draw[arr, dashed] (B) to[bend right=30] (W);	
+			
+			\draw[arr] (W) to (1a);
+			
+			\draw[arr,blue!50] (1) .. controls (-6,1.7) and (-2,-2) .. node[fill=white]{$p'(a)$} (1a);
+			\draw[arr,orange!70] (1) .. controls (0.3,1) and (1,0.3) .. node[fill=white]{$p(a)$} (1a);
+		\end{tikzpicture}
+	\end{center}
+
+	Visually it's much clearer what's going on: we've replaced the probability distribution $1 \to \cal W$ with the one that factors through $B$ via the new observation $\pi$. In terms of evaluation, this means the orange path to $\mathbbm 1_a$ has been replaced by the blue one.
+	This presentation also suggests a natural way we can generalize this to our setting, where we don't necessarily have full distributions but only a collection of marginals: we simply try to factor every distribution $1 \to *$ through $B$ via $\pi$, as done with $\cal W$ above. The other marginals can stay the same, and the difference propagates through via composition.
+	
+	In our case, there's also a simpler thing we could do, that's even more psychologically plausible: just add the new marginal $\pi$ to our collection. Sure, it's probably inconsistent, but we can let the our inconsistency reduction take care of that. One might worry that it is likely we will now violate the responsiveness axiom \cite{dietrich2016belief}, as we could reject $\pi$ --- but I argue that this is not a concern. So long as an agent keeps observing or remembering the observation, we are effectively continuously reapplying consistency reduction while anchoring the new observation, until the responsiveness axiom is satisfied. This actually makes more sense than the standard belief revision picture: if a person doesn't spend long enough looking at it or thinking about it, they may forget or partially reject implications of this new view.
+	
+	\todo{Spend time converting the conservativeness axiom to this framework}
+	
+	One more benefit: belief revision no longer needs to happen immediately; we can add the marginal to our picture and deal with it later. This makes for an account which is much better suited to cognitively bounded agents, who might have more pressing matters than sorting through beliefs, and who might do them out of order.
+	
+	\subsection{Preference Thermodynamics}
+	We now have a quantity that behaves like enthalpy (inconsistency, $\zeta$), as well as information theoretic entropy. We now ask the question: is it reasonable to use these and a temperature parameter to define an effective free energy for belief revision?
+	
+	\[ G := \zeta - T H \]
+	
+
+	At low temperatures, $G = \zeta$, so gradient descent is just minimization of inconsistency. At high temperatures, using gradient descent on $G$ is mostly just entropy maximization: this corresponds to a softening of beliefs and preferences. 
+	
+	Of course, temperature could also be localized more to some links over others: you could be more willing or primed to reconsider beliefs about things you've just learned, for instance. Temperature can therefore function as the entrenchment parameter we've been looking for, and actually fits well with the physical analogy. When things are hot, they're maleable and are easily molded by the environment; as they cool off, they keep their history and identity. This seems like a fitting way of viewing agents as well.
+	
 \end{document}

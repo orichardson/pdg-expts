@@ -1,6 +1,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{mathtools} %also loads amsmath
 \usepackage{amssymb, bbm}
+
 \usepackage[backend=biber,
 	style=alphabetic,
 	%	citestyle=authoryear,
@@ -99,6 +100,7 @@
 
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
+\newtheorem*{defn*}{Definition}
 \newtheorem{examplex}{Example}[section]
 \newenvironment{example}
 	{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangle$}\examplex}
@@ -110,11 +112,18 @@
 \usepackage{xstring}
 \usepackage{enumitem}
 
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+	#1\;\delimsize\|\;#2%
+}
+\newcommand{\kldiv}{D_\mathrm{KL}\infdivx}
+%\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
 %\newcommand\duplicat[1]{\gdef\mylist{}\foreach \x in {#1}{\xdef\mylist{\mylist (\x) (lab-\x) }}\mylist} %% this doesn't work :((
 \newcommand\lab[1]{(#1)(lab-#1)}
 
 
 \newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}}
+\newcommand\E{{\mathbb E}}
 
 
 \newcommand{\todo}[1]{{\color{red}\large\textbf{[todo}: {\normalsize\itshape#1}\textbf{]}}}
@@ -142,15 +151,16 @@
 
 \newsavebox{\idxmatsavebox}
 \def\makeinvisibleidxstyle#1#2{\phantom{\hbox{#1#2}}}
-\newenvironment{idxmat}[3][\footnotesize\color{gray}\text]{%
+\newenvironment{idxmatphant}[4][\footnotesize\color{gray}\text]{%
 	\def\idxstyle{#1}
 	\def\colitems{#3}
 	\def\rowitems{#2}
+	\def\phantitems{#4}
 	\begin{lrbox}{\idxmatsavebox}$
 	\begin{matrix}  \begin{matrix} \hwrapcells{\colitems}[\idxstyle]  \end{matrix} \\[0.1em]
 		\left[ 
 		\begin{matrix}
-			\hwrapcells{\colitems}[\expandafter\makeinvisibleidxstyle\idxstyle]  \\[-1em]
+			\hwrapcells{\phantitems}[\expandafter\makeinvisibleidxstyle\idxstyle]  \\[-1em]
 	}{
 		\end{matrix}\right]		&\hspace{-0.5em}\begin{matrix*}[l] \vwrapcells{\rowitems}[\idxstyle] \end{matrix*}
 	\end{matrix}
@@ -158,6 +168,10 @@
 	\raisebox{0.75em}{\usebox\idxmatsavebox}
 %	\vspace{-0.5em}
 }
+
+\newenvironment{idxmat}[3][\footnotesize\color{gray}\text]
+	{\begingroup\idxmatphant[#1]{#2}{#3}{#3}}
+	{\endidxmatphant\endgroup}
 
 \newenvironment{sqidxmat}[2][\footnotesize\color{gray}\text]
 	{\begingroup\idxmat[#1]{#2}{#2}}
