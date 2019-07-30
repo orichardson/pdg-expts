@@ -1,21 +1,26 @@
-# Defn Wishlisth
+# To DO
 
-- Differentiable information theoretic defn of inconsistency that lines up with the assign-joint-probability one
+- Abstraction: show that we can do matrices with "sub-nodes". Matrix factorization, different semirings, etc. all work.
+
+- TODO: automate all of this. This is definitely something that can (and should!!) have attached code. It will help me find bugs, find the real emergent behavior, etc. etc. It'll be easier to explore and have empirics if you do it right. Also, it'll be fun. And you've already done part of it.
+
+
+# To Investigate
+ - Equalizers
+ - Strong / weak silence and conservatieness: what do these mean in terms of theory
+ - Savage's axioms: Interpret.
+ - Variational Bounds. Principle of free energy. Relate to Karl Friston.
+ - Embed Logics: see how perfectly deterministic things of interest play out and what I need to do to accomodate them.
 
 # Theorem Wishlist
-
- - [!false] Utility representation: if you can represnt all preferences by utility functions, then there is a way to combine them such that decision making is the same. Ways to formalize "decision making the same"
-	- Probability of choice in each set is the same as before.
+ - p ∈ Center of consistent diagram ⟹ preferences are adaptive. 
+     That is, utilities are normalized. If X occurs most of the time, it is close to zero utility.
 
  - admits utility function <==> consistency
 
  - Preference consistency is convex: taking mixtures of compositions is always consistent. Moreover, with high probability /accuracy we can represent the truth as a linear combination of compositions, in the limit as we incorporate more variables.
 
-# General Preditions
-
-
-
-***** All diagrams having limits => probability distributions. All diagrams having colimits => utility function. Weaker version: final 
+- [???ehhh] All diagrams having limits => probability distributions. All diagrams having colimits => utility function.  
 
 # Examples / Observations.
 
@@ -35,12 +40,17 @@
 	When you can't separate two effects, there's no reason to talk about them, and no way to differentiate between them
 		
 	
-# High Level
+# Fuzzy Intuition
  - always consistent is not convex. This is a convex realaxation of classical decision making, which has different emergent properties for cognitively bounded agents
  
+  
+# Less Important Things
+ - Can we generalize to other Renyi Entropies? In particular, the conservativeness afforded by min-entropy might have a reasonable interpretation, and when substituted into the divergence, may make consistency resolution different.
  
-# Future
-- inconsistency as a measure on the joint distributions that are consistent
+ - inconsistency as a measure on the joint distributions that are consistent
+
+------------------------------------------------------
+
 
 
 # Historical Log
@@ -49,3 +59,6 @@ Ignoring beliefs that are not utilities (i.e., no relationships between anything
  
 ... but now beliefs with 0 and 1 components can make the total picture inconsistent. This is a good reason for a smoother version of inconsistency, based on information: maybe it's not inconsistent yet but just extremely unlikely? Maybe it was just luck that another beleif wasn't epsilon off and so the difference between consistency and inconsistency is not as clear?
    
+
+- [!false] Utility representation: if you can represnt all preferences by utility functions, then there is a way to combine them such that decision making is the same. Ways to formalize "decision making the same"
+- Probability of choice in each set is the same as before.
