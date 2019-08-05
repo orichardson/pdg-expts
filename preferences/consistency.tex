@@ -682,26 +682,79 @@
 	
 	\section{A More Formal Treatment}
 	
-		
-	In order to prove this, we will build up a few intermediate results, and make this discussion more formal. First
+	We will build up a few intermediate results, and make this discussion more formal, to prove the theorems. First,
 	
 	\begin{defn}
-		If $\mathcal B = (\mathcal N, \mathrm{Par}: \mathcal N \to 2^{\mathcal N})$ is a Bayesian Network, then let $\Gamma \cal B$ denote the corresponding \modelname given by the procedure above. Explicitly, 
-		\[ \Gamma\mathcal B =  (\mathcal A, \mathcal L) \]
-		where 
-		\[ \mathcal A = \mathcal N \cup \left\{ \prod_{X \in \mathrm{Par}(N)} X ~\middle|~ N \in \cal N \right\} \]
-		\[ \mathcal L = \left\{  \cpm p(\frac{a}{z}|b) \right\} \]
+		A Baysian network (BN) is a tuple
+		\[
+			\mathcal B = \left(\mathcal N : \mathbf{FinSet}, ~~\mathrm{Par}: \mathcal N \to 2^{\mathcal N},~~ \mathcal S: \mathcal N \to \mathbf{FinSet},~~\Pr: \prod_{N : \mathcal N}  \left[ \mathcal S_N \times \left(\prod_{P : \mathrm{Par}(N)} \mathcal S_P\right)  \to [0,1] \right] \right)
+		\]
+		such that
+		\begin{itemize}[nosep]
+			\item the graph $\bigcup_{N, P \in \mathrm{Par}(N)}(N, P)$ is acyclic, i.e., there exists no cycle of nodes $N_0, N_1, \cdots, N_k = N_0$ in $\mathcal N^k$ such that $N_{i+1} \in \mathrm{Par}(N_i)$ for each $i \in \{0, 1, \cdots, k\}$.
+			\item For all $N \in \mathcal N$, $\Pr(N)$ is a probability distribution on $\mathcal S_N$, i.e., 
+			\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
+		\end{itemize}
 	\end{defn}
-	.
+
+	A BN represents a factorization of a joint probability on all of its variables $\mathcal N$ into conditional probability tables. Our model is a similar, but weaker:
+
+	\begin{defn}\label{def:mcg}
+		A marginal constraint graph is a tuple 
+		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
+		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$.
+	\end{defn}
+
 	
+	\begin{defn}
+		If $\mathcal B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a Bayesian Network, then let $\Gamma \cal B$ denote the corresponding marginal constraint graph given by the procedure in section \ref{sec:convert2bn}. Explicitly, 
+		\[ \Gamma\mathcal B :=  (\mathcal N', \mathcal L, (\mathcal S, \Sigma), \mathbf p) \]
+		where % $\mathcal N'$ is the original nodes, plus
+		\begin{align*}
+			\mathcal N' &=  \left\{ \Big.\{N\} \mid N \in \mathcal N\right\} \cup \left\{ \mathrm{Par}(N) ~\middle|~ N \in \cal N \right\} \\%
+			\mathcal L &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
+				\left\{\vphantom{\Big|} (P, \{X\}) \mid X \in P, P = \mathrm{Par}(N) \text{ for some }N \in \mathcal N \right\} \\
+			\mathcal S'_N &= \prod_{X \in N} \mathcal S_X \qquad;\qquad
+				\Sigma_N = \bigotimes_{X \in N} 2^{\mathcal S_X}, \text{the product algebra of discrete $\sigma$-algebras} \\
+			\mathbf p &= \begin{cases}
+				 	(\mathrm{Par}(N), \{N\}) &\mapsto \lambda(p, B).~ \displaystyle\sum_{b \in  B} \Pr(b \mid p) \\
+				 	(P, X) &\mapsto, \lambda (p, B).~ \displaystyle \mathbbm 1_{\displaystyle\pi_X(p) \in B}
+				\end{cases}
+		\end{align*}
+		%\cpm p(\frac{a}{z}|b)
+	\end{defn}
+	All we've done is explicitly add parent nodes and projection edges to our graph, plus some formalities with a trivial $\sigma$-algebra so that we can use definition \ref{def:mcg} exactly, which will need to eventually also accommodate continuous variables --- but in this case everything is discrete. We have also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
+
+	
+%	\begin{lemma}
+%		If $\mathcal B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a BN, and $p$ is a distribution on $\mathcal S$ that marginalizes to each of the links in $\Gamma(\mathcal B)$, then for all variables $N \in \mathcal N$, $\Pr(N = n) = p(N=n)$
+%	\end{lemma}
+%	\begin{proof}
+%		content
+%	\end{proof}
+
 	\begin{lemma}
-		If If $p$ marginalizes to each of the constraints of $\Gamma(BN)$
+		If $A$, $B$, $C$ are variables with a joint distribution $p$, then $H_p(A \mid B, C) \leq H_p(A \mid C)$ with equality if and only if $A \CI B \mid C$.
 	\end{lemma}
-	
-	We will now prove \recall{rthm:bn-maxent}
 	\begin{proof}
-		
+		We'll start with the inequality. 
+		\begin{align*}
+			H(A \mid B, C) 
+		\end{align*}
+		$(\impliedby)$. Suppose that 
 	\end{proof}
 	
+	We will now prove the theorem:
+	\begin{theorem}
+		If $\mathcal B$ is a BN, with nodes $\cal N$ and states $\cal S$, then the center of $\Gamma\cal B$ is a unique distribution $p$ on $\prod \mathcal S$, equal to $\Pr$, the distribution that $\mathcal B$ represents.
+	\end{theorem}
+	\begin{proof}
+		Since BN's are acyclic and $\cal N$ is finite, there is an ordering of $\mathcal N$ = $X_0, X_1, \cdots$ such that the parents of each node $X_i$ all come before $X_i$ itself. Now, looking at the joint entropy of all of the variables, we have:
+		
+		\[	H_p(\mathcal N) = H_p(X_0) + H_p(X_1 \mid X_0) + H_p(X_2 \mid X_1, X_0) + \cdots \]
+		
+		By Lemma \ref{lem:iff} $H(A\mid B) \leq H(A \mid B, C)$
+	\end{proof}
+		
 	
 \end{document}
