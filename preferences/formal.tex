@@ -1,6 +1,13 @@
-\documentclass{book}
+\documentclass{article}
 
+\usepackage[utf8]{inputenc}
 \input{prefs-commands.tex}
+\usepackage{multirow}
+
+\newcommand{\jyo}{\text{\usefont{U}{min}{m}{n}\symbol{'110}}}
+
+\DeclareFontFamily{U}{min}{}
+\DeclareFontShape{U}{min}{m}{n}{<-> dmjhira}{}
 
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
@@ -10,10 +17,200 @@
 
 
 \begin{document}
-%	\chapter{Motivation}
-%	\chapter{Formalism}
-%	This representation is your mental model of the world: the sets represent the possibilities you are aware of; the categorical structure on the sets represent 
+	
+	The general idea is to generalize orders by including extra data. Including a magnitude, for instance, gives us a notion of the strength of a comparison; one can also include reasons, properties. 
+	
+	A 
+	
+	Different aggregations 
 	
 	
+	\section{Values}
+	
+	People often model an agent's values by specifying a utility function, loss function, rewards, binary preferences, or goals. In each case the goal is somehow morally the same, but the formalisms are quite different.
+	
+	\begin{defn}
+		A \textit{value} (on a random variable $X$) is a map $\nu : X  \to \mathfrak O$ where $\mathfrak O$ is a ($\mathcal V$-enriched) category.
+	\end{defn}
+
+	Such a map allows us to think of $X$ itself as a $\mathcal V$-enriched category, by
+	\begin{align*}
+	\mathrm{ob}_{\bf X} &:= \mathcal S_X \\
+	\mathrm{Hom}_{\bf X}(x, x') &:= \mathrm{Hom}_{\mathfrak O}(\nu x, \nu x')
+	\end{align*}
+	where composition of arrows and associativity can from $\mathfrak O$ can be used directly, with no coherence issues.  We think of the hom object $\mathrm{Hom}_X(a,b)$ as tracking the ways $a$ and $b$ should be compared.
+	
+	\subsection{Orders}
+	
+	\begin{example}
+		In particular, if $X$ is already an (enriched) category, then the identity map $\mathrm{id}_X$ is value, sending each $x \in X$ to itself, recovering the additional relations between elements. 
+	\end{example}
+	
+	Of course, this is not very useful for articulating the order in the first place --- but it means that we can write down a value for $X$ by giving it suitable morphism structure.
+	
+	\begin{example}
+		Any pre-order $(O, \leqc)$ can be regarded as a $\mathbb B$-enriched category, where 
+		\[  \mathrm{Hom}_O(a,b)= (a \leqc b)  = \begin{cases}
+			1 & a \leq b \\ 0 &\text{otherwise}
+		\end{cases} \]
+		The monoidal product is conjunction, so composition
+		$ \circ_{a,b,c}: \mathrm{Hom}(b,c) \otimes \mathrm{Hom}(a,b) \to \mathrm{Hom}(a,c)$
+		guarantees that $a \leq c$ whenever $a \leq b$ and $b\leq c$, and nothing otherwise.
+		
+		In an order, there is nothing else we can use to compare --- from the perspective of $a$, the only information about $b$ provided by the order is whether or not $a \leqc b$.
+	\end{example}
+
+
+	
+	\begin{example}
+		In particular, a (na\"ive) utility function $u: X \to \mathbb (R, \leq)$ is a value, where the real numbers have their usual order. If $X$ is countable, then any total pre-order $(\leq) \subseteq X \times X$ on it can represented in this way.
+	\end{example}
+
+	\begin{example}
+		A goal is a value $X \to \mathbb B$. Because $\mathbb B$ itself is an order, it is a $\mathbb B$-enriched category. 
+	\end{example}
+
+	Of course, there is a lot more to goals (and actually what I've just described here I will later want to call a desire instead), but the general mathematical structure is there.
+
+	
+	\subsection{}
+	We can also track other information aside from just the order. The utility example above, for instance, is somewhat unsatisfactory because the actual geometry of the space is not used. After all one of the biggest reasons to use a utility function at all is that it can capture the \textit{magnitude} of difference between alternatives, which is incredibly useful.
+	
+	
+	\begin{fact}
+		Any group $G$ can be seen as a $G$-enriched category, where the monoidal product is the group product:
+		\begin{align*}
+			\mathrm{Hom}_{G}(a, b) &= b * a^{-1} &
+			r \otimes s &= r * s \\
+		\end{align*}
+		and composition works out exactly as one would hope:
+		\begin{align*}
+		\circ_{a,b,c} : \mathrm{Hom}(b,c) \otimes \mathrm{Hom}(a,b) &\to \mathrm{Hom}(a,c)\\
+		(c * b^{-1}) * (b * a^{-1}) &\mapsto c * a^{-1}
+		\end{align*}
+	\end{fact}
+	
+	\begin{example}
+		In particular, $\mathbb R$ is an $\mathbb R$-enriched category, where the tensor product is addition. As a result, a utility function $u: X \to \mathbb R$ is a value on $X$, where $\mathrm{Hom}(x, x') = u(x') - u(x)$. \footnote{Moreover, since addition is symmetric and functorial over $\leq$, $(\mathbb R, \leq)$ is a symmetric monoidal pre-order, and so products work out in the usual way \cite{spivek-ex2.74}.} Since we only ever consider differences of utilities, we don't actually need $\mathbb R$, just the affine space we get by enriching by itself. 
+	\end{example} 
+
+	We have now effectively reduced a utility to a total order with magnitude annotations. Can we then go backwards and re-construct the function, up to a base point?
+	
+	
+	So far we haven't done anything interesting: we've taken standard things and somehow encoded them in a way that's consistent with a strange definition.
+	
+	
+	
+	\subsection{Yoneda Embedding}
+	One pretty glaring difference between the standard presentation of utility functions and preferences is the number of copies of the variable $X$.
+	\begin{center}
+		\renewcommand{\arraystretch}{1.4}
+		\begin{tabular}{cr cc}
+			&& \multicolumn{2}{c}{Enrichment} \\
+			&& $(\mathbb B, \Rightarrow, \land)$ & $(\mathbb R,\leq,+)$ \\\cline{3-4}
+		\multirow{4}{*}{Shape}&\multirow{2}{*}{1} & \multicolumn{1}{|c|}{$X \to \mathbb B$} & \multicolumn{1}{c|}{$X \to \mathbb R$} \\
+			&	& \multicolumn{1}{|c|}{(goal)}  & \multicolumn{1}{c|}{(utility)} \\\cline{3-4}
+			& \multirow{2}{*}{2} & \multicolumn{1}{|c|}{$X\times X \to \mathbb B$} & \multicolumn{1}{c|}{$X \times X \to \mathbb R$} \\
+			&	& \multicolumn{1}{|c|}{(preference)} & \multicolumn{1}{c|}{(matrix)} \\\cline{3-4}
+		\end{tabular}
+	\end{center}
+	\vspace{1em}
+
+	So far we've dealt with this by converting everything to shape 2, which is the easy, boundary-like operation---it's easy to take a utility function $u$ and create a matrix by $\mathbf X_{i,j} = u(j) - u(i)$, for instance---but there are some flaws with this approach:
+	\begin{enumerate}[nosep]
+		\item It doesn't generalize to other shapes very well --- for instance, it's not clear how to encode a selection function which takes any subset of $X$ and returns a supremum (or distribution over its arguments).
+		\item We eventually want to get to probabalistic transitions, and so while we will get to control the representation and points of the variables, we will ultimately want our arrows to be markov kernels, and so we may not get this level of control directy over the morphisms
+	\end{enumerate}
+	
+	Instead, we will show that we can build this structure ``point-wise'', by taking considering pre-sheafs over our $\mathcal V$-category, under the yoneda embedding 
+	$ \jyo: \mathcal C \to [\mathcal C^{\mathrm{op}}, \mathcal V ] $	
+	. Note that this is just the curried hom-functor. 
+	By the yoneda lemma, natural transformations out of the functor category $[\mathcal C^{\mathrm{op}}, \mathcal V]$ are in natural bijection with the morphisms of $\mathcal C$, and so this will also give us the same enrichment structure.
+	
+	\begin{example}
+		Suppose we want to give $X$ a pre-order, by only specifying data at the points --- then the yoneda embedding is a value on $X$, given by 
+		\begin{align*}
+			\jyo_X : X &\to [X^{\text{op}}, \mathbb B] \\
+			x &\mapsto (~\cdot~\leqc x) \\
+			\begin{tikzcd}
+				x \ar[d]\\ x'
+			\end{tikzcd} &\mapsto 
+				\begin{tikzcd}
+			y \\ y' \ar[u]
+			\end{tikzcd} \mapsto 
+			\begin{tikzcd}
+				x \leqc y \ar[d] \\ x' \leqc y'
+			\end{tikzcd}	
+		\end{align*} 
+		We write the final line in this way because $\mathbb B$ is $\mathbb B$-enriched, and so the action on arrows can be read as ``if $x \leqc x'$, $y' \leqc y$, and $x \leqc y$, then $x' \leqc y'$''.
+		
+		
+		Equivalently, it can be thought of set-theoretically: $[X^\mathrm{op}, \mathbb B]$ on objects, is just subsets of $X$, and the yoneda embedding encodes an element $x \in X$ as the set of all elements smaller than it. 
+	\end{example}
+
+	To make this even clearer, we can do a very simple case of the above: 
+
+	\begin{example}
+		Suppose $A$ is the total order with three elements generated by $a_0 \prec a_1 \prec a_2$, and notate a function with co-domain $A$ as a vector, e.g., $[x,y,z]$ being a map $(a_0 \mapsto x, a_1 \mapsto y, a_2 \mapsto z)$. 		
+		Then the yoneda embedding gives us a value:
+		\begin{align*}
+		\jyo_A : A & \to [A^{\mathrm{op}}, \mathbb B] \\
+			a_0 &\mapsto [1, 0, 0] \quad{\color{gray} \cong \{a_0\} }\\
+			a_1 &\mapsto [1, 1, 0] \quad{\color{gray} \cong \{a_0, a_1\} } \\
+			a_2 &\mapsto [1, 1, 1] \quad{\color{gray} \cong \{a_0, a_1, a_2\} } \\
+		\end{align*}
+		The action on arrows gives us a natural way to compare them as well. If $f, g : A^{\mathrm{op}} \to \mathbb B$ are vectors of this form, then a natural transformation from $f$ to $g$ consists of witnesses that $f(a) \leqc g(a)$ for all $a \in A$. The yoneda lemma tells us that those natural transformations correspond exactly with inequalities in $A$.
+		 
+	\end{example}
+
+	We can also embed our real numbers this way, recovering the affine space of points on $\mathbb R$. Restricting to the image of a discrete set, we can visualize this better --- carrying our simple example over, we can also get back our magnitude information:
+	
+	\begin{example}
+		Now consider a utility function on $A$, defined by $u(a_0) = 1, u(a_1) = 3, u(a_2) = 4$. The Yoneda embedding of $A$, regarded as an $\mathbb R$-enriched category, is really just curried subtraction
+		\begin{align*}
+			\jyo_{A} : A &\to [A^{\mathrm{op}}, \mathbb R]\\
+				b & \mapsto~~ a \mapsto \big( u(b) - u(a) \big)
+		\end{align*}
+		We can also see a bit more clearly why the op is there: the reversed ordering on the second argument is reflected in the negation. Taking the suggestive notation from the previous example a bit further, we can get a matrix
+ \[
+		\begin{sqidxmat}{$a_0$,$a_1$,$a_2$}
+			0 & 1 & 3 \\ -1 & 0 & 2 \\ -3 & -2 & 0
+		\end{sqidxmat} \]
+		where the columns are the vectors associated with each element of $a$. Natural transformations from one vector to another, parameterized by $\mathbb R$, are additions of constant vectors. For instance, by adding 2 to each component of the middle column, we get the last one, which once again by the Yoneda lemma happens exactly when there was a morphism in the original category. 
+		
+	\end{example}
+
+	We can also encode selection functions this way --- that is, an $\arg\max$ function $2^{X} \setminus \varnothing \to X$, which selects a maximal element of a non-empty subset.  This is easiest do separately for contexts of each size $k \in \mathbb N$, and then paste them together. This approach assumes that $X$ is countable, of course, but is much easier than enforcing that $X$ is in the subset, or dealing explicitly with a large co-product, or possibly empty set. 
+		
+	\begin{example}
+		Let $\phi : X \times X^k \to \mathbb B$ be a selection function, returning 1 if the first argument is selected, and 0 if any of the other k arguments is selected instead. We can 
+	\end{example}
+	
+	
+	
+%--- and what happens when we drop some of the coherence conditions. 
+	
+%	\subsection{Prevalues}
+%	
+%	\begin{defn}
+%		A pre-value on a 
+%	\end{defn}
+
+
+	\subsection{So what can you do with them?}
+	
+	Whether or not you can represent things is only half of the picture. It is also important that we retain all of the important features of values that we had before. 
+	
+	\begin{defn}
+		A value $\phi: X \times A \to \frak O$ marginalizes out to a value $\nu: X \to \frak O$ 
+		
+		\begin{itemize}
+			\item \textbf{strongly} if 
+		\end{itemize}
+		\[ \phi() \simeq \]
+	\end{defn}
+
+
+	\section{Beliefs}
 
 \end{document}
