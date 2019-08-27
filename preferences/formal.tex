@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \input{prefs-commands.tex}
 \usepackage{multirow}
+\usepackage{CJKutf8} % May need to uncomment this line to get hiragana
 
 \newcommand{\jyo}{\text{\usefont{U}{min}{m}{n}\symbol{'110}}}
 
@@ -18,16 +19,18 @@
 
 \begin{document}
 	
-	The general idea is to generalize orders by including extra data. Including a magnitude, for instance, gives us a notion of the strength of a comparison; one can also include reasons, properties. 
 	
-	A 
-	
-	Different aggregations 
-	
+	\section{}
+	\begin{defn}\label{def:mcg}
+		A marginal constraint graph is a tuple 
+		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
+		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$. In this definition, $\mathcal N$ is the set of nodes, $\mathcal L$ is the subset of pairs of nodes that are linked, $\mathcal S_N$ is the underlying set of variable $N$, $\Sigma_N$ is the $\sigma$-algebra for $N$, and $p$ is a dependent function which gives a Markov kernel for each link.
+	\end{defn}
 	
 	\section{Values}
 	
 	People often model an agent's values by specifying a utility function, loss function, rewards, binary preferences, or goals. In each case the goal is somehow morally the same, but the formalisms are quite different.
+	The general idea is to generalize orders by including extra data. Including a magnitude, for instance, gives us a notion of the strength of a comparison; one can also include reasons, properties. 
 	
 	\begin{defn}
 		A \textit{value} (on a random variable $X$) is a map $\nu : X  \to \mathfrak O$ where $\mathfrak O$ is a ($\mathcal V$-enriched) category.
@@ -176,14 +179,18 @@
 		\begin{sqidxmat}{$a_0$,$a_1$,$a_2$}
 			0 & 1 & 3 \\ -1 & 0 & 2 \\ -3 & -2 & 0
 		\end{sqidxmat} \]
-		where the columns are the vectors associated with each element of $a$. Natural transformations from one vector to another, parameterized by $\mathbb R$, are additions of constant vectors. For instance, by adding 2 to each component of the middle column, we get the last one, which once again by the Yoneda lemma happens exactly when there was a morphism in the original category. 
+		where the columns are the vectors associated with each element of $a$. Natural transformations from one vector to another, parameterized by $\mathbb R$, are additions of constant vectors. For instance, by adding 2 to each component of the middle column, we get the last one, which once again by the Yoneda lemma, happens exactly when there was a morphism in the original category. 
 		
 	\end{example}
+
+
 
 	We can also encode selection functions this way --- that is, an $\arg\max$ function $2^{X} \setminus \varnothing \to X$, which selects a maximal element of a non-empty subset.  This is easiest do separately for contexts of each size $k \in \mathbb N$, and then paste them together. This approach assumes that $X$ is countable, of course, but is much easier than enforcing that $X$ is in the subset, or dealing explicitly with a large co-product, or possibly empty set. 
 		
 	\begin{example}
-		Let $\phi : X \times X^k \to \mathbb B$ be a selection function, returning 1 if the first argument is selected, and 0 if any of the other k arguments is selected instead. We can 
+		Let $\phi : X \times X^k \to \mathbb B$ be a selection function, returning 1 if the first argument is selected, and 0 if any of the other k arguments is selected instead. We can curry this to instead consider functions $X \to [X^k, \mathbb B]$, assigning to each $x \in X$ a function $X^k \to \mathbb B$; suppose we have such a function for all $k$.
+		
+		This is an example of something which does not look categorical, and is not constructed with composition in mind --- but now let's look at the natural morphisms in the functor category. For $k=0$, we assign each point to a boolean, corresponding to what I've been calling ``goals''. For $k=1$, we get preference data, and for $k = 2$ we get higher order structure. Since there are natural faces and degeneracies, it seems like this is actually a simplicial (boolean) of preferences, which suggest natural maps. For these maps to be natural, we need to enforce some coherence conditions (just like binary preferences need to be weakly ordered to represent a category), but this suggests we can use selection functions and other constructions on them, to treat preferences as more general spaces, rather than focusing on the 0 and 1 structures.
 	\end{example}
 	
 	
@@ -196,21 +203,43 @@
 %		A pre-value on a 
 %	\end{defn}
 
+	\subsection{Informal Examples}
+
+	As hinted at earlier, values can also encode reasons. The goal is to use them to ``internalize'' the outer arrows as internal ones, and then use compression / truncation to make decisions.
+	\todo{}
 
 	\subsection{So what can you do with them?}
 	
 	Whether or not you can represent things is only half of the picture. It is also important that we retain all of the important features of values that we had before. 
 	
 	\begin{defn}
-		A value $\phi: X \times A \to \frak O$ marginalizes out to a value $\nu: X \to \frak O$ 
+		A value $\phi: X \times A \to \mathfrak O$ on $X \times A$ marginalizes out to a value $\nu: X \to \mathfrak Q$ on $X$  
 		
 		\begin{itemize}
-			\item \textbf{strongly} if 
+			\item at $a \in A$ if there is a functor $F : \mathfrak O \to \mathfrak Q$ with a left adjoint, such that $\nu(x) \simeq F(\phi(a, x))$,
+			\item \textbf{weakly} if there exists some $a$ such that $\phi$ marginalizes to $\nu$ at $a$,
+			\item \textbf{strongly} if $\phi$ marginalizes to $\nu$ at every $a \in A$, 
+			\item at a distribution $p : \Delta A$ if $\mathfrak O$ is a convex space and
+				\[ \nu(x) = \sum_{a : A} p(a) \phi(x, a) \] 
 		\end{itemize}
-		\[ \phi() \simeq \]
 	\end{defn}
 
+	We can use this with our probabalistic definition of consistency. Recall that a collection of marginals is consistent if there's a probability distribution $p$ on all of the variables, which marginalizes to each constraint. We applied the same definition in the case where a utility node was added, giving a definition of inconsistent utilities. We could also have separated the definition into two parts, as follows:
+	
+	\begin{defn}
+		A MCG with values is 
+		\begin{enumerate}
+			\item \textit{belief-consistent} if there exists  some joint probability distribution $p : \bigotimes_{\mathcal N}  \Sigma_N $ on all of the variables $\mathcal N$, which is consistent with $\bf p$
+			\item \textit{pref-consistent} if there exists some joint value $q : \prod_{\mathcal N} \mathcal S_N \to \mathfrak Q$ an all variables, which marginalizes to each value at $p$.
+		\end{enumerate}
+		
+	\end{defn}
 
-	\section{Beliefs}
+	\section{Interaction With Nodes}
+
+
+	\section{Markov Networks}
+	
+	From our perspective factor graphs and Markov networks can be considered . They too represent probability distributions which are of maximum entropy for their constraints, but 
 
 \end{document}
