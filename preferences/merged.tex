@@ -11,18 +11,88 @@
 \begin{document}
 	\maketitle
 	
+%	\section{}
+
+	\section*{A Quick Overview}
+	This project is a model of joint preference and belief revision. The core representation we suggest, the marginal constraint graph, is more flexible than the standard ones, as agents need not always have a perfectly consistent picture of reality, intermediate representations have meanings, and we can capture phenomena such as learning preferences from data and revising them in various places. In special cases, we recover standard results, including expected utility calculations, belief updating by conditioning.
 	
+	We can roughly separate the work into two pieces:
+	\begin{enumerate}%[nosep]
+		\item Representation: the sufficiency of our new representation as a unification of existing results. In particular, we think of an agent's values as distributed across a network of concepts, whose nodes are preferences on small sets of alternatives, and whose edges are beliefs about the impact of one variable on another.
+		\item Dynamics: A formulation of how to revise the representation in light of new information or additional computation. We will show how can be dealt with through inconsistency, illustrate some options for regularization, and ultimately factor out these as general meta-preferences. 
+	\end{enumerate}
 	
-	
-	\section{}
-	
-%		\part{Motivations and Intuition}
+	\part{Motivations}
 %	This work an be motivated in many different ways; I imagine the most compelling one to depend on who you are and what you already care about. In any individual paper I plan to only include one of these, but until the audience has been narrowed, I want to keep all of them around. %to remind myself which directions I want to push, and to record selling points outside of the best publishing path.
 
-	
+	\begin{center}
+	\begin{tikzpicture}
+		\node[ellipse,draw,align=center] (R) at (4,-3) {World\\ Representation};
+		\node[ellipse,draw] (B) at (3,1) {Beliefs};
+		\node[ellipse,draw] (V) at (3,-1) {Values};
+		\node[ellipse,draw] (A) at (5.5,0) {Actions};
+		
+		\draw[arr,-] (B) -- (4,0) -- (V);
+		\draw[arr, shorten <=0] (4,0) -- (A);
+ 	\end{tikzpicture}
+	\end{center}
+
+	\section{Good Reasons Not To Maximize Utility}
+	\begin{enumerate}
+		\item \textbf{No utility function}. Maybe your preferences are not representable in this way --- maybe they violate the vNM axioms, or you just don't have anything that resembles an ordered set. Maybe your intrinsic utility is stochastic.
+		
+		\item \textbf{No complete prior.} It is possible that you're not a Bayesian, and don't have (access to) a probability distribution on all salient features of your world\footnote{In fact, once we add enough representational complexity to our world, this is impossible to have; see section \ref{sec:impossible-prior}}.  
+%		Of course, if you accept Savage's axioms, then you act as though you have both a probability distribution over states and a utility function
+		
+		\item \textbf{Thinking takes time.} (this constrains the complexity of your utility and probability information, or at least requires them to be in a form that admits fast computations)
+		
+		\item \textbf{Internal Actions.} In addition to the external actions, there are also invisible mental ones: nobody has complete control over what they do in all respects at all times. Emotionally preparing yourself to talk to your boss, warming up your fingers to play piano, and intentionally committing a phone number to memory are all examples of mental actions, which are rarely modeled. More generally, for any interface with the world that a model prescribes, there will be extra 
+		
+		 %you may not know exactly what it is you have to do in orde to 
+		\item \textbf{Different world representation.} 
+%			You have a distorted perception of the world. 
+		Models, both in probabalistic reasoning and decision theory, usually start by defining the set of possible states of the system. For a modal logician, this is the underlying set of a Kripke structure; for probability theorists, it's a set of outcomes. Everything works well if you set up a model in which the agents are aware of the structure you've set up, but simply don't know what world they're in --- but nothing precludes them from conceptualizing things in entirely different terms
+			
+		There are of course ways of putting together
+		
+		
+		\item \textbf{Things Change over Time.} To 
+	\end{enumerate}	
+
+	Despite the fact that there has been work backing off of each of these assumptions, utility maximization is still ubiquitous (and taken for granted) in most primary applications, including consumption models and the construction of artificial agents. In section \ref{sec:optimization-bad} I argue that this is the source of some cultural problems. But part of the reason that many of the other techniques has not gained traction is that none is as clean and as useful as expected utility maximization, and to the best of my knowledge people try to isolate and tackle these issues individually. My framework provides a way of representing many of these issues effectively and cleanly, while also reducing to the expected utility computations when none of these issues apply. 
 
 
+	\section{Desiderata}
 	
+	
+%	Currently preferences are thought of as static objects, fixed as part of the structure and identity of an agent, independent of beliefs, complete, and over some fixed domain. This is clearly not at all how human preferences work, and I posit that it's not the right way to think of preference for synthetic agents either.
+	
+	Perhaps among other things, any model of preference dynamics that is to be used to build synthetic agents which have control over important decisions, should have the following properties: 
+	\begin{enumerate}[noitemsep]
+		\item Provide an answer to the `value loading' problem: show how you can learn ``reasonable'' preferences by interacting with the world
+		\item Reduce to static models for some parameter settings
+		\item Behave reasonably when combined with changes of perspective 
+		\item Be resistant to standard challenges to irrationality, such as dutch book arguments
+		\item Have weak safety guarantees: an agent should not eagerly adopt preferences which are totally in conflict with its current ones
+	\end{enumerate}
+	
+	%	We might also require that a theory be useful for explaining human behavior. We expect ours to be able to explain:
+	Because the view of preferences we adopt here is different from the standard ones in economics (in particular, it lends itself naturally to incorporating boundedness), we have a hope of explaining some behavior which was previously classified irrational, as an optimal in some sense. The following psychological effects lend themselves to explanation:
+	\begin{enumerate}[noitemsep]
+		\item \textbf{Value Capture.} You really care about $X$ (say, learning math), which is vague and hard to measure, so you come up with some metric $Y$ (say, scores on undergrad math exams). Over time, optimizing for $Y$ will cause you to optimize less effectively for $X$ and assign intrinsic value to $Y$ (getting good exam scores becomes valuable, independent of whether you learn math\footnote{Social signaling plays into this, but this occurs also in cases where people try to hide the signal: constant grade checking, pokemon go addiction, etc.}). Related to Goodhart and Cambell's laws.
+		\item \textbf{Framing Effects.} It is well-documented that the style of presentation, even for logically equivalent scenarios, can have a significant impact on a person's choice. But if we formalize these as the same outcome, there's no way for utility-maximizing agent to behave this way.
+		\item \textbf{Connoisseur Effects.} Someone who listens to a lot of rap music has more nuanced, complicated preferences on rap music than someone who has not heard as much. Similarly, people work to develop palates for wine, and ``all Indian food tastes the same'' is an insult, indicating a shallow experience with the cuisine. There are two technical aspects: first, additional experiences increase preference complexity.
+		
+		\item \textbf{Adaptive Preferences.} Even things we find objectionable are normalized over time, and people often change to prefer things they're used to, even if they are initially opposed. This is sometimes thought of as a prioritization of safety, and is maybe best thought of as a thought-saving feature: the things you're used to have gotten you this far already. 
+		
+		\item \textbf{}
+		
+		\item \textbf{Novelty Effects (anti-adaptive preferences).} 
+		
+	\end{enumerate}
+	
+%	These are features that we would like to explain in humans, but needn't necessarily be essential .
+
 %	\section{A Temporal Extension}
 %	
 %	Many issues with decision theory can be attributed to a failure to account for the passage of time. 
@@ -39,17 +109,33 @@
 %	\section{Better Models of Humans}
 
 
+	\clearpage
+	\part{Marginal Constraint Graphs}
+	\section{Intuitions and Examples}
 	
-	\part{Belief Representations}
+
+
+
+
 	
+		
+
+%	\part{Intuitions }
+
+	\section{Reduction: Expected Utility}
+	\section{Reduction: Bayesian Networks}
+
+
+	\section{Reduction: Fragment of Factor Graphs}
+	\section{Reduction: Game Trees and Automata}
+	\section{Formalism}
 	\begin{defn}\label{def:mcg}
 		A marginal constraint graph (MCG) is a tuple 
 		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
 		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$.
 	\end{defn}
-%	\part{Intuitions }
-
-	\part{Value Representations}
+	
+	\part{Values on Marginal Constraint Graphs}
 	
 	The first strand of this project is a general representation of many ways that have been historically used to represent values: namely, utilities, goals, desires, preferences, choice functions, and natural extensions of these suggested by this representation, some of which are also well-studied. 
 	
@@ -104,9 +190,105 @@
 	
 	An order is a function $\leq: \Omega \times \Omega \to \mathbbm 2$
 	
-	\part{Updating}
+	\part{Dynamics}
 	
-	\section{}
+	\section{Consistency}
+	\subsection{Pairwise Consistency}
+	Many of our motivating examples can be thought of as a ``behavioral inconsistency'': you value one thing, but your actions are inconsistent with it. Maybe you value sleep, are aware that to get sleep you need to go to bed early, and yet still do something you know is less valuable instead, such as checking social media. Maybe you 
+
+	Any example where you have to domains like this.
+	
+	\section{Reduction: Belief Updating}
+	\subsection{Conditioning}
+	\subsection{Jeffrey's Rule}
+	\subsection{Pearl's Rule}
+	
+	\section{Abstraction}
+	In addition to nodes which represent specific, observable variables that we want to ensure everyone is aware of, we are in the business of allowing agents to construct nodes of their own --- examples we've seen so far include products, utility nodes, 
+	
+	Here we want to deal with abstraction nodes, which often arise by approximate factorization of arrows into more manageable pieces.
+	
+	\subsection{Divorcing the Specific and General Cases}
+	
+	One giant benefit to to weakening our links from stochastic to sub-stochastic matrices is the ability to un-bundle and re-bundle variables back together. One should think of this as a way of building ``left-handed'' or inductive constructions, rather than ``right-handed'' or co-inductive ones. 
+	
+	\begin{center}
+		\todo{DIAGRAM 1}
+		\begin{tikzpicture}
+		
+		\end{tikzpicture}
+	\end{center}
+	
+	
+	\begin{example}
+		Suppose you are more likely to go into work if there's no rain, and you have some probability $p$ of there being rain. A simple linear model might look like this:
+		
+		\begin{center}
+			\begin{tikzpicture}
+			\node[dpadded] (1) at (0,0) {$1$};
+			
+			\node[bpt={r|$r$}, above right=0.75em and 4 of 1.east] {};
+			\node[tpt={notr|$\lnot r$}, below=1.5em of r] {};
+			\node[Dom={Rain (R) around \lab{r}\lab{notr}}] {};
+			%		\node[dpadded, right=2 of 1] (R) {Rain};
+			
+			\node[bpt={l|home}, above right=0.75em and 5.5 of R.east] {};
+			\node[tpt={notl|work}, below=1.5em of l] {};
+			\node[Dom={Loc (L) around \lab{l}\lab{notl}}] {};
+			%		\node[dpadded, right=2 of R] (L) {Loc};
+			
+			\draw[archain] (1) -- node[above, fill=white, fill opacity=0.8]{\raisebox{2em}{\begin{idxmat}{$*$}{$r$,$\lnot r$}	p & 1-p \end{idxmat}}}
+			(R) --
+			node[above, fill=white, fill opacity=0.8]{\raisebox{2em}{\begin{idxmat}{$r$,$\lnot r$}{home,work}	.6 & .4 \\ .1 & .9 \end{idxmat}}} (L);
+			\end{tikzpicture}
+		\end{center}
+		
+		Now, suppose it happens that it's actually raining right now --- what happens to the model? The standard answer is to condition, and allow the new, specific information to overwrite the general model. Doing this is a perfectly reasonable thing, but cements a meaning of the node ``Rain'' that we may not have intended --- it now means ``it is raining today'', rather than in general. This is not a problem for a human modeler, who presumably has fit the model to data somehow, and plans on copying it for each use. There are (at least) two downsides to this. First, we've really just abdicated responsibility to a trustworthy human who will keep track of the copying for us, and handle any sort of abstraction for us. Secondly, it is not clear how and when to update the model based on new experiences.
+		
+		In the meta-theory, this gives the human in charge an indexed family of variables:
+		
+		\[ \left\{~\begin{tikzpicture}[center base]
+
+			\node[dpadded] (1) at (0,0) {$1$};
+			\node[dpadded, right=2 of 1] (R) {Rain$_i$};
+			\node[dpadded, right=2 of R] (L) {Loc$_i$};
+			
+			
+			\draw[archain] (1) -- node[above]{$r_i$?} (R) -- node[above]{$q$} (L);
+		\end{tikzpicture}~\right\}_{i \in \text{Experiences}} \]
+		Of course, we can also internalize this to the agent's picture (and given that our formalism is entirely built around conditioning on variables, it seems silly not to) --- a picture that might look like this:
+				
+		\begin{center}
+			\begin{tikzpicture}
+			\node[dpadded] (1) at (0.5,-0.5) {$1$};
+			\node[dpadded, right=2 of 1] (R) {Rain};
+			\node[dpadded, right=2 of R] (L) {Loc};
+			
+			\foreach [evaluate=\x as \y using \x/2 + 2] \x in {0, 1, ...,4} {
+				\node[bpt={e\x | $e_\x$}] (e\x) at (\y,-3) {};
+			}
+			\coordinate (Q) at (2,-3.2);
+			\node[bDom={Experiences (E) around \lab{e0}\lab{e4}(Q)}] {};
+			
+			\draw[archain] (E) -- node[left]{$p_i$} (R) -- node[above]{$q$} (L);
+			\draw[archain] (1) -- node[above]{$\tilde p$} (R);
+			\end{tikzpicture}
+		\end{center}
+	
+		We store concrete values of whether or not it rained (with possible uncertainty due to lack of memory) in the ``Experiences'' node. Note that the picture we've drawn below is not expressible with any standard graphical model, because has an arrow merge, which we interpret as a constraint. Note that already it's easy to have an inconsistent model. If $\tilde p$, the general probability of rain, is zero when it has rained, for instance.
+		
+		We gain the additional benefit of 
+		
+		We can also play tricks by bundling and un-bundling this experience variable:
+	\end{example}
+	
+	
+	\appendix
+	\section{} %todo section titles
+	
+	\subsection{Can't Have Priors on Everything}\label{sec:impossible-prior}
+	
+	
 %	Just as one can get an order from a utility function, which 
 		
 	
