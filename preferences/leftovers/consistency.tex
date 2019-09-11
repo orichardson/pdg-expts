@@ -56,19 +56,7 @@
 		\item It is a strictly more general representation--- we can easily convert BNs to these diagrams (section \ref{sec:convert2bn})
 	\end{enumerate}
 
-	\subsection*{Recap: \modelname Definitions and Semantics}
-	\begin{defn}
-		A \modelname model $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta (B \cup \{\bullet\})$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before. See section \ref{sec:substochastic} for details} representing beliefs about how a setting of $A$ to $a \neq \bullet$ will impact the value of $B$. 
-	\end{defn}
-
-	Variables can be thought of equivalently as:
-	\begin{itemize}[nosep]
-		\item random variables $X$ which can take on values $\{x_i\}$ (or possibly none, which we denote $\bullet$)
-		\item sets $X$ with elements $\{x_i\}$
-		\item partitions of the universe of outcomes into disjoint (but possibly not exhaustive) events $\{x_i\}$
-	\end{itemize}
 	
-	In this document, we will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables. While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
 	
 	\section{Defense of \modelname as a Static Representation }
@@ -114,51 +102,7 @@
 	
 	
 	
-	\subsection{Converting BNs}\label{sec:convert2bn}
-	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine a single well-defined probability distribution. Formally they consist of a set of nodes $\cal N$, and for each $N \in \cal N$, a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. While each of our arrows can be interpreted by itself as a marginal, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
-	
-	The procedure for converting to a BN is simple: we simply take every node's incoming arrows, and insert the product of its parents as a node before it. With this procedure, if a node $N$ has just one parent $P$, we replace $P \to N$ with $P \to N ~=~ N$, which is redundant so we don't draw this. If a node had zero parents (i.e., the BN just gives it a probability distribution not dependent on anything), we insert the product of zero things, i.e., the singleton node $1 = \{*\}$, a variable which only takes one value, and set $\Pr(N \mid *) = \Pr(N)$. 
-	
-	This sound much more complicated than it is. Consider the example below, where the left is a BN, and the right is the corresponding \modelname.
-	\begin{center}
-		
-		\begin{tikzcd}[center base, column sep=2.5em]
-			& A \ar[dl]\ar[dr] \\
-			B \ar[dr] && C \ar[dl]\\
-			& D &
-		\end{tikzcd}
-		\hfil
-		\begin{tikzcd}[center base, column sep=2em, dpad]
-			& \mathsf 1 \ar[d] &\\
-			& A \ar[dl]\ar[dr ]% \ar[dd,dashed, gray] 
-			\\
-			B && C \\
-			& B \times C \ar[ul, gray!70] \ar[ur, gray!70]\ar[d] & \\
-			& D &
-		\end{tikzcd}
-	\end{center}
-	\vspace{0.5em}
-
-	We have effectively changed two things: first, visually encoded the probability distribution of $A$ as the arrow $1 \to A$ (which we are now allowed to omit; sometimes you don't want priors on things, such as your own actions). Second, we have combined the two arrows $B \to D$ and $C \to D$ into a single one, $B \times C \to D$. Though certainly more verbose, this is arguably visually clearer if want to follow arrows: you cannot compute $D$ from $B$; you need both $B$ and $C$.
-	
-	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence in a weaker way.
-	
-	\begin{defn*}
-		The \emph{center} of a \modelname $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
-	\end{defn*}
-
-	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}.  In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. The principle of maximum entropy is well established\footnote{Despite this, utilities are still thought of as fixed, minimum entropy objects.} \todo{choose references}. We also get:
-	
-	
-	\begin{restatable}{theorem}{rthm:bn-maxent} \label{rthm:bn-maxent}
-		The center of the \modelname obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
-	\end{restatable}
-
-	\begin{coro}
-		Products (defined in section \ref{sec:belief-typing}) in the center of a model $(\cal A, L)$ have the usual uniqueness to make them categorical limits.
-	\end{coro}
-
-	We will clarify this definition and explain the connection to thermodynamics more carefully (section \ref{sec:thermo}) once we have a numerical definition of consistency. In the mean time, we continue to argue for this collection of marginals as a way of representing beliefs.
+	\subsection{Converting BNs}
 
 	
 	% The BN makes the assumption that the value of $D$ cannot depend on anything else; we're only 
