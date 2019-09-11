@@ -1,6 +1,7 @@
 \documentclass{article}
 
 \input{prefs-commands.tex}
+
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
 
@@ -126,7 +127,7 @@
 	
 , these diagrams look and behave like Bayesian Networks
 	
-	\section*{Informal Definitions and Semantics}
+	\section*{Definitions and Semantics}
 	\begin{defn*}
 		A marginal constraint graph $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta (B \cup \{\bullet\})$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before. See section \ref{sec:substochastic} for details} representing beliefs about how a setting of $A$ to $a \neq \bullet$ will impact the value of $B$. 
 	\end{defn*}
@@ -138,13 +139,83 @@
 		\item partitions of the universe of outcomes (which is not fixed) into disjoint (but possibly not exhaustive) events. Disjointness here is very weak and can be forced by adding tagging outcomes with additional data, analogous to a disjoint union.
 	\end{itemize}
 	
-	In this document, we will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables. While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
+%	In will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables, but there 
+	%While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
+	
+	
+	We can now give a more formal definition:
+	\begin{defn}\label{def:mcg}
+		A marginal constraint graph (MCG) is a tuple 
+		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
+		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$.
+	\end{defn}
 		
 
 %	\part{Intuitions }
 
 	\section{Emulation: Bayesian Networks}
+	\label{sec:convert2bn}
+	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine a single well-defined probability distribution. Formally they consist of a set of nodes $\cal N$, and for each $N \in \cal N$, a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. While each of our arrows can be interpreted by itself as a marginal, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
+	
+	The procedure for converting to a BN is simple: we simply take every node's incoming arrows, and insert the product of its parents as a node before it. With this procedure, if a node $N$ has just one parent $P$, we replace $P \to N$ with $P \to N ~=~ N$, which is redundant so we don't draw this. If a node had zero parents (i.e., the BN just gives it a probability distribution not dependent on anything), we insert the product of zero things, i.e., the singleton node $1 = \{*\}$, a variable which only takes one value, and set $\Pr(N \mid *) = \Pr(N)$. 
+	
+	This sound much more complicated than it is. Consider the example below, where the left is a BN, and the right is the corresponding MCG.
+	\begin{center}
+		
+		\begin{tikzcd}[center base, column sep=2.5em]
+			& A \ar[dl]\ar[dr] \\
+			B \ar[dr] && C \ar[dl]\\
+			& D &
+		\end{tikzcd}
+		\hfil
+		\begin{tikzcd}[center base, column sep=2em, dpad]
+			& \mathsf 1 \ar[d] &\\
+			& A \ar[dl]\ar[dr ]% \ar[dd,dashed, gray] 
+			\\
+			B && C \\
+			& B \times C \ar[ul, gray!70] \ar[ur, gray!70]\ar[d] & \\
+			& D &
+		\end{tikzcd}
+	\end{center}
+	\vspace{0.5em}
+	
+	We have effectively changed two things: first, visually encoded the probability distribution of $A$ as the arrow $1 \to A$ (which we are now allowed to omit; sometimes you don't want priors on things, such as your own actions). Second, we have combined the two arrows $B \to D$ and $C \to D$ into a single one, $B \times C \to D$. Though certainly more verbose, this is arguably visually clearer if want to follow arrows: you cannot compute $D$ from $B$; you need both $B$ and $C$.
+	
+	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence in a weaker way.
+	
+	\begin{defn*}
+		The \emph{center} of an MCG $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
+	\end{defn*}
+	
+	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}.  In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. The principle of maximum entropy is well established\footnote{Despite this, utilities are still thought of as fixed, minimum entropy objects.} \todo{choose references}. We also get:
+	
+	
+	\begin{restatable}{theorem}{rthm:bn-maxent} \label{rthm:bn-maxent}
+		The center of the MCG obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
+	\end{restatable}
+	
+	\begin{coro}
+		Products (defined in section \ref{sec:belief-typing}) in the center of a model $(\cal A, L)$ have the usual uniqueness to make them categorical limits.
+	\end{coro}
+	
+	We will clarify this definition and explain the connection to thermodynamics more carefully (section \ref{sec:thermo}) once we have a numerical definition of consistency. In the mean time, we continue to argue for this collection of marginals as a way of representing beliefs.
+	
+	\subsection{A More Formal Treatment}
+	\begin{defn}
+		A Baysian network (BN) is a tuple
+		\[
+		\mathcal B = \left(\mathcal N : \mathbf{FinSet}, ~~\mathrm{Par}: \mathcal N \to 2^{\mathcal N},~~ \mathcal S: \mathcal N \to \mathbf{FinSet},~~\Pr: \prod_{N : \mathcal N}  \left[ \mathcal S_N \times \left(\prod_{P : \mathrm{Par}(N)} \mathcal S_P\right)  \to [0,1] \right] \right)
+		\]
+		such that
+		\begin{itemize}[nosep]
+			\item the graph $\bigcup_{N, P \in \mathrm{Par}(N)}(N, P)$ is acyclic, i.e., there exists no cycle of nodes $N_0, N_1, \cdots, N_k = N_0$ in $\mathcal N^k$ such that $N_{i+1} \in \mathrm{Par}(N_i)$ for each $i \in \{0, 1, \cdots, k\}$.
+			\item For all $N \in \mathcal N$, $\Pr(N)$ is a probability distribution on $\mathcal S_N$, i.e., 
+			\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
+		\end{itemize}
+	\end{defn}
+
+
 	\section{Emulation: Sets of Probability Distributions}
 	\section{Emulation: Expected Utility}
 	
@@ -168,11 +239,7 @@
 	\section{Reduction: Fragment of Factor Graphs}
 	\section{Reduction: Game Trees and Automata}
 	\section{Formalism}
-	\begin{defn}\label{def:mcg}
-		A marginal constraint graph (MCG) is a tuple 
-		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
-		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$.
-	\end{defn}
+
 
 	\section{Category Theory}
 
@@ -197,11 +264,11 @@
 	We can use this definition to 
 	
 	\begin{defn}
-		A \emph{world object} of an MCG $G : \mathcal A \to \mathbf{Mark}$ is a limit of $G$.
+		A \emph{world object} of an MCG $G : \mathcal A \to \mathbf{Mark}$ is a weak limit of $G$ --- that is, a cone over $G$, for which there exists a (possibly non-unique) arrow 
 	\end{defn}
 
 	\begin{example}
-		If $\mathcal A$ is a discrete category, with $n$ elements, then MCGs of shape $\mathcal A = \{\tilde X_1, \tilde X_2, \ldots, \tilde X_n\}$ is just a set of $n$ names (with identities), to be interpreted by $M$ as random variables (with their identities). If $M : \mathcal A \to \mathbf{Mark}$ is a final cone, as illustrated below.
+		If $\mathcal A$ is a discrete category, with $n$ elements, then MCGs of shape $\mathcal A = \{\tilde X_1, \tilde X_2, \ldots, \tilde X_n\}$ is just a set of $n$ names (with identities), to be interpreted by $M$ as random variables (with their identities). If $M : \mathcal A \to \mathbf{Mark}$ is a (weak) final cone, as illustrated below.
 		\[ \begin{tikzcd}
 				&& Y  \ar[ddll, gray, "f_1"']\ar[ddl,gray, "f_2"description]\ar[ddrr,gray, "f_n"] \ar[d, dashed, "\exists!"]\\
 				&& \mathcal W \ar[dll, "\pi_1"description]\ar[dl, "\pi_2"description]\ar[drr, "\pi_n"description] \\
@@ -232,7 +299,8 @@
 	\end{conj}
 	
 	\subsection{Bundling and the Category of Elements}
-
+	\subsection{Meta-links and Higher Structure}
+	\subsection{Denotational Semantics}
 	
 	\part{Values on Marginal Constraint Graphs}
 	
@@ -292,6 +360,9 @@
 	\part{Dynamics}
 	
 	\section{Consistency}
+	Sometimes an MCG effectively, such as when 
+%	
+	
 	\subsection{Pairwise Consistency}
 	Many of our motivating examples can be thought of as a ``behavioral inconsistency'': you value one thing, but your actions are inconsistent with it. Maybe you value sleep, are aware that to get sleep you need to go to bed early, and yet still do something you know is less valuable instead, such as checking social media. Maybe you 
 
@@ -377,7 +448,9 @@
 	
 	\appendix
 	\section{Category Theoretic Preliminaries}
+	\todo{Minimal Category Theory needed to understand: categories, functors, diagrams, cones, limits}
 	\subsection{Markov Category and Giry Monad}
+	
 	\subsection{sub-Markov Category}
 	
 	\section{More Arguments against the Standard Model} %todo section titles
