@@ -30,8 +30,7 @@
 	\part{Motivations}
 %	This work an be motivated in many different ways; I imagine the most compelling one to depend on who you are and what you already care about. In any individual paper I plan to only include one of these, but until the audience has been narrowed, I want to keep all of them around. %to remind myself which directions I want to push, and to record selling points outside of the best publishing path.
 
-	\begin{center}
-	\begin{tikzpicture}
+	\begin{ctikzpicture}
 		\node[ellipse,draw,align=center] (R) at (4,-3) {World\\ Representation};
 		\node[ellipse,draw] (B) at (3,1) {Beliefs};
 		\node[ellipse,draw] (V) at (3,-1) {Values};
@@ -39,8 +38,7 @@
 		
 		\draw[arr,-] (B) -- (4,0) -- (V);
 		\draw[arr, shorten <=0] (4,0) -- (A);
- 	\end{tikzpicture}
-	\end{center}
+ 	\end{ctikzpicture}
 
 
 	\section{Issues with Standard Issue Decision Theory}
@@ -84,7 +82,7 @@
 		\item 
 	\end{enumerate}
 
-	\subsection{A Misguided Ethos of Agency}
+	\subsection{Fixing the Ethos of Agency}
 	The distinction between the things that you care about (e.g., utilities, goals, preferences, objectives), and the tools you have for understanding and affecting the world (e.g., beliefs, reasons, plans, optimization, inference) plays a large role in technical accounts of agency%
 	\footnote{Beliefs should be considered optimization power: they you believe that action $A$ will have effect 1, an action $B$ will have effect 2, and a preference between the 1 and 2}.
 	Generally the two are considered separately, and also people tend to fix preferences%
@@ -117,13 +115,14 @@
 	The way we've laid things out, the interaction between the two resembles a duality.
 	}
 	
-	\subsection{Human Preferences Change}
+	\subsection{Better Models of Humans, whose Preferences Change}
 	When you're born you have no conception of what foods or professions or ideals are good; all you have is your own evolutionarily programmed pleasure and pain. Not only does this feeling get more sophisticated in a way that seems to depend on the environment, but also later on in life, people willingly sacrifice their experiential pleasure for other things they care about. All of this stands even if we didn't see change in the more obvious toy cases: foods, activities, and luxury goods. Such changes do in fact occur, and do not detract from a person's ability to be conceptualized as a coherent agent; often they contribute to a person's character instead.
 	
 	The standard models do not account for any of this, and for many good reasons --- but dynamic preferences are necessary to capture a great deal of human behavior, and are much more important in a world where value is informational and changes quickly. Things like memes, fashion, games, conversations, lofty ideals, and art---things that standard economic theory has had a lot of difficulty ascribing value to---certainly play a bigger economic role than they have in the past, and arguably move faster as well.
 	%is learning a new piece of information something that has value?
 	
 	%there is some overlap between conditioned preferences and dynamic preferences.
+	\subsubsection{}
 	{\color{green!30!black}This is why we model changes in preferences, and acquisition from only a very limited set of base values. We have some reasons to suspect that in most cases preferences generated this way will be similar, which if true would (1) provide an additional explanation (beyond empathy and genetics) for why humans end up sharing a lot of values, and (2) allay some concerns about misaligned AIs that are constructed in this way}
 	
 	\subsection{Computational Tractability}
@@ -219,17 +218,58 @@
 
 	\clearpage
 	\part{Marginal Constraint Graphs}
-	The basic tool that we will use to solve these problems is a graphical representation of (a piece of) an agent's mental space, which we call a marginal constraint graph. These are diagrams which look and behave like Bayesian Networks in many cases.
-	\begin{enumerate}
-		\item We allow agents to add additional nodes and edges (form new concepts and connections), dynamically
-		\item We interpret arrows individually as marginals, rather than collectively as a conditional probability table depending on all variables above
-	\end{enumerate}
+	The basic tool that we will use to solve these problems is a graphical representation of (a piece of) an agent's mental space, which we call a marginal constraint graph. Throughout this section, we will introduce them from many different perspectives, but They look a bit like Bayesian Networks, but are more general: rather than representing a single distribution, they represent (soft) constraints on distributions. 
+	
+	\begin{itemize}
+		\item If the constraints pick out a single distribution, the MCG is a graphical factorization of that distribution. 
+		\item If the MCG is under-constrained, there are many distributions consistent with it. We can use this to emulate weaker notions of uncertainty than probability distributions themselves. However, not all such distributions are equal: some may be simpler than others, or better match the symmetries of the constraints; we use entropy to distinguish between them.
+		\item An over-constrained MCG is has internal inconsistencies, the resolution of which drives belief and preference change. Just as in the under-constrained case, not all resolutions are equal: some are more or less constrained 
+	\end{itemize}
+	
 		
+
+	\section{Examples \todo{fold into other sections}}
+	\subsection{Building up Uncertainty}
+	\begin{example}
+		You're about to flip a coin. The result of this flip is the only thing you're thinking about, but you know nothing about the outcome, other than that it could land heads or tails. This (lack of) knowledge is the single node in an MCG:
+
+		\begin{ctikzpicture}
+			\node[bpt={h | $H$}] at (-0.3,0) {};
+			\node[bpt={t | $T$}] at (0.3,0) {};
+%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[bDom={$\sf Coin$ (C) around \lab{h}\lab{t}}] {};
+		\end{ctikzpicture}
+
+	\end{example}
+
+	\begin{example}
+		Now you start reasoning about this coin, and decide that the outcome of the flip is determined by some intrinsic feature of the coin: its bias; you'd be willing to assign a probability to the coin flip if you knew the bias. We illustrate this with the following diagram:
+				
+		\begin{ctikzpicture}
+			
+			\node[bpt={h | $H$}] at (-0.3,0) {};
+			\node[bpt={t | $T$}] at (0.3,0) {};
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[bDom={$\sf Coin$ (C) around \lab{h}\lab{t}}] {};
+			
+			
+			\node[dpadded, left=1 of C] (B) {Bias};
+			
+			
+			\draw[arr] (B) -- (C);
+		\end{ctikzpicture}
+	
+		where Bias is some value in $[0,1]$ and the arrow $P$ is given by 
+		\[ P : [0,1] \to \Delta \{H, T\}, \qquad P(p)  = p H + (1-p) T \]
+	\end{example}
+
+	
+	\subsection{Unknown Number of Balls}
+	\subsection{Pardoned Prisoner}
+	
+	W
 	
 	
-	MCGs generalize , and as such are 
-	
-, 
 	
 	\section*{Definitions and Semantics}
 	\begin{defn*}[MCG]
@@ -258,7 +298,25 @@
 
 %	\part{Intuitions }
 
-	\section{Emulation: Bayesian Networks}
+	\section{Relation to Bayesian Networks}
+	
+	\subsection{Differences}
+	These are diagrams which look and behave like Bayesian Networks in many cases.
+	
+	
+	Structural Differences
+	\begin{itemize}[nosep]
+		\item We interpret arrows individually as marginals, rather than collectively as a conditional probability table depending on all variables above
+		\item 
+	\end{itemize}
+	
+	Differences in use:
+	\begin{itemize}[nosep]
+		\item We allow agents to add additional nodes and edges (form new concepts and connections), dynamically
+	\end{itemize}
+	
+	\subsection{Converting BNs to MCGs}
+	
 	\label{sec:convert2bn}
 	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine a single well-defined probability distribution. Formally they consist of a set of nodes $\cal N$, and for each $N \in \cal N$, a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. While each of our arrows can be interpreted by itself as a marginal, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
 	
@@ -283,16 +341,17 @@
 		\end{tikzcd}
 	\hfil
 	\begin{tikzpicture}[ center base]
-		\matrix(m) [matrix of math nodes, column sep=2em, row sep=1.5em, commutative diagrams/every cell] {
+		\matrix(m) [matrix of math nodes, column sep=1.3em, row sep=1.5em, commutative diagrams/every cell] {
 			& \mathsf 1 &\\
 			& A & \\
 			B && C \\
 			& {} & \\
 			& D & \\};
 		
+		\mergearr{m-3-3}{m-3-1}{m-5-2};
 		\draw[archain] (m-1-2) -- (m-2-2) -- (m-3-3)(m-2-2) -- (m-3-1) ;
-		\draw[arr, -] (m-3-3) -- (m-4-2.center) -- (m-3-1);
-		\draw[arr, shorten <=0] (m-4-2.center) -- (m-5-2);
+%		\draw[arr, -] (m-3-3) -- (m-4-2.center) -- (m-3-1);
+%		\draw[arr, shorten <=0] (m-4-2.center) -- (m-5-2);
 	\end{tikzpicture}
 	\end{center}
 	\vspace{0.5em}
@@ -334,8 +393,20 @@
 	\end{defn}
 
 
-	\section{Emulation: Sets of Probability Distributions}
-	\section{Emulation: Expected Utility}
+
+	\section{Emulation: Decisions by Expected Utility}
+	
+	Suppose the only thing I conceptualize is a single variable $A$, which can take on values $a_1, a_2, \ldots$. A preference on the alternatives often takes the form of an order, and if the order is complete and transitive, then it can be represented as a utility function. We can capture this explicitly with our model: think of utility as a separate preference domain $\sf U \cong (\mathbb R, \leq)$, whose elements are the real numbers, with a preference given by the usual ordering. Now a choice of $A$ has an impact on what happens in $\sf U$, and if we know that each choice of $A$ gives us a deterministic utility, then this impact is actually just a function, and in particular can be represented as a degenerate probability distribution $\Pr( \mathsf U \mid A)$, which is just a function from $A$ to $\mathbb R$.
+	
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded] (A) at (0,0){$\sf A$};
+		\node[dpadded] (U) at (5,0){$\mathbb R, \leq$};
+		\draw[arr](A) to node[above]{$U_A : A \to \mathbb R $} (U);
+		\end{tikzpicture}
+	\end{center}
+
+	\section{Emulation: Other Models Of Uncertainty}
 	
 	
 	\section{Co-algebraic Structure}
@@ -474,6 +545,8 @@
 	An order is a function $\leq: \Omega \times \Omega \to \mathbbm 2$
 	
 	\part{Dynamics}
+	In addition to the representation itself, we want to prescribe . 
+	In the case where an agent is Bayesian 
 	
 	\section{Consistency}
 	Sometimes an MCG effectively, such as when 
