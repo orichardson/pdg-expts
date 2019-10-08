@@ -26,7 +26,7 @@
 	\end{enumerate}
 
 	\tableofcontents
-	
+	\clearpage
 	\part{Motivations}
 %	This work an be motivated in many different ways; I imagine the most compelling one to depend on who you are and what you already care about. In any individual paper I plan to only include one of these, but until the audience has been narrowed, I want to keep all of them around. %to remind myself which directions I want to push, and to record selling points outside of the best publishing path.
 
@@ -155,7 +155,7 @@
 	
 	
 	
-	\subsection*{[Theoretical Unity] Reductions to other theories and algorithms}
+	\subsection*{[Theoretical Unity] Reductions to other theories and algorithms} \todo{Edit this}
 	%	There are many different representations of preference theories 
 	The generality is a genuine mathematical motivation for this theory: it can be viewed as a number of different things. I will briefly mention some of them that I'm excited about here, and then focus on simple things for the rest of the document.
 	\begin{itemize}[nosep]
@@ -192,7 +192,7 @@
 	%	Currently preferences are thought of as static objects, fixed as part of the structure and identity of an agent, independent of beliefs, complete, and over some fixed domain. This is clearly not at all how human preferences work, and I posit that it's not the right way to think of preference for synthetic agents either.
 	
 	Perhaps among other things, any model of preference dynamics that is to be used to build synthetic agents which have control over important decisions, should have the following properties: 
-	\begin{enumerate}[noitemsep]
+	\begin{enumerate}[noitemsep, label=\textbf{D\arabic*}.]
 		\item Provide an answer to the `value loading' problem: show how you can learn ``reasonable'' preferences by interacting with the world
 		\item Reduce to static models for some parameter settings
 		\item Behave reasonably when combined with changes of perspective 
@@ -217,29 +217,30 @@
 
 
 	\clearpage
-	\part{Marginal Constraint Graphs}
+	\part{Probabilistic Constraint Graphs}
 	The basic tool that we will use to solve these problems is a graphical representation of (a piece of) an agent's mental space, which we call a marginal constraint graph. Throughout this section, we will introduce them from many different perspectives, but They look a bit like Bayesian Networks, but are more general: rather than representing a single distribution, they represent (soft) constraints on distributions. 
 	
 	\begin{itemize}
-		\item If the constraints pick out a single distribution, the MCG is a graphical factorization of that distribution. 
-		\item If the MCG is under-constrained, there are many distributions consistent with it. We can use this to emulate weaker notions of uncertainty than probability distributions themselves. However, not all such distributions are equal: some may be simpler than others, or better match the symmetries of the constraints; we use entropy to distinguish between them.
-		\item An over-constrained MCG is has internal inconsistencies, the resolution of which drives belief and preference change. Just as in the under-constrained case, not all resolutions are equal: some are more or less constrained 
+		\item If the constraints pick out a single distribution, the PCG is a graphical factorization of that distribution. 
+		\item If the PCG is under-constrained, there are many distributions consistent with it. We can use this to emulate weaker notions of uncertainty than probability distributions themselves. However, not all such distributions are equal: some may be simpler than others, or better match the symmetries of the constraints; we use entropy to distinguish between them.
+		\item An over-constrained PCG is has internal inconsistencies, the resolution of which drives belief and preference change. Just as in the under-constrained case, not all resolutions are equal: some are more or less constrained 
 	\end{itemize}
 	
 		
 
-	\section{Examples \todo{fold into other sections}}
-	\subsection{Building up Descriptions of Uncertainty}
+	\section{Uncertainty Examples \todo{fold into other sections}}
+	\subsection{Coin Tosses}
 	\begin{example}
-		You're about to flip a coin. The result of this flip is the only thing you're thinking about, but you know nothing about the outcome, other than that it could land heads or tails. This (lack of) knowledge is the single node in an MCG:
+		You're about to flip a coin. The result of this flip is the only thing you're thinking about, but you know nothing about the outcome, other than that it could land heads or tails. This (lack of) knowledge is the single node in an PCG:
 
 		\begin{ctikzpicture}
 			\node[bpt={h | $H$}] at (-0.3,0) {};
 			\node[bpt={t | $T$}] at (0.3,0) {};
 %			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
-			\node[bDom={$\sf Coin$ (C) around \lab{h}\lab{t}}] {};
+			\node[bDom={Coin (C) around \lab{h}\lab{t}}] {};
 		\end{ctikzpicture}
-
+		
+		One might think this is vacuous, but in fact this conveys two important things: that the agent is aware of and conceptualizes the coin flip (with the two outcomes), and a total uncertainty about what values they actually take and how they relate to anything else.
 	\end{example}
 
 	\begin{example}
@@ -250,30 +251,154 @@
 			\node[bpt={h | $H$}] at (-0.3,0) {};
 			\node[bpt={t | $T$}] at (0.3,0) {};
 			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
-			\node[bDom={$\sf Coin$ (C) around \lab{h}\lab{t}}] {};
+			\node[bDom={Coin (C) around \lab{h}\lab{t}}] {};
 			
 			
-			\node[dpadded, left=1 of C] (B) {Bias};
+			\node[dpadded, left=1 of C] (B) {$\sf Bias$};
 			
 			
 			\draw[arr] (B) -- (C);
 		\end{ctikzpicture}
 	
 		where Bias is some value in $[0,1]$ and the arrow $P$ is given by 
-		\[ P : [0,1] \to \Delta \{H, T\}, \qquad P(p)  = p H + (1-p) T \]
+		\[ P : \mathsf{Bias} \to \Delta \{H, T\}, \qquad P(b)  =  \begin{cases}
+		 	H & \text{with probability $b$} \\
+		 	T & \text{with probability $1-b$}
+		\end{cases} \]
+		Bias is now an infinite random variable, and functions as a higher-order probability, which has been "internalized" to the picture. Doing this again may seem vacuous, as we have not gained any information about whether the coin will land heads or tails, but once again we get information about what the agent thinks is relevant. Putting this node in the space can make otherwise innocuous changes suddenly meaningful --- for instance, if Bias had only a finite selection of possibilities, a granularity perhaps imposed by the agent's way of representing numbers, then the agent has given themselves information about the coin through arbitrary choices.
+	\end{example}
+
+
+	\begin{example}
+		We will take our coin example a bit further. Already in the previous case, the set of biases is consistent with some set of distributions. Suppose that our agent continues to think and realizes they consider some set of distributions over bias possible. Now that they are aware of it, we give it a name ($\sf S$), and put it into the picture:
+		
+		
+		\begin{ctikzpicture}
+			
+			\node[bpt={h | $H$}] at (-0.3,0) {};
+			\node[bpt={t | $T$}] at (0.3,0) {};
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[Dom={Coin (C) around \lab{h}\lab{t}}] {};
+			
+			
+			\node[dpadded, left=1 of C] (B) {Bias};
+			\node[dpadded, left=1 of B] (S) {$\sf S$};
+			
+			
+			\draw[archain] (S) -- node[above]{$q$} (B) -- (C);
+		\end{ctikzpicture}
+		
+		The arrow $q$ represents the conditional distribution $\mu_s$ on Bias, for $s \in S$. This example illustrates that not only can these PCGs represent sets of distributions with some external interpretation, but this can also be internalized to the PCG itself, and so the kind of inference that can be done externally with lower probabilities, for instance, can be done just by the the prescribed decision theory. 
+		
+		For example, if $S = \{ \mu_B : \mu_B(H) > 0.5\}$, i.e., you are certain that the probability of heads is at least 0.5 (maybe you know the company which makes it, which only weights the head side, but can do any amount), and you are trying to decide whether to bet that the coin lands heads or tails, you now have the following picture:
+	
+		\begin{ctikzpicture}
+			
+			\node[bpt={h | $H$}] at (-0.3,0) {};
+			\node[bpt={t | $T$}] at (0.3,0) {};
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[Dom={Coin (C) around \lab{h}\lab{t}}] {};
+			
+			
+			\node[dpadded, left=1 of C] (B) {Bias};
+			\node[dpadded, left=1 of B] (S) {$\sf S$};
+			\node[dpadded, below=0.8 of C] (Bet) {Bet};
+			\node[dpadded, above right=0.4 and 1.9 of Bet.center] (money) {\$};
+			
+			
+			\draw[archain] (S) -- node[above]{$q$} (B) -- (C);
+			\mergearr{Bet}{C}{money};
+		\end{ctikzpicture}
+	
+		From this, even though I have no prior on $S$, I know that no matter what distribution on bias is actualized, an even bet for heads nets more money than an even bet for tails. 
+	\end{example}
+
+	\begin{example}
+		Finally, we can also add weights, which we can use to reason about higher order probability, although we need to be careful about normalization and our arrows will either need to be interpreted as non-standard measures, or we have to make some extra assumptions in the general case. Intuitively, the picture looks like this:
+		
+		\begin{ctikzpicture}
+
+			
+			\node[bpt={h | $H$}] at (-0.3,0) {};
+			\node[bpt={t | $T$}] at (0.3,0) {};
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[Dom={Coin (C) around \lab{h}\lab{t}}] {};
+			
+			
+			\node[dpadded, left=1 of C] (B) {Bias};
+			\node[dpadded, left=1 of B] (S) {$\sf S$};
+			\node[dpadded, left=1 of S] (1) {$\sf 1$};
+			
+			\draw[archain] (1) --node[above]{$p$} (S) -- node[above]{$q$} (B) --node[above]{$r$} (C);
+		\end{ctikzpicture}
+	 	Now we finally have grounded the chain so that it has the unique node $\sf 1$ as a root of a tree, and so by Proposition \ref{prop:prob-eq}, there is exactly one distribution consistent with it. We can see that the higher order probability is still represented, and modifications to the arrows which represent more abstract concepts do change the rest of the problem setup --- but at the end, we can use composition (which here is acting as the bind of our probability monad) to squash all of the information a probability.
 	\end{example}
 
 	
-	\subsection{Unknown Number of Balls}
+%	\subsection{Unknown Number of Balls}
 	\subsection{Pardoned Prisoner}
 	
-	W
+	
+	\begin{example}
+		We take this example as well from the Reasoning about Uncertainty book. Suppose there are three prisoners, $A$, $B$, and $C$. One of them has been chosen at random to be pardoned. Prisoner $A$ asks the executioner which of the other two was executed. Just before she gets her answer, the agent's PCG looks like this:
+		
+		\begin{ctikzpicture}
+			\node[dpadded] (1) at ( -2,0) {$\sf 1$};
+			
+			\node[rpt={a | $A$}] at (0,0.6) {};
+			\node[rpt={b | $B$}] at (0,0) {};
+			\node[rpt={c | $C$}] at (0,-0.6) {};
+			
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[bDom={{Pardoned \\ Prisoner} (PP) around \lab{a}\lab{c}}] {};
+			
+			\node[rpt={b2 | $B$}] at (3, 0.6) {};
+			\node[rpt={c2 | $C$}] at (3,-0) {};
+			\node[bDom={{Revealed \\ Condemned \\ Prisoner} (CP) around \lab{b2}\lab{c2}}] {};
+			
+			\draw[archain] (1) -- (PP) -- (CP);
+		\end{ctikzpicture}
+	
+		Note that in order to tie together the two nodes with an arrow, we need to either know the probability of each prisoner being pardoned for each choice of revealed condemned prisoner, or more naturally, the probability that the executioner reveals each prisoner, given the identity of the pardoned one --- that is, we need to model the protocol of the executioner. If we assume the executioner is truthful, we still need to know what happens when $A$ was the pardoned prisoner and the executioner has a choice. Suppose that in this case, $B$ is always revealed. This results, through composition, in a prior distribution over the revealed prisoner, with $\frac{2}{3}$ on $B$ and $\frac{1}{3}$ on $C$.
+		
+		
+		Once we make our observation, we get a new arrow; suppose we hear that $B$ was revealed.
+		
+		\begin{ctikzpicture}
+			\node[dpadded] (1) at ( -2,2) {$\sf 1$};
+			
+			\node[rpt={a | $A$}] at (0,0.6) {};
+			\node[rpt={b | $B$}] at (0,0) {};
+			\node[rpt={c | $C$}] at (0,-0.6) {};
+			
+			%			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[bDom={{Pardoned \\ Prisoner} (PP) around \lab{a}\lab{c}}] {};
+			
+			\node[rpt={b2 | $B$}] at (3, 0.6) {};
+			\node[rpt={c2 | $C$}] at (3,-0) {};
+			\node[bDom={{Revealed \\ Condemned \\ Prisoner} (CP) around \lab{b2}\lab{c2}}] {};
+			
+			\draw[archain] (1) -- (PP) -- (CP);
+			\draw[arr, dashed] (1) to[bend left=10] (CP);
+		\end{ctikzpicture}
+		There is now an inconsistency: the two paths from 1 give different distributions on the revealed prisoner. There are many ways to ameliorate this:
+		\begin{enumerate}[nosep]
+			\item The agent can ignore what the executioner told her, because it conflicts with your a-priori distribution on the probability of what the executioner would say
+			\item The agent can revise their view of the executioner's protocol upon hearing $B$, and now believe that the executioner would have told her this no matter who was pardoned.
+			\item The agent can change their belief about how likely each prisoner is to have been pardoned. In this case, she can conclude that her chances of dying are now 1 in 2. Of course, if the executioner had said $C$, she would have had to conclude she was guaranteed to die.
+		\end{enumerate}		
+	\end{example}
+
+	\begin{example}[Prisoners and subdistributions]
+		Maybe we actually do not know the guard's protocol. We can still interpret the arrow as a sub-Markov transition / sub-stochastic matrix, where now we do not know what happens when $A$ is the pardoned prisoner. In this case, we still can compose the arrows, and obtain a sub-distribution $\Pr_*(B) = \frac{1}{3}$, $\Pr_*(C) = \frac{1}{3}$. Upon hearing the name of the revealed prisoner, we cannot update, and still have the same sub-distribution. 
+	\end{example}
+
 	
 	
 	
 	\section{Definitions and Semantics}
-	\begin{defn*}[MCG, Semiformal]
-		A marginal constraint graph $(\cal A, L)$ is a collection of variables $\cal A$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta [B \cup \{\bullet\}]$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before. See section \ref{sec:substochastic} for details} representing beliefs about how a setting of $A$ to $a \neq \bullet$ will impact the value of $B$. 
+	\begin{defn*}[PCG, semi-formal]\label{def:pcg-semiformal}
+		A marginal constraint graph $(\cal N, L)$ is a collection of variables $\cal N$, attached to each of which is some preference information: (this could be an order, utility, pairwise utility matrix, a supremum function), plus a collection of probabilistic links $\cal L$ between some (but not necessarily all) pairs of them, where $L: A\to B \in \cal L$ is a (sub) Markov kernel $A \to \Delta [B \cup \{\bullet\}]$\footnote{The additional ``phantom element'' $\bullet$ absorbs probability density that we don't want to equivocate on, allowing our model to capture partial families of conditional probabilities, by extension things like implication, and giving agents more tools to avoid inconsistency. This has the effect of making our links substochatic matrices/kernels rather than stochastic ones. However, if we restrict to beliefs which assign zero probability to $\bullet$, everything in the model works as before. See section \ref{sec:substochastic} for details} representing beliefs about how a setting of $A$ to $a \neq \bullet$ will impact the value of $B$. 
 	\end{defn*}
 	
 	Variables can be thought of equivalently as:
@@ -286,58 +411,128 @@
 %	In will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables, but there 
 	%While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
-	\subsection{Semantics}
+	\subsection{Interpretations}
+	
 %	\begin{enumerate}
 %		\item A set of probability distributions
 %		\item A weighted set of probability distributions. 
 %	\end{enumerate}
-	We can talk about both the 
+	By analogy to the distinction between a qualitative and quantitative Bayesian Network, 	
+	we can make a distinction between a sources of information in in an PCG. We can talk about the shape of the PCG --- topology of the graph itself, before any numbers have been included--- in addition to its interpretation in a probabilistic setting. One can imagine also interpreting them with other models of uncertainty.  I will also remark that the effects here are captured succinctly and with clearer relations to other interpretations (e.g., of databases, semantics, and diagrams), by viewing a PCG as a functor; see section \ref{sec:cat-defs} for details. 
+	
+	\subsubsection{Qualitative PCGs} The connectivity a BN (as well as of a Markov Network or factor graph) has something to say about independence --- that if two nodes are not connected, then they have to be independent, if we fix some separating variables. This is a very strong statement. Intuitively when building a graph like this, if I have not connected two nodes, it is because I don't really know how they interact, not because I'm certain that the probability distribution separates when we fix some middle node along a path.
+	
+	For us, an arrow $A \to B$ indicates that you'd be willing to bet on $B$ (and believe you'd be rational in doing so) if you knew the value of $A$. Unlike the other graphical models, such a structure does not rule out any joint distribution on the nodes, which makes them less useful for factoring a unique distribution. 
+	
+	Still, the connectivity alone is meaningful, as it determines:	
+	
+	\begin{itemize}[nosep]
+		\item How over / under-constrained the agent's knowledge is
+		\item What variables the agent thinks are most robustly predictive of which others
+		\item Which beliefs are most redundantly held
+	\end{itemize} 
+	If we're also given access to the entrenchment weights on the arrows, we can use the connectivity to determine which beliefs are likely to change when observations are made. For instance, if observations are made on $C$ via Jeffrey's rule for each value of $A$, we can infer an edge $A \to C$ in the picture below:
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (A) at (150:1.2) {$A$};
+			\node[dpadded] (B) at (30:1.2) {$B$};
+			\node[dpadded] (C) at (-90:1.2) {$C$};
+			\node[dpadded, right=1.2 of B] (D) {$D$};
+			\draw[archain] (A) -- node[above]{$1$} (B) -- node[above]{${\epsilon}$} (D);
+			\draw[arr] (B) -- node[right]{$\frac{1}{\epsilon}$} (C);
+			\draw[arr, dashed, gray] (A) -- node[left]{} (C);
+		\end{tikzpicture}
+	\end{center}
+	As a result of this observation, we can infer from these and the connectivity that the belief $A \to B$ will change, rather than the one from $B \to C$. The connectivity is important; note that the belief $B \to D$ will not change even though it is much more weakly held.
+
+	
+	\subsubsection{Quantitative PCGs}
+	Filling in all of the numbers, we get a quantitative PCG the PCG gives us the object we've been talking about until now, with families of distributions on each edge. Fully interpreted PCG's 
+	
+	\subsubsection{Partially Quantitative PCGs}
+	We can also interpret arrows part way. By giving ourselves access to the amount of uncertainty in the arrows (e.g., the entropy, or a whether or not a given arrow is deterministic), we can draw additional conclusions.
+	
+	
+	We can also interpret only a subset of the arrows, which places (soft) constraints on the remaining arrows. 
+	
+	\subsection{Semantics}
+	The semantics of a quantitative PCG 
+	
+	
 	
 	\subsection{Formalism}
 	We can now give a more formal definition:
-	\begin{defn}\label{def:mcg}
-		A marginal constraint graph (MCG) is a tuple 
+	\begin{defn}\label{def:pcg}
+		A probabilistic constraint graph (PCG) is a tuple 
 		\[ \left(\mathcal N : \mathbf{FinSet},~~\mathcal L : 2^{\cal N \times N},~~ \langle\mathcal S, \Sigma\rangle : \mathcal N \to \mathbf{MeasSet}, ~~\mathbf p : \prod_{(A,B): \mathcal L} \left[ \Big. \mathcal S_A \times \Sigma_B \to [0,1]\right] \right) \]
 		where $p(L)$ is a Markov kernel, i.e., for every $L[A,B] : \mathcal L$, and $a \in \mathcal S_A$, $\mathbf p_L[a \mid \cdot~]$ is a probability distribution on $(\mathcal S_B, \Sigma_B)$, and $\mathbf p_L[~\cdot \mid B]$ is $\Sigma_A$-measurable for every $B \in \Sigma_B$.
 	\end{defn}
 		
 
 %	\part{Intuitions }
+	\section{Recovering the Standard Picture}
+	
+	\subsection{Probability Spaces}
+	
+	\subsection{Random Variables}
+	
+	\subsection{Preferences, and Utility}
+
+	Suppose the only thing I conceptualize is a single variable $A$. A preference on the alternatives $a \in \mathcal S(A)$ often takes the form of an order. If it is a total order (and $|A| \leq |\mathbb R|$), then it can be represented as a utility function. We can capture this explicitly with our model: think of utility as a separate preference domain $\sf U \cong (\mathbb R, \leq)$, whose elements are the real numbers, with a preference given by the usual ordering. Now a choice of $A$ has an impact on what happens in $\sf U$, and if we know that each choice of $A$ gives us a deterministic utility, then this impact is actually just a function, and in particular can be represented as a degenerate probability distribution $\Pr( \mathsf U \mid A)$, which is just a function from $A$ to $\mathbb R$.
+	
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded] (A) at (0,0){$\sf A$};
+		\node[dpadded] (U) at (5,0){$\mathbb R, \leq$};
+		\draw[arr](A) to node[above]{$U_A : A \to \mathbb R $} (U);
+		\end{tikzpicture}
+	\end{center}
+	
+	In this sense, we can think of utility functions as a way of representing preferences on $A$ as a belief about how $A$ impacts a standard universal preference domain of ``goodness''. Similarly, if we have multiple variables, we could always just take their product all of their variables, and consider a conditional probability distribution from this to the utility preference domain $\mathsf U $.
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (A) at (0,0){$\sf A_1 \times A_2 \times \cdots $};
+			\node[dpadded] (U) at (5,0){$\mathbb R, \leq$};
+			\draw[arr](A) to node[above]{$U$} (U);
+		\end{tikzpicture}
+	\end{center}
+
+	
 
 	\section{Relation to Bayesian Networks}
 	
 	\subsection{Differences}
-	These are diagrams which look and behave like Bayesian Networks in many cases.
-	
-	
-	Structural Differences
+	These are diagrams which look and behave like Bayesian Networks in many cases, but are more general. Here are some structural differences:
 	\begin{itemize}[nosep]
-		\item We interpret arrows individually as marginals, rather than collectively as a conditional probability table depending on all variables above
-		\item 
+		\item We interpret each arrow as a conditional probability table in isolation, rather than considering all arrows into a node together as a larger conditional probability from the cartesian product. This gives us a notion of composition, which we will defend later.
+		\item Similarly (this is the zeroth order case of the above), we do not assign distributions to nodes without parents. 
+		\item We make no explicit assumptions about independence (except insofar as the arrows encode this). We achieve separation in a weaker way, by giving preference to maximum entropy distributions.
 	\end{itemize}
+%	We will also use them differently: 	
+
+%	Differences in use:
+%	\begin{itemize}[nosep]
+%		\item We allow agents to add additional nodes and edges (form new concepts and connections), dynamically, and in fact use this ability to add and remove nodes as tricks for representing things.
+%	\end{itemize}
 	
-	Differences in use:
-	\begin{itemize}[nosep]
-		\item We allow agents to add additional nodes and edges (form new concepts and connections), dynamically
-	\end{itemize}
-	
-	\subsection{Converting BNs to MCGs}
+	\subsection{Converting BNs to PCGs}
 	
 	\label{sec:convert2bn}
 	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine a single well-defined probability distribution. Formally they consist of a set of nodes $\cal N$, and for each $N \in \cal N$, a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. While each of our arrows can be interpreted by itself as a marginal, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
 	
 	The procedure for converting to a BN is simple: we simply take every node's incoming arrows, and insert the product of its parents as a node before it. With this procedure, if a node $N$ has just one parent $P$, we replace $P \to N$ with $P \to N ~=~ N$, which is redundant so we don't draw this. If a node had zero parents (i.e., the BN just gives it a probability distribution not dependent on anything), we insert the product of zero things, i.e., the singleton node $1 = \{*\}$, a variable which only takes one value, and set $\Pr(N \mid *) = \Pr(N)$. 
 	
-	This sound much more complicated than it is. Consider the example below, where the left is a BN, the center is the corresponding MCG, and the right is a compact visual representation of the MCG in the case where $B \times C$ has no other edges attached to it directly.
+	This sound much more complicated than it is. Consider the example below, where the left is a BN, the center is the corresponding PCG, and the right is a compact visual representation of the PCG in the case where $B \times C$ has no other edges attached to it directly.
 	\begin{center}
 		
-		\begin{tikzcd}[center base, column sep=2.5em]
+		\begin{tikzcd}[center base, column sep=2em]
 			& A \ar[dl]\ar[dr] \\
 			B \ar[dr] && C \ar[dl]\\
 			& D &
 		\end{tikzcd}
 		\hfil
-		\begin{tikzcd}[center base, column sep=1em, row sep=1.5em, dpad]
+		\begin{tikzcd}[center base, column sep=1em, row sep=1.8em, dpad={light pad}, every arrow/.style={arr}]
 			& \mathsf 1 \ar[d] &\\
 			& A \ar[dl]\ar[dr ]% \ar[dd,dashed, gray] 
 			\\
@@ -367,7 +562,7 @@
 	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence in a weaker way.
 	
 	\begin{defn*}
-		The \emph{center} of an MCG $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
+		The \emph{center} of an PCG $(\cal A, L)$ is the set of joint distributions on $\cal A$ that come closest to satisfying $\cal L$, which are of maximum entropy.
 	\end{defn*}
 	
 	This is an alternate way of capturing the conditional independence of variables that are not required by the model to be related, without ever conditioning on ancestors, which include products\footnote{to see why this is problematic, consider that the product of all variables can always be formed, and is the ancestor of all variables. If we condition on it, then everything is always conditionally independent, as we're looking at a degenerate distribution consisting of a single outcome.}.  In some sense this is the worst case outcome for an agent intending to narrow down possibilities: a distribution in the center requires the maximum amount of information to determine the state of the world, but at the same time cannot leverage this assumption to simplify things. %The principle of maximum entropy is well established\footnote{Despite this, utilities are still thought of as fixed, minimum entropy objects.} \todo{choose references}. W
@@ -375,12 +570,10 @@
 	
 	
 	\begin{restatable}{theorem}{rthm:bn-maxent} \label{rthm:bn-maxent}
-		The center of the MCG obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
+		The center of the PCG obtained by transforming a Bayesian Network as described above (i.e., by inserting an extra node $X := \prod_{P \in \mathrm{pa(A)}} P$ before every node, with the appropriate projections), is a singleton set consisting of exactly the probability distribution that the BN represents.
 	\end{restatable}
 	
-	\begin{coro}
-		Products (defined in section \ref{sec:belief-typing}) in the center of a model $(\cal A, L)$ have the usual uniqueness to make them categorical limits.
-	\end{coro}
+
 	
 	We will clarify this definition and explain the connection to thermodynamics more carefully (section \ref{sec:thermo}) once we have a numerical definition of consistency. In the mean time, we continue to argue for this collection of marginals as a way of representing beliefs.
 	
@@ -398,21 +591,80 @@
 		\end{itemize}
 	\end{defn}
 
-
-
-	\section{Emulation: Decisions by Expected Utility}
+	\section{Arguments for PCGs}
+	\subsection{The Possibility of Types and Embedded Logic}\label{sec:belief-typing}
+	The classical picture also features a fixed set of variables. In addition to allowing new concepts to form for exogenous reasons, we would like to have inductive ways of introducing new ones logically, as combinations of the existing variables. Interpreting variables as types, whose possible assignments are terms, the syntax of which variables we can construct and what beliefs we have about the resulting picture is a type theory. Even leaving that aside, there are some obvious ways one might want to combine existing domains; the primary one we are concerned with here is products.
 	
-	Suppose the only thing I conceptualize is a single variable $A$, which can take on values $a_1, a_2, \ldots$. A preference on the alternatives often takes the form of an order, and if the order is complete and transitive, then it can be represented as a utility function. We can capture this explicitly with our model: think of utility as a separate preference domain $\sf U \cong (\mathbb R, \leq)$, whose elements are the real numbers, with a preference given by the usual ordering. Now a choice of $A$ has an impact on what happens in $\sf U$, and if we know that each choice of $A$ gives us a deterministic utility, then this impact is actually just a function, and in particular can be represented as a degenerate probability distribution $\Pr( \mathsf U \mid A)$, which is just a function from $A$ to $\mathbb R$.
+	In terms of beliefs, you might already have beliefs about how likely two events $A$ and $B$ are to occur, then suddenly wonder about how they interact. For instance, you may already have beliefs about how likely you are to leave your keys in the ignition, and also how often your car is dead, and then wonder if there's a connection. 
+	In terms of preferences, you might think $a \geqc a'$ and $b \geqc b'$, but now wonder what you would do if you had to choose between $a b'$ and $a' b$. In both cases, you are slightly enlarging your picture to consider the relevant features that a classical agent would already have.
 	
+	For this reason, we introduce the ability to create a domain $A \times B$, if $A$ and $B$ are nodes in the picture, whose elements are the cartesian product of $A$ and $B$. %Moreover, this comes with projection links $\pi_A : A \times B \to \Delta(A)$, $\pi_B: A\times B \to \Delta B$ given by $\pi_A((a,b), a') = \delta_{a,a'}$ and $\pi_B((a,b), b') = \delta_{b,b'}$, as usual. Furthermore, we can construct a function $\langle f , g \rangle : X \to A \times B$ for any $f: X \to A$ and $g: X \to B$ that make the picture no more inconsistent.
+	This is represented graphically as:
 	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded] (A) at (0,0){$\sf A$};
-		\node[dpadded] (U) at (5,0){$\mathbb R, \leq$};
-		\draw[arr](A) to node[above]{$U_A : A \to \mathbb R $} (U);
-		\end{tikzpicture}
+		\begin{tikzcd}
+			%			&X\ar[dl,"f"']\ar[dr,"g"]\ar[d, "{\langle f, g \rangle}"description ]  \\
+			A & A \times B \ar[l, "\pi_A"]\ar[r, "\pi_B"'] & B
+		\end{tikzcd}
 	\end{center}
+	
+	It may be worth noting that we can always construct $\langle f, g \rangle$, but uniqueness in general does not hold\footnote{so it is not (yet) a categorical product}. This is important because without any additional assumptions, knowing a distribution on $A$ and a distribution on $B$ does not allow you to infer a distribution on $A \times B$; there may be correlations. However, this is still a unique maximum entropy one, which assumes that the two are independent.
+	
+	\subsubsection{Products Variables vs Unions of Variable Sets}
+	
+	We could have achieved a similar thing by considering $\{A\}$ and $\{B\}$ as singleton sets of variables, and then adding $\{A,B\}$ to the picture. Here we would interpret as a set of random variable taking values in the range of the product of its elements possible values. The two accounts differ when there is an overlap between the sets. Should we be allowed to represent $A \times A$? 
+	
+	Taking unions does protect us from doing certain bad things: it would be a mistake to assign a distribution $\Pr(a, a') > 0$ for $ a \neq a'$, for instance --- but we're already in the business of allowing this kind of inconsistency --- in the picture below all the marginals are fine as far as the syntax is concerned, but there is no way to assign a probability distribution on all of the nodes.
+	\begin{center}
+		\begin{tikzcd}[dpad]
+			&1 \ar[d, "p(A\times A)"] \\
+			& A \times A \ar[ld]\ar[rd] & \\
+			A \ar[rr,equal]&& A
+		\end{tikzcd}
+	\end{center}
+	
+	It can also be very useful to keep extra copies of $A$ around even if (part of) one already exists buried in another variable, because we can delay integration using this trick, as in example \ref{ex:bayesrule} for instance. The most compelling reason for me is that one might not know that you're looking at two copies of $A$; maybe they've been framed differently --- but still you should be able to take a product and get two things, rather than a union, which immediately leaks the truth of their equivalence to an agent.
+	
+	There is also a good argument that both should be allowed if the agent can unify variables, which we can leave for a future discussion.
+	
+	\subsubsection{Additional Types}
+	\todo{Gestures towards embedding logics; equivalence between logic and type theory; in particular: conditionals, coproducts, negation, higher order nodes (beliefs about prefs, prefs about beliefs)}	
 
-	\section{Emulation: Other Models Of Uncertainty}
+		\subsection{Human Beliefs as Marginals}\label{sec:human-belief-marginals}
+	From a modeling perspective, the biggest reason for keeping track of marginals rather than joint probability distributions, is that it can represent lots of information tracked by people, that BNs regard as incomplete. As seen earlier, the major feature we admit that is prohibited in a Baysian Network is a merging of two paths, where neither is a projection.
+	
+	In our case, we also have the possibility of branching and merging. In our picture, a diagram $A \rightarrow C \leftarrow B$ represents two probability distributions $\Pr(C\mid A)$ and $\Pr(C \mid B)$.
+	Having this kind of information is both common and not representable as a (single) probability distribution. Scientific studies never control for everything that is relevant, so you're left with marginals which may not tell the whole story.
+	
+	\begin{example}
+		After reading a number of empirical studies, you come to believe that smokers have a 70\% chance of developing cancer, compared to 20\% for non-smokers. At the same time, you believe that those who use tanning beds have a 80\% chance of developing cancer, compared to 18 \% for those who do not use them. You have no information about how the two interact.
+	\end{example}
+	
+	\begin{example}
+		You are on a game show, and offered a choice between several levers $(A)$; your choice will determine how much money you receive. You are uncertain what each lever does, but you do have a vague intuition about the mechanism, giving you a distribution over amounts for each lever ($\Pr(C \mid A)$). You also had enough time to read statistics about how well people have done in the past $(\Pr(C))$. You do not have any information about what levers they've chosen though, nor do you have a complete joint probability $\Pr(A, C)$. In fact, having an accurate probability on $A$ alone would seem to undermine your agency.
+	\end{example}
+	
+	
+	So information of this form may not be entirely complete, be contradictory, or make it seem as though the choice is an illusion. This ``outside view'' is also important for constructing Newcomb's problem:
+	
+	\begin{example}[Newcomb]
+		There are two boxes. Box 1 is clear and visibly contains \$1k; box 2 is opaque, and will contain \$1M if a predictor (which you know has been very accurate in the past) predicts you will leave box 1, taking just this box, and will contain nothing if the predictor predicts you will take the first box. You have to choose whether or not to take the visible box (there's no reason not to take box 2).
+		
+		In the diagram below, you and your past choices determine the prediction $P$, as given by the blue line, but you do not have access to this information. They also determine your action $A$ in some sense, which is the right dashed arrow, which you only know for certain after you make your decision. Because the two processes cannot exchange information (i.e., the predictor cannot decide after your action has been made, and you don't get to know the prediction), these two processes determine the process $\mathrm{Identity} \to A \times P$.
+		\begin{center}
+			\begin{tikzcd}[dpad]
+					A \ar[drr, bend left=70, pink] & \text{Your Past}\ar[dr, blue, dashed]\ar[l, dashed]\ar[d,dotted, gray]\\
+					 & A \times P \ar[lu]\ar[r]\ar[dl]\ar[d] & P \\ 
+				\$\$ & \mathbbm{1}_{A\stackrel{?}{=}P} & \mathsf 1 \ar[l]
+			\end{tikzcd}
+		\end{center}
+		Now, on the one hand, you have a logical picture of how an action and prediction together will impact whether the predictor is right (the arrow $A \times P \to A \stackrel{?}{=} P$). On the other hand, you also have an outside view of how likely the predictor is to be right (the arrow $1 \to A \stackrel{?}{=} P$). 
+		
+		We have not resolved the paradox; we have merely represented the beliefs in the setup, which make very little sense as a BN.
+		%		More weirdness comes from the fact that $A$ and $P$ interact.
+	\end{example}
+	
+	At least classically, beliefs are only half of the picture. Keeping around marginals is also more psychologically plausible for preferences.
+%	\section{Emulation: Other Models Of Uncertainty}
 	
 	
 	\section{Co-algebraic Structure}
@@ -444,24 +696,24 @@
 	
 
 %	\subsubsection{Entropic 2-Category}
-	\subsection{}
+	\subsection{Categorical Definition}\label{sec:cat-defs}
 	We'll start with the fragment of 
 	
 	\begin{defn}
-		A \emph{categorical MCG} is a diagram in $\bf Mark$ of shape $\cal A$ --- that is, a functor $\mathcal A \to \mathbf{Mark}$, where $\mathcal A$, thought of as attention, is (the category generated by) the graph whose nodes and edges are relevant features of the problem setup.
+		A \emph{categorical PCG} is a diagram in $\bf Mark$ of shape $\cal A$ --- that is, a functor $\mathcal A \to \mathbf{Mark}$, where $\mathcal A$, thought of as attention, is (the category generated by) the graph whose nodes and edges are relevant features of the problem setup.
 	\end{defn}
 	
 	This makes sense, as these topological graphs
-	\subsection{Worlds.} \label{sec:cat-worlds}
+	\subsection{Limits } \label{sec:cat-worlds}
 	
 	We can use this definition to 
 	
 	\begin{defn}
-		A \emph{world object} of an MCG $G : \mathcal A \to \mathbf{Mark}$ is a weak limit of $G$ --- that is, a cone over $G$, for which there exists a (possibly non-unique) arrow 
+		A \emph{world object} of an PCG $G : \mathcal A \to \mathbf{Mark}$ is a weak limit of $G$ --- that is, a cone over $G$, for which there exists a (possibly non-unique) arrow 
 	\end{defn}
 
 	\begin{example}
-		If $\mathcal A$ is a discrete category, with $n$ elements, then MCGs of shape $\mathcal A = \{\tilde X_1, \tilde X_2, \ldots, \tilde X_n\}$ is just a set of $n$ names (with identities), to be interpreted by $M$ as random variables (with their identities). If $M : \mathcal A \to \mathbf{Mark}$ is a (weak) final cone, as illustrated below.
+		If $\mathcal A$ is a discrete category, with $n$ elements, then PCGs of shape $\mathcal A = \{\tilde X_1, \tilde X_2, \ldots, \tilde X_n\}$ is just a set of $n$ names (with identities), to be interpreted by $M$ as random variables (with their identities). If $M : \mathcal A \to \mathbf{Mark}$ is a (weak) final cone, as illustrated below.
 		\[ \begin{tikzcd}
 				&& Y  \ar[ddll, gray, "f_1"']\ar[ddl,gray, "f_2"description]\ar[ddrr,gray, "f_n"] \ar[d, dashed, "\exists!"]\\
 				&& \mathcal W \ar[dll, "\pi_1"description]\ar[dl, "\pi_2"description]\ar[drr, "\pi_n"description] \\
@@ -495,7 +747,7 @@
 	\subsection{Meta-links and Higher Structure}
 	\subsection{Denotational Semantics}
 	
-	\part{Values on Marginal Constraint Graphs}
+	\part{Values on Probabilistic Constraint Graphs}
 	
 	The first strand of this project is a general representation of many ways that have been historically used to represent values: namely, utilities, goals, desires, preferences, choice functions, and natural extensions of these suggested by this representation, some of which are also well-studied. 
 	
@@ -555,7 +807,7 @@
 	In the case where an agent is Bayesian 
 	
 	\section{Consistency}
-	Sometimes an MCG effectively, such as when 
+	Sometimes an PCG effectively, such as when 
 %	
 	
 	\subsection{Pairwise Consistency}
@@ -649,7 +901,10 @@
 	\section{Thermodynamic Analogy}
 	
 	
+
+	\part*{Appendix}
 	\appendix
+
 	\section{Category Theoretic Preliminaries}
 	\todo{Minimal Category Theory needed to understand: categories, functors, diagrams, cones, limits}
 	\subsection{Markov Category and Giry Monad}
