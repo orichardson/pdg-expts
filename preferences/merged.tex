@@ -1,9 +1,16 @@
 \documentclass{article}
 
 \input{prefs-commands.tex}
+\usepackage[nointegrals]{ wasysym }
 
 \addbibresource{../refs.bib}
 \addbibresource{../maths.bib}
+
+\newcommand{\mfem}{\mathclap\female\male}
+\newsavebox{\hourglassbox}
+\savebox{\hourglassbox}{\includegraphics[height=.8em]{hourglass.png}}
+\newcommand\hourglass{\usebox{\hourglassbox}}
+
 
 \title{Merged: Dynamic Beliefs and Preferences}
 \author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
@@ -411,7 +418,7 @@
 %	In will focus on models where the preference information is encoded as a special utility domain $U$, with links from other variables, but there 
 	%While there may be some propositions tying this case to utilities or preference orders, we will avoid talking explicitly about the more general setting of preference matrices and choice functions out for now.
 	
-	\subsection{Interpretations}
+	\subsection{Partial Interpretations}
 	
 %	\begin{enumerate}
 %		\item A set of probability distributions
@@ -447,7 +454,7 @@
 
 	
 	\subsubsection{Quantitative PCGs}
-	Filling in all of the numbers, we get a quantitative PCG the PCG gives us the object we've been talking about until now, with families of distributions on each edge. Fully interpreted PCG's 
+	Filling in all of the numbers, we get a quantitative PCG the PCG gives us the object we've been talking about until now, with families of distributions on each edge. 
 	
 	\subsubsection{Partially Quantitative PCGs}
 	We can also interpret arrows part way. By giving ourselves access to the amount of uncertainty in the arrows (e.g., the entropy, or a whether or not a given arrow is deterministic), we can draw additional conclusions.
@@ -497,6 +504,26 @@
 			\draw[arr](A) to node[above]{$U$} (U);
 		\end{tikzpicture}
 	\end{center}
+	
+	
+	\subsection{Savage}
+	\begin{minipage}{\linewidth-5.5cm}
+		Savage's theory can also be represented in this context. If you have a preference order on $\sf Act$, which is the set of all maps from states $\cal S$ to outcomes $\cal O$, which obeys Savage's postulates P1-P7, then it can be factored into a probability distribution $\Pr(\cal S)$ and a utility function $U_{\cal O}$, as shown on the right.
+	\end{minipage}\hfill
+	\begin{minipage}{5cm}
+		\begin{tikzpicture}
+			\node[dpadded] (1a) at (0, 5) {$1 \times \mathsf{Act}$};
+			\node[dpadded] (sa) at (0, 3) {$\mathcal S \times \mathsf{Act}$};
+			\node[dpadded] (O) at (0, 1) {$\mathcal O $};
+			\node[dpadded] (U) at (0, -1) {$\sf U$};
+			
+			\draw[archain] (1a) -- node[right=1em]{$\Pr(\mathcal S) \times \mathrm{id}$} (sa)
+								 -- node[right=1em]{eval} (O) -- node[right=1em]{$U_{\cal O}$} (U);
+								 
+		 	\draw[arr] (1a) to[bend right=60] (U);
+		\end{tikzpicture}
+	\end{minipage}
+	
 
 	
 
@@ -590,6 +617,235 @@
 			\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
 		\end{itemize}
 	\end{defn}
+	
+	\section{Exploration of PCG Properties}
+	\subsection{Composition Of Arrows} \label{sec:composition}
+	One feature we really would like to have is the ability to chain these conditional distributions together. Among other things, a well-behaved notion of composition will:
+	\begin{itemize}[nosep]
+		\item give meanings to the visual paths
+		\item allow us to represent integrating out variables graphically
+		\item unlock parallels to other structures through category theory
+		\item think of expected utility, belief propagation, and inductive inference as simple juxtapositions of arrows
+	\end{itemize} 
+	
+	Since arrows are conditional probability tables, which are secretly Markov kernels / stochastic matrices, we already have a natural way of doing this, by integration / summation over the intermediate variable --- if $\mathbf f : A \times B \to \mathbb R$ and $\mathbf g : B \times C \to \mathbb R$ (this is the finite case) we can obtain a stochastic matrix
+	
+	\[\mathbf g\circ \mathbf f : A \times C \to \mathbb R =  \sum_{b \in B} \mathbf f[ b \mid a] \mathbf g[c \mid b] \]
+	
+	We now have a notion of composition that lines up with matrix multiplication and gives us a marginal of the appropriate kind. Unfortunately, there are a few good reasons people are deterred from this formulation. 
+%	For Markov chains, the state of $B$ entirely determines the state of $C$, and so if $f = p(B \mid A)$ and $g = p(C \mid B)$, $g\circ f = p(C \mid A)$. 
+	
+
+	
+	\subsubsection{Should paths be equal?}
+	
+	This design decision also has the effect of proving multiple different ways to calculate things, which leads to the somewhat counter-intuitive fact that that not all diagrams commute (this just means that the path to calculate a quantity does not matter), even ignoring preferences entirely. Often this can create inconsistency which drives preference change; other times there is no direct consistency cost (though there is still an entropic one; see section \ref{sec:thermo}) to pay. We will begin by giving some intuition about why one might expect paths to be equal. 
+
+	\begin{enumerate}
+		\item Markov processes, which are the more common place stochastic matrices appear, only have one path, so everything is path independent. Also, most anything can be modeled as a Markov process, if you put enough information into your state. Unfortunately, to do this, we require control over the state representation, and we don't want to contaminate our variables by stuffing a bunch of information into them for the sole purpose of reconstructing all of our knowledge from anywhere.
+		\item If your distribution can be described as a Bayesian network without any merging, then all diagrams commute (this is simply a result of the associativity of composition).
+		\item If everything were deterministic, all diagrams would commute (see proposition \ref{prop:det-eq}).
+		\item If everything were purely probabilistic, all diagrams would commute (see proposition \ref{prop:prob-eq}).
+		\item Even in our setting, in many cases this must be the case, and in fact several axioms of probability can be expressed as requirements that large classes of them must.
+	\end{enumerate}
+
+	
+	\begin{example}[Marginalization] \label{ex:margin}
+		Recall how a probability can be obtained by marginalization:
+		\[ p(b) = {\color{gray}\sum_{a \in A} p(a \land b) = \sum_{a \in A} p(a) \frac{p(a\land b)}{p(a)} }= \sum_{a \in A} p(a) p(b\mid a) \]
+		below is an illustration of this fact:
+		\begin{center}
+			\begin{tikzcd}[dpad]
+				& 1 \ar[ld, "p(A)"']\ar[rd, "p(B)"] \\
+				A \ar[rr]\ar[rr,"{\mathbf p [B \mid A]}"'] &  & B\\
+			\end{tikzcd}
+		\end{center}
+		The left part of the diagram represents the right side of the equation and vice versa. 
+	\end{example} 
+
+	This can be used inductively to show that every pair of paths from the singleton object $1$ is equivalent, but before that, one more example:
+	
+	\begin{example}[Dinky Bayes Rule] \label{ex:bayesrule}
+		We can also represent a dinky version of Bayes' rule, $p(a \mid b) p(b) = p(b \mid a) p(a)$ as an assertion that two paths from:
+		\begin{center}
+			\begin{tikzcd}[dpad]
+				&1 \ar[dl, "p(A)"']\ar[dr,"p(B)"]\\
+				A \ar[dr, "{\mathbf{p}[B \times A \mid A]}"'] & & B  \ar[dl, "{\mathbf p[B \times A \mid B]}"]\\
+				& B \times A 
+			\end{tikzcd}
+		\end{center}
+		This can be seen as two applications of marginalization, one for each half. On the left, we have
+		\[ p(b, a) = \sum_{a' \in A} p(a')p(a,b \mid a') = \sum_{a' \in A} p(a') p(b \mid a') \delta_{a,a'} = p(a) p(b \mid a) \]
+		and similarly, the right gives $p(b,a) = p(b) p(a \mid b)$. One thing to take away is that one can avoid the integration over a variable by simply considering the conditional distribution to a different variable: namely, one which is the product of the input and output. 
+	\end{example}
+	
+	
+	However, not all paths generated by composition of probabilities are strictly equal! 
+	
+	\begin{example}
+		In an extreme case, we can forget all of our information with the Markov assumption by going through a singleton object:
+		
+		\begin{center}
+			\begin{tikzcd}[dpad]
+				A \ar[rd]\ar[rr,"{\mathbf p[A\mid A] = \mathrm{id}_A}"] &  & A\\&1 \ar[ru, "p(A)"']
+			\end{tikzcd}
+		\end{center}
+	\end{example}
+	
+	For this to happen, the only thing we need is to allow composition and provide a probability on $A$; there's nothing inconsistent about this picture. Therefore, the measure of consistency is weaker than ``the composition of paths depends only on their endpoints''. Still, there are some blatantly inconsistent pictures one could draw --- anything that violates Bayes' rule or marginalization, for example (see section \ref{sec:inconsistency-ex} for more).
+	
+	Our singleton example is a little bit annoying, but at least it's the best prediction that could be made after forgetting all of the information. It is natural to ask: is ignoring everything the \emph{worst} we can do? Is every bit of signal helpful? The answer is no. % There are two competing intuitions here: on the one hand, correlations are not transitive; on the other, if an intermediate variable $Y$ is positi
+	
+	\begin{example} \label{ex:badcommute}
+		Men earn more than women, and people who earn more are generally older, but women live longer than men, so the top composition in the picture below
+		\[ \begin{tikzcd}[dpad]
+			& \$ \ar[rd] \\
+			\mfem \ar[rr]\ar[ru] &&  \hourglass
+		\end{tikzcd} \]
+		is worse than ignoring all information and just predicting age. Here it is with numbers. Suppose the truth is a conditional probability distribution $\Pr(\$, \hourglass \mid\mfem)$ given by
+		
+		\begin{center}
+		\begin{tabular}{r|ccccc|}
+			\multicolumn{1}{c}{}&\multicolumn{2}{c}{\male}  &&\multicolumn{2}{c}{\female} \\
+			&$<$40 yr & $\geq$40 yr &\vline& $<$40 yr & $\geq$40 yr \\\cline{2-6}
+			$<\$40$k & .225 & .05 && .185 & .19 \\
+			$\geq\$40$k & .075 & .15 && .065 & .06\\\cline{2-6}
+		\end{tabular}
+		\end{center}
+		We can now construct our chain, $\mfem \to \$ \to \hourglass$
+		\begin{center}
+		\begin{tikzcd}[column sep=1.5cm,row sep=1.2cm]
+			m \ar[r, ".55"]\ar[rd, ".45"description,pos=0.8] & <\$40k \ar[r,".63"]\ar[rd,".37"description,pos=0.8] & < \text{40 yr} \\
+			f \ar[r, ".25"']\ar[ru, ".75"description,pos=0.8] & \geq \$40k \ar[r,".60"']\ar[ru, ".40"description,pos=0.8] & \geq \text{40 yr}
+		\end{tikzcd}
+		\end{center}
+		Now, consider the following three arrows $\mfem \to \hourglass$, as estimates of $\Pr(\hourglass \mid \mfem)$:\\
+		
+		\begin{minipage}{.33\linewidth}\centering
+			(1) the truth, $\Pr(\hourglass \mid \mfem)$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .6 & .4 \\
+				\female & .5 & .5 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\begin{minipage}{.33\linewidth}\centering
+			(2) $\mfem\to 1\to \hourglass$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .55 & .45 \\
+				\female & .55 & .45 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\begin{minipage}{.33\linewidth}\centering
+			(3) $\mfem\to \$\to \hourglass$:\\[1em]
+			\begin{tabular}{c|cc}\hline
+				& $<$40 yr & $\geq$40 yr \\\hline
+				\male & .53 & .47 \\
+				\female & .57 & .43 \\\hline
+			\end{tabular}
+		\end{minipage}
+		\vspace{1em}
+		
+		We can see that $(2)$, which kills all signal, is closer to the truth than (3) in every way. Still, the picture is entirely consistent. Moreover, all of the important details of the joint distribution are saved in the three arrows, and subjectively, I used the arrows to construct the joint distribution I wanted, rather than the other way around.
+		
+		Even though this triangle does not commute, still every pair of paths from $1$ to another node yield the same distribution; for instance, marginalizing out gender gives the same distribution on age in all three of the cases above.
+	\end{example}
+
+	There are more persuasive examples using preferences. Multiple paths from a domain to $U$ can be thought of as pieces of a pros/cons list; in this case, people are intimately familiar with the fact that paths are not always equal.
+	\begin{example}\label{ex:procon}
+		In expectation, if I eat this bagel, I'm less likely to be hungry, and when I'm not hungry, I'm likely to be happier. On the other hand, suppose I'm allergic to gluten, and if I eat the bagel, I'm also likely to be irritated and uncomfortable, and when irritated and uncomfortable, I'm likely to be less happy. 
+		\begin{center}
+			\begin{tikzcd}[dpad, row sep = 0.5em]
+				& \text{Hungry}\ar[dr] \\
+				\text{Bagel} \ar[ur]\ar[dr] && \mathsf U \\
+				& \text{Irritated} \ar[ur]
+			\end{tikzcd}
+		\end{center}
+		The two paths are opposite polarity and hence the two paths cannot be equal.
+	\end{example}
+
+	The very fact that we write down both pros and cons implies paths aren't in general equal. So. Why even bother with composition then, if it doesn't give you the truth? People still write down arguments in support of and refuting positions, and often this is helpful. In example \ref{ex:procon} the intuition is still that somehow by weighting the reasons appropriately and finding the centroid we're likely to reach a good decision.
+
+	% Why bother with composition? composition does the right thing under markov assumption, and we can always move the representation in such a way that we can get a markov assumption.
+
+	Also, as mentioned in the beginning of the section, we can do some cool things with composition. The beliefs we model clearly should not necessarily be closed under composition, but being able to form them is still useful:
+	\begin{itemize}[nosep]
+		\item In the absence of additional information, the composition of two links is in some sense the best available estimate, in that it is compatible with any distribution in the center of the PCG, and therefore (as measured by relative entropy) is at the centroid of all other possible links.
+		\item If multiple, disjoint paths agree, this is good evidence that the final estimate is good --- like obtaining the same value from two different fermi estimates, or getting the same advice separately from two experts.
+		\item In many other cases, the composition is guaranteed to equal or approximate the true probability --- for instance, if you have bounds on the entropies of your links, or have some independence assumptions somewhere.
+	\end{itemize}
+
+	\subsubsection{Some Results} \label{sec:commute-results}
+	Still, path equality is often expected; we would like to characterize when and why. Below are some necessary conditions for consistency, although more exploration is required.
+	
+	\begin{prop}\label{prop:prob-eq}
+		If $\pi$ is a path of conditional probabilities $1 = A_0 \to A_1\to\cdots \to A_N = X$, then the composition $\pi^\circ$ of links in $\pi$ is equal to $\Pr(X)$.
+	\end{prop}
+	\begin{proof}
+		This can be done by induction on the result from example \ref{ex:margin}, which is also the base case. The inductive step is as follows: if there is some joint probability $p$, and $\pi^{\circ k} := 1 \to \cdots \to A_k = p(A_k)$, then since we've assumed $p(A_{k+1} \mid A_k) = \pi_k$, we also have 
+		\[ \pi^{\circ k+1} = \sum_{a \in A_k} p(A_k)(a) p(A_{k+1} \mid A_k(a)) = p(A_{k+1}) \] again by the example.
+	\end{proof}
+
+	Similarly, we have the dual result for deterministic functions:
+	\begin{prop}\label{prop:det-eq}
+		If a variable $Q$ is completely determined by both $A$ and $B$, i.e., $g : A\to Q$ and $h : B\to Q$ are deterministic, and $f : A \to \Delta B$ is $\Pr(B \mid A)$, then $h \circ f = g$. 
+	\end{prop}
+	\begin{proof}
+		If there is a non-zero probability that $A = a$ while $B = b$, then it must be the case that $g(a) = h(b)$, since both $a$ and $b$ determine $Q$. So
+		\begin{align*}
+			h \circ f(a,q) = \sum_{b \in B} f(a,b) \delta_{h(b),q}	
+					= \sum_{b \in B} f(a,b) \delta_{g(a), q} 
+					= \delta_{g(a),q} \sum_{b \in B} f(a,b) 
+					= \delta_{g(a),q} 
+					= g(a, q)
+		\end{align*}
+	\end{proof}'
+
+	We can also use information theory to obtain some bounds. Degenerate, deterministic marginals (zero entropy) must commute, and because the paths are guaranteed to be centered (see how even in example \ref{ex:badcommute} the means of the three compositions are the same) the possible deviation between paths is bounded by the entropy of the components. As a result, we will be able to show something in the spirit of the following (though it probably needs some revision):
+
+	\begin{conj}
+		A composition of arrows can only be as far off as its entropy permits: if we have marginals $A \xrightarrow{L} B \xrightarrow{P} C$, then
+		\[ \forall a \in A.~ \Big|  P\circ L (a) - \Pr(C \mid a) \Big|  \leq H(L) + H(P) \]
+		where $\Pr$ is any distribution consistent with $L$ and $P$.
+	\end{conj}
+%	\begin{proof}
+%		\[  H(L) + H(P) \geq \frac{1}{2}  \Big| H(\Pr(C \mid A)) - H( P \circ L) \Big | \]
+%	\end{proof}
+
+	To summarize: we have a picture containing conditional distributions, particularly the ones which are most useful and actionable. Each conditional is a constraint on the world. We have a natural way of composing distributions, but sometimes the composition of two distributions will not be consistent with the rest of your beliefs.	
+	
+	
+	\subsection{Sub-stochastic Transitions and Conditionals} \label{sec:substochastic}
+	
+	Sometimes an otherwise very useful variable might not apply in a small percentage of cases; in this case, we want a way of putting all of the extra probability mass in a ``something else happened'' bucket, giving us effectively a sub-stochastic matrix, or a a lower probability on singletons. For instance, the variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``not applicable / something else'' bucket. 
+	
+	Usually, this is not really a problem, because we can always just add that bucket as a real option that a variable can take: a variable which might not make sense can always take a \texttt{null} value, and so now the set of possibilities is once again exhaustive. For us, this resolution poses a problem: our marginals now require us to estimate the distribution of many things given a null value--- this is problematic, as a big part of the reason we've been using links to avoid assigning probabilities to everything. Suppose you are trying to represent the belief that you're happier when you get the right answer as a marginal link $L[\mathrm{RightAns}\to \smiley]$. We now need a distribution on happiness when you get the right answer, when you get the wrong answer, and also for when the question is not applicable. Why might it not be applicable? Are you not solving problems because you're skiing? Because you've been injured? Maybe you are solving problems but there are multiple right answers? You can't just answer with a prior over happiness if you want to have consistent beliefs, because solving problems and happiness might be correlated. To be fair, this is something you certainly \emph{could} have, but it's annoying that we cannot provide a belief about ``does the right answer make you happy?'' without also answering the much more difficult question, ``are you happier when `the right answer' is an applicable concept to your life?''.
+	
+	In addition to being psychologically implausible, it dramatically reduces the number of things we can represent; take implication, for instance. If $A, B$ are binary variables (taking values $a, \bar a$ and $b, \bar b$ respectively), we can easily represent $A = B$, $A = \lnot B$ as stochastic matrices
+	
+	\[ p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 1 & 0 \\ 0 & 1 \end{idxmatphant}
+		\qquad\text{and}\qquad p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 0 & 1 \\ 1 & 0 \end{idxmatphant}
+		 \]
+	
+	but you cannot (via stochastic matrices) believe that $A \Rightarrow B$ without also believing a prior over $B$ given $\bar a$. Maybe the best strategy is a uniform prior (principle of maximum entropy, used in theorem proving in \cite{logicalinduction}), but this makes your beliefs inconsistent if it happens that $B$ is always false for other, unrelated reasons. 
+	
+	For this reason, we drop the requirement that our null element, $\bullet$, indexes a distribution in marginals. Below is an example of transition matrix $A \to B$ including the extra element. As mentioned, the last row is not something we are keeping track of.
+	
+	\[ \begin{idxmat}{$a_0$, $a_1$, $a_2$, $\bullet$}{$b_0$, $b_1$,  $\bullet$}
+		.2 & .1 & 0.7 \\
+		0 & 0 & 1 \\
+		1 & 0 & 0\\\hline
+		{\color{gray}.2} & {\color{gray}.6} & {\color{gray}0}
+	\end{idxmat} \]
+	
+	Furthermore, because the final column is just whatever is necessary to make the rows sum to 1, we don't need to keep that either; as a result, it is sufficient to keep a smaller matrix without any $\bullet$-indices; the only price that we pay is that this matrix is \emph{sub}-stochastic rather than stochastic: its row entries sum to at most 1, rather than exactly 1. Composition works just as before; the product of sub-stochastic matrices is sub-stochastic. A probability distribution alone, and by extension a standard Bayesian network cannot do this --- because we require the look-up tables to exactly match all possible values, we can't drop any without totally giving up on any world which looks like that.
+	
+%	There are several other technical results that we will eventually need to make sure that no tricks are being pulled when we later use standard formulae for probability distributions, but I'm going to skip fully typesetting and verifying them for now.
+	
+	\subsubsection{Substochastic Sanity Results} 
+	\todo{show we can still use Bayes rule, marginalization etc., under certain circumstances. Most should follow just by adding $\bullet$ as an absorbing state and interpreting in a larger space}
+	
 
 	\section{Arguments for PCGs}
 	\subsection{The Possibility of Types and Embedded Logic}\label{sec:belief-typing}
@@ -657,13 +913,39 @@
 				\$\$ & \mathbbm{1}_{A\stackrel{?}{=}P} & \mathsf 1 \ar[l]
 			\end{tikzcd}
 		\end{center}
-		Now, on the one hand, you have a logical picture of how an action and prediction together will impact whether the predictor is right (the arrow $A \times P \to A \stackrel{?}{=} P$). On the other hand, you also have an outside view of how likely the predictor is to be right (the arrow $1 \to A \stackrel{?}{=} P$). 
+		Now, on the one hand, you have a logical picture of how an action and prediction together will impact whether the predictor is right (the arrow $A \times P \to \mathbbm{1}_{A \stackrel{?}{=} P}$). On the other hand, you also have an outside view of how likely the predictor is to be right (the arrow $1 \to \mathbbm{1}_{A \stackrel{?}{=} P}$). A belief that your actions influence the prediction would correspond to the pink arrow above.
 		
-		We have not resolved the paradox; we have merely represented the beliefs in the setup, which make very little sense as a BN.
+		We have not resolved the paradox; we have merely represented the beliefs in the setup, which make very little sense as a BN. The point is that to encode interesting scenarios with potential conflict, it makes sense to use these graphs, even though there's not a clear way of encoding all of the information in the scenario with a BN or factor graph..
 		%		More weirdness comes from the fact that $A$ and $P$ interact.
 	\end{example}
 	
-	At least classically, beliefs are only half of the picture. Keeping around marginals is also more psychologically plausible for preferences.
+	\subsection{Human Preferences as Marginals}	\label{sec:human-pref-marginals}
+	Beliefs are part of the decision theory picture, at least classically; we also need to deal with utilities. Rather than treat utilities as a special function from $\mathcal W$ to $\mathbb R$, we will introduce a new utility domain $U$, which is subject to all of the same constraints as we've seen in previous sections. As a special case, when one explicitly has the product of all variables (save for this new one) as a special variable $\cal W \in N$, and its value totally determines $U$ with no uncertainty, we are back to the classical case. However, in general, we will allow any variable to have an arrow to $U$, which is not deterministic. These could be calculated as expected utilities through $\cal W$ and the utility function if we had one, but for us, these will be primitive. 
+	
+	As such, we do not make a distinction between a `pure' utility and an `expected' one; much of this section is devoted to making the argument that this makes more psychological sense. Clearly from a mathematical perspective the two behave differently: the pure utilities can be used to make sure the whole picture is consistent in the classical setting, and there is one global utility across time which changes in beliefs do not alter, even if it is filtered differently through different lenses at different points in time. I view both of these properties as a poor fit for modeling humans.
+	
+	\begin{example}
+		Suppose you really like ice cream, and assign high utility to it. But now your family and government collaborate to make sure that whenever you eat ice cream you get an unpleasant electric shock, and feel awful for a day. It's bad enough that it's definitely not worth eating ice cream. But in this new life of yours, do you like it? The classical answer is yes. You will always like ice cream, it's just that you dislike shock. But we know that experiences that co-occur blend into one another a lot; a bad meal or bad date can ruin a restaurant, and that's much more ephemeral than a shock collar that is now part of your life. It's even harder to argue this if you consider the collar being put on before you've ever had ice cream. Now ice cream tastes like pain, and you would avoid it either way.		
+		
+		It gets worse still: what if instead of an external device, the procedure was a hypnosis that made you feel this way? It seems hard to argue that the new version of you still likes ice cream.
+	\end{example}
+
+	When you can't separate two effects, there's no reason to talk about them, and no way to differentiate between them; such a representation should fade into the background. There's also no reason to restrict ourselves to trivial things such as tastes. The more important things, too (and perhaps especially, since they're further away from sensation) should be treated in context.
+	
+	\begin{example}
+		You think freedom is objectively valuable. Governments and organizations that restrict freedom give worlds negative utility in your view, and tools that give people more freedom are of positive utility. But why do you like freedom? Presumably it's in part based on experience, and reading, and thinking about the structure of how societies are set up. It's not just a preference which comes from nowhere. If you lived in an alternate reality where people were much more malevolent and freedom was always associated with murder--- where free societies collapsed immediately and tools that empowered people were invariably used for evil--- would you still think freedom is good? If you only discovered that this were secretly true recently? Would you change your preference for free society?
+		
+		The point is that the preferences that an agent forms are constrained by experiences and the other beliefs they have, and are therefore subject to revision. Moreover, this still happens with important things and abstract concepts, in addition to concrete sensations.
+	\end{example}
+
+	What you really mean when you say, colloquially, that something has high utility, or that you like one thing more than another, is that you like it \emph{in context}. It's not that you would universally like it to be true over the alternative, as CP nets assume, or that you have some fixed platonic additive component of a utility function inside of you that gives you some number of points for freedom, as the classical view of economics would suggest; at best, we have some notion of good (maybe even more than one) that we can estimate from other quantities, and use to make decisions. We can get a more satisfying context dependence by associating them to separate domains which apply only at certain times.
+	
+	Even just collapsing the distribution of ``good'' to its mean to make a utility function is not clearly a reasonable thing to do--- the optimal risk calculus when dealing with a deterministic utility function, for instance, is locally clear, because you know how good worlds are. The possibility of feeling bad even though the state of the world is exactly what you were aiming for, almost never accounted for, and yet ennui and purposelessness are very real.
+	
+	Before we get back to looking at the world as a collection of conditional distributions, I want to offer one final example that suggests that utilities in humans are more like constraints than additive components of some utility function. 
+	
+	Let $X$ be a variable, and suppose the utility of $x_1$ is extremely high. If we also have a view of how good other unrelated things are in a different domain, then we can conclude that $x_1$ must be uncommon. This kind of reasoning might feel backwards --- we're using our preferences, which are supposed to be internal, to infer something about the world --- but if our preferences interact with our beliefs, this makes a lot more sense. It seems people actually do this: as things become more common, they cannot be valued as highly. An explanation for the hedonic treadmill falls right out of expressing preferences through multiple constraints, rather than a single utility function.
+	
 %	\section{Emulation: Other Models Of Uncertainty}
 	
 	
@@ -807,18 +1089,217 @@
 	In the case where an agent is Bayesian 
 	
 	\section{Consistency}
-	Sometimes an PCG effectively, such as when 
-%	
+	\label{sec:inconsistency-ex}
+	% This is a predicate definition. We would also like to have a continuous definition so we can do gradient descent. 
+	We will start with a simple predicate definition of PCG consistency, of preference consistency, and give some examples before stating a less-brittle continuous generalization that will allow us to deal with inconsistent models. Then we will discuss an alternate definition, which we call link inconsistency, which appeared in previous formulations, and discuss the connection.
+
 	
-	\subsection{Pairwise Consistency}
+	\begin{defn}[consistency]
+		A PCG $(\cal A, L)$ is \emph{consistent} if there exists some joint probability $\Pr(\cal A)$ on all of the variables, that is consistent with every link marginal $L \in \cal L$.
+	\end{defn}
+
+
+	\begin{defn}
+		A PCG $(\cal A, L)$, in which preferences are represented by a single utility node $U \in \cal A$, is \textit{pref-inconsistent} if it is inconsistent, but only because of the utility node --- i.e., the model obtained by deleting $U$ and all links to it, $\big(\mathcal A \setminus U,~~\mathcal L \setminus \{ L : \square\to U \}\big)$ is consistent.
+	\end{defn}
+	
+	\subsection{Intransitivity of Preferences as Inconsistency}
+	
+
+	
+	While restricting ourselves to use preferences represented by a utility domain, we cannot represent intransitive preferences directly in the usual way. However, we can use the $\bullet$ and sub-stochasticity to break one domain into many smaller ones, each one representing a binary forced choice. For instance, suppose we have one variable $X$, which can take the three values $\{x_0, x_1, x_2\}$. Then we can form domains $X^{01}$, $X^{12}$, and $X^{02}$, where $X^{01}$ contains elements corresponding to $x_0$ and $x_1$, and so on. We also assume it has preferences on each subdomain represented by utilities. This gives our agent the following picture:
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (U) at (0:0){$\sf U$};
+			\node[dpadded] (X01) at (90:2.0){$X^{01}$};
+			\node[dpadded] (X12) at (210:2.5){$X^{12}$};
+			\node[dpadded] (X02) at (330:2.5){$X^{02}$};
+			
+			\draw[arr, <->] (X01) to[bend right=30] (X12);
+			\draw[arr, <->] (X12) to[bend right=30] (X02);
+			\draw[arr, <->] (X02) to[bend right=30] (X01);
+			
+%			\draw[arr] (X12) to[bend left=10] (X01);
+%			\draw[arr] (X02) to[bend left=10] (X12);
+%			\draw[arr] (X01) to[bend left=10] (X02);
+			
+						
+			\draw[arr] (X01) to (U);
+			\draw[arr] (X12) to (U);
+			\draw[arr] (X02) to (U);
+		\end{tikzpicture}
+	\end{center}
+	
+	The complete domain $X$, which we won't include in the agent's picture, could of course replace the entire clique as a simpler representation. The constraints between the domains are just the logical ones: $L[A \to B]_{a,b} = \delta_{a,b} $. We can expand further to give a more concrete sense of the shape of what's going on here--- each matrix between the subdomains is of the form
+	\[ L[X^{ab} \to X^{cd}] = \begin{idxmat}{$a$,$b$}{$c$, $d$}
+		\delta_{a,c} & \delta_{a,d} \\ \delta_{b,c} & \delta_{b,d}
+	\end{idxmat}\]
+	And more concretely still:
+	\[ 
+		L[X^{01} \to X^{12}] =\begin{idxmat}{$x_0$,$x_1$}{$x_1$,$x_2$}
+			0 & 0 \\ 1& 0
+			\end{idxmat} \qquad
+%
+		L[X^{12} \to X^{02}] = \begin{idxmat}{$x_1$,$x_2$}{$x_0$,$x_2$}
+			0 & 0 \\ 0 & 1
+			\end{idxmat}\qquad
+%
+		L[X^{02} \to X^{01}] = \begin{idxmat}{$x_0$,$x_2$}{$x_0$,$x_1$}
+			1 & 0 \\ 0 & 0
+			\end{idxmat}
+	\]
+	The other three are the transposes of these. Note that without the utility node, the PCG is perfectly consistent: any distribution which assigns the same weight to identified values --- that is to say, any distribution on $X^{01} \times X^{12} \times X^{02}$ which sense as a distribution on $X$ --- will work.
+	
+	Now we can use this structure to encode any complete binary relation. Suppose that the agent's preferences on $X$ are intransitive. Without loss of generality, suppose this occurs as $x_0 \geqc x_1 \geqc x_2 \succ x_0$ (that is, $x_0 \geqc x_1$ and $x_1 \geqc x_2$ but not $x_0 \not\geqc x_2$). This scenario is represented with utility marginals such that, this gives us
+	\begin{equation}\label{eq:inequalities-for-eu}
+		\mathbb E U_{X^{01}} (x_0 ) \geq \mathbb E U_{X^{01}} (x_1 ) 
+		\qquad
+		\mathbb E U_{X^{12}} (x_1 ) \geq \mathbb E U_{X^{12}} (x_2 ) 
+		\qquad\text{and}\qquad
+		\mathbb E U_{X^{02}} (x_2 ) > \mathbb E U_{X^{12}} (x_0 ) 
+	\end{equation}
+	where $\mathbb E U_Y(y)$ is the mean of the distribution $U_Y(y)$ over $\mathsf U \cong \mathbb R$. Now, in search of a contradiction, suppose that there is a joint probability distribution $p$ over $X^{01}\times X^{12}\times X^{02}\times\sf U$ which marginalizes out to each of the links above, and whose marginals on $\sf U$ satisfy \eqref{eq:inequalities-for-eu}. Due to the logical links, we know that the same probability must be assigned to the same event in different domains; for example,
+	\[ p(X^{01} = x_0)~=~\frac{p(X^{01} = x_0 \mid X^{02} = x_0)}{p(X^{02} = x_0 \mid X^{01} = x_0)} p(X^{02} = x_0)~=~ p(X^{02} = x_0) =: p(x_0)\]
+	and also, since whenever $X^{01} = x_0$, $X^{02} = x_0$ with probability 1 and vice versa, conditioning on the two events is equivalent. Therefore,	
+%	\begin{align*}
+%		p(u \mid X^{01} = x_0) &= \frac{p(u \cap X^{01} = x_0)}{p(x_0)} \\
+%			&= \sum_{b \in X^{02} \cup \bullet} \frac{p(u \cap X^{01} = x_0 \cap X^{02} = b)}{p(x_0 \cap b)} p(b) \\
+%			&= \sum_{b \in X^{02} \cup \bullet} \frac{p(u \mid X^{01} = x_0 \cap X^{02} = b)  }{p(x_0 \cap b)} p(b) \\
+%			= \frac{p(u \cap X^{01} = x_0)}{p(x_0 \cap b)} p(b) 
+%	\end{align*}
+%	\[  \]	
+	\begin{align*}
+		u_0 := \int_{u: \mathbb R} u\cdot p(u \mid x_0)~\mathrm d \mu = \mathbb E U_{X^{01}} (x_0 ) &~\geq~ \mathbb E U_{X^{01}} (x_1 ) =	\int_{u: \mathbb R} u\cdot p(u \mid x_1)~\mathrm d \mu \\ 
+		=\mathbb E U_{X^{12}} (x_1 ) &~\geq~ \mathbb E U_{X^{12}} (x_2 ) = \int_{u: \mathbb R} u\cdot p(u \mid x_2)~\mathrm d \mu\\
+		=\mathbb E U_{X^{02}} (x_2 ) &~>~ \mathbb E U_{X^{02}} (x_0 ) = 	\int_{u: \mathbb R} u\cdot p(u \mid x_0)~\mathrm d \mu
+			= u_0
+	\end{align*}
+	which is a contradiction. Therefore, this intransitive set of preferences is pref-inconsistent.
+	
+	Without much effort this can easily be extended to show that in this encoding, an arbitrary sets and intransitive binary relations on it, results in a pref-inconsistent model.
+
+
+
+
+	
+	\subsection{Framing Problems as Inconsistency}
+	Consider once again a framing problem: there are two variables $A$ and $B$ which you have preferences over; maybe you think $a \geqc \bar a$ and $\bar b \geqc b$. Unfortunately, you later discover that they're the same variable. Below is a diagram of this:
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded](A) at (0,0) {$A$};
+			\node[dpadded](B) at (3,0) {$B$};
+			\node (AB) at (1.5,-1.5) {$A \times B$};
+			\node[dpadded](U) at (1.5,-3) {$\sf U$};
+			
+			\draw[arr] (B) to[bend left=20] (U);
+			\draw[arr] (A) to[bend right=20] (U);
+			\draw[arr] (A) to[bend right=10] (B);
+			\draw[arr] (B) to[bend right=10] (A);
+			\draw[archain=gray] (AB) to (A) (AB) to (B) (AB) to (U);
+		\end{tikzpicture}
+	\end{center}
+	It is easy to see that the logical correspondence between $A$ and $B$ alone admits plenty of joint distributions; any distribution on $A$ will extend to $B$ and vice versa. However, adding the utility makes it impossible to satisfy. This too should be clear: if $a$ corresponds exactly to $b$, then for any probability measure $p$ on $A \times B \times \mathsf U$,
+	\[ \E_p(U \mid a) > \E_p(U \mid \bar a) = \E_p(U \mid \bar b) > \E_p(U \mid b) = \E_p(U \mid a) \]
+	which is a contradiction.
+	
+	One might wonder if this is only true in the degenerate case--- but it is easy to be inconsistent even if the marginals have full support. Fix some small $\epsilon > 0$, and consider the case that is $\epsilon$ way from the one we just described. 
+	Any joint distribution on all three variables must factor into $p = \lambda a. \lambda b. p(a, b) p(u | a,b)$. The distribution $p(A, B)$ must therefore look something like
+	\[ \begin{idxmatphant}{$b$, $\bar b$}{$a$, $\bar a$}{} ? & \leq\epsilon \\ \leq\epsilon & ?
+	\end{idxmatphant}\]
+	
+	Once again, obviously consistent. So now, if $U_B$ is the marginal of $U$ on $B$ and $U_A$ is the marginal on $A$, and the utility classically is a function $u : A\times B \to U$, we can write:	
+	
+	\[ \E U_B(a') = \int_B p(a,b, u(a',b)) u(a',b) \mathrm d b = \sum_b  {\color{gray}\overbrace{\color{black} p\Big(u(a,b) \mid a,b\Big)}^{1}} p(a',b) u(a', b) = p(a', b) u(a', b) + p(a', \bar b) u(a', \bar b) \]
+	And similarly,
+	\[ \E U_A(b') = \int_A p(a,b', u(a,b')) u(a,b') \mathrm d b  = p(a,b') u(a, b') + p(\bar a, b') u(\bar a, b') \]
+	Defining $a'$ to be the variable which corresponds to $b'$ in the case of $U_B$, and $b'$ to be the one that corresponds to $a'$ in the case of $U_A$, i.e.,
+	\[
+		a' := \begin{cases}
+			a & \text{when } b' = b \\
+			\bar a & \text{when } b' = \bar b
+		\end{cases}
+		\hspace{1.5in}
+		b' := \begin{cases}
+		b & \text{when } a' = a \\
+		\bar b & \text{when } a' = \bar a
+		\end{cases}		
+	\]
+	we then have $\E U_B (b') \approx u(a',b') \approx \E U_A(a')$, which gives us a chain of inequalities leading to a contradiction:
+	
+	\[ u(a,b) \approx \E U_A(a) \gg U_A \bar a \approx u(\bar a, \bar b) \approx U_B \bar b \gg U_B b = \E U_B(b) \approx u(a,b) \]
+	
+	Note that this works even if utilities are classical functions rather than distributions! By replacing the platonic ideal of utility with expected utility, which interacts with the real world, as we've argued for (see section \ref{sec:human-pref-marginals}), we can quickly get preferences that conflict purely due to beliefs.
+	
+	%	The thing that makes a picture inconsistent is an inability to assign any joint probability that marginalizes out to the conditional ones. %However, it is not clear how to make this differentiable. Perhaps minimizing inconsistency by using the previous sum-of-paths technique while it is inconsistent is important.
+	\subsection{Link Consistency}
 	Many of our motivating examples can be thought of as a ``behavioral inconsistency'': you value one thing, but your actions are inconsistent with it. Maybe you value sleep, are aware that to get sleep you need to go to bed early, and yet still do something you know is less valuable instead, such as checking social media. Maybe you 
 
 	Any example where you have to domains like this.
+	\todo{}
+	
+	\subsection{Continuous Global Consistency}
+	The definition of consistency provides no insight for how to reduce it, and leaves us requiring all of the marginals to be consistent in order to do anything, just as in the classical case. 
+	
+	\begin{equation}
+	\zeta(\mathcal A, \mathcal L) := \inf_{p : \mathrm{Prob}(\cal A)}~\sum_{L[A \to B]\in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{L(a) }{ p(B \mid a) } \right]
+	\end{equation}
 	
 	\section{Reduction: Belief Updating}
-	\subsection{Conditioning}
-	\subsection{Jeffrey's Rule}
-	\subsection{Pearl's Rule}
+	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ (in their formulation, these are still distributions) to a new one consistent with the input $I$. 
+	
+	For us, belief revision is simply adding marginals to the picture, and then resolving inconsistencies. In fact, our representation makes this rather pretty: the observation of a Jeffrey input is simply a factorization of existing links through a new finite random variable; observing a Bayesian input is the the particular case where the variable is binary and the observation is certain.
+	Jeffrey's rule prescribes a posterior probability $p'$ by:
+	\[ p'(a) = \sum_{b \in B} p(a \mid b) \pi_b \qquad \text{for all outcomes $a \subseteq \cal W$} \]
+	
+	Since variables can be thought of as partitions of outcomes, and at this point we're looking at the classical picture, where $p$ is a distribution on all variables, we can draw a much cleaner picture, where the integration is implicit:
+	
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (1) at (0,3) {$\sf 1$};
+			\node[dpadded] (W) at (0,0) {$\cal W$};
+			\node[dpadded] (B) at (-2,1) {$B$};
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+			
+			\draw[arr, gray] (W) to[bend left=10] (B);
+			\draw[arr, dashed] (B) to[bend right=30] (W);	
+		\end{tikzpicture}
+	\end{center}
+
+	Now, $p' := p(\mathcal W \mid B)$ is just the left-most path. The gray arrow on the bottom left is just a projection / computation from the state of the world, and the dashed one is its inversion given by Bayes' rule, which is why the conditioning works out as in the formula. If we really want to match the formulation exactly we can put $a$ into the picture--- but rather than a subset of the outcomes, $a$ is now a value that some variable can take. We can even create a special indicator variable for it, $\mathbbm 1_a$.
+	
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (1) at (0,3) {$\sf 1$};
+			\node[dpadded] (W) at (0,0) {$\cal W$};
+			\node[dpadded] (B) at (-2,1) {$B$};
+			\node[dpadded] (1a) at (2.5, 0){$\mathbbm 1_a$};
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+			
+			\draw[arr, gray] (W) to[bend left=10] (B);
+			\draw[arr, dashed] (B) to[bend right=30] (W);	
+			
+			\draw[arr] (W) to (1a);
+			
+			\draw[arr,blue!50] (1) .. controls (-6,1.7) and (-2,-2) .. node[fill=white]{$p'(a)$} (1a);
+			\draw[arr,orange!70] (1) .. controls (0.3,1) and (1,0.3) .. node[fill=white]{$p(a)$} (1a);
+		\end{tikzpicture}
+	\end{center}
+
+	Visually it's much clearer what's going on: we've replaced the probability distribution $1 \to \cal W$ with the one that factors through $B$ via the new observation $\pi$. In terms of evaluation, this means the orange path to $\mathbbm 1_a$ has been replaced by the blue one.
+	This presentation also suggests a natural way we can generalize this to our setting, where we don't necessarily have full distributions but only a collection of marginals: we simply try to factor every distribution $1 \to *$ through $B$ via $\pi$, as done with $\cal W$ above. The other marginals can stay the same, and the difference propagates through via composition.
+	
+	In our case, there's also a simpler thing we could do, that's even more psychologically plausible: just add the new marginal $\pi$ to our collection. Sure, it's probably inconsistent, but we can let the our inconsistency reduction take care of that. One might worry that it is likely we will now violate the responsiveness axiom \cite{dietrich2016belief}, as we could reject $\pi$ --- but I argue that this is not a concern. So long as an agent keeps observing or remembering the observation, we are effectively continuously reapplying consistency reduction while anchoring the new observation, until the responsiveness axiom is satisfied. This actually makes more sense than the standard belief revision picture: if a person doesn't spend long enough looking at it or thinking about it, they may forget or partially reject implications of this new view.
+	
+	\todo{Spend time converting the conservativeness axiom to this framework}
+	
+	One more benefit: belief revision no longer needs to happen immediately; we can add the marginal to our picture and deal with it later. This makes for an account which is much better suited to cognitively bounded agents, who might have more pressing matters than sorting through beliefs, and who might do them out of order.
 	
 	\section{Abstraction}
 	In addition to nodes which represent specific, observable variables that we want to ensure everyone is aware of, we are in the business of allowing agents to construct nodes of their own --- examples we've seen so far include product nodes, utility nodes, and other features of the world which become suddenly salient.
@@ -894,9 +1375,271 @@
 		
 		%Compression
 	\end{example}
+	
+	
+	
 
 	\section{Value Updating}
-	In the case where values are represented as a utility 
+%	\subsection{Learning Preferences from Samples}
+%	There is also the question of where we got our preferences in the first place. While it might be reasonable to think that a person can be born with \textit{a propensity to like video games}, it's crazy to think that people are born with actual preferences about video games. Archimedes probably did not have preferences about what video games are good, but also it would be weird if he were unable to form any.
+%	
+%	A static theory of preferences fails to provide an account of how preferences form in the first place, making them useless for understanding reasons for motivations: at the end (or if you're a logically omniscient being that economists model, at the beginning), preferences just boil down to unquestionable axioms, that could have been anything. Instead, we would like to be able to provide an account of how preferences are be formed over new concepts, implicitly providing some restrictions on the kinds of preferences it is possible to have for a given environment. By doing so, we can get a tighter bound on what agents can actually value, giving us both more predictive power, and reducing the search space for trying to infer them, in inverse reinforcement learning, content recommendation, and so forth.
+
+
+	\subsection{Informal Examples}
+	\subsubsection{Coffee and Beer}
+	\begin{restatable}{example}{rex:form} \label{rex:form}
+%		At one time you were a baby, who had never encountered coffee or beer. Your parents are from a part of the world where neither was common, and so such a preference could not have been genetically determined. Now you have a strong preference for coffee over beer, which is informed by your experiences --- things you've always had preferences over.
+
+		At one time you were a baby, who had never encountered coffee or beer. After numerous good experiences hanging out with friends getting drunk, and several bad experiences being too jittery to talk to people after having coffee, you form a preference for beer over coffee.
+	\end{restatable}
+	
+	\begin{restatable}{example}{rex:caff} \label{rex:caff}
+		Suppose you already have a preference for beer over coffee. You now re-examine your preference; you realize that you had not considered the difference in caffeine between the two drinks. You believe that coffee has more, and you're looking to stay awake. As you contemplate and verify that you do indeed believe these things about coffee, you come to weight coffee more heavily. At any point the server can interrupt you and ask for your order and you can tell them what your current preference is.
+	\end{restatable}
+
+	\begin{example}
+		You initially have no preference between beer and coffee. Through a process unknown to you, interesting people are more likely to sit down and talk to you if you have coffee than if you have beer. Your experiences shape your preferences between the two drinks; also, you learn to enjoy the taste of coffee more.
+		
+		After having formed the preference for coffee, you move to a new place where all of the interesting hip people drink beer, and coffee drinkers sit alone with their headphones. Despite having originally chosen coffee (unintentionally) to make friends, you now value its taste. 
+	\end{example}
+
+	\begin{example}
+		You had a preference for coffee over beer. You then take some medication which makes you forget things and slightly scrambles your preferences. You now think you prefer beer to coffee. However, as you think harder, you remember that you've always been sick when you've tried beer, and that coffee gives you energy (which you like). Weighing the evidence, you  update and recover your original preference for coffee.
+		
+		At the same time, if you had instead forgotten some experiences with beer, or whether or not you like being on stimulants, you could use your intact preference for coffee over beer to recover this instead.
+	\end{example}
+
+	\begin{example}
+		You have a preference for beer over coffee. You move to Japan. Despite the phonetic similarities, you do not realize that ビール is beer and コーヒー is coffee. Neither is served out of a container you are used to; for some reason you develop a preference for コーヒー over ビール. 
+		
+		When the correspondence comes to your attention, you are in internal conflict because you cannot hold both of these preferences and the belief that they correspond all at the same time. Challenging the belief, you ask if maybe this is different beer and coffee from what you're used to, but in fact they show you that they import from your home town, which instead solidifies your belief that the correspondence is correct. Your preference between both beer and coffee, and between ビール and コーヒー soften as a result, and agree on a more neutral position. To do this, you weigh the more distant but substantial experiences of having beer and coffee in the US, against your confounded and shorter, but more recent experiences in Japan.
+	\end{example}
+
+	\begin{example}
+		You live on the border between Utah and Wyoming; you are trying to decide whether to buy groceries in the bigger Utah town (which among other things sells higher quality coffee) or drive across the border, where you can buy beer with a higher alcohol content. As part of this decision, you consider your preference between coffee and beer, which you already had. You do not think about the exploitation of workers or your reminisce about either drink, because you already have this preference available; you decided on a drink yesterday. Also, when you have to go shopping again at short notice next week, you already have a cached preference for what store you prefer. 
+		
+		At the same time, you also have to make decisions about what appliances to buy, and where to go out for eat. Your preferences between beer and coffee also help here, and you still do not think about labor issues while making this decision.
+	\end{example}
+
+	\begin{example}
+		You like coffee more than beer, beer more than juice, and juice more than coffee. You're willing to pay \$1 to exchange in each case, and you pay a 20th century dutch bookie to make the exchange. Separately, you have a desire not to lose money. Realizing the pattern, you form a desire to have transitive preferences. Taken together your three preferences and your desire for transitive preferences are in conflict. You update your preferences, but the transitivity does not budge much because it's anchored by the prospect of losing unbounded money. You become less sure of what you actually prefer until the three options until your preferences are transitive.
+	\end{example}
+
+	\begin{example}
+		You love coffee. So much so, that it's a problem. You've gone to therapy, and nobody seems to be able to cure you of this. However, you also don't like staying up late, an effect which coffee has on you. You experiment, and discover the unfortunate fact that there is no getting around staying up late if you have coffee. While this makes you slightly less excited about choosing coffee over beer, it's pretty negligible, you decide to embrace the effects, and learn to love staying up late.
+	\end{example}
+
+	\begin{example}
+		You like coffee more than beer. Maybe even by a lot. Somebody offers you a choice between a coffee that will re-wire your brain to make you want to kill your family, and a beer. You don't take the coffee; why would you? You report them to the police instead.
+	\end{example}
+
+	\subsubsection{Other Examples}
+	\begin{restatable}{example}{rex:framingproblem}\label{rex:framingproblem}
+		You believe that the rich should not get a larger federal tax exemption (than the poor do) for having children.
+		At the same time, you believe that if the default number of children were 2, and people paid a surcharge to the government for foregoing them, that the rich should pay a larger surcharge (than the poor do) for this.
+		
+		You come to realize that these preferences are logically in conflict; you then update your beliefs about both of them, causing yourself to be less sure, until the more entrenched one wins, and your viewpoint on the other issue has swapped.
+	\end{restatable}
+
+	\begin{restatable}{example}{rex:hk} \label{rex:hk}
+		Your family lives in Hong Kong. You hate flying; you also dislike the city. But you love your family, and this is an immensely positive thing which out-weighs flying. As a result, you would fly to Hong Kong if (and only if) you could visit your family; the experiences are perfectly correlated and causally linked.
+		
+		Consider two cases:
+		\begin{enumerate}[nosep]
+			\item You have no reason (or have since forgotten) why you hate flying to HK, and discover no new reasons to hate the journey: you get a reasonable amount of work done and the entertainment is just as good as you would have done for yourself. As your preference for seeing your family is in conflict with your dis-preference for flying to HK, but the former is much stronger than the latter (which is unfounded) and so eventually you actually start to like flying to HK.
+			\item On the other hand, suppose there are good reasons for disliking the flight: it is long, expensive, there's no leg room, people are assholes, and it comes at an opportunity cost. You reach a stable equilibrium where you hate the flight while simultaneously loving your family, even though the two events happen together.
+		\end{enumerate}
+	\end{restatable}
+	
+	
+	\subsection{Deductive Preference Formation}
+	Suppose you're trying to decide what your preference for $X$ is: a standard procedure that humans rely on is the compilation of a (weighted) list of pros and cons. In other words, you examine the impact of a decision in $X$ on other things you care about, say variables $A, B, C\ldots$. Maybe $x_1$ makes $a_1$ more likely, which is a good thing, also $b_3$ and $c_2$ which are both bad. On the other hand, maybe $x_2$ doesn't impact $A$ as much, but makes $b_1$ and $c_1$ more likely, which is ideal, making $x_2$ better than $x_1$. Now, we have external reason to prefer $x_2$ to $x_1$ --- which means that there's a preference conflict if we were initially indifferent between the alternatives in $X$! By revising our preferences in $X$ to reflect $x_2 \geqc x_1$, we can remove the conflict. 
+
+	\begin{center}
+		\begin{tikzpicture}
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
+				\node[bpt={x\x | $x_\x$}] at (\y,2) {};
+			}
+			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
+			\node[Dom={$\sf X$ (X) around \lab{x1}\lab{x\N}}] {};
+			
+			%A
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5-3] \x in {1, ..., \N} {
+				\node[bpt={a\x | $a_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (a2) to[bend left=50](a1);
+			\node[bDom={$\sf A$ (A) around \lab{a1}\lab{a\N}}] {};
+			
+			%B
+			\def\N{3}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
+				\node[bpt={b\x | $b_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (b3) to[bend left=30](b1);
+			\draw[arr,->, thin, gray] (b2) to[bend right=10](b1);
+			\node[bDom={$\sf B$ (B) around \lab{b1}\lab{b\N}}] {};
+			
+			%C
+			\def\N{2}
+			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+ 5] \x in {1, ..., \N} {
+				\node[bpt={c\x | $c_\x$}] at (\y,0) {};
+			}
+			\draw[arr,->, thin, gray] (c2) to[bend left=50](c1);
+			\node[bDom={$\sf C$ (C) around \lab{c1}\lab{c\N}}] {};
+			
+			\draw[arr] (X) -- (A);
+			\draw[arr] (X) -- (B);
+			\draw[arr] (X) -- (C);
+		\end{tikzpicture}
+	\end{center}
+
+	Note what we have done: we have a link for how a choice in $X$ impacts downstream things, and so existing preferences flow backwards against the flow of causality, to form a preference on $X$. This is the standard, deductive way of making decisions.
+	
+	
+	To see more clearly why preferences form \textit{backwards} along links, consider the diagram before, except where we represent preferences are represented by utility functions. If we have a conditional probability $\Pr(W \mid X)$ and a utility function $U_W = \Pr(U \mid W)$, then we can simply compose them to get a utility on $X$. Note that there is not an easy way to combine a utility function on $W$ and a conditional probability that goes the other direction (see the diagram below).
+	
+	\begin{minipage}{0.48\linewidth}\centering
+		\textit{Easy to compose (deductive formation):}\\[0.5em]
+		\begin{tikzpicture}
+		\node[dpadded] (X) at (0,0){$\sf X$};
+		\node[dpadded] (W) at (2,1){$\sf W$};
+		\node[dpadded] (U) at (4,0){$\sf U$};
+		
+		\draw[archain] (X) -- (W) -- (U);
+		\draw[arr, gray] (X) to[bend left=10] (U);%node[below=0.5em]{\small$\sum_{a : A} \Pr(a \mid x) U(a)$}
+		\end{tikzpicture}\\
+		\textit{\small Existing preference $W\to U$ can be extended naturally to $X$ by precomposition, backwards along $X \to W$}
+	\end{minipage}
+	\hfill
+	\begin{minipage}{0.48\linewidth}\centering
+		\textit{Hard to compose (inductive formation):}\\[0.5em]
+		\begin{tikzpicture}
+		\node[dpadded] (X) at (0,0){$\sf X$};
+		\node[dpadded] (W) at (2,1){$\sf W$};
+		\node[dpadded] (U) at (4,0){$\sf U$};
+		
+		\draw[arr] (W) to (U);
+		\draw[arr] (W) to (X);
+		\draw[arr,dashed,gray] (X) to node[below]{???} (U);
+		\end{tikzpicture}\\
+		\textit{\small Getting a utility on $X$ via $W$ requires the inversion of an arrow, or some other additional information}
+	\end{minipage}
+	\vspace{1em}
+	
+% TODO: FIX THIS AND UNCOMMENT
+%	One might wonder how this plays out if we have multiple variables instead of just one. In our earlier example, each of the three variables $A,B$ and $C$ has an additive component of the utility function, which can be visually identified as the three disjoint paths from $\sf X$ to $\sf U$.
+%	\begin{center}
+%		\begin{tikzpicture}
+%			\node[dpadded] (X) at (0,1.6){$\sf X$};
+%			\node[dpadded] (A) at (-3,0){$\sf A$};
+%			\node[dpadded] (B) at (-1.5,0){$\sf B$};
+%			\node[dpadded] (C) at (0,0){$\sf C$};
+%			\node[dpadded] (U) at (0,-1.6){$\sf U$};
+%			
+%			\draw[archain] 	(X) -- (A.90)(A.-90) -- (U)
+%							(X) -- (B.90)(B.-90) -- (U)
+%							(X) -- (C) -- (U);
+%							
+%			\draw[arr, dashed] (X) to[bend left=70] (U);
+%		\end{tikzpicture}
+%	\end{center}
+%	Now, our initial indifference between the alternatives in $X$ has some tension with the rest of the diagram, i.e., the other paths from $X$ to $U$. While it is still possible to create such a diagram and have it be consistent, 	
+	
+	
+	\subsection{Learning from Experience}
+	
+	\todo{This section still needs updating}
+	
+	We can use the same technique of reducing conflict to model preferences learned from data. Let $\sf Exp$ be a preference domain representing all of your experiences (which you have preferences/utilities over), and $\sf X$ be some domain consisting of all possible combinations of features (e.g., what food you ate, who you were with, whether you got work done, etc. ). Suppose further that each experience had a utility, and also a setting of the features (we can model even the features being fuzzy by making use of the probability distribution half of our links--- maybe you forgot what kind of ice cream you were eating). 
+	
+	\subsubsection{Classical Models}
+	The standard picture of preferences does not prescribe change, and so learning is generally outside of the scope. Still, there's another reading which makes sense more-or-less classically:
+	
+	You have some fixed preferences, you just don't know what they are. As you get more samples, you uncover what your preferences must have been all along. The features do not provide any value in and of themselves--- they only provide some information about the total state of the world. The experiences are true samples of your fixed utility function. 
+	
+	This can be made to work, but is not a particularly satisfying account:
+	\begin{itemize}[nosep]
+		\item Economics outsources the procedure for how to do this to a completely different discipline.
+		\item Humans seem to develop preferences because of experiences, in addition to merely uncovering them --- whether or not you have food poisoning the first 10 times you eat mangos, for instance, will probably color your perception of the taste even if you don't get poisoning after this.
+		\item The classical picture also posits that people make decisions according to their preferences, but this is not possible if you don't know what they are --- and if it were the case that you were unknowingly making decisions this way, then you could easily access any preferences just by making hypothetical decisions.
+	\end{itemize}
+	
+	\subsubsection{Our Description}
+	We can succinctly capture the entire setup in this diagram:
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (X) at (0,0) {$\sf X$};
+			\node[dpadded] (U) at (3.5,-0.5) {$\sf U$};
+		
+			\foreach [evaluate=\x as \y using \x/2-1.5] \x in {0, 1, ...,4} {
+				\node[bpt={e\x | $e_\x$}] (e\x) at (\y,-2) {};
+			}
+			\node (dots) at (1.25,-2) {$\cdots$};
+			\node[bDom={$\sf Exp$ (E) around \lab{e0}(dots)}] {};
+			
+			\draw[archain] (E) -- (X) (E) -- (U);
+			\draw[arr, dashed] (X) -- (U); 
+		\end{tikzpicture}
+	\end{center}
+		
+	To avoid conflict, we would need it to be the case that $\sf Exp \to X \to U$ is the same as $\sf Exp \to U$. There are many methods of doing this --- we can  guess and check, do gradient descent on parameters, set up a fancy network encoding some similarity metrics and priors, \ldots but in each case, we're just reducing inconsistency, same as before. 
+	
+	It may be worth noting that kernel methods do this in a particular way: they compute a compressed approximation of the inversion of the conditional distribution $\sf Exp \to X$. Rather than storing the features for each experience, we can describe features as weighted sums of the experiences they most resemble. Normalizing this weighted sum, we get an arrow  $\sf X \to Exp$. Having done this approximation, we can then compute utilities for $\sf X$ by precomposition as in the previous section. Also, computing the full pseudoinverse of $\Pr(\sf X \mid Exp)$, regarded as a matrix, is just a computationally expensive way of computing a least squares fit on $U$.
+	
+	
+	The classical picture described above corresponds to this diagram:
+	\begin{center}
+		\begin{tikzpicture}
+		\node[dpadded] (X) at (0,0) {$\sf X$};
+		\node[dpadded] (1) at (3,1.5) {$\sf 1$};
+		\node[dpadded] (W) at (3,-0.5) {$\cal W$};
+		\node[dpadded] (U) at (5,-0.5) {$\sf U$};
+		
+		\foreach [evaluate=\x as \y using \x/2-1.5] \x in {0, 1, ...,4} {
+			\node[bpt={e\x | $e_\x$}] (e\x) at (\y,-2) {};
+		}
+		\node (dots) at (1.25,-2) {$\cdots$};
+		\node[bDom={$\sf Exp$ (E) around \lab{e0}(dots)}] {};
+		
+		\draw[archain] (1)--(W) -- (E) (W) -- (U) (W) -- (X);
+		\draw[arr, dashed] (X) to[bend left] (W); 
+		\end{tikzpicture}
+	\end{center}
+	Here $\cal W$ is the set of all possible worlds, which has a probability measure and utility on it (to the right and above). Really that's all we need, but the world determines which experience you're having and what features as well. You can use the prior over worlds and Bayes' rule to invert the arrow $\cal W \to X$ if you really want it, but in any case all you're doing is updating a belief about how $X$ impacts the world so you can compute expected utility better----you probably don't actually have preferences over $X$, unless you've been guaranteed that your utility function additively separates over some component of it.
+
+
+
+	
+	\subsubsection{General supervised learning as reduction of inconsistency}
+	
+	The picture we've drawn is actually an instance of a fully generic as a description of a supervised learning problem. In the standard formulation, we're given samples $(X, Y) = \{(x_i,y_i)\}_i$,  $(x_i,y_i) \in \mathcal X \times\mathcal Y$, where $\cal X$ is the feature space, $\cal Y$ is the label space, there is some true oracle function $\hat f : \mathcal X \to \Delta(\mathcal Y)$, and therefore $(X, Y)$ is the training set, with $Y \sim \hat f(X)$. The problem is then to infer a function $f \approxeq \hat f : \mathcal X \to \Delta(\mathcal Y)$. The naive solution is to minimize the training error on the samples, but this leads to overfitting, partly because this implicitly involves thinking of a sample $(x, y)$ as representing ``the true value of $\cal Y$ when $\mathcal X = x$ is $y$'' --- when in reality there is some noise: both $x$ and $y$ do not represent a probability distribution of uncertainty, but rather concrete sampled values. 
+	
+	We can describe the same scenario equivalently (and arguably more clearly) in our model. If $I$ is the index set that $i$ comes from, then we've been given a function $X : I \to \mathcal X$, $Y: I \to \mathcal Y$, and learning function $f : \mathcal X \to \Delta(\mathcal Y)$ such that there's minimal conflict corresponds to minimizing training error (inner triangle in the diagram below)
+	
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (I) at (-0.6,0) {$I$};
+			\node[dpadded] (II) at (-3,0) {$\cal I$};
+			\node[dpadded] (X) at (2,1) {$\cal X$};
+			\node[dpadded] (Y) at (2,-1) {$\cal Y$};
+
+			
+			\draw[archain=blue, blue] (I) -- node[fill=white]{$X$} (X) (I) -- node[fill=white]{$Y$} (Y);
+			\draw[arr,dashed] (X) -- node[right=0.4em]{$f$} (Y);
+			
+			\draw[arr] (II) to[bend left=20] (X);
+			\draw[arr] (II) to[bend right=20] (Y);
+			\draw[arr,left hook->] (I) to (II);
+		\end{tikzpicture}
+	\end{center}
+
+	On the other hand, if $I \subseteq \cal I$, where $\cal I$ is the set of all possible possible states of the relevant world, then we can think of minimizing generalization error as reducing the inconsistency of the outer diagram\footnote{which is equivalent to minimizing the inconsistency of the outer triangle, because the top and bottom ones both commute because $I \hookrightarrow \mathcal I$ is an inclusion}: we want it to be the case that $f$ is approximately correct in all cases, not just the ones indexed by our sample $I$.  Bayesian methods make the additional assumption that we have a prior $\mathsf 1 \to \mathcal I$, which can be used with Bayes' rule to invert arrows.
+	
+	This also makes the source of overfitting mentioned above clearer: the training error will also be minimal when we find the best fit, if we were provided $X$ and $Y$ as conditional distributions rather than samples.
 	
 	\section{Thermodynamic Analogy}
 	

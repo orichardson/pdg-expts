@@ -158,101 +158,7 @@
 	\subsubsection{Value Capture}
 	Suppose you care about
 	
-	\subsubsection{Deductive Preference Formation}
-	Suppose you're trying to decide what your preference for $X$ is: a standard procedure that humans rely on is the compilation of a (weighted) list of pros and cons. In other words, you examine the impact of a decision in $X$ on other things you care about, say variables $A, B, C\ldots$. Maybe $x_1$ makes $a_1$ more likely, which is a good thing, also $b_3$ and $c_2$ which are both bad. On the other hand, maybe $x_2$ doesn't impact $A$ as much, but makes $b_1$ and $c_1$ more likely, which is ideal, making $x_2$ better than $x_1$. Now, we have external reason to prefer $x_2$ to $x_1$ --- which means that there's a preference conflict if we were initially indifferent between the alternatives in $X$! By revising our preferences in $X$ to reflect $x_2 \geqc x_1$, we can remove the conflict. 
 
-	\begin{center}
-		\begin{tikzpicture}
-			\def\N{2}
-			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
-				\node[bpt={x\x | $x_\x$}] at (\y,2) {};
-			}
-			\draw[arr,->, thin, red, dashed] (x1) to[bend right=40](x2);
-			\node[Dom={$\sf X$ (X) around \lab{x1}\lab{x\N}}] {};
-			
-			%A
-			\def\N{2}
-			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5-3] \x in {1, ..., \N} {
-				\node[bpt={a\x | $a_\x$}] at (\y,0) {};
-			}
-			\draw[arr,->, thin, gray] (a2) to[bend left=50](a1);
-			\node[bDom={$\sf A$ (A) around \lab{a1}\lab{a\N}}] {};
-			
-			%B
-			\def\N{3}
-			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+1] \x in {1, ..., \N} {
-				\node[bpt={b\x | $b_\x$}] at (\y,0) {};
-			}
-			\draw[arr,->, thin, gray] (b3) to[bend left=30](b1);
-			\draw[arr,->, thin, gray] (b2) to[bend right=10](b1);
-			\node[bDom={$\sf B$ (B) around \lab{b1}\lab{b\N}}] {};
-			
-			%C
-			\def\N{2}
-			\foreach [evaluate=\x as \y using (\x-\N/2)/1.5+ 5] \x in {1, ..., \N} {
-				\node[bpt={c\x | $c_\x$}] at (\y,0) {};
-			}
-			\draw[arr,->, thin, gray] (c2) to[bend left=50](c1);
-			\node[bDom={$\sf C$ (C) around \lab{c1}\lab{c\N}}] {};
-			
-			\draw[arr] (X) -- (A);
-			\draw[arr] (X) -- (B);
-			\draw[arr] (X) -- (C);
-		\end{tikzpicture}
-	\end{center}
-
-	Note what we have done: we have a link for how a choice in $X$ impacts downstream things, and so existing preferences flow backwards against the flow of causality, to form a preference on $X$. This is the standard, deductive way of making decisions.
-	
-	
-	To see more clearly why preferences form \textit{backwards} along links, consider the diagram before, except where we represent preferences are represented by utility functions. If we have a conditional probability $\Pr(W \mid X)$ and a utility function $U_W = \Pr(U \mid W)$, then we can simply compose them to get a utility on $X$. Note that there is not an easy way to combine a utility function on $W$ and a conditional probability that goes the other direction (see the diagram below).
-	
-	\begin{minipage}{0.48\linewidth}\centering
-		\textit{Easy to compose (deductive formation):}\\[0.5em]
-		\begin{tikzpicture}
-		\node[dpadded] (X) at (0,0){$\sf X$};
-		\node[dpadded] (W) at (2,1){$\sf W$};
-		\node[dpadded] (U) at (4,0){$\sf U$};
-		
-		\draw[archain] (X) -- (W) -- (U);
-		\draw[arr, gray] (X) to[bend left=10] (U);%node[below=0.5em]{\small$\sum_{a : A} \Pr(a \mid x) U(a)$}
-		\end{tikzpicture}\\
-		\textit{\small Existing preference $W\to U$ can be extended naturally to $X$ by precomposition, backwards along $X \to W$}
-	\end{minipage}
-	\hfill
-	\begin{minipage}{0.48\linewidth}\centering
-		\textit{Hard to compose (inductive formation):}\\[0.5em]
-		\begin{tikzpicture}
-		\node[dpadded] (X) at (0,0){$\sf X$};
-		\node[dpadded] (W) at (2,1){$\sf W$};
-		\node[dpadded] (U) at (4,0){$\sf U$};
-		
-		\draw[arr] (W) to (U);
-		\draw[arr] (W) to (X);
-		\draw[arr,dashed,gray] (X) to node[below]{???} (U);
-		\end{tikzpicture}\\
-		\textit{\small Getting a utility on $X$ via $W$ requires the inversion of an arrow, or some other additional information}
-	\end{minipage}
-	\vspace{1em}
-	
-	One might wonder how this plays out if we have multiple variables instead of just one. In our earlier example, each of the three variables $A,B$ and $C$ has an additive component of the utility function, which can be visually identified as the three disjoint paths from $\sf X$ to $\sf U$.
-	\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (X) at (0,1.6){$\sf X$};
-			\node[dpadded] (A) at (-3,0){$\sf A$};
-			\node[dpadded] (B) at (-1.5,0){$\sf B$};
-			\node[dpadded] (C) at (0,0){$\sf C$};
-			\node[dpadded] (U) at (0,-1.6){$\sf U$};
-			
-			\draw[archain] 	(X) -- (A.90)(A.-90) -- (U)
-							(X) -- (B.90)(B.-90) -- (U)
-							(X) -- (C) -- (U);
-							
-			\draw[arr, dashed] (X) to[bend left=70] (U);
-		\end{tikzpicture}
-	\end{center}
-	Now, our initial indifference between the alternatives in $X$ conflicts with the rest of the diagram, i.e., the other paths from $X$ to $U$. We can resolve this conflict by setting our preference on $X$ to be the sum of the other three components. 
-	
-	This example shows that we don't need to make all diagrams commute; for consistency we rather require just that a link between $A$ and $B$ is the (weighted) sum of other paths from $A$ to $B$. Inconsistency therefore cannot be determined locally, because we need to see all of the paths.
 	
 %	Of course, this picture cannot capture interaction effects---rather it visually encodes the additive separability assumption---but we can handle this by finding 
 
@@ -352,96 +258,7 @@
 	
 	% rather than being aggregated at the end, we conceptualize utility as through beliefs. For instance \todo{chipfiring}
 	
-	
-	\subsection{Learning from Experience}
-	
-	We can use the same technique of reducing conflict to model preferences learned from data. Let $\sf Exp$ be a preference domain representing all of your experiences (which you have preferences/utilities over), and $\sf X$ be some domain consisting of all possible combinations of features (e.g., what food you ate, who you were with, whether you got work done, etc. ). Suppose further that each experience had a utility, and also a setting of the features (we can model even the features being fuzzy by making use of the probability distribution half of our links--- maybe you forgot what kind of ice cream you were eating). 
-	
-	\subsubsection{Classical Models}
-	The standard picture of preferences does not prescribe change, and so learning is generally outside of the scope. Still, there's another reading which makes sense more-or-less classically:
-	
-	You have some fixed preferences, you just don't know what they are. As you get more samples, you uncover what your preferences must have been all along. The features do not provide any value in and of themselves--- they only provide some information about the total state of the world. The experiences are true samples of your fixed utility function. 
-	
-	This can be made to work, but is not a particularly satisfying account:
-	\begin{itemize}[nosep]
-		\item Economics outsources the procedure for how to do this to a completely different discipline.
-		\item Humans seem to develop preferences because of experiences, in addition to merely uncovering them --- whether or not you have food poisoning the first 10 times you eat mangos, for instance, will probably color your perception of the taste even if you don't get poisoning after this.
-		\item The classical picture also posits that people make decisions according to their preferences, but this is not possible if you don't know what they are --- and if it were the case that you were unknowingly making decisions this way, then you could easily access any preferences just by making hypothetical decisions.
-	\end{itemize}
-	
-	\subsubsection{Our Description}
-	We can succinctly capture the entire setup in this diagram:
-	
-	\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (X) at (0,0) {$\sf X$};
-			\node[dpadded] (U) at (3.5,-0.5) {$\sf U$};
-		
-			\foreach [evaluate=\x as \y using \x/2-1.5] \x in {0, 1, ...,4} {
-				\node[bpt={e\x | $e_\x$}] (e\x) at (\y,-2) {};
-			}
-			\node (dots) at (1.25,-2) {$\cdots$};
-			\node[bDom={$\sf Exp$ (E) around \lab{e0}(dots)}] {};
-			
-			\draw[archain] (E) -- (X) (E) -- (U);
-			\draw[arr, dashed] (X) -- (U); 
-		\end{tikzpicture}
-	\end{center}
-		
-	To avoid conflict, we would need it to be the case that $\sf Exp \to X \to U$ is the same as $\sf Exp \to U$. There are many methods of doing this --- we can  guess and check, do gradient descent on parameters, set up a fancy network encoding some similarity metrics and priors, \ldots but in each case, we're just reducing inconsistency, same as before. 
-	
-	It may be worth noting that kernel methods do this in a particular way: they compute a compressed approximation of the inversion of the conditional distribution $\sf Exp \to X$. Rather than storing the features for each experience, we can describe features as weighted sums of the experiences they most resemble. Normalizing this weighted sum, we get an arrow  $\sf X \to Exp$. Having done this approximation, we can then compute utilities for $\sf X$ by precomposition as in the previous section. Also, computing the full pseudoinverse of $\Pr(\sf X \mid Exp)$, regarded as a matrix, is just a computationally expensive way of computing a least squares fit on $U$.
-	
-	
-	The classical picture described above corresponds to this diagram:
-	\begin{center}
-		\begin{tikzpicture}
-		\node[dpadded] (X) at (0,0) {$\sf X$};
-		\node[dpadded] (1) at (3,1.5) {$\sf 1$};
-		\node[dpadded] (W) at (3,-0.5) {$\cal W$};
-		\node[dpadded] (U) at (5,-0.5) {$\sf U$};
-		
-		\foreach [evaluate=\x as \y using \x/2-1.5] \x in {0, 1, ...,4} {
-			\node[bpt={e\x | $e_\x$}] (e\x) at (\y,-2) {};
-		}
-		\node (dots) at (1.25,-2) {$\cdots$};
-		\node[bDom={$\sf Exp$ (E) around \lab{e0}(dots)}] {};
-		
-		\draw[archain] (1)--(W) -- (E) (W) -- (U) (W) -- (X);
-		\draw[arr, dashed] (X) to[bend left] (W); 
-		\end{tikzpicture}
-	\end{center}
-	Here $\cal W$ is the set of all possible worlds, which has a probability measure and utility on it (to the right and above). Really that's all we need, but the world determines which experience you're having and what features as well. You can use the prior over worlds and Bayes' rule to invert the arrow $\cal W \to X$ if you really want it, but in any case all you're doing is updating a belief about how $X$ impacts the world so you can compute expected utility better----you probably don't actually have preferences over $X$, unless you've been guaranteed that your utility function additively separates over some component of it.
 
-
-
-	
-	\subsubsection{General supervised learning as reduction of inconsistency}
-	
-	The picture we've drawn is actually an instance of a fully generic as a description of a supervised learning problem. In the standard formulation, we're given samples $(X, Y) = \{(x_i,y_i)\}_i$,  $(x_i,y_i) \in \mathcal X \times\mathcal Y$, where $\cal X$ is the feature space, $\cal Y$ is the label space, there is some true oracle function $\hat f : \mathcal X \to \Delta(\mathcal Y)$, and therefore $(X, Y)$ is the training set, with $Y \sim \hat f(X)$. The problem is then to infer a function $f \approxeq \hat f : \mathcal X \to \Delta(\mathcal Y)$. The naive solution is to minimize the training error on the samples, but this leads to overfitting, partly because this implicitly involves thinking of a sample $(x, y)$ as representing ``the true value of $\cal Y$ when $\mathcal X = x$ is $y$'' --- when in reality there is some noise: both $x$ and $y$ do not represent a probability distribution of uncertainty, but rather concrete sampled values. 
-	
-	We can describe the same scenario equivalently (and arguably more clearly) in our model. If $I$ is the index set that $i$ comes from, then we've been given a function $X : I \to \mathcal X$, $Y: I \to \mathcal Y$, and learning function $f : \mathcal X \to \Delta(\mathcal Y)$ such that there's minimal conflict corresponds to minimizing training error (inner triangle in the diagram below)
-	
-	\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (I) at (-0.6,0) {$I$};
-			\node[dpadded] (II) at (-3,0) {$\cal I$};
-			\node[dpadded] (X) at (2,1) {$\cal X$};
-			\node[dpadded] (Y) at (2,-1) {$\cal Y$};
-
-			
-			\draw[archain=blue, blue] (I) -- node[fill=white]{$X$} (X) (I) -- node[fill=white]{$Y$} (Y);
-			\draw[arr,dashed] (X) -- node[right=0.4em]{$f$} (Y);
-			
-			\draw[arr] (II) to[bend left=20] (X);
-			\draw[arr] (II) to[bend right=20] (Y);
-			\draw[arr,left hook->] (I) to (II);
-		\end{tikzpicture}
-	\end{center}
-
-	On the other hand, if $I \subseteq \cal I$, where $\cal I$ is the set of all possible possible states of the relevant world, then we can think of minimizing generalization error as reducing the inconsistency of the outer diagram\footnote{which is equivalent to minimizing the inconsistency of the outer triangle, because the top and bottom ones both commute because $I \hookrightarrow \mathcal I$ is an inclusion}: we want it to be the case that $f$ is approximately correct in all cases, not just the ones indexed by our sample $I$.  Bayesian methods make the additional assumption that we have a prior $\mathsf 1 \to \mathcal I$, which can be used with Bayes' rule to invert arrows.
-	
-	This also makes the source of overfitting mentioned above clearer: the training error will also be minimal when we find the best fit, if we were provided $X$ and $Y$ as conditional distributions rather than samples.
 	
 	
 %	\subsection{
@@ -455,25 +272,7 @@
 	\section{Ties To Existing Models}
 	
 	\subsection{Emulating Other Structures}\label{sec:emulation}
-	
-	\subsubsection{Savage}
-	\begin{minipage}{\linewidth-5.5cm}
-		Savage's theory can also be represented in this context. If you have a preference order on $\sf Act$, which is the set of all maps from states $\cal S$ to outcomes $\cal O$, which obeys Savage's postulates P1-P7, then it can be factored into a probability distribution $\Pr(\cal S)$ and a utility function $U_{\cal O}$, as shown on the right.
-	\end{minipage}\hfill
-	\begin{minipage}{5cm}
-		\begin{tikzpicture}
-			\node[dpadded] (1a) at (0, 5) {$1 \times \mathsf{Act}$};
-			\node[dpadded] (sa) at (0, 3) {$\mathcal S \times \mathsf{Act}$};
-			\node[dpadded] (O) at (0, 1) {$\mathcal O $};
-			\node[dpadded] (U) at (0, -1) {$\sf U$};
-			
-			\draw[archain] (1a) -- node[right=1em]{$\Pr(\mathcal S) \times \mathrm{id}$} (sa)
-								 -- node[right=1em]{eval} (O) -- node[right=1em]{$U_{\cal O}$} (U);
-								 
-		 	\draw[arr] (1a) to[bend right=60] (U);
-		\end{tikzpicture}
-	\end{minipage}
-	
+
 	\subsection{Important Differences}
 	
 	\subsubsection{Departure from BNs and CP Nets}
