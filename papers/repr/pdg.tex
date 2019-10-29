@@ -24,19 +24,88 @@
 \savebox{\hourglassbox}{\includegraphics[height=.8em]{hourglass.png}}
 \newcommand\hourglass{\usebox{\hourglassbox}}
 
+\newcommand{\modelname}{Probabilistic Dependency Graph}
 
-\title{Probabalistic Dependency Graphs}
+
+\title{Dependency Graphs}
 \author{Oliver Richardson,  \texttt{oli@cs.cornell.edu}}
 
 \begin{document}
 	\maketitle
 	
-	\section{Introduction}
+	\begin{abstract}
+		We introduce \modelname{}s, intended to represent agents' mental states, which can be regarded both as a probabilistic graphical model, and as a collection of soft, local, constraints. The additional representational flexibility allows us to represent both under and over-constrained belief states, as well as a modularity that makes the models easier to modify. They are also easier to use, have a clean theoretical backing, and reduce appropriately to existing, commonly used representations such as Bayesian Networks and constraint graphs. Some algorithms, notably including belief propagation, lift to the more general setting.
+	\end{abstract}
 	
-	 We propose a new way of representing agents' mental states, that need not be consistent. This additional representational flexibility allows us to 
-	 
-	 
-	% We can simulate BNS
+	\section{Introduction}
+%	Because writing down distributions explicitly is intractable, and so it is necessary to have.
+	Inconsistency is bad. Believing a logically inconsistent formula can lead you to arbitrarily bad conclusions, having an infeasible set of constraints makes all answers you could give wrong, and having inconsistent preferences can make you infinite money. We don't want to build inconsistent systems with undefined behavior, and so we design them so they cannot possibly be inconsistent. For example, is unwise to parameterize a unit circle with an $x$ and $y$ coordinate, because $x^2+ y^2$ might not be 1 --- it would be safer and harder to go awry if we parameterize it by an angle $\theta \in [0, 2\pi)$ instead. Why would we take the first approach, introducing a potentially complex data-invariant, when we could avoid it?
+	
+	This line of thought, though common and defensible, is flawed if we are not perfectly confident in the design of both our system and the ways it can interact with the outside world. Using similar logic, we might ask ourselves: Why ask programmers for type annotations when all operations are well-defined at run-time?  Why use extra training data if there's already enough there to specify a function? Why estimate a quantity in two ways when they will yield different answers? Why repeat and rephrase your ideas when this could make you contradict yourself? Why write test cases when they could fail and make the project inconsistent? Why conduct an experiment if it could just end up contradicting everything you know?
+	
+	These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariant is expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that some part of your algorithm is broken. In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags. 
+	
+	Using a Bayesian Network is like representing a circle with $\theta \in [0, 2\pi)$. By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never not know the point, or just know its $x$ coordinate). 
+	The process of mechanistically forcing invariants is exactly homologous to standard practices for factor graphs (or Gibbs Random Fields): practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero. 
+	
+	It is clear that, while inconsistency is bad, being able to identify it is extremely useful. To that end, we introduce a more general representation which can be both under and over-constrained (from the perspective of producing a probability distribution), can be used to emulate a large class of both probabilistic models and constraint sets, and enjoys many additional properties which make them more useful than the specific variants. All of this comes at the cost of being slightly more difficult to analyze in general case: most decision problems on \modelname{}s are NP hard. % and some are incomputable. 
+	
+	
+	\begin{example}
+		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and for mechanistic reasons, we know how likely you are to find life on a planet, supposing we knew how big it is, and whether it's mostly made of rocks or gas. We have a conditional density $\Pr(\text{Life} ~|~ \text{Size}, \text{Composition})$, which we would like to represented as a Bayesian network
+		\begin{ctikzpicture}
+			\node[dpadded] (SS) at (0, 2) {Size};
+			\node[dpadded] (CC) at (3, 2) {Composition};
+			\node[dpadded] (LL) at (1.3,0) {Life};
+			\draw[arr] (CC) -- (LL);
+			\draw[arr] (SS) -- (LL);
+		\end{ctikzpicture}
+		but this is technically incorrect because a BN would require that we also have prior distributions over both the size of planets and their compositions. Our actual mechanistic knowledge is under-constrained in this picture. But to be good Bayesians, we also need priors on everything, which is unfortunate, but we can always make one up and refine it as we go along. A bigger problem occurs when our biologist friend reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend, and totally believe these probabilities, but there's no way to incorporate it into our picture, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and we don't even have the space to keep such a thing. At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+		
+		Instead, we want a picture that looks more like this:
+	
+	
+		\begin{ctikzpicture}
+			\node[dpadded] (S) at (0, 2) {Size};
+			\node[dpadded] (C) at (3, 2) {Composition};
+			\node[dpadded] (L) at (1.3,0) {Life};
+			\node[dpadded] (W) at (-2,0) {Water};
+			\mergearr{S}{C}{L}
+			\draw[arr] (W) -- (L);
+		\end{ctikzpicture}
+		which allows us to combine our knowledge, even though there's a possibility of being inconsistent --- for instance, if all estimates of the probability of life from the existence of water are strictly smaller than the estimates we initially came up with.
+	\end{example}
+
+	Benefits of this representation:
+	\begin{enumerate}[nosep]
+		\item We can represent both over-constrained and under-constrained mental states, both of which we argue are an important component of an agent's state.
+		\item Over-constrained models may be inconsistent; such inconsistencies provide a natural way of prescribing changes in mental state. Moreover, many standard algorithms, such as belief updating via Jeffrey's rule, as well as marginalization algorithms such as belief propagation, can be regarded as special cases of consistency reduction.
+		\item We can emulate both other graphical models (such as Bayesian Networks, and to a large extent, factor graphs), as well as other non-probabilistic notions of uncertainty. 
+		\item The local interpretation of arrows makes it much less invasive to add, remove, and partially interpret parts of the model, compared to other graphical models. 
+		\item This modularity makes it possible to add explicit rules to embed logic within the model
+		\item By allowing agents to merge, split, and compress variables, we also make it possible for agents to design their own representations. With these tools, in conjunction with consistency 
+		\item In contrast with a simple collection of constraints, inconsistencies are local, and individual mistakes have limited impact on expectations.
+	\end{enumerate} % trade-off: harder to analyze.
+
+
+%	\begin{enumerate}[nosep]
+%		\item This representation more naturally matches what humans are aware of, encoding small locally consistent models rather than one giant probability distribution
+%		\item It is a strictly more general representation--- we can easily convert BNs to these diagrams (section \ref{sec:convert2bn})
+%		\item This allows composition of arrows to be defined, and gives meanings to paths (section \ref{sec:composition}).
+%		\item Allowing variables to be added and removed makes 
+%		\item Changing and partially determining arrows is more reasonable.
+%		\item We can now represent inconsistency, which will allow us to capture mental states which, and . While we agree with the classical picture in that inconsistency is bad, now we can talk about it
+%	\end{enumerate}
+	
+	
+	% Redundency is important: types in programming languages, more data in ML systems. 
+	% Puts gurads
+	% Makes it possible to combine knowledge without destroying old knowledge.
+	% preference updating
 	% 
+	
+	
+	
+
 	
 \end{document}
