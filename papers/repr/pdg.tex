@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage{comment}
 \includecomment{vfull}
-\excludecomment{vcat}
+\includecomment{vcat}
 
 \input{../model-commands.tex}
 \usetikzlibrary{external}
@@ -30,6 +30,10 @@
 \newcommand{\MNs}{PDGs}
 
 \newcommand\Set{\textbf{Set}}
+\newcommand\FinSet{\textbf{FinSet}}
+\newcommand\MeasSet{\textbf{MeasSet}}
+
+\def\bmu[#1|#2]{\boldsymbol\mu\boldsymbol{[} #1 \boldsymbol{|} #2 \boldsymbol{]}}
 
 \title{Dependency Graphs}
 \author{Oliver Richardson,  \texttt{oli@cs.cornell.edu}}
@@ -50,16 +54,20 @@
 	These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariants can be expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that something has gone wrong.
 	In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags.
 
-	Using a Bayesian Network is like representing a circle with $\theta \in [0, 2\pi)$. By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
-	The process of mechanistically forcing invariants is exactly homologous to standard practices for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
+	Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$. 
+	By construction, the result must be a distribution, and nothing can possibly go wrong so long as we can always decide on exactly one distribution which is sufficient for our purposes.
+%	By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
+	
+	
+	The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
 
 	It is clear that, while inconsistency is bad, being able to identify it is extremely useful. To that end, we introduce a more general representation of knowledge and uncertainty which can be both under and over-constrained (from the perspective of producing a probability distribution), can be used to emulate a large class of both probabilistic models and constraint sets, and enjoys many additional properties which make them more useful than the specific variants. % All of this comes at the cost of being slightly more difficult to analyze in general case: most decision problems on \modelnames\ are NP hard. % and some are incomputable.
 
 
-	\begin{example}
+	\begin{example} \label{ex:planet}
 		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew how big it is and whether it's mostly made of rocks or gas. That is to say that we have a conditional probability table $\Pr(\text{Life} ~|~ \text{Size}, \text{Composition})$, which we are used to graphically depicting like this:
 		\begin{ctikzpicture}
-			\node[dpadded] (SS) at (0, 2) {Size};
+			\node[dpadded] (SS) at (-0.4, 2) {Size};
 			\node[dpadded] (CC) at (3, 2) {Composition};
 			\node[dpadded] (LL) at (1.3,0) {Life};
 			\draw[arr] (CC) -- (LL);
@@ -68,19 +76,48 @@
 		This picture looks like a Bayesian Network, which is somewhat misleading. In order to interpret this graph as a quantitative BN, we also would need probability distributions over Size and Composition --- things we may not be willing to give\footnote{Situations like these are incredibly common and important. In statistical learning theory, this is the difference between a generative and a discriminative (or conditional) model}.
 		From a probabilistic perspective, our beliefs are under-specified. This is a problem (though not a novel one) with Bayesian networks.
 
-		A bigger problem occurs when our biologist friend reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to incorporate it into our picture, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing\footnote{If Size and composition each have $\approx\sqrt(N)$ elements, and Water had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones}. At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+		A bigger problem occurs when our biologist friend reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to incorporate it into our picture, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing\footnote{If \textit{Size} and \textit{Composition} each have $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.}. %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+		Let $S, C, W, L$ be shortenings of Size, Composition, Water, and Life, respectively.
+		Intuitively, we want to draw instead a picture that looks more like this:
 
-		Intuitively, we want to instead draw a picture that looks more like this:
-
-		\begin{ctikzpicture}
-			\node[dpadded] (S) at (0, 2) {Size};
-			\node[dpadded] (C) at (3, 2) {Composition};
-			\node[dpadded] (L) at (1.3,0) {Life};
-			\node[dpadded] (W) at (-2,0) {Water};
-			\mergearr{S}{C}{L}
+		\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (S) at (-0.4, 2) {$S$};
+			\node[dpadded] (C) at (3, 2) {$C$};
+			\node[dpadded] (L) at (1.3,0) {$L$};
+			\node[dpadded] (W) at (-2,0) {$W$};
+			\cmergearr{S}{C}{L}{1.3,1.1}
 			\draw[arr] (W) -- (L);
-		\end{ctikzpicture}
-		which allows us to combine our knowledge. It is worth noting that there is now a possibility of being inconsistent --- for instance, if all estimates of the probability of life from the a planet's water content are strictly smaller than the probability estimates of life from its size and composition.
+		\end{tikzpicture}
+		\end{center}
+	
+		which represents having two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. This would allow us to combine the two facts that we know, without also providing more information than we're prepared to equivocate on. It is worth noting that there is now a possibility of being inconsistent, in the sense that no joint distribution on all variables could marginalize out to the given data --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+		
+		
+		The natural Bayesian response to this is to reaffirm that this \textit{implicitly} defines some most natural distribution. In particular, of all of the distributions on these variables, one might chose the one that most closely matches the data presented here.
+		Together with the perspective that a Bayesian Network really encodes independence, this line of thought might cause one to think that the problem was a restrictive class of graphical model. Perhaps really we wanted a factor graph:
+		
+		\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded,inner sep=0.6em, circle] (S) at (-0.4, 2) {$S$};
+			\node[dpadded,inner sep=0.6em, circle] (C) at (3, 2) {$C$};
+			\node[dpadded,inner sep=0.6em, circle] (L) at (1.3,0) {$L$};
+			\node[dpadded,inner sep=0.6em, circle] (W) at (-2,0) {$W$};
+			
+			\node[light pad] (f1) at (1.3, 1.3){$\phi_1$};
+			\node[light pad] (f2) at (-0.3, 0){$\phi_2$};
+						
+			\draw[thick] (S) -- (f1) -- (C) (f1) -- (L);
+			\draw[thick] (W) -- (f2) -- (L);
+		\end{tikzpicture}
+		\end{center}
+		representing a distribution $p$ on $S \times C \times W \times L$ given by:
+		\[ p(s, c, w, l) \propto \phi_1(s,c,l) \phi_2(w,l) \]
+		
+		There are several differences between this, and what we had in mind earlier. We can't weight the pieces of information differently, and neither can we even separate them from one another.
+		
+		
+		
 	\end{example}
 
 	Benefits of this representation:
@@ -112,7 +149,9 @@
 	\section{Related Work}
 
 	\section{Worlds}
-	Other than allowing for inconsistency, the biggest difference between \modelnames and other graphical models is their interaction with the underlying space: a \modelname . The standard approach to probabilistic modeling is to start by selecting a measurable space of possible outcomes $\Omega$, and then put a normalized measure on it and compute desired quantities with it. Before you can begin to think about random variables, which are defined as set $X_i : \Omega \to V_i$ from outcomes to the set of values $V_i$ that $X_i$ can take on, you have to specify $\Omega$. This construction works well, so long as $\Omega$ is large enough to express everything you ever cared to conceptualize. Because agents are expected to have probability distributions over $\Omega$, the set of worlds that they consider possible must effectively stay constant over time, to use mechanisms such as conditioning as a sole way of changing a mental state.
+	Other than allowing for inconsistency, the biggest difference between \modelnames\ and other graphical models is their interaction with the underlying space: a \MN\ .
+	
+	The standard approach to probabilistic modeling is to start by selecting a measurable space of possible outcomes $\Omega$, and then put a normalized measure on it and compute desired quantities with it. Before you can begin to think about random variables, which are defined as set $X_i : \Omega \to V_i$ from outcomes to the set of values $V_i$ that $X_i$ can take on, you have to specify $\Omega$. This construction works well, so long as $\Omega$ is large enough to express everything you ever cared to conceptualize. Because agents are expected to have probability distributions over $\Omega$, the set of worlds that they consider possible must effectively stay constant over time, to use mechanisms such as conditioning as a sole way of changing a mental state.
 
 	Still, a we might wiggle our way around this using only classical probability: we could say that $\Omega$ is some very large set of outcomes that is guaranteed to be expressive enough to capture anything we care about, and then
 
@@ -144,30 +183,107 @@
 	\section{Definitions and Semantics}
 
 
-	\begin{defn}
+	\begin{defn}\label{def:model}
 		A \emph{strict \modelname} is a tuple $(N, L, \mu, \mathcal V)$ where
 		\begin{itemize}[nosep]
-			\item $\mathcal N : \Set$~~is a collection of nodes
+			\item $\mathcal N : \Set$~~is a finite collection of nodes
 			\item $\mathcal L \subseteq N \times N$~~is a set of directed links between nodes
-			\item $\mathcal V : \mathcal N \to \Set $~~is an $N$-indexed family of sets, representing the values that a node can take
+			\item $\mathcal V : \mathcal N \to \MeasSet $~~is an $N$-indexed family of measurable sets, representing the values that a node can take
 			\item $\mu: ((A,B): \mathcal L) \to \mathcal V(A) \to \Delta(\mathcal{V}(B))$~~is a family of conditional probability distributions on $\mathcal V(B)$ indexed by the values of $A$ for every link $(A,B) \in \mathcal L$ %between the values $\mathcal V(A) \to \mathcal{B}$, for each link $(A,B) \in \mathcal L$, or more technically, a family of distributions on the values of target of the link, given each of the 
+
 		\end{itemize}
 	\end{defn}
 
 	\begin{example}
+		In example \ref{ex:planet}, we displayed the arrow from $S$ and $C$ to $L$ as a directed hyper-edge. While we would like to maintain this intuition, it turns out that we can simplify our formalism by de-sugaring this picture into the following:
+		\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (S) at (-0.5, 2) {$S$};
+			\node[dpadded] (C) at (3.1, 2) {$C$};
+			\node[dpadded] (L) at (1.3,0) {$L$};
+			\node[dpadded] (W) at (-2,0) {$W$};
+%			
+			\node[dpadded,light pad] (SC) at (1.3, 1.4){\footnotesize $S \times C$};
+%			
+			\draw[arr, ->>] (SC) -- (S);
+			\draw[arr, ->>] (SC) -- (C);
+			\draw[arr] (SC) -- (L);
+			\draw[arr] (W) -- (L);
+		\end{tikzpicture}
+		\end{center}
+		The double headed arrows are for degenerate conditional distributions, which are fully deterministic, but for now this is not terribly relevant. We can now present this \MN\ formally with the elements specified in definition \ref{def:model}
 		
+		\begin{align*}
+			\mathcal N &= \{S,~ C, ~L, ~W, ~S\times C \} \\
+			\mathcal L &= \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
+			\mathcal V &= \begin{cases}[r]
+			\mathcal V(S) &= \{\mathit{big}, \mathit{small} \}\\
+			\mathcal V(C) &= \{ \mathit{rocky}, \mathit{gasseous} \} \\
+			\mathcal V(L) &=  \{ l, \lnot l \} \\
+			\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
+			\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
+				% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
+			\end{cases}
+		\end{align*}
+		\begin{align*}
+			\boldsymbol\mu=\begin{cases}
+			\boldsymbol\mu[S\times C, L] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{$l$,$\lnot l$}
+					.1 & .9 \\
+					.2 & .8 \\
+					.05 & 0.95 \\
+					0.00001 & 0.99999
+				\end{idxmat} \qquad  
+					\boldsymbol\mu[W, L] = \begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\lnot l$}
+					0 & 1 \\
+					.005 & .995 \\
+					.05 & 0.95 \\
+				\end{idxmat}\\
+			\boldsymbol\mu[S\times C, C] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{rocky,gasseous}
+				1 & 0 \\
+				1 & 0\\
+				0 & 1 \\
+				0 & 1 
+			\end{idxmat} \qquad  
+			\boldsymbol\mu[S\times C, S] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{small,big}
+				0 & 1 \\
+				1 & 0 \\
+				0 & 1 \\
+				1 & 0
+			\end{idxmat}
+			\end{cases}
+		\end{align*}
 	\end{example}
+
+	This works pretty well for the two edges that we described before, but the structural overhead of the additional de-sugaring: the $\boldsymbol\mu[S\times C\to S]$ and $\boldsymbol\mu[S\times C\to C]$ tables, as well as the set $\mathcal V(S \times C)$ seem like they didn't need to be specified, and shouldn't have been allowed to be specified any other way. Some reasons for this design decision include:
+	\begin{itemize}[nosep]
+		\item It is easier to prove things about graphs than directed hyper-graphs. Similarly, defining directed paths is a lot simpler.
+		\item We can eliminate the clunkiness by fusing the model with an algebra, as in section \ref{sec:algebra} --- which will give us a lot more than modeling the hyper-edges directly.
+		\item 
+	\end{itemize}
+%	In some ways, this these product nodes are kind of like anonymous functions: if you need them
 
 
 	\subsection{Sub-stochastic Transitions}
 
-	\subsection{Semantics}
+	\subsection{Semantics}\label{sec:semantics}
 	These graphs admit multiple semantics. As discussed in section \ref{sec:worlds}, we think of \modelnames\ as being a representation of knowledge in and of themselves, rather than a compression of something more fundamental such as a probability distribution. Still, we will find it useful to interpret them in various ways: doing so will make it possible to compare them more directly with existing graphical models, which one thinks of as really just being compressed distributions. In this section, we would like to highlight three important semantics.
+	
+	\subsubsection{As Sets of Distributions}\label{sec:set-of-distribution-semantics}
+	If the focus is on under-constrained models, then just as a BN represents a distribution on joint space, a \MN\ might might thought of as representing the set of all distributions that marginalize out to it exactly.
+	
+	\[ \Big\llbracket M \Big\rrbracket_* := \left\{\mu \in \mathbf{Prob}\left[\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
+		\mu(B = b \mid A = a) = \boldsymbol\mu[A,B](a,b) \text{~for all $A, B \in \mathcal L$, $a \in\mathcal V(A)$, and $b \in \mathcal V(B)$} \right\}\]
+	
+	
+%	This is much stronger than the 
 
 	\subsubsection{As Distributions}
+	The most familiar to 
 
-	\section{Rebuilding Probability}
-
+	\section{Rebuilding Standard Pictures}
+	
+	In the worst case, 
+	
 	\section{Relations to Other Graphical Models}
 	\subsection{Bayesian Networks}
 	\subsection{Factor Graphs}
@@ -178,7 +294,7 @@
 	The natural question now becomes: to what do these under-constrained representations of belief correspond to under-constrained bits of a \modelname?
 
 	\subsection{Sets of Probability Measures}
-	As may have been clear
+	As we discuss in section \ref{sec:set-of-distribution-semantics}
 
 
 
@@ -189,5 +305,21 @@
 	\section{Algorithms}
 	\subsection{Belief Propagation}
 
+
+	\begin{vcat}
+		\section{Algebra}\label{sec:algebra}
+		\begin{defn}
+			If $\sigma$ is a signature, a $\sigma$-\MN\ $M'$ on a \MN\ $M=(\mathcal N, \mathcal L, \mathcal V, \mu)$ is a \modelname\ $(\mathcal N', \mathcal L', \mathcal V', \mu')$ such that
+			\begin{itemize}
+				\item $\mathcal N':= T_\sigma(\mathcal N)$ is the term algebra for the signature $\sigma$ over the alphabet $\Sigma = \mathcal N$.
+				\item $\mathcal L' = \mathcal L \cup \mathcal L^\sigma$ is $\mathcal L$ extended with extra links for operations that are 
+			\end{itemize}
+		\end{defn}
+		
+		\begin{example}
+			content
+		\end{example}
+		
+	\end{vcat}
 	\section{Conclusions}
 \end{document}

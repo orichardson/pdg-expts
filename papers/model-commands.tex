@@ -54,27 +54,18 @@
 	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
 	\tikzset{archain/.style args={#1}{arr, every arrow subpath/.style={draw,arr, #1}, decoration=arrows, decorate}}
 	%\tikzset{every label/.append style={text=red, font=\scriptsize}}
-	
 	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
 	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
 	
+	
+	\newcommand\cmergearr[4]{
+		\draw[arr,-] (#1) -- (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
 	\newcommand\mergearr[3]{
 		\coordinate (center-#1#2#3) at (barycentric cs:#1=1,#2=1,#3=1.2);
-		\draw[arr,-] (#1) -- (center-#1#2#3) -- (#2);
-		\draw[arr, shorten <=0] (center-#1#2#3) -- (#3);
+		\cmergearr{#1}{#2}{#3}{center-#1#2#3}
 	}
-	
-%	\newcommand\tikzdom[#1;#2](#3,#4[#5]){
-%		\foreach [evaluate=\x as \y using (\x-#2/2)/#5 + #3] \x in {0, 1, ..., #2} {
-%			\node[bpt={#1\x | $\n_\x$}] at (\y,#4) {};
-%		}
-%		\node[Dom={$\sf W$ (W) around \lab{w1}\lab{w3}}] {};
-%	}
-
-
-%
-%\newcommand{\startmytikz}{%
-%	\begin{center}\begin{tikzpicture} }
 
 \NewEnviron{ctikzpicture}{\begin{center}\expandafter\begin{tikzpicture}\BODY\end{tikzpicture}\end{center}}
 %\newenvironment{ctikzpicture}
@@ -91,6 +82,7 @@
 \setlength{\footnotesep}{0.4cm}
 
 \usepackage{parskip}
+\usepackage{stmaryrd}
 \usepackage{amsthm, thmtools}
 \usepackage{
 	nameref,%\nameref
@@ -200,3 +192,14 @@
 \newenvironment{sqidxmat}[2][\footnotesize\color{gray}\text]
 	{\begingroup\idxmat[#1]{#2}{#2}}
 	{\endidxmat\endgroup}
+	
+	
+%%%%%%%%%%%%
+% better alignment for cases
+\makeatletter
+\renewenvironment{cases}[1][l]{\matrix@check\cases\env@cases{#1}}{\endarray\right.}
+\def\env@cases#1{%
+	\let\@ifnextchar\new@ifnextchar
+	\left\lbrace\def\arraystretch{1.2}%
+	\array{@{}#1@{\quad}l@{}}}
+\makeatother
