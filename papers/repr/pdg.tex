@@ -33,7 +33,10 @@
 \newcommand\FinSet{\textbf{FinSet}}
 \newcommand\MeasSet{\textbf{MeasSet}}
 
-\def\bmu[#1|#2]{\boldsymbol\mu\boldsymbol{[} #1 \boldsymbol{|} #2 \boldsymbol{]}}
+\newcommand\MaxEnt{{\substack{\mathbf{Max}\\\mathbf{Ent}}}}
+
+%\def\bmu[#1|#2]{\boldsymbol\mu\boldsymbol{[} #1 \boldsymbol{|} #2 \boldsymbol{]}}
+\newcommand\bmu{\boldsymbol{\mu}}
 
 \title{Dependency Graphs}
 \author{Oliver Richardson,  \texttt{oli@cs.cornell.edu}}
@@ -113,8 +116,13 @@
 		\end{center}
 		representing a distribution $p$ on $S \times C \times W \times L$ given by:
 		\[ p(s, c, w, l) \propto \phi_1(s,c,l) \phi_2(w,l) \]
-		
-		There are several differences between this, and what we had in mind earlier. We can't weight the pieces of information differently, and neither can we even separate them from one another.
+		We can now combine our beliefs, but this is not exactly what we had in mind earlier. Beyond simply forcing us to effectively adopt a maximum entropy prior over $S$, $C$, and $W$, this factor representation, has additional (related) unwanted effects:
+		\begin{enumerate}
+			\item We can't weight the pieces of information differently. Though the scale of the entire function $\phi$ gives us a degree of freedom in which to encode this information, it cannot be used, as $(a\phi_1) (b\phi_2) = (ab) (\phi_1\phi_2)$, and the aggregate coefficient $ab$ too is normalized out to form the distribution.
+			\item We've lost the directedness of the edges, and the addition of new factors can dramatically change the meanings of existing ones. Both of these make it much harder to interpret part of the graph by itself. For similar reasons, knowing the joint distribution does not determine the values of the factors.
+%			\item The addition of a new factor 
+			\item If at least one factor is zero for every setting of $S,C,W,L$, no distribution is defined --- in the face of inconsistency, the entire formalism ceases to work at all.
+		\end{enumerate} 
 		
 		
 		
@@ -146,6 +154,7 @@
 	% Puts gurads
 	% Makes it possible to combine knowledge without destroying old knowledge.
 	% preference updating
+	
 	\section{Related Work}
 
 	\section{Worlds}
@@ -180,19 +189,23 @@
 	At the same time, starting with a set of random variables $\{X_i\}$, and setting $\Omega = \prod_{i} V_i$ to be every possible assignment of variables is also an abuse of the word ``possible''.
 
 
-	\section{Definitions and Semantics}
+	\section{Equivalent Definitions and Variants}
 
 
 	\begin{defn}\label{def:model}
-		A \emph{strict \modelname} is a tuple $(N, L, \mu, \mathcal V)$ where
+		A \emph{strict \modelname} is a tuple $(N, L, \bmu, \mathcal V)$ where
 		\begin{itemize}[nosep]
 			\item $\mathcal N : \Set$~~is a finite collection of nodes
 			\item $\mathcal L \subseteq N \times N$~~is a set of directed links between nodes
 			\item $\mathcal V : \mathcal N \to \MeasSet $~~is an $N$-indexed family of measurable sets, representing the values that a node can take
-			\item $\mu: ((A,B): \mathcal L) \to \mathcal V(A) \to \Delta(\mathcal{V}(B))$~~is a family of conditional probability distributions on $\mathcal V(B)$ indexed by the values of $A$ for every link $(A,B) \in \mathcal L$ %between the values $\mathcal V(A) \to \mathcal{B}$, for each link $(A,B) \in \mathcal L$, or more technically, a family of distributions on the values of target of the link, given each of the 
+			\item $\bmu: ((A,B): \mathcal L) \to \mathcal V(A) \to \Delta(\mathcal{V}(B))$~~is a family of conditional probability distributions on $\mathcal V(B)$ indexed by the values of $A$ for every link $(A,B) \in \mathcal L$ %between the values $\mathcal V(A) \to \mathcal{B}$, for each link $(A,B) \in \mathcal L$, or more technically, a family of distributions on the values of target of the link, given each of the 
 
 		\end{itemize}
 	\end{defn}
+
+	The definition of $\bmu$ is probably more familiar than it looks. If every $\mathcal V(N)$ is finite with all subsets measurable, then $\bmu_{A,B}$ is just a conditional probability table, just as in a Bayesian Network. For those more familiar with stochastic processes, this is a stochastic matrix. 
+
+	The definition $\bmu$ is slightly over-simplified if not everything is measurable. More generally if $\mathcal V(A) = (X, \mathcal A)$ and $\mathcal V(B) = (Y, \mathcal B)$, then for any link $L \in \mathcal L$, we're really referring to a function $\bmu_L : X \times \mathcal B \to [0,1]$ such that $\bmu_L(x,-): \mathcal B \to [0,1]$ is a probability distribution and $\bmu_L(-, S)^{-1}(R) \in \mathcal A$ for any $S \in \mathcal B$, and measurable subset $R \subseteq [0,1]$, technically making $\bmu_{A,B}$ a \textit{Markov Kernel} from $A$ to $B$.
 
 	\begin{example}
 		In example \ref{ex:planet}, we displayed the arrow from $S$ and $C$ to $L$ as a directed hyper-edge. While we would like to maintain this intuition, it turns out that we can simplify our formalism by de-sugaring this picture into the following:
@@ -211,7 +224,7 @@
 			\draw[arr] (W) -- (L);
 		\end{tikzpicture}
 		\end{center}
-		The double headed arrows are for degenerate conditional distributions, which are fully deterministic, but for now this is not terribly relevant. We can now present this \MN\ formally with the elements specified in definition \ref{def:model}
+		The double headed arrows are for degenerate conditional distributions, which are fully deterministic, but for now this is not terribly relevant. We can now present this \MN\ formally with the elements specified in definition \ref{def:model}; below we assume everything is measurable and omit this part of the formalism.
 		
 		\begin{align*}
 			\mathcal N &= \{S,~ C, ~L, ~W, ~S\times C \} \\
@@ -254,35 +267,135 @@
 		\end{align*}
 	\end{example}
 
-	This works pretty well for the two edges that we described before, but the structural overhead of the additional de-sugaring: the $\boldsymbol\mu[S\times C\to S]$ and $\boldsymbol\mu[S\times C\to C]$ tables, as well as the set $\mathcal V(S \times C)$ seem like they didn't need to be specified, and shouldn't have been allowed to be specified any other way. Some reasons for this design decision include:
+	This works pretty well for the two edges that we described before, but the structural overhead of the additional de-sugaring: the $\boldsymbol\mu[S\times C\to S]$ and $\boldsymbol\mu[S\times C\to C]$ tables, as well as the set $\mathcal V(S \times C)$ seem like they didn't need to be specified, and one might even feel that it would be a mistake to allow any other table. Some reasons for this design decision include:
 	\begin{itemize}[nosep]
 		\item It is easier to prove things about graphs than directed hyper-graphs. Similarly, defining directed paths is a lot simpler.
-		\item We can eliminate the clunkiness by fusing the model with an algebra, as in section \ref{sec:algebra} --- which will give us a lot more than modeling the hyper-edges directly.
-		\item 
+		\item We can eliminate the clunkiness by fusing the model with an algebra, as in \cref{sec:algebra} --- which will give us a lot more than modeling the hyper-edges directly.
+		\item We will eventually also want to allow for the possibility of keeping only a relaxed, approximate representation of $\mathcal V$ and $\bmu$, and in particular, of the ones constructed logically in this way. By specifying them explicitly for now, we will have to do less work to regain manual control in \cref{sec:abstraction}
 	\end{itemize}
 %	In some ways, this these product nodes are kind of like anonymous functions: if you need them
 
+	\subsection{Alternate Presentations}
+	\subsubsection{Random Variables}
+	If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$}, and 
+	{\color{gray}$\mathcal L \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
+	\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\mathcal L$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\mathcal L$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
+	%and $(W, \mathcal F', p)$ is a subjective probability representing an agent's belief 
+	
+	
+	\begin{prop}
+		There is a natural correspondence between strict \MNs\ as defined in \cref{def:model}, and ensembles such that \todo{spell this out explicitly to avoid vague categorical intuition} \ldots $\mu$'s are defined on same set and produce same values.
+	\end{prop}
+	\begin{proof}
+		\textit{/outline:}
+		On the one hand, $(\prod_{N \in \cal N} \mathcal V(N).\text{set}, \bigotimes_{N \in \cal N} \mathcal V(N).\text{algebra}, \bmu)$ is a measure space, with $\{X_N = \pi_N : \left(\prod\mathcal V(N')\right) \to  \mathcal V(N) \}_{N \in \cal N}$ a set of random variables
+		
+		and  on the other, $(I, \mathcal L, \mathcal X', \mu|_{\cal L})$ is a strict \MN.
+	\end{proof}
+	
+	This is the technical underpinning of our flippant, noncommittal treatment of possible worlds: any time we are thinking in terms of random variables or probability distributions on a fixed set $W$, we can instead reduce
+	
+	
+	The complexity of the representation is $O(XV + L V^2)$, compared to $O(XW)$
+	
+	
 
 	\subsection{Sub-stochastic Transitions}
+	
+	In this section we will see why we called the object in \cref{def:model} a \textit{strict} \MN.	
+	Sometimes an otherwise very useful variable might not apply in a small percentage of cases; in this case, we want a way of putting all of the extra probability mass in a ``something else happened'' bucket, giving us effectively a sub-stochastic matrix, or a a lower probability on singletons. For instance, the variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``not applicable / something else'' bucket. 
+	
+	There are several closely concepts that we will be able to employ with our framework after integrating them
+	\begin{enumerate}[nosep]
+		\item Allowing random variables to be partial, rather than total functions of $W$. 
+		\item Relaxing the requirement $\int_W \mu \mathrm{d}w = 1$ to $\int_W \mu \mathrm{d}w \leq 1$
+		\item Requiring that matrices be sub-stochastic, rather than stochastic
+		\item Replacing probabilities, with the more general class of lower probability measures.
+%		\item Errors
+	\end{enumerate}
 
-	\subsection{Semantics}\label{sec:semantics}
+	This generalization is useful, but our primary motivation for this generalization is so that we can represent implication, and thus a weakening of knowledge as it travels through our graph, in a way that is not just entropy (which might not be distinguishable from certain knowledge of a high entropy distribution otherwise). 
+
+	At first glance, though, it might not be clear why this particular weakening buys us anything at all, because we can always just add the ``something else'' bucket $\bullet$, to $\mathcal V(X)$ for each $X$, and come up with a new strict \MN. A variable which might not make sense can always take a \texttt{null} value, and so now the set of possible is once again exhaustive. From the perspective of providing conditional distributions, however, this resolution poses a problem: our marginals now require us to estimate distributions from a null value--- this is problematic, as a big part of the reason we've been using links to avoid assigning probabilities to everything. Suppose you are trying to represent the belief that you're happier when you get the right answer as a marginal link $L[\mathrm{RightAns}\to \smiley]$. We now need a distribution on happiness when you get the right answer, when you get the wrong answer, and also for when $\bullet$. Why might it not be applicable? Are you not solving problems because you're skiing? Because you've been injured? Maybe you are solving problems but there are multiple right answers? You can't just answer with a prior over happiness if you want to have consistent beliefs, because solving problems and happiness might be correlated. One \emph{could} have such a thing but it seems unreasonable not to be able to express a belief about ``does the right answer make you happy?'' without also answering the much more difficult question, ``how happy are you when `the right answer' is not applicable to your current situation?''
+
+	To see how this increases our expressive power, suppose $A, B$ are binary variables (taking values $a, \bar a$ and $b, \bar b$ respectively). While we can easily easily represent $A = B$, $A = \lnot B$ as stochastic matrices,
+
+	\[ p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 1 & 0 \\ 0 & 1 \end{idxmatphant}
+	\qquad\text{and}\qquad p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 0 & 1 \\ 1 & 0 \end{idxmatphant}
+	\]
+
+	we cannot (via stochastic matrices) represent an assertion that $A \Rightarrow B$ without also giving a distribution over $B$ given $\bar a$. One strategy is a uniform prior (used in \cite{logicalinduction}), but this can easily lead to avoidable inconsistencies --- perhaps for totally different reasons you have very good reason to believe that the true distribution of $B$ is true in 90\% of cases; you don't want an arbitrary assumption of a prior competing with actual knowledge.
+
+	For this reason, we drop the requirement that our null element, $\bullet$, indexes a distribution in marginals. Below is an example of transition matrix $A \to B$ including the extra element. As mentioned, the last row is not something we are keeping track of.
+	
+	\[ \begin{idxmat}{$a_0$, $a_1$, $a_2$, $\bullet$}{$b_0$, $b_1$,  $\bullet$}
+	.2 & .1 & 0.7 \\
+	0 & 0 & 1 \\
+	1 & 0 & 0\\\hline
+	{\color{gray}.2} & {\color{gray}.6} & {\color{gray}0}
+	\end{idxmat} \]
+
+	Furthermore, because the final column is just whatever is necessary to make the rows sum to 1, we don't need to keep that either; as a result, it is sufficient to keep a smaller matrix without any $\bullet$-indices; the only price that we pay is that this matrix is \emph{sub}-stochastic rather than stochastic: its row entries sum to at most 1, rather than exactly 1. Composition works just as before; the product of sub-stochastic matrices is sub-stochastic. A probability distribution alone, and by extension a standard Bayesian network cannot do this --- because we require the look-up tables to exactly match all possible values, we can't drop any without totally giving up on any world which looks like that.	
+
+	\subsubsection{Relation to Partial Functions of $W$}
+	\subsubsection{Reduction to Lower Probability Measures}
+	
+	\begin{vcat}
+		\subsection{Categorical Definition}
+		 \note{I will not put any time into this, as it's not going in the paper, but it's here as a placeholder, and I'll list some reasons why this is worth thinking about.}
+		One reason this works out so nicely is every construction is universal. We can in fact give a simpler categorical presentation of \MNs\ for those who already know category theory. The highlights are as follows:
+		\begin{enumerate}
+			\item A \MN\ is an attention-shaped diagram in the Markov category. That is, functor from the free category generated by the graph $(\mathcal N, \mathcal L)$ representing attention, to the Markov category. Indeed $\mathcal V$ is the action on objects, assigning each $\mathcal N$ to a measurable set, $\bmu$ is the action on morphisms, sending edges in $\mathcal L$ to Markov kernels between their associated objects. 
+			\begin{enumerate}
+				\item Composition works out in general as we place no restrictions on anything, but
+				\item If every edge in $\mathcal L$ represents the causal structure of their relationship, then the image of the resulting diagram will be flat, and so effectively there will only be at most one, belief, and no possibility of conflict.
+				\item Interpreting with a different model of uncertainty (such as the powerset, giving us non-deterministic possibility) is simply an exchange of interpretation. However, for nice interaction with deterministic functions and logic, this notion of uncertainty must be a monad.
+			\end{enumerate}
+			
+			\item This highlights the role of the ``qualitative'' and ``quantitative'' versions of this framework (which work out much more cleanly than for BNs in a categorical sense)
+			
+			\item A limit of this diagram is a space of worlds and all of the random variables as functions. A colimit is a the strongest thing that must be true according to the model (suspicion: this is somehow related to common knowledge). There is some strangeness about how samples work that I have not yet figured out.
+		\end{enumerate}
+	\end{vcat}
+
+	\section{Semantics}\label{sec:semantics}
 	These graphs admit multiple semantics. As discussed in section \ref{sec:worlds}, we think of \modelnames\ as being a representation of knowledge in and of themselves, rather than a compression of something more fundamental such as a probability distribution. Still, we will find it useful to interpret them in various ways: doing so will make it possible to compare them more directly with existing graphical models, which one thinks of as really just being compressed distributions. In this section, we would like to highlight three important semantics.
 	
-	\subsubsection{As Sets of Distributions}\label{sec:set-of-distribution-semantics}
-	If the focus is on under-constrained models, then just as a BN represents a distribution on joint space, a \MN\ might might thought of as representing the set of all distributions that marginalize out to it exactly.
+	\subsection{As Sets of Distributions}\label{sec:set-of-distribution-semantics}
+	If the focus is on under-constrained models, then just as a BN represents a distribution on joint space, a \MN\ might might thought of as representing the set of all distributions that marginalize out to it exactly. Let $\mathbf{Prob}(Z)$ be the set of all probability distributions on a measurable set $Z$. 
 	
-	\[ \Big\llbracket M \Big\rrbracket_* := \left\{\mu \in \mathbf{Prob}\left[\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
-		\mu(B = b \mid A = a) = \boldsymbol\mu[A,B](a,b) \text{~for all $A, B \in \mathcal L$, $a \in\mathcal V(A)$, and $b \in \mathcal V(B)$} \right\}\]
+	\begin{defn}
+		If $M = (\mathcal N, \mathcal L, \mathcal V, \boldsymbol\mu)$ is a \MN, let $\llbracket M \rrbracket_\Set$ be the set of distributions over the variables in $M$ consistent with $\boldsymbol\mu$ on every marginal. Formally,
+		
+		\[ \Big\llbracket M \Big\rrbracket_\Set := \left\{\mu \in \mathbf{Prob}\left[\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
+		\begin{array}{l}
+		\mu(B = b \mid A = a) = \boldsymbol\mu[A,B](b \mid a) \\[0.2em]
+		\qquad\text{for all $A, B \in \mathcal L$, $a \in\mathcal V(A)$, and $b \in \mathcal V(B)$} \end{array} \right\}\]
+	\end{defn}
+	
+
+		
 	
 	
 %	This is much stronger than the 
 
-	\subsubsection{As Distributions}
-	The most familiar to 
-
-	\section{Rebuilding Standard Pictures}
+	\subsection{As Distributions}
 	
-	In the worst case, 
+	
+	\begin{defn}
+		If $\ell$ is a scoring function for probabilities, and $\bf S$ is a semantics for \MNs, let 
+		\begin{align*}
+			\llbracket M \rrbracket_{\bf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \leq \ell(\mu')  \right\} \\
+%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
+		\end{align*}
+	\end{defn}
+	
+	One particularly useful one for emulating Bayesians is the following one, maximizing entropy:
+	\[ \Big\llbracket M \Big\rrbracket_\MaxEnt := \Big\llbracket M \Big\rrbracket_\Set^{-H(\cdot)} \]
+
+%	\section{Rebuilding Standard Pictures}
+%	
+%	In the worst case, 
 	
 	\section{Relations to Other Graphical Models}
 	\subsection{Bayesian Networks}
