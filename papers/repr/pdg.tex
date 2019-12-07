@@ -3,13 +3,16 @@
 
 \input{../model-commands.tex}
 
+\usepackage{subcaption}
 \usepackage{comment}
-\includecomment{vfull}
-\includecomment{vcat}
+%\includecomment{vfull}
+%\includecomment{vcat}
+\excludecomment{vfull}
+\excludecomment{vcat}
 
 
 %%%%%% Commands to highlihght changes in the document.
-\definecolor{note-fg}{rgb}{0.1,0.4,0.0}
+\definecolor{note-fg}{rgb}{0.0,.3,0.2}
 %\newcommand\changed[1]{\colorbox{light gray}{\parbox{\linewidth}{#1}}}
 \newcommand\changed[1]{{\color{note-fg} #1}}
 \newcommand\changeon{\color{note-fg} }
@@ -26,6 +29,7 @@
 \usepackage[nointegrals]{ wasysym }
 
 \addbibresource{../refs.bib}
+\addbibresource{../uncertainty.bib}
 \addbibresource{../maths.bib}
 
 
@@ -65,8 +69,10 @@
 	\section{Introduction}
 %	Because writing down distributions explicitly is intractable, and so it is necessary to have.
 	{\color{blue}
+%	I'm still not sold on a story. I think the "there are lots of these, this one has new properties" is more descriptive than engaging. 
 	%JOE-1
-		%Although inconsistency was our major motivation, I’m not sure that that’s how I would write  the introduction.  Here’s a possible alternative: There are a number of quite successful graphical representations of uncertainty.  We’re going to introduce one more.  What makes our novel and interesting?  Two things:  (1) it can represent local information and (2) it can represent inconsistency.  Here are some examples to show that both features are quite useful 
+		%Although inconsistency was our major motivation, I’m not sure that that’s how I would write  the introduction.  Here’s a possible alternative:
+		% There are a number of quite successful graphical representations of uncertainty.  We’re going to introduce one more.  What makes our novel and interesting?  Two things:  (1) it can represent local information and (2) it can represent inconsistency.  Here are some examples to show that both features are quite useful 
 		%in practice.  The examples will also give some intuition for our representation.  [[GIVE EXAMPLES.]]  Point out that our approach seems cognitively
 		%simpler.  Discuss (at a high level) the two possible semantics for the language.  Say that the “weighted probabilities” approach has two significant advantages over the more obvious “set of probability measures”  approach:  (1) It allows us to consider inconsistent scenarios, since the distributions do not have to be consistent with the graph.  (2) It gives us a natural way of going from a local picture to a global one; there are various choices, and we can consider the “best” one(s).  (3) It allows us to connect our approach to Bayesian networks (and factor graphs?) in a straightforward way.    
 	
@@ -78,50 +84,57 @@
 %	However, these representations are ultimately committed to representing probability distributions; I argue that the graphical model bit is a
 	}
 
+	\changed{
+%	Being a Bayesian agent is hard: you have to keep a joint prior on everything at all times, you have to be logically omnipotent, and 
 	
-	There are already many graphical models
+	Being a perfect Bayesian agent, while admirable, is hard. At the beginning of life, you must conceptualize the set of all worlds you could ever consider possible at any point in your existence. Then, every time you acquire knowledge, you need to know exactly how much you trust it, and do substantial book-keeping just to maintain a valid mental state in the form of a prior over these possible worlds.
+	%
+	Such hurdles illustrate a very serious \textit{lack of modularity}: there is no way to conceptualize new worlds, and it is only possible to combine observations with a full prior (that you trust). Combining partial observations, looking at only part of your knowledge, or adopting beliefs without considering its impact on all possible worlds all count as cheating, and worrying about a fault in your prior is unnecessary. 
+	%	
+	Why endure such tribulations? The big payoff is \textit{guaranteed consistency}. Having inconsistent beliefs leads to arbitrarily bad conclusions, and leave you vulnerable to unbounded pain in the form of dutch book arguments; the engineering ethos suggests it is best to avoid such things by design.
 	
-	Why use a graphical model at all?
-	\begin{enumerate}
-		\item Compressed, implicit representation of a giant joint distribution, making use of independence
-		\item An intuitive way of communicating complex models.
-		\item A local picture of knowledge, where , 
-	\end{enumerate}
 	
-	I argue that the 
+	This stunt is too difficult for humans, but many argue that we should approximate it as best we can, especially given the freedom to construct arbitrary artificial agents. Fortunately, there are many tools to make the problem tractable; of particular relevance are graphical models, which offer a compact, implicit representation of possible worlds as settings of random variables, and of a distribution over them in terms of local information. Graphical models even offer modularity (to various extents), but are still beholden to the restrictions above: updating is still restrictive and expensive, and consistency must still be enforced at all times, in a way which cripples promises of modularity.\footnote{\changed{This avoidance of inconsistency is actually the reason that adding arbitrary nodes to graphical models is problematic: to add a node to a network, it has to satisfy the appropriate independence properties, lest the network actually represent two distinct beliefs about one thing. Of course, knowing this for certain is a very strong assumption, and hence you cannot safely add nodes to graphical models without already knowing a lot about the variable---which begs the question: if your mental state is only what's in the graphical model, how did you get this knowledge of a new variable?}}
 	
+	While we share the distaste for inconsistency, awareness of it can be a useful resource for seeking truth, and knowledge that there isn't even though there could have been, is a valuable safeguard. Worse than merely missing this opportunity, disallowing inconsistency by construction can sweep problems under the rug (see \cref{sec:consistency-ethos} for the full argument). In light of this, we introduce a more general representation of knowledge and uncertainty in the form of a graphical model capable of representing inconsistent belief states, which we call \modelnames\ (\MNs). Special cases of \MNs\ include Bayesian Networks and they can also mostly emulate (but are better behaved than) factor graphs. The extra flexibility makes them easier to use, and surprisingly, they enjoy additional properties which make them more useful than some specific variants, which we list in \cref{sec:list-of-benefits}.
+%	Why use a graphical model at all?
+%	\begin{enumerate}[nosep]
+%		\item Compressed, implicit representation of a giant joint distribution, making use of independence
+%		\item An intuitive way of communicating complex models.
+%		\item A more local knowledge representation
+%	\end{enumerate}
+	To get a feel for what \MNs\ are and how they differ from other graphical models, it is helpful to see examples.
+	}
+
 	%%%%%%%%%%%%%%%%%%%
-
-	Inconsistency is bad. Believing a logically inconsistent formula can lead you to arbitrarily bad conclusions, having an infeasible set of constraints makes all answers you could give wrong, and having inconsistent preferences can lose you infinite money. We don't want to build inconsistent systems or agents with incoherent views of the world, and so, where possible, we design them so they cannot possibly be broken in this way. Suppose, for example, that we are trying to represent some quantity that must be a point on the unit circle. We could do it with an $x$ and $y$ coordinate, but this could be problematic because $x^2+ y^2$ might not be 1 --- it would be safer and harder to go awry if we parameterize it by an angle $\theta \in [0, 2\pi)$ instead. In the absence of performance benefits (like needing to regularly use the $y$-coordinate and not wanting to compute a sine), why would we take the first approach, introducing a potentially complex data-invariant, when we could avoid it?
-
-	This line of thought, though common and defensible, is flawed if we are not perfectly confident in the design of both our system and the ways it can interact with the outside world. Using similar logic, we might ask ourselves: Why ask programmers for type annotations when all instructions are operationally well-defined at run-time?  Why use extra training data if there's already enough there to specify a function? Why estimate a quantity in two ways when they will yield different answers? Why repeat and rephrase your ideas when this could make you contradict yourself? Why write test cases when they could fail and make the project inconsistent? Why conduct an experiment if it could just end up contradicting your current knowledge?
-
-	These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariants can be expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that something has gone wrong.
-	In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags.
-
-	Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$. 
-	By construction, the result must be a distribution, and nothing can possibly go wrong so long as we can always decide on exactly one distribution which is sufficient for our purposes.
-%	By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
-	
-	
-	The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
-
-	It is clear that, while inconsistency is bad, being able to identify it is extremely useful. To that end, we introduce a more general representation of knowledge and uncertainty which can be both under and over-constrained (from the perspective of producing a probability distribution), can be used to emulate a large class of both probabilistic models and constraint sets, and enjoys many additional properties which make them more useful than the specific variants. % All of this comes at the cost of being slightly more difficult to analyze in general case: most decision problems on \modelnames\ are NP hard. % and some are incomputable.
 
 
 	\begin{example} \label{ex:planet}
-		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew how big it is and whether it's mostly made of rocks or gas. That is to say that we have a conditional probability table $\Pr(\text{Life} ~|~ \text{Size}, \text{Composition})$, which we are used to graphically depicting like this:
-		\begin{ctikzpicture}
-			\node[dpadded] (SS) at (-0.4, 2) {Size};
-			\node[dpadded] (CC) at (3, 2) {Composition};
-			\node[dpadded] (LL) at (1.3,0) {Life};
+		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, \changed{supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas). That is to say, we have a conditional probability table:
+		
+		\begin{center}
+			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) = 
+			\begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{life, no life}
+				.1 & .9 \\
+				.2 & .8 \\
+				.05 & 0.95 \\
+				0.00001 & 0.99999
+			\end{idxmat} 
+			\qquad$
+			\begin{tikzpicture}[center base]
+			\node[dpadded,light pad,fill opacity=0] (SS) at (-0.4, 1.2) {Size};
+			\node[dpadded,light pad,fill opacity=0] (CC) at (3, 1.2) {Composition};
+			\node[dpadded,light pad,fill opacity=0] (LL) at (1.2,0) {Life};
 			\draw[arr] (CC) -- (LL);
 			\draw[arr] (SS) -- (LL);
-		\end{ctikzpicture}
-		This picture looks like a Bayesian Network, which is somewhat misleading. In order to interpret this graph as a quantitative BN, we also would need probability distributions over Size and Composition --- things we may not be willing to give.\footnote{Situations like these are incredibly common and important. In statistical learning theory, this is the difference between a generative and a discriminative (or conditional) model}
-		From a probabilistic perspective, our beliefs are under-specified. This is a problem (though not a novel one) with Bayesian networks.
+			\end{tikzpicture}		
+		\end{center}
+		\vspace{1em}
+	
+		This one conditional probability table cannot constitute a full Bayesian network. It is indeed a fragment of the Bayesian Network on the right, but in order to interpret the picture as a BN, it would be impossible not to also have a prior distribution over the variables `Size' and `Composition'---things we may not know anything about.\footnote{Models like these are well known to hardcore probabilists as well. In statistical learning theory, an `incomplete' model like this is a discriminative (or conditional) model, as compared to a generative one.}
+		While such a mental state is under-constrained from the perspective of probability, it is certainly falsifiable and \emph{seems like knowledge}. This is perhaps the most common challenge to the idea that belief states are probability distributions, and by extension to the universality of the Bayesian Networks which represent them.}
 
-		A bigger problem occurs when our biologist friend reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to incorporate it into our picture, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing.\footnote{If \textit{Size} and \textit{Composition} each have $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+		\changed{The opposite problem, though less appreciated, also occurs: just as it is impossible to represent an under-constrained distribution with a Bayesian Network, so too is it impossible to represent an over-constrained one. Patching this requires the more radical fix we present in the form of a \MN.} Suppose our biologist friend now reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to place it as the parent of the $L$ node, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing.\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
 		Let $S, C, W, L$ be shortenings of Size, Composition, Water, and Life, respectively.
 		Intuitively, we want to draw instead a picture that looks more like this:
 
@@ -136,22 +149,86 @@
 		\end{tikzpicture}
 		\end{center}
 	
-		which represents having two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. This would allow us to combine the two facts that we know, without also providing more information than we're prepared to equivocate on. It is worth noting that there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+		which represents having two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. This would allow us to combine the two facts that we know, without also providing much more information than we're prepared to equivocate on. It is worth noting that there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+	\end{example}
+
+	\begin{example}
+		Consider the classic example used to introduce Bayesian nets, in which the four variables are interest are booleans indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to 2nd hand smoke, and ($PS$) has parents who smoke, presented graphically as follows:
+		\begin{figure}[h!]
+			\centering
+			\begin{subfigure}[b]{0.3\textwidth}
+				\begin{tikzcd}[center base, column sep=1.8em, row sep=1.3em, dpad={fill opacity=0, draw=gray}]
+				& S \ar[dr] \\
+				PS \ar[ur]\ar[dr] && C \\
+				& SH \ar[ur]
+				\end{tikzcd}
+			\caption{Bayesian Network}
+			\end{subfigure}
+			\hspace{2em}\vline\hspace{2em}
+			\begin{subfigure}[b]{0.5\textwidth}
+				\begin{tikzpicture}[center base]
+				\node[dpadded] (1) at (0,0) {true};
+				\node[dpadded] (PS) at (2,0) {$PS$};
+				\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
+				\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
+				\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
+				
+				\draw[arr] (1) -- (PS);
+				\draw[arr] (PS) -- (S);
+				\draw[arr] (PS) -- (SH);
+				\cmergearr{SH}{S}{C}{5.1,0}
+				\end{tikzpicture}
+				\caption{Corresponding \MN}
+			\end{subfigure}
+		\end{figure}
 		
-		The probabilists in us might not be willing to so easily give up the notion that these data define a probability distribution, at least implicitly. 
+		This is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. It encodes an assumption that every node is independent of its non-descendants given its parents.
+		
+		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and to do properly would require much more empiricism to validate. Why even bother jumping through this hoop? Because we wanted a BN to be shorthand for a probability distribution. But we have freed ourselves from these shackles, and make no such assumption.
+		
+		
+
+
+		The node on the far left is a special node which only takes one value, and allows us to represent unconditional distributions as arrows, visually making clear the difference between a lack of distribution, and an unconditional one. 
+		
+		Now, suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
+		The \MN\, on the other hand, has no trouble, and is simply the union of the two pieces of information:
+		
+		\begin{center}
+			\begin{tikzpicture}
+			\node[dpadded] (1) at (0,0) {true};
+			\node[dpadded] (PS) at (2,0) {$PS$};
+			\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
+			\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
+			\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
+			\node[dpadded, fill opacity=0.16] (T) at (8.5,0) {$T$};
+			
+			\draw[arr] (1) -- (PS);
+			\draw[arr] (PS) -- (S);
+			\draw[arr] (PS) -- (SH);
+			\cmergearr{SH}{S}{C}{5.1,0}
+			\draw[arr] (T) -- (C);
+			\end{tikzpicture}
+		\end{center}
+		Note that the right half of the diagram (shaded slightly darker) has the same topology as in example \ref{ex:planet}.
+	\end{example}
+
+
+	\subsection{Factor Graphs}
+	
+	\begin{example}[continues=ex:planet]
+		The probabilists in us might not be willing to so easily give up the notion that this data ought to define a probability distribution, at least implicitly. 
 		% We presumably already have a prior over everything, and in the event that we d
-		Perhaps the reason Bayesian networks are insufficient to represent this epistemic state is because the state is not a distribution and hence invalid; maybe there's something simple we can do to turn it into a one? It turns out that we can (almost always) get a distribution and simultaneously commit to preserving the relative ratios of the specified probabilities within the links, and even more clearly exposing the independence structure that we think of Bayesian Networks as giving. 
-		
+		%Bayesian networks are insufficient to represent this epistemic state is because the state is not a distribution and hence invalid? 
+		Maybe there's something simple we can do to turn it into one? It turns out that we can (almost always) \changed{simultaneously get a distribution and commit to preserving the relative ratios of the specified probabilities within the links, while also more clearly exposing our independence assumptions. 		
 		%specified to be probability distribution. If we had had a prior, perhaps we could have ``conditioned'' it on the new probability information that our colleague gave us.%
 		%\footnote{
 		%	``Conditioned'' gets quotation marks because the statement is not an event --- it is not information about the actual world $(S,C,L,W)$, but a meta-statement about probabilities. A probabilist can now avoid this by incorporating the things that a colleague can say into their mental model, and conditioning on the things that are said, which are now truly events. There are two issues with this. First, thsi runs into the problem that you already needed to have all worlds modeled in your head. Even if you allow yourself to form new concepts and worlds as the come to attention,  
 		%	}
-		 
-
-%		Together with the perspective that a Bayesian Network really encodes independence, this line of thought might cause one to think that the problem was a restrictive class of graphical model. Perhaps really we wanted a factor graph:
-		This can be done by treating the conditional distributions $p(L =l \mid S=s, C=c)$ and $p(L=l \mid W=w)$ as \emph{factors}, which multiplied together give the relative probability density of any setting of variables $S \times C \times W \times L$
+		 %	Together with the perspective that a Bayesian Network really encodes independence, this line of thought might cause one to think that the problem was a restrictive class of graphical model. Perhaps really we wanted a factor graph:
+		This can be done by} treating the conditional distributions $p(L =l \mid S=s, C=c)$ and $p(L=l \mid W=w)$ as \emph{factors}, which multiplied together give the relative probability density of any setting of variables $S \times C \times W \times L$
 		\[ \Pr(s, c, w, l) \propto \phi_1(s,c,l) \phi_2(w,l) \]
-		where $\phi_1(s,c,l) = p(L=l \mid S=s, C=c)$, $\phi_2(w,l) = p(L=l\mid W=w)$. This can also be represented graphically, with a \emph{factor graph}---a commonly used graphical model hailed as a strict generalization of Bayesian Networks and Markov networks. 
+		where $\phi_1(s,c,l) = p(L=l \mid S=s, C=c)$, $\phi_2(w,l) = p(L=l\mid W=w)$. This can also be represented graphically, with a \emph{factor graph}---a commonly used graphical model hailed as a strict generalization of Bayesian Networks and Markov networks.
 		
 		\begin{center}
 		\begin{tikzpicture}
@@ -167,7 +244,8 @@
 			\draw[thick] (W) -- (f2) -- (L);
 		\end{tikzpicture}
 		\end{center}
-		We now have a distribution that combines our beliefs, but this is not exactly what we had in mind earlier. Beyond simply the inevitable effects \changed{of representing our knowledge as a distribution, such as forcing us to implicitly adopt marginal distributions over the variables $S,C$, and $W$, a product of factors has additional undesirable properties:}
+	 	\changed{In this diagram, circles represent variables, and the boxes represent factors that depend on variables they connect to.}
+		This is a lot more modular (we can add and remove factors as we like). We now have a distribution that combines our beliefs, but this is not really what we were thinking of earlier. Beyond simply the inevitable effects \changed{of representing our knowledge as a distribution, such as forcing us to implicitly adopt marginal distributions over the variables $S,C$, and $W$, a product of factors has additional undesirable properties that are not shared by \MNs:}
 
 		\begin{enumerate}
 			\item We can't weight the pieces of information differently. Though the scale of each factor $\phi_i$ gives us a degree of freedom in which to encode this information, it cannot be used, as $(a\phi_1) (b\phi_2) = (ab) (\phi_1\phi_2)$, and the aggregate coefficient $ab$ too is normalized out to form the distribution.
@@ -179,71 +257,22 @@
 		\end{enumerate}		
 	\end{example}
 	
-	While offer a solution of great generality, they sacrifice a great deal of interpretability and destroy a lot of the important internal features of our original belief representation, so that they can represent distributions.
-	
+	While factor graphs offer a solution of great generality, they sacrifice interpretability and important internal features of our original belief representation, so that they can represent distributions.	
 	This is not good, but much worse is the way that they sweep under the rug issues wherever possible. In example \ref{ex:planet},
 	
 	Akin to a  in some ways destroy inconsistency that may have been a big deal had it come to the surface.
 	
 	
-	\begin{example}
-		Consider the classic example used to introduce Bayesian nets, in which the four variables are interest are booleans indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to 2nd hand smoke, and ($PS$) has parents who smoke, presented graphically as follows:
-		\[ \begin{tikzcd}[center base, column sep=2em, dpad={fill opacity=0, draw=gray}]
-					& S \ar[dr] \\
-					PS \ar[ur]\ar[dr] && C \\
-					& SH \ar[ur]
-				\end{tikzcd} \]
-				
-		This is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. It encodes an assumption that every node is independent of its non-descendants given its parents.
-		
-		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and to do properly would require much more empiricism to validate. Why even bother jumping through this hoop? Because we wanted a BN to be shorthand for a probability distribution. But we have freed ourselves from these shackles, and make no such assumption.
-
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (1) at (0,0) {true};
-			\node[dpadded] (PS) at (2,0) {$PS$};
-			\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
-			\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
-			\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
 	
-			\draw[arr] (1) -- (PS);
-			\draw[arr] (PS) -- (S);
-			\draw[arr] (PS) -- (SH);
-			\cmergearr{SH}{S}{C}{5.1,0}
-		\end{tikzpicture}
-		\end{center}		
-		The node on the far left is a special node which only takes one value, and allows us to represent unconditional distributions as arrows, visually making clear the difference between a lack of distribution, and an unconditional one. 
-		
-		Now, suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
-		The \MN\, on the other hand, has no trouble, and is simply the union of the two pieces of information:
-				
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (1) at (0,0) {true};
-			\node[dpadded] (PS) at (2,0) {$PS$};
-			\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
-			\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
-			\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
-			\node[dpadded, fill opacity=0.16] (T) at (8.5,0) {$T$};
 	
-			\draw[arr] (1) -- (PS);
-			\draw[arr] (PS) -- (S);
-			\draw[arr] (PS) -- (SH);
-			\cmergearr{SH}{S}{C}{5.1,0}
-			\draw[arr] (T) -- (C);
-		\end{tikzpicture}
-		\end{center}
-		Note that the right half of the diagram (shaded slightly darker) has the same topology as in example \ref{ex:planet}.
-	\end{example}
-	
-	Benefits of this representation:
+	\subsection{Benefits}\label{sec:list-of-benefits}
 	\begin{enumerate}[nosep]
 		\item We can represent both over-constrained and under-constrained mental states, both of which we argue are an important component of an agent's state.
 		\item Over-constrained models may be inconsistent; such inconsistencies provide a natural way of prescribing changes in mental state. Moreover, many standard algorithms, such as belief updating via Jeffrey's rule, as well as marginalization algorithms such as belief propagation, can be regarded as special cases of consistency reduction.
-		\item We can emulate the functionality of not only other graphical models (such as Bayesian Networks, and to a large extent, factor graphs), but also other non-probabilistic notions of uncertainty.
+		\item \MNs\ can emulate the functionality of not only other graphical models (such as Bayesian Networks, and to a large extent, factor graphs), but also other non-probabilistic notions of uncertainty.
 		\item The local interpretation of arrows makes it much less invasive to add, remove, and partially interpret parts of the model, compared to other graphical models.
-		\item This modularity makes it possible to add explicit rules to embed logic within the model
-		\item By allowing agents to merge, split, and compress variables, we also make it possible for agents to design their own representations. With these tools, in conjunction with consistency
+		\item In conjunction with  agents to merge, split, and compress variables, we also make it possible for agents to design their own representations. With these tools, in conjunction with consistency.
+		\item The modularity makes it possible to add explicit rules to embed logic within the model.
 		\item In contrast with a simple collection of constraints, inconsistencies are local, and individual mistakes have limited impact on expectations.
 	\end{enumerate} % trade-off: harder to analyze.
 
@@ -449,7 +478,7 @@
 	\subsubsection{Reduction to Lower Probability Measures}
 	
 	\begin{vcat}
-		\subsection{Categorical Definition}
+		\subsection{Categorical Presentation}
 		 \note{I will not put any time into this, as it's not going in the paper, but it's here as a placeholder, and I'll list some reasons why this is worth thinking about.}
 		One reason this works out so nicely is every construction is universal. We can in fact give a simpler categorical presentation of \MNs\ for those who already know category theory. The highlights are as follows:
 		\begin{enumerate}
@@ -576,5 +605,21 @@
 		\end{example}
 		
 	\end{vcat}
-	\section{Conclusions}
+	\section{Discussion}
+
+	\subsection{Inconsistency} \label{sec:consistency-ethos}
+
+	Inconsistency is bad. Believing a logically inconsistent formula can lead you to arbitrarily bad conclusions, having an infeasible set of constraints makes all answers you could give wrong, and having inconsistent preferences can lose you infinite money. We don't want to build inconsistent systems or agents with incoherent views of the world, and so, where possible, we design them so they cannot possibly be broken in this way. Suppose, for example, that we are trying to represent some quantity that must be a point on the unit circle. We could do it with an $x$ and $y$ coordinate, but this could be problematic because $x^2+ y^2$ might not be 1 --- it would be safer and harder to go awry if we parameterize it by an angle $\theta \in [0, 2\pi)$ instead. In the absence of performance benefits (like needing to regularly use the $y$-coordinate and not wanting to compute a sine), why would we take the first approach, introducing a potentially complex data-invariant, when we could avoid it?
+	
+	This line of thought, though common and defensible, is flawed if we are not perfectly confident in the design of both our system and the ways it can interact with the outside world. Using similar logic, we might ask ourselves: Why ask programmers for type annotations when all instructions are operationally well-defined at run-time?  Why use extra training data if there's already enough there to specify a function? Why estimate a quantity in two ways when they will yield different answers? Why repeat and rephrase your ideas when this could make you contradict yourself? Why write test cases when they could fail and make the project inconsistent? Why conduct an experiment if it could just end up contradicting your current knowledge?
+	
+	These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariants can be expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that something has gone wrong.
+	In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags.
+	
+	Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$. 
+	By construction, the result must be a distribution, and nothing can possibly go wrong so long as we can always decide on exactly one distribution which is sufficient for our purposes.
+	%	By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
+	
+	
+	The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
 \end{document}
