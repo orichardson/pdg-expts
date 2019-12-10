@@ -12,7 +12,7 @@
 
 
 %%%%%% Commands to highlihght changes in the document.
-\definecolor{note-fg}{rgb}{0.0,.3,0.2}
+\definecolor{note-fg}{rgb}{0.0,.4,0.2}
 %\newcommand\changed[1]{\colorbox{light gray}{\parbox{\linewidth}{#1}}}
 \newcommand\changed[1]{{\color{note-fg} #1}}
 \newcommand\changeon{\color{note-fg} }
@@ -61,22 +61,34 @@
 	\maketitle
 
 	\begin{abstract}
-		We introduce \modelnames, which can be regarded both as a probabilistic graphical model, and as a collection of soft, local, constraints. The additional representational flexibility allows us to represent both under and over-constrained belief states, as well as a modularity that makes the models easier to modify. They also have a clean theoretical backing, and reduce appropriately to existing, commonly used representations such as Bayesian Networks and constraint graphs. Some algorithms, notably including belief propagation, lift to the more general setting.
+		Graphical models have enjoyed substantial success in compressing probability distributions over joint settings of random variables, by encoding correlations locally in links, and making use of independence assumptions elsewhere. Still, due to the fact that they are committed to representing a single consistent distribution, they are not expressive enough to represent common mental states of agents who may not have a perfectly logical coherent . Unrelatedly, the process of modifying graphical models by adding or removing nodes/links can be quite expensive and changes the underlying space, making it more difficult to make use of the intuitive modularity that they seem to offer.
+		
+		We introduce \modelnames (\MNs) to combat these issues. \MNs\ are like unshackled Bayesian nets, interpreted more locally and whose links are interpreted as conditional sub-distributions. The result is a “graphical model” in a looser sense which may not always be either complete or consistent (from the perspective of a distribution), which can be easily combined with graph operations. We find that by solely altering the set of nodes and links and then running consistency reduction algorithm (one of which is a generalized version of belief propagation), we can recover important capabilities of Bayesian networks, such as the ability to estimate conditional and marginal distributions given observations, belief updating via Jeffrey’s rule. Further afield, we discover that this process also naturally models simple learning algorithms, and acting according to a decision rule (see the other paper for more). Bayesian networks, and to some extent, factor graphs, can be seen as special cases of \MNs.
 	\end{abstract}
 
 	\tableofcontents
 
 	\section{Introduction}
-%	Because writing down distributions explicitly is intractable, and so it is necessary to have.
-	{\color{blue}
-%	I'm still not sold on a story. I think the "there are lots of these, this one has new properties" is more descriptive than engaging. 
-	%JOE-1
-		%Although inconsistency was our major motivation, I’m not sure that that’s how I would write  the introduction.  Here’s a possible alternative:
+
+
+
+	%JOE-OUTLINE-1
+		% Although inconsistency was our major motivation, I’m not sure that that’s how I would write  the introduction.  Here’s a possible alternative:
 		% There are a number of quite successful graphical representations of uncertainty.  We’re going to introduce one more.  What makes our novel and interesting?  Two things:  (1) it can represent local information and (2) it can represent inconsistency.  Here are some examples to show that both features are quite useful 
 		%in practice.  The examples will also give some intuition for our representation.  [[GIVE EXAMPLES.]]  Point out that our approach seems cognitively
 		%simpler.  Discuss (at a high level) the two possible semantics for the language.  Say that the “weighted probabilities” approach has two significant advantages over the more obvious “set of probability measures”  approach:  (1) It allows us to consider inconsistent scenarios, since the distributions do not have to be consistent with the graph.  (2) It gives us a natural way of going from a local picture to a global one; there are various choices, and we can consider the “best” one(s).  (3) It allows us to connect our approach to Bayesian networks (and factor graphs?) in a straightforward way.    
+		
+	%JOE-OUTLINE-2
+%		Our initial motivation was to
+%		model preference change, which we felt was in part driven by
+%		inconsistencies.  But standard graphical model representations don't
+%		allow us to model inconsistency.  We were particularly interested in
+%		being able to model "local" inconsistency.  That is, most of your
+%		information is correct; there's just a small part that's inconsistent.
+%		As we shall see, the ability to model such locality turns out to be
+%		useful even in a setting where an agent's beliefs are consistent.
 	
-	
+	{\color{blue}
 %	\textbf{Outline, from your suggested one.}
 %	There are many representations of uncertainty. Probability is one of them. Graphical models are a compact representations of spaces and distributions on them. 
 %	The most important feature is not the fact that the model takes the form of a graph, nor that the variables are intelligible, but rather
@@ -84,17 +96,19 @@
 %	However, these representations are ultimately committed to representing probability distributions; I argue that the graphical model bit is a
 	}
 
-	\changed{
-%	Being a Bayesian agent is hard: you have to keep a joint prior on everything at all times, you have to be logically omnipotent, and 
 	
-	Being a perfect Bayesian agent, while admirable, is hard. At the beginning of life, you must conceptualize the set of all worlds you could ever consider possible at any point in your existence. Then, every time you acquire knowledge, you need to know exactly how much you trust it, and do substantial book-keeping just to maintain a valid mental state in the form of a prior over these possible worlds.
+
+
+	
+	\changed{Storing your beliefs in the form of a single probability distribution over a fixed set of possibilities is hard work. Before having any experience,} you must first conceptualize the set of all worlds you could ever consider possible. 
+	Then, each time you acquire knowledge, you need to know exactly how much you trust it, and do substantial book-keeping just to maintain a valid mental state in the form of a prior over these possible worlds.
 	%
-	Such hurdles illustrate a very serious \textit{lack of modularity}: there is no way to conceptualize new worlds, and it is only possible to combine observations with a full prior (that you trust). Combining partial observations, looking at only part of your knowledge, or adopting beliefs without considering its impact on all possible worlds all count as cheating, and worrying about a fault in your prior is unnecessary. 
+	\changed{One primary reason this feels like a handicap is due to the} \textit{lack of modularity}: there is no way to conceptualize new worlds, and it is only possible to combine observations with an existing prior (that you trust). \changed{As a result, anything you might do that doesn't necessarily identify a distribution---such as combining partial observations, looking at only part of your knowledge, adopting beliefs without considering their impact on all possible worlds, or simply forgetting your prior---leaves you in a rough spot because the resulting mental state cannot be represented}.
 	%	
-	Why endure such tribulations? The big payoff is \textit{guaranteed consistency}. Having inconsistent beliefs leads to arbitrarily bad conclusions, and leave you vulnerable to unbounded pain in the form of dutch book arguments; the engineering ethos suggests it is best to avoid such things by design.
+	Why tie yourself down this way? The big payoff is \textit{guaranteed consistency}. Having inconsistent beliefs leads to arbitrarily bad conclusions, and leave you vulnerable to unbounded pain in the form of dutch book arguments; the engineering ethos suggests it is best to avoid such things by design.
 	
 	
-	This stunt is too difficult for humans, but many argue that we should approximate it as best we can, especially given the freedom to construct arbitrary artificial agents. Fortunately, there are many tools to make the problem tractable; of particular relevance are graphical models, which offer a compact, implicit representation of possible worlds as settings of random variables, and of a distribution over them in terms of local information. Graphical models even offer modularity (to various extents), but are still beholden to the restrictions above: updating is still restrictive and expensive, and consistency must still be enforced at all times, in a way which cripples promises of modularity.\footnote{\changed{This avoidance of inconsistency is actually the reason that adding arbitrary nodes to graphical models is problematic: to add a node to a network, it has to satisfy the appropriate independence properties, lest the network actually represent two distinct beliefs about one thing. Of course, knowing this for certain is a very strong assumption, and hence you cannot safely add nodes to graphical models without already knowing a lot about the variable---which begs the question: if your mental state is only what's in the graphical model, how did you get this knowledge of a new variable?}}
+	Abiding by these restrictions seems empirically too difficult for humans, \changed{but there is still nonetheless a strong case that we should} approximate it as best we can, especially given the freedom to construct arbitrary artificial agents. Fortunately, there are many tools to make the problem tractable; of particular relevance are graphical models, which offer a compact, implicit representation of possible worlds as settings of random variables, and of a distribution over them in terms of local information. Graphical models even offer modularity (to various extents), but the existing ones are still beholden to the restrictions above: updating is still restrictive and expensive, and consistency is enforced by the representation, in a way which cripples promises of modularity.\footnote{This avoidance of inconsistency is actually the reason that adding arbitrary nodes to graphical models is problematic: to add a node to a network, it has to satisfy the appropriate independence properties, lest the network actually represent two distinct beliefs about one thing. Of course, knowing this for certain is a very strong assumption, and hence you cannot safely add nodes to graphical models without already knowing a lot about the variable---which begs the question: if your mental state is only what's in the graphical model, how did you get this knowledge of a new variable?}
 	
 	While we share the distaste for inconsistency, awareness of it can be a useful resource for seeking truth, and knowledge that there isn't even though there could have been, is a valuable safeguard. Worse than merely missing this opportunity, disallowing inconsistency by construction can sweep problems under the rug (see \cref{sec:consistency-ethos} for the full argument). In light of this, we introduce a more general representation of knowledge and uncertainty in the form of a graphical model capable of representing inconsistent belief states, which we call \modelnames\ (\MNs). Special cases of \MNs\ include Bayesian Networks and they can also mostly emulate (but are better behaved than) factor graphs. The extra flexibility makes them easier to use, and surprisingly, they enjoy additional properties which make them more useful than some specific variants, which we list in \cref{sec:list-of-benefits}.
 %	Why use a graphical model at all?
@@ -104,13 +118,13 @@
 %		\item A more local knowledge representation
 %	\end{enumerate}
 	To get a feel for what \MNs\ are and how they differ from other graphical models, it is helpful to see examples.
-	}
+	
 
 	%%%%%%%%%%%%%%%%%%%
 
 
 	\begin{example} \label{ex:planet}
-		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, \changed{supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas). That is to say, we have a conditional probability table:
+		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas). That is to say, we have a conditional probability table:
 		
 		\begin{center}
 			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) = 
@@ -123,7 +137,7 @@
 			\qquad$
 			\begin{tikzpicture}[center base]
 			\node[dpadded,light pad,fill opacity=0] (SS) at (-0.4, 1.2) {Size};
-			\node[dpadded,light pad,fill opacity=0] (CC) at (3, 1.2) {Composition};
+			\node[dpadded,light pad,fill opacity=0] (CC) at (3.4, 1.2) {Composition};
 			\node[dpadded,light pad,fill opacity=0] (LL) at (1.2,0) {Life};
 			\draw[arr] (CC) -- (LL);
 			\draw[arr] (SS) -- (LL);
@@ -131,8 +145,8 @@
 		\end{center}
 		\vspace{1em}
 	
-		This one conditional probability table cannot constitute a full Bayesian network. It is indeed a fragment of the Bayesian Network on the right, but in order to interpret the picture as a BN, it would be impossible not to also have a prior distribution over the variables `Size' and `Composition'---things we may not know anything about.\footnote{Models like these are well known to hardcore probabilists as well. In statistical learning theory, an `incomplete' model like this is a discriminative (or conditional) model, as compared to a generative one.}
-		While such a mental state is under-constrained from the perspective of probability, it is certainly falsifiable and \emph{seems like knowledge}. This is perhaps the most common challenge to the idea that belief states are probability distributions, and by extension to the universality of the Bayesian Networks which represent them.}
+		This one conditional probability table cannot constitute a full Bayesian network. It is indeed a fragment of the Bayesian Network on the right, but in order to interpret the picture as a BN, we would \changed{also generally insist that there were also distributions over the values of  the root nodes} `Size' and `Composition'---things we may not know anything about.\footnote{Models like these are well known to hardcore probabilists as well. In statistical learning theory, an `incomplete' model like this is a discriminative (or conditional) model, as compared to a generative one.}
+		While such a mental state is under-constrained from the perspective of probability, it is certainly falsifiable and \emph{seems like knowledge}. This is perhaps the most common challenge to the idea that belief states are probability distributions, and by extension to the universality of the Bayesian Networks which represent them.
 
 		\changed{The opposite problem, though less appreciated, also occurs: just as it is impossible to represent an under-constrained distribution with a Bayesian Network, so too is it impossible to represent an over-constrained one. Patching this requires the more radical fix we present in the form of a \MN.} Suppose our biologist friend now reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to place it as the parent of the $L$ node, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing.\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
 		Let $S, C, W, L$ be shortenings of Size, Composition, Water, and Life, respectively.
@@ -169,9 +183,9 @@
 				\begin{tikzpicture}[center base]
 				\node[dpadded] (1) at (0,0) {true};
 				\node[dpadded] (PS) at (2,0) {$PS$};
-				\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
-				\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
-				\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
+				\node[dpadded] (S) at (4, 1.4) {$S$};
+				\node[dpadded] (SH) at (4, -1.4) {$SH$};
+				\node[dpadded] (C) at (6.5,0) {$C$};
 				
 				\draw[arr] (1) -- (PS);
 				\draw[arr] (PS) -- (S);
@@ -260,7 +274,36 @@
 	While factor graphs offer a solution of great generality, they sacrifice interpretability and important internal features of our original belief representation, so that they can represent distributions.	
 	This is not good, but much worse is the way that they sweep under the rug issues wherever possible. In example \ref{ex:planet}, had the two sources of conditional distributions on $L$ been incompatible, (e.g., the support of each $\bmu(L\mid w)$ strictly larger than any $\bmu(L\mid s,c)$) one would have reason to further examine both beliefs --- a situation that would have been indistinguishable from an alternate factor graph where they agreed somewhere in between.
 	
+	\subsection{Worlds}
+	Other than allowing for inconsistency, the biggest difference between \modelnames\ and other graphical models is their interaction with the underlying space: a \MN\ .
 	
+	The standard approach to probabilistic modeling is to start by selecting a measurable space of possible outcomes $\Omega$, and then put a normalized measure on it and compute desired quantities with it. Before you can begin to think about random variables, which are defined as set $X_i : \Omega \to V_i$ from outcomes to the set of values $V_i$ that $X_i$ can take on, you have to specify $\Omega$. This construction works well, so long as $\Omega$ is large enough to express everything you ever cared to conceptualize. Because agents are expected to have probability distributions over $\Omega$, the set of worlds that they consider possible must effectively stay constant over time, to use mechanisms such as conditioning as a sole way of changing a mental state.
+	
+	Still, a we might wiggle our way around this using only classical probability: we could say that $\Omega$ is some very large set of outcomes that is guaranteed to be expressive enough to capture anything we care about, and then
+	
+	To be clear, we've already given up on the possibility of being a Bayesian, because we clearly don't have priors on arbitrary concepts we haven't considered yet if we don't even know the extent of the space, but we might be able to do this with some under-constrained mechanism.
+	
+	This strategy, works so long as you are an omniscient modeler. If you are modeling a system in which you know the set of all possible outcomes, either implicitly or explicitly, you can just collect them and use this to be $\Omega$, marginalize out appropriately, and let agents figure out their own distributions on subspaces of $\Omega$. Still, this is not entirely satisfying, for several reasons.
+	
+	
+	\todo{most of these are unfinished thoughts, some need to be deleted}
+	\begin{enumerate}
+		\item While it is true that the there will be subspaces of $\Omega$ which are isomorphic to the sets of worlds $W_i$ that the agents are modeling in their heads, the embedding is not at all clear \todo{}
+		
+		\item There may not be an omniscient modeler, and even if there were one, it seems very strange for an agent to have any access to it. Suppose you are using probabilities to describe real uncertainties in your life. To do this the standard way, you need to chose the subspace of the one true $\Omega$ \todo{why is this problematic? for reasons other than inability to change?}
+		
+		\item Agents can never gain access via any standard mechanism to new worlds. There's no principled way to add worlds from $\Omega$ to $W_i$. Effectively, they can never learn new concepts.
+		
+		\item Any updates must be done on the entire space of things you consider possible \todo{response: of course, this is all handled implicitly, so it's taken care of}.
+		
+		\item While agents are free to merge multiple states of $\Omega$ into a single state in $W_i$, they cannot do the reverse: an agent cannot have a finer granularity than $\Omega$ for discerning events. This would . This also implies that agents are logically omniscient.
+	\end{enumerate}
+	
+	For all of these reasons, we take the view that probability should be thought of subjectively,
+	
+	%	\footnote{in addition to being notoriously counter-intuitive.}
+	
+	At the same time, starting with a set of random variables $\{X_i\}$, and setting $\Omega = \prod_{i} V_i$ to be every possible assignment of variables is also an abuse of the word ``possible''.
 	
 	\subsection{Benefits}\label{sec:list-of-benefits}
 	\begin{enumerate}[nosep]
@@ -268,9 +311,9 @@
 		\item Over-constrained models may be inconsistent; such inconsistencies provide a natural way of prescribing changes in mental state. Moreover, many standard algorithms, such as belief updating via Jeffrey's rule, as well as marginalization algorithms such as belief propagation, can be regarded as special cases of consistency reduction.
 		\item \MNs\ can emulate the functionality of not only other graphical models (such as Bayesian Networks, and to a large extent, factor graphs), but also other non-probabilistic notions of uncertainty.
 		\item The local interpretation of arrows makes it much less invasive to add, remove, and partially interpret parts of the model, compared to other graphical models.
-		\item In conjunction with the ability to merge, split, and compress variables, agents can use the inconsistency and modularity that \MNs\ offer to subjectively expand and contract the set of possible worlds, without necessarily interacting with one true set of them which happens to be common knowledge.} % With these tools, in conjunction with consistency.
+		\item In conjunction with the ability to merge, split, and compress variables, agents can use the inconsistency and modularity that \MNs\ offer to subjectively expand and contract the set of possible worlds, without necessarily interacting with one true set of them which happens to be common knowledge. % With these tools, in conjunction with consistency.
 		\item The modularity makes it possible to add explicit rules to embed logic within the model.
-		\item In contrast with a simple collection of constraints, inconsistencies \changed{can be more local, and individual .
+		\item In contrast with a simple collection of constraints, inconsistencies \changed{can be more local, and individual pieces of information have limited impact on the semantics.}
 	\end{enumerate} % trade-off: harder to analyze.
 
 
@@ -291,36 +334,7 @@
 	
 	\section{Related Work}
 
-	\section{Worlds}
-	Other than allowing for inconsistency, the biggest difference between \modelnames\ and other graphical models is their interaction with the underlying space: a \MN\ .
-	
-	The standard approach to probabilistic modeling is to start by selecting a measurable space of possible outcomes $\Omega$, and then put a normalized measure on it and compute desired quantities with it. Before you can begin to think about random variables, which are defined as set $X_i : \Omega \to V_i$ from outcomes to the set of values $V_i$ that $X_i$ can take on, you have to specify $\Omega$. This construction works well, so long as $\Omega$ is large enough to express everything you ever cared to conceptualize. Because agents are expected to have probability distributions over $\Omega$, the set of worlds that they consider possible must effectively stay constant over time, to use mechanisms such as conditioning as a sole way of changing a mental state.
 
-	Still, a we might wiggle our way around this using only classical probability: we could say that $\Omega$ is some very large set of outcomes that is guaranteed to be expressive enough to capture anything we care about, and then
-
-	To be clear, we've already given up on the possibility of being a Bayesian, because we clearly don't have priors on arbitrary concepts we haven't considered yet if we don't even know the extent of the space, but we might be able to do this with some under-constrained mechanism.
-
-	This strategy, works so long as you are an omniscient modeler. If you are modeling a system in which you know the set of all possible outcomes, either implicitly or explicitly, you can just collect them and use this to be $\Omega$, marginalize out appropriately, and let agents figure out their own distributions on subspaces of $\Omega$. Still, this is not entirely satisfying, for several reasons.
-
-
-	\todo{most of these are unfinished thoughts, some need to be deleted}
-	\begin{enumerate}
-		\item While it is true that the there will be subspaces of $\Omega$ which are isomorphic to the sets of worlds $W_i$ that the agents are modeling in their heads, the embedding is not at all clear \todo{}
-
-		\item There may not be an omniscient modeler, and even if there were one, it seems very strange for an agent to have any access to it. Suppose you are using probabilities to describe real uncertainties in your life. To do this the standard way, you need to chose the subspace of the one true $\Omega$ \todo{why is this problematic? for reasons other than inability to change?}
-
-		\item Agents can never gain access via any standard mechanism to new worlds. There's no principled way to add worlds from $\Omega$ to $W_i$. Effectively, they can never learn new concepts.
-
-		\item Any updates must be done on the entire space of things you consider possible \todo{response: of course, this is all handled implicitly, so it's taken care of}.
-
-		\item While agents are free to merge multiple states of $\Omega$ into a single state in $W_i$, they cannot do the reverse: an agent cannot have a finer granularity than $\Omega$ for discerning events. This would . This also implies that agents are logically omniscient.
-	\end{enumerate}
-
-	For all of these reasons, we take the view that probability should be thought of subjectively,
-
-%	\footnote{in addition to being notoriously counter-intuitive.}
-
-	At the same time, starting with a set of random variables $\{X_i\}$, and setting $\Omega = \prod_{i} V_i$ to be every possible assignment of variables is also an abuse of the word ``possible''.
 
 
 	\section{Equivalent Definitions and Variants}
