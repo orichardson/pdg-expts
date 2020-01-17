@@ -167,40 +167,44 @@
 		In order to represent unconditional probabilities cleanly% (among other things; see section \ref{sec:algebra})
 		, we introduce the \emph{unit variable}, $\mathsf 1$, or `$\mathrm{true}$', which always takes its unique value (which we call $\star$). 
 		
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (true)  at (0,1.7) {$\mathsf 1$};
-			\node[dpadded] (floomp) at (-1.5,0) {$F$};
-			\node[dpadded] (gun) at (1.5,0) {$G$};			
-			
-			\draw[arr] (true) -- coordinate(A) (floomp);
-			\draw[arr] (true) -- coordinate(B) (gun);
+		\begin{figure}[h]
+			\centering
 
-			\node[above left=0.5em of A] {
-				\begin{idxmat}{$\star$}{$f$, $\overline f$}
-					.90 & .10 \\
-				\end{idxmat}
-			};
-			\node[above right=0.5em of B] {
-				\begin{idxmat}{$\star$}{$g$, $\overline g$}
-					.05 & .95 \\
-				\end{idxmat}
-			};
-
-			\definecolor{heldout}{rgb}{0.7,0.7,1}	
-			\draw[heldout, dashed, arr] (floomp) -- coordinate(C) (gun);
-			\node[below=1em of C] {
-				\color{heldout}
-				\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
-					0.92 & 0.08 \\ 0.08 & 0.92 \\
-				\end{idxmat}
-			};
-		\end{tikzpicture}
-		\end{center}
+			\begin{tikzpicture}
+				\node[dpadded] (true)  at (0,1.7) {$\mathsf 1$};
+				\node[dpadded] (floomp) at (-1.5,0) {$F$};
+				\node[dpadded] (gun) at (1.5,0) {$G$};			
+				
+				\draw[arr] (true) -- coordinate(A) (floomp);
+				\draw[arr] (true) -- coordinate(B) (gun);
+	
+				\node[above left=0.5em of A] {
+					\begin{idxmat}{$\star$}{$f$, $\overline f$}
+						.90 & .10 \\
+					\end{idxmat}
+				};
+				\node[above right=0.5em of B] {
+					\begin{idxmat}{$\star$}{$g$, $\overline g$}
+						.05 & .95 \\
+					\end{idxmat}
+				};
+	
+				\definecolor{heldout}{rgb}{0.7,0.7,1}	
+				\draw[heldout, dashed, arr] (floomp) -- coordinate(C) (gun);
+				\node[below=1em of C] {
+					\color{heldout}
+					\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
+						0.92 & 0.08 \\ 0.08 & 0.92 \\
+					\end{idxmat}
+				};
+			\end{tikzpicture}
+			\caption{\MN\ representation of the inconsistent state before resolution}
+			\label{fig:gun-floomp-diagram}
+		\end{figure}
 		
 		The original state of knowledge, consists of all three nodes and the two edges from $\mathsf 1$, displayed in black and gray. This is like our earlier Bayes Net graph, except we no longer need to make the assumption up front that $F$ and $G$ are independent, so we don't (we will do this later if necessary): we merely record the constraints imposed by the given probabilities.
 		
-		The new knowledge we gain from realizing floomps are guns can be added directly to the diagram in the form of the light blue link from $F$ to $G$ without any issues. This does not change the meaning of the link from $\mathsf 1 \to G$, sidestepping issue \ref{item:noarrow}: the added modularity lets us simply add the information, and resolve inconsistencies when convenient. 
+		\changed{$E$} can be added directly to the diagram in the form of the light blue link from $F$ to $G$ without any issues. This does not change the meaning of the link from $\mathsf 1 \to G$, sidestepping issue \ref{item:noarrow}: the added modularity lets us simply add the information, and resolve inconsistencies when convenient. 
 		Regarding point \ref{item:waiting-good}, we can stay in this conflicted state as long as necessary (again not even representable in other graphical models), and the operation is even reversible: all we need to do to recover our original belief state is delete the new edge.			
 	\end{example}			
 	
@@ -491,9 +495,9 @@
 	\changeon
 	We can now finally give a formal definition of consistency.
 	\begin{defn} \label{def:weak-consistent}
-		$M$ is (\emph{weakly}) consistent if $\bbr{M} \neq \varnothing$.
+		$M$ is consistent iff $\bbr{M}_\Set \neq \varnothing$.
 	\end{defn}
-	The `weakly' can be omitted; we introduce it here to contrast it with a stronger version in \cref{def:strong-consistent}.
+%	The `weakly' can be omitted; we introduce it here to contrast it with a stronger version in \cref{def:strong-consistent}.
 	
 %	Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
 %	\begin{defn}
@@ -542,33 +546,65 @@
 	We can also generalize the semantics in the previous section. For a candidate distribution $\mu$, rather than being either consistent or not, we give it a continuous score.
 
 	\begin{defn}
-		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ with respect to a distribution $p \in \Delta[W_{\cal V}]$ is
+		The inconsistency, $\zeta$, of a \MN\ $M = (\cal N, L, V, \bmu)$ with respect to a distribution $p \in \Delta[W_{\cal V}]$ is
 		\[
 			\zeta(({\cal N, L, V}, \bmu) ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-			\sum_{L[A, B]\in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{L(a) }{ p(B \mid a) } \right]
+			\sum_{L=(A, B) \in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A = a) } \right]
 		\]
+		where $D_{KL}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$.
 	\end{defn}	
 	
 	
 	
 	\begin{defn}
+		If we think of the inconsistency as a potential energy, we can use something like a Boltzmann law to get likelihood over distributions. We therefore define
 		\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
 	\end{defn}
 
-
-
+	\begin{prop}
+		$\zeta$ is a convex function in $p$
+	\end{prop}
+	\begin{proof}
+		It is well-known that $D_{KL}$ is convex, in the sense that 
+		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
+		Choose any link $L \in \mathcal L$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
+		Setting $q_1 = q_2 = \bmu_L(a)$, we get
+		\[ D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \]
+		Since this is true for every $a$ and link, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
+		\begin{align*}
+		 	\E_{a\sim p(A=a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
+		 	\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
+		 	\zeta(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \zeta(M;p_1) + (1-\lambda) \zeta(M;p_2)
+		\end{align*}
+	\end{proof}
 	\begin{conj}
-		$\bbr{M}_\zeta$ is a convex function
+		$\bbr{M}_\zeta$ is a quasiconvex function.
 	\end{conj}
 
 	\begin{defn}
-		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is 
-		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \zeta (M; \mu) = -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p) \]
+		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
+		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \zeta (M; \mu) 
+			= -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p) \]
+		
 	\end{defn}
 
-	\changeoff
-	
 
+	We may also consider the links as having different strengths: if we associate a positive ``temperature'' coefficient, to each edge, with higher numbers indicating higher uncertainty about the actual value.
+	
+	\begin{defn}
+		A weighted \MN\ is a \MN\ $M = (\cal N, L, V, \bmu)$ together with a temperature $T_L \in \mathbb {RP}^1$ for each link $L \in \mathcal L$.
+	\end{defn}
+
+
+	\begin{example}[continues=ex:guns-and-floomps]
+		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have temperature 1, and we give our new observation $10^{-3}$.
+		
+		Then $\bbr{M}_\zeta$
+	\end{example}
+	
+	
+	
+	\changeoff
 	
 	\subsection{As Distributions}
 	
@@ -580,7 +616,7 @@
 	To satisfy any lingering desire to compress all of the information to a single distribution, we also offer a way of interpreting a \MN\ as a single distribution.
 	
 	\begin{defn}
-		If  $M$ is a \MN, $\bbr{M}_{\mathbf S} \subseteq W_{M}$ is a set, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. More formally,
+		If  $M$ is a \MN, $\bbr{M}_{\mathbf S} \subseteq \Delta W_{M}$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. More formally,
 %% ALTERNATE, BIG
 %		\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
 %			\begin{array}{l}
@@ -595,11 +631,14 @@
 	
 	One particularly useful scoring function is the following one, maximizing entropy:
 	\[ \Big\llbracket M \Big\rrbracket_\MaxEnt := \Big\llbracket M \Big\rrbracket_\Set^{-H(\cdot)} \]
-	
-	It follows from the convexity we saw in \cref{prop:convex}, that there is a unique distribution .
-	\begin{coro} 
-		If a \MN\ $M$ is weakly consistent, then $\bbr{M}_\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}_\MaxEnt$ is empty.
-	\end{coro}	
+
+	\begin{theorem} 
+		If $M$ is consistent, then $\bbr{M}_\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}_\MaxEnt$ is empty.
+	\end{theorem}
+	\begin{proof}
+		\vspace{-1em}
+		This is a direct consequence of  \cref{prop:convex}
+	\end{proof}
 
 	
 	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo} for more.
@@ -756,8 +795,8 @@
 	There are several closely concepts that we will be able to employ with our framework after integrating them
 	\begin{enumerate}[nosep]
 		\item Allowing random variables to be partial, rather than total functions of $W$. 
-		\item Relaxing the requirement $\mu(W) = 1$ to $\mu(W) \leq 1$
-		\item Requiring that matrices be sub-stochastic, rather than stochastic
+%		\item Relaxing the requirement $\mu(W) = 1$ to $\mu(W) \leq 1$
+		\item Allow matrices to be sub-stochastic, rather than stochastic
 		\item Replacing probabilities, with the more general class of lower probability measures.
 %		\item Errors
 	\end{enumerate}
