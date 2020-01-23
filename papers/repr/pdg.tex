@@ -10,6 +10,12 @@
 
 
 \usepackage{uai2020}
+\usepackage[margin=1in]{geometry}
+
+
+\usepackage{times}% Set the typeface to Times Roman
+% :( :( :( :(
+
 \input{../model-commands.tex}
 
 
@@ -79,12 +85,13 @@
 	\maketitle
 
 	\begin{abstract}
-		Graphical models have enjoyed substantial success in compressing probability distributions over joint settings of random variables, by encoding correlations locally in links, and making use of independence assumptions elsewhere. Still, due to the fact that they are committed to representing a single consistent distribution, they are not expressive enough to represent common mental states of agents who may not have a perfectly logical coherent . Unrelatedly, the process of modifying graphical models by adding or removing nodes/links can be quite expensive and changes the underlying space, making it more difficult to make use of the intuitive modularity that they seem to offer.
+		Graphical models have enjoyed success in compressing probability distributions over joint settings of random variables, by making use of independence assumptions. However, because they make , they are not expressive enough to represent mental states of agents who might not have globally consistent beliefs. 
 		
-		We introduce \modelnames\ (\MNs) to combat these issues. \MNs\ are like unshackled Bayesian nets, interpreted more locally and whose links are interpreted as conditional sub-distributions. The result is a “graphical model” in a looser sense which may not always be either complete or consistent (from the perspective of a distribution), which can be easily combined with graph operations. We find that by solely altering the set of nodes and links and then running consistency reduction algorithm (one of which is a generalized version of belief propagation), we can recover important capabilities of Bayesian networks, such as the ability to estimate conditional and marginal distributions given observations, belief updating via Jeffrey’s rule. Further afield, we discover that this process also naturally models simple learning algorithms, and acting according to a decision rule (see the other paper for more). Bayesian networks, and to some extent, factor graphs, can be seen as special cases of \MNs.
+		
+%		We introduce \modelnames\ (\MNs) to combat these issues. \MNs\ are like unshackled Bayesian nets, interpreted more locally and whose links are interpreted as conditional sub-distributions. The result is a “graphical model” in a looser sense which may not always be either complete or consistent (from the perspective of a distribution), which can be easily combined with graph operations. We find that by solely altering the set of nodes and links and then running consistency reduction algorithm (one of which is a generalized version of belief propagation), we can recover important capabilities of Bayesian networks, such as the ability to estimate conditional and marginal distributions given observations, belief updating via Jeffrey’s rule. Further afield, we discover that this process also naturally models simple learning algorithms, and acting according to a decision rule (see the other paper for more). Bayesian networks, and to some extent, factor graphs, can be seen as special cases of \MNs.
 	\end{abstract}
 
-	\tableofcontents
+%	\tableofcontents
 
 	\section{Introduction}
 	% Want to resolve inconsistencies. can't talk abuot it until we can represent.
@@ -125,23 +132,25 @@
 		Here is the resulting ``network'':	
 		
 		\begin{center}
-		\begin{tikzpicture}
-
-			\node[dpadded, circle] (floomp) at (-1.2,0) {$F$};
-			\node[dpadded, circle] (gun) at (1.2,0) {$G$};
-		
-		
-			\matrix [table with head, column 1/.style={leftrule},
-				 column 2/.style={rightrule}, row 2/.style={bottomrule}] at (-5,0)	{
-				\vphantom{$\overline f$} $f$ & $\overline f$\\
-				.9 & .1\\
-			};			
-			\matrix [table with head, column 1/.style={leftrule},
-				 column 2/.style={rightrule}, row 2/.style={bottomrule}] at(5,0)	{
-				 \vphantom{$\overline g$}$g$ & $\overline g$\\
-				 .05 & .95\\
-			};
+			\scalebox{0.9}{
+			\begin{tikzpicture}[scale=0.8,ampersand replacement=\&]
+	
+				\node[dpadded, circle] (floomp) at (-1.2,0) {$F$};
+				\node[dpadded, circle] (gun) at (1.2,0) {$G$};
+			
+			
+				\matrix [table with head, column 1/.style={leftrule},
+					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at (-3.5,0)	{
+					\vphantom{$\overline f$} $f$ \& $\overline f$\\
+					.9 \& .1\\
+				};			
+				\matrix [table with head, column 1/.style={leftrule},
+					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at(3.5,0)	{
+					 \vphantom{$\overline g$}$g$ \& $\overline g$\\
+					 .05 \& .95\\
+				};
 			\end{tikzpicture}
+			}
 		\end{center}
 		
 		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; \changed{let $E$ be the CPT associated to this realization.
@@ -177,7 +186,7 @@
 		
 		\begin{figure}[h]
 			\centering
-
+			\scalebox{0.9}{
 			\begin{tikzpicture}
 				\node[dpadded] (true)  at (0,1.7) {$\mathsf 1$};
 				\node[dpadded] (floomp) at (-1.5,0) {$F$};
@@ -206,6 +215,7 @@
 					\end{idxmat}
 				};
 			\end{tikzpicture}
+			}
 			\caption{\MN\ representation of the inconsistent state before resolution}
 			\label{fig:gun-floomp-diagram}
 		\end{figure}
@@ -233,21 +243,24 @@
 		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas). That is to say, we have a conditional probability table:
 		
 		\begin{center}
+			\scalebox{0.9}{
 			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) = 
-			\begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{life, no life}
+			\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
 				.1 & .9 \\
 				.2 & .8 \\
 				.05 & 0.95 \\
 				0.00001 & 0.99999
-			\end{idxmat} 
-			\qquad$
+			\end{idxmat} $}
+			
+			\scalebox{0.8}{
 			\begin{tikzpicture}[center base]
 			\node[dpadded,light pad,fill opacity=0] (SS) at (-0.4, 1.2) {Size};
 			\node[dpadded,light pad,fill opacity=0] (CC) at (3.4, 1.2) {Composition};
 			\node[dpadded,light pad,fill opacity=0] (LL) at (1.2,0) {Life};
 			\draw[arr] (CC) -- (LL);
 			\draw[arr] (SS) -- (LL);
-			\end{tikzpicture}		
+			\end{tikzpicture}	
+			}
 		\end{center}
 		\vspace{1em}
 	
@@ -263,14 +276,15 @@
 		\MNs\ allow us to interpret each arrow individually, using a picture like this:
 
 		\begin{center}
+		\scalebox{0.9}{
 		\begin{tikzpicture}
-			\node[dpadded] (S) at (-0.4, 2) {$S$};
-			\node[dpadded] (C) at (3, 2) {$C$};
+			\node[dpadded] (S) at (0.2, 1.4) {$S$};
+			\node[dpadded] (C) at (2.4, 1.4) {$C$};
 			\node[dpadded] (L) at (1.3,0) {$L$};
-			\node[dpadded] (W) at (-2,0) {$W$};
-			\cmergearr{S}{C}{L}{1.3,1.1}
+			\node[dpadded] (W) at (-1,0) {$W$};
+			\cmergearr{S}{C}{L}{1.3,0.95}
 			\draw[arr] (W) -- (L);
-		\end{tikzpicture}
+		\end{tikzpicture}}
 		\end{center}
 	
 		\changed{This means that we have} two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also \changed{requiring us to provide information about the correlations between $W$ and $S\times C$ we do not have}. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
@@ -286,39 +300,46 @@
 
 	\begin{example}\label{ex:smoking}
 		Consider the classic example used to introduce Bayesian nets, in which the four variables are interest are booleans indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \cref{subfig:smoking-bn}.
-		\begin{figure}[h!]
+		\begin{figure*}[h!]
 			\centering
 			
 			\begin{subfigure}[b]{0.3\textwidth}
-				\begin{tikzcd}[center base, column sep=1.8em, row sep=1.3em, dpad={fill opacity=0, draw=gray}]
-				& S \ar[dr] \\
-				PS \ar[ur]\ar[dr] && C \\
-				& SH \ar[ur]
-				\end{tikzcd}
+				\scalebox{0.9}{
+				\begin{tikzcd}[center base, column sep=1.8em, row sep=1em, dpad={fill opacity=0, draw=gray}, 
+					ampersand replacement=\&]
+				\& S \ar[dr] \\
+				PS \ar[ur]\ar[dr] \&\& C \\
+				\& SH \ar[ur]
+				\end{tikzcd}}
 				\caption{Bayesian Network}
 				\label{subfig:smoking-bn}
-			\end{subfigure}
+			\end{subfigure}%			
 			\hspace{2em}\vline\hspace{2em}
 			\begin{subfigure}[b]{0.5\textwidth}
+				\scalebox{0.9}{
 				\begin{tikzpicture}[center base]
 				\node[dpadded] (1) at (0,0) {$\mathsf 1$};
-				\node[dpadded] (PS) at (2,0) {$PS$};
-				\node[dpadded] (S) at (4, 1.4) {$S$};
-				\node[dpadded] (SH) at (4, -1.4) {$SH$};
-				\node[dpadded] (C) at (6.5,0) {$C$};
+				\node[dpadded] (PS) at (1.65,0) {$PS$};
+				\node[dpadded, fill opacity=0.16] (S) at (3.3, 0.8) {$S$};
+				\node[dpadded, fill opacity=0.16] (SH) at (3.3, -0.8) {$SH$};
+				\node[dpadded, fill opacity=0.16] (C) at (4.8,0) {$C$};
 				
 				\draw[arr] (1) -- (PS);
 				\draw[arr] (PS) -- (S);
 				\draw[arr] (PS) -- (SH);
-				\cmergearr{SH}{S}{C}{5.1,0}
-				\end{tikzpicture}
+				\mergearr{SH}{S}{C}
+				
+				\node[dpadded, fill opacity=0.05,dashed] (T) at (6.5,0) {$T$};
+				\draw[arr,dashed] (T) -- (C);
+	
+\				\end{tikzpicture}}
 				\caption{Corresponding \MN}
 				\label{subfig:smoking-pdg}
 			\end{subfigure}
 		
 			\caption{Both graphical models representing the conditional relationships in \cref{ex:smoking}}
 			\label{fig:smoking-bn+pdg}
-		\end{figure}
+		\end{figure*}
 		
 		The BN is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. It encodes an assumption that every node is independent of its non-descendants given its parents.
 		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and to do properly would require much more empiricism to validate.
@@ -326,24 +347,25 @@
 		The \MN, on the other hand, represents merely the set of constraints on marginals given in the tables. Depending on our chosen semantics (we offer several in section \ref{sec:formal+semantics}), we can further interpret the constraints. For instance, by looking at the maximum entropy distribution consistent with the constraints, we get back the independence assumptions from the BN, and can thereby view \Cref{subfig:smoking-pdg} as representing the same distribution as the BN.
 				
 		Now, suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
-		The \MN\, on the other hand, has no trouble, and is simply the union of the two pieces of information:
+		The \MN\, on the other hand, has no trouble, and is simply the union of the two pieces of information, as in \ref{subfig:smoking-pdg}.
 		
-		\begin{center}
-			\begin{tikzpicture}
-			\node[dpadded] (1) at (0,0) {$\mathsf 1$};
-			\node[dpadded] (PS) at (2,0) {$PS$};
-			\node[dpadded, fill opacity=0.16] (S) at (4, 1.4) {$S$};
-			\node[dpadded, fill opacity=0.16] (SH) at (4, -1.4) {$SH$};
-			\node[dpadded, fill opacity=0.16] (C) at (6.5,0) {$C$};
-			\node[dpadded, fill opacity=0.16] (T) at (8.5,0) {$T$};
-			
-			\draw[arr] (1) -- (PS);
-			\draw[arr] (PS) -- (S);
-			\draw[arr] (PS) -- (SH);
-			\cmergearr{SH}{S}{C}{5.1,0}
-			\draw[arr] (T) -- (C);
-			\end{tikzpicture}
-		\end{center}
+%		\begin{center}
+%			\scalebox{0.9}{
+%			\begin{tikzpicture}
+%			\node[dpadded] (1) at (0,0) {$\mathsf 1$};
+%			\node[dpadded] (PS) at (1.65,0) {$PS$};
+%			\node[dpadded, fill opacity=0.16] (S) at (3.3, 0.8) {$S$};
+%			\node[dpadded, fill opacity=0.16] (SH) at (3.3, -0.8) {$SH$};
+%			\node[dpadded, fill opacity=0.16] (C) at (4.8,0) {$C$};
+%			\node[dpadded, fill opacity=0.05,dashed] (T) at (6.5,0) {$T$};
+%			
+%			\draw[arr] (1) -- (PS);
+%			\draw[arr] (PS) -- (S);
+%			\draw[arr] (PS) -- (SH);
+%			\mergearr{SH}{S}{C}
+%			\draw[arr,dashed] (T) -- (C);
+%			\end{tikzpicture}}
+%		\end{center}
 		\changed{
 		Just as in the previous example, simply adding $T$ to the parents of $C$ would make it impossible to use our old table, and require us to guess at the interactions between tanning beds and smoking, which we have no information about.	}
 		% This is again an illustration of the modularity and the possibility for inconsistency; compare the right half of the diagram (shaded slightly darker) with the topological equivalent in example \ref{ex:planet}.
@@ -426,11 +448,11 @@
 		We will sometimes use double headed arrows like this to emphasize degenerate conditional distributions, which are deterministic.
 		We can now present this \MN\ formally with the elements specified in definition \ref{def:model}.		
 		\begin{align*}
-			\mathcal N &= \{S,~ C, ~L, ~W, ~S\times C \} \\
-			\mathcal L &= \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
-			\mathcal V &= \begin{cases}[r]
-			\mathcal V(S) &= \{\mathit{big}, \mathit{small} \}\\
-			\mathcal V(C) &= \{ \mathit{rocky}, \mathit{gasseous} \} \\
+			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
+			&\mathcal L = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
+			&\begin{cases}[r]
+			\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
+			\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
 			\mathcal V(L) &=  \{ l, \lnot l \} \\
 			\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
 			\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
@@ -438,31 +460,32 @@
 			\end{cases}
 		\end{align*}
 		\begin{align*}\footnotesize
-			\boldsymbol\mu=\begin{cases}\quad
-			\boldsymbol\mu[S\times C, L] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{$l$,$\lnot l$}
-					.1 & .9 \\
-					.2 & .8 \\
-					.05 & 0.95 \\
-					0.00001 & 0.99999
-				\end{idxmat} \qquad  
-					\boldsymbol\mu[W, L] = \begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\lnot l$}
-					0 & 1 \\
-					.005 & .995 \\
-					.05 & 0.95 \\
-				\end{idxmat}\\
-			\quad\boldsymbol\mu[S\times C, C] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{rocky,gasseous}
-				1 & 0 \\
-				1 & 0\\
-				0 & 1 \\
-				0 & 1 
-			\end{idxmat} \qquad  
-			\boldsymbol\mu[S\times C, S] = \begin{idxmat}{{big, rocky}, {small,rocky}, {big, gasseous}, {small,gasseous}}{small,big}
+		\boldsymbol\mu[S\!\!\times\!\!C, L] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
+				.1 & .9 \\
+				.2 & .8 \\
+				.05 & 0.95 \\
+				0.01 & 0.99
+			\end{idxmat} 
+			& 	 
+			\boldsymbol\mu[S\!\!\times\!\!C, S] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
 				0 & 1 \\
 				1 & 0 \\
 				0 & 1 \\
 				1 & 0
 			\end{idxmat}
-			\end{cases}
+			\\
+			\boldsymbol\mu[W, L] \!\!=\!\! \begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
+				0 & 1 \\
+				.005 & .995 \\
+				.05 & 0.95 \\
+			\end{idxmat}
+			&
+			\boldsymbol\mu[S\!\!\times\!\!C, C] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
+				1 & 0 \\
+				1 & 0\\
+				0 & 1 \\
+				0 & 1 
+			\end{idxmat}			 
 		\end{align*}
 	\end{example}
 
@@ -527,7 +550,7 @@
 		For brevity, we will use little letters ($a$) in place of events ($A = a$).
 		Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
 		\begin{align*}
-		\Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a) &= 
+		&~ \Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a)\\ &= 
 		\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
 		&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
 		&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
@@ -976,6 +999,8 @@
 		
 		The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
 	\end{vfull}
+	
+	\subsection{}
 
 	\section{Conclusions}
 	\subsection{A List of \MN\ Benefits}\label{sec:list-of-benefits}
