@@ -65,7 +65,7 @@
 \newcommand{\MN}{PDG}%	allow for much more modularity than available to Bayesian Networks (examples below), and
 \newcommand{\MNs}{PDGs}
 
-%%%%%%%%%%%%%%%% SHORTCUTS FOR COMMONLY USED THINGS %%%%%%%%%%
+%%%%%%%%%%%%%%%% SHORTCUTS FOR COMMONLY USED THINGS %%%%%%%%%%%%%%
 
 \newcommand\Set{\textbf{Set}}
 \newcommand\FinSet{\textbf{FinSet}}
@@ -77,9 +77,29 @@
 \newcommand\bmu{\boldsymbol{\mu}}
 
 \newcommand\bb[1]{\mathbbm{#1}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Dependency Graphs}
-\author{Oliver Richardson,  \texttt{oli@cs.cornell.edu}}
+\title{Probabilistic Dependency Graphs}
+
+\author{} % LEAVE BLANK FOR ORIGINAL SUBMISSION.
+
+%% UAI  reviewing is double-blind.
+%
+%% The author names and affiliations should appear only in the accepted paper.
+%%
+%\author{
+%	{\bf Oliver E. Richardson%\thanks{Footnote for author to give an alternate address.}
+%		}\\
+%%	Computer Science Dept. \\
+%	Cornell University\\
+%	Address\\
+%\And
+%	{\bf Joseph Y. Halpern}  \\
+%	Cornell University      \\
+%	Address \\
+%}
+%
+
 
 \begin{document}
 	\maketitle
@@ -100,13 +120,14 @@
 
 	Inconsistencies are bad. Unfortunately, they are difficult to avoid: reasonable people are often simultaneously unaware of any inconsistencies in their beliefs, and yet still think it probable that they are not entirely consistent.%
 		\footnote{In some sense, this is the reason arguments exist: it is possible to get a person to agree to premises and reject a conclusion, revealing inconsistency---inconsistency which can then be used to change someone else's mental state. }
-	\changed{
+	
 	Standard representations, including existing graphical models, are unable to represent such belief states.
 	While we share the distaste for inconsistency, we nonetheless think it important to represent: in addition to modeling an overwhelmingly common feature of humans, the possibility of inconsistency also	
 	allows us to talk about intermediate stages of belief updating (\cref{sec:belief-update}), 
-	provides a rationale for providing multiple justifications (corroborating evidence means more when there was a possibility of conflict instead; see \cref{ex:corrob}),
-	and	lets us recover standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\cref{sec:algorithms}). 
-	}
+	provides a rationale for providing multiple justifications 
+	(corroborating evidence means more when there is a possibility of conflict instead; see \cref{ex:corrob}),
+	and	\changed{recasts} standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\cref{sec:algorithms}). 
+	
 	%While we share the distaste of inconsistency, we also see its possibility as an integral part of reasoning, and we will even be able to recover standard algorithms (conditioning, etc.) as special cases of inconsistency reduction (\cref{sec:algorithms}). 
 		
 %		\note{Part of the reason that it's hard to bring in modularity here is that the nature of the improvement differs depending on the model in question. Factor graphs arguably offer the same modularity---but there are other arguments against factor graphs that don't really bear on BNs}
@@ -118,16 +139,16 @@
 	%Separately, people enjoy conceptual modularity: features of the world (like the random variables which generate a graphical model) can be noticed, forgotten, and beliefs about their dependencies can be incorporated into our mental states without all of one's distantly unrelated beliefs.
 	%These two features are in fact related, and we present here a representation of uncertainty which models both.
 	
-	\changed{The graphical model we propose, which we call a \modelname\ (\MN),
+	The graphical model we propose, which we call a \modelname\ (\MN),
 	also offers other advantages over more standard approaches. \MNs\ are more modular than Bayesian Networks, provide better locality than Factor Graphs (\cref{sec:factor-graphs}), and more; for a complete list, see \cref{sec:list-of-benefits}.
-	The rest of this section consists of examples focusing on the benefits of representing inconsistency and improved modularity, } 
+	The rest of this section consists of examples focusing on the benefits of representing inconsistency and improved modularity, 
 	and the failure of alternatives to quite capture what we have in mind.
 	
 	\begin{example}\label{ex:guns-and-floomps}
 		You have arrived in a foreign country well-known for having very clear laws. From prior reading, you have subjective probability 0.95 that owning guns is against the law. Upon landing, you end up talking to some teenagers who use the local slang---after which you believe with 10\% probability that the law prohibits floomps.
 		
 		Let's try to represent this as a Bayesian Network. Make a graph with two nodes: let $F$ be the binary variable (taking values $\{f, \overline f\}$) indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicate the legality of guns. 
-		Given the semantics of a Bayes Net, this give us two choices: assume that the two are independent, or choose a direction and make up some numbers to put in the table.
+		The semantics of a Bayes Nets offer us two choices: assume that the two are independent, or choose a direction and make up some numbers to put in the table.
 		As there is no reason to believe that either variable depends on the other, we don't put any links between them.
 		Here is the resulting ``network'':	
 		
@@ -153,19 +174,18 @@
 			}
 		\end{center}
 		
-		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; \changed{let $E$ be the CPT associated to this realization.
-		A first reaction might be to simply add this conditional information by adding $F$ as a parent of $G$ and incorporating $E$ into the Bayes Net, which amounts to throwing out our old prior distribution on $G$; another instinct might be to perform a Bayesian update, but this new information is conditional and probabilistic, not an event.}
-		Note the following features of this scenario:
-		
-		\begin{enumerate}
-			\item \changed{The table $E$ conflicts with the other two, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
-			Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first. 
-			There are three different dimensions along which this could be resolved: rejecting either prior belief, or $E$; in general any mixture would do. 
-			%
-			}\label{item:noarrow}
+		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; let $E$ be the CPT associated to this realization.
+		A first reaction might be to simply add this conditional information by adding $F$ as a parent of $G$ and incorporating $E$ into the Bayes Net, \changed{but it is not clear what to do with our original CPT on $G$}.
+			% which amounts to throwing out our old prior distribution on $G$; 
+			% another instinct might be to perform a Bayesian update, but this new information is conditional and probabilistic, not an event.
+		\changed{In fact} $E$ conflicts with the other two links, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
+		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first
+			\changed{}
+			%There are three different dimensions along which this could be resolved: rejecting either prior belief, or $E$; in general any mixture would do. 
 			
-			\item It may not be in your best interest to sort this out right away. The choice of resolution may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully---it may be worth sitting on the inconsistency so that you can resolve it properly later, rather than resolving it as best you can immediately.\label{item:waiting-good}
-		\end{enumerate}
+			
+		Note that it may not be in your best interest to sort this out right away. The choice of resolution may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully---it may be worth sitting on the inconsistency so that you can resolve it properly later, rather than resolving it as best you can immediately.
+
 %		\begin{enumerate} 
 %			\item Even though the additional information takes the form of a conditional probability table, \changed{adding an edge with this table in our Bayes Net overwrites other information: by adding a link $F \to G$, the Bayes Net effectively overwrites our old beliefs about $G$. 
 %%				By contrast, a Bayesian update cannot incorporate conditional information at all---only events.
@@ -222,7 +242,7 @@
 		
 		The original state of knowledge, consists of all three nodes and the two edges from $\mathsf 1$, displayed in black and gray. This is like our earlier Bayes Net graph, except we no longer need to make the assumption up front that $F$ and $G$ are independent, so we don't (we will do this later if necessary): we merely record the constraints imposed by the given probabilities.
 		
-		\changed{$E$} can be added directly to the diagram in the form of the light blue link from $F$ to $G$ without any issues. This does not change the meaning of the link from $\mathsf 1 \to G$, sidestepping issue \ref{item:noarrow}: the added modularity lets us simply add the information, and resolve inconsistencies when convenient. 
+		$E$ can be added directly to the diagram in the form of the light blue link from $F$ to $G$ without any issues. This does not change the meaning of the link from $\mathsf 1 \to G$, sidestepping issue \ref{item:noarrow}: the added modularity lets us simply add the information, and resolve inconsistencies when convenient. 
 		Regarding point \ref{item:waiting-good}, we can stay in this conflicted state as long as necessary (again not even representable in other graphical models), and the operation is even reversible: all we need to do to recover our original belief state is delete the new edge.			
 	\end{example}			
 	
@@ -249,7 +269,7 @@
 				.1 & .9 \\
 				.2 & .8 \\
 				.05 & 0.95 \\
-				0.00001 & 0.99999
+				0.001 & 0.999
 			\end{idxmat} $}
 			
 			\scalebox{0.8}{
@@ -266,9 +286,11 @@
 	
 		This one conditional probability table is a fragment of the Bayesian Network on the right, but in order to \changed{fully} interpret the picture as a BN
 		, we would also require distributions over the values of  the root nodes `Size' and `Composition'---things we may not know anything about. 
-		\changed{
 		Because many joint distributions are compatible with this table, we consider this data \emph{under-constrained}.
-		A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.}
+		
+		\begin{vfull}
+			A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.
+		\end{vfull}
 
 		Now our biologist friend now reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to place it as the parent of the $L$ node, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing.%
 			\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
@@ -287,7 +309,7 @@
 		\end{tikzpicture}}
 		\end{center}
 	
-		\changed{This means that we have} two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also \changed{requiring us to provide information about the correlations between $W$ and $S\times C$ we do not have}. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+		This means that we have two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also \changed{needing} to provide information about the correlations between $W$ and $S\times C$ we do not have. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
 	\end{example}
 	
 %	Though perhaps difficult to see in example \Cref{ex:guns-and-floomps},
@@ -450,43 +472,49 @@
 		\begin{align*}
 			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
 			&\mathcal L = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
-			&\begin{cases}[r]
+			\mathcal V &\left\{\begin{aligned}
 			\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
 			\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
 			\mathcal V(L) &=  \{ l, \lnot l \} \\
 			\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
 			\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
 				% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
-			\end{cases}
-		\end{align*}
-		\begin{align*}\footnotesize
-		\boldsymbol\mu[S\!\!\times\!\!C, L] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
+			\end{aligned}\right.\\
+%		\end{align*}
+%		\vspace{-1em}
+%		\begin{align*}
+	 	\bmu & \left\{~\begin{aligned}
+		&\boldsymbol\mu[S\!\!\times\!\!C, L] = & \boldsymbol\mu[S\!\!\times\!\!C, S] = \\[-0.6em]
+			 &\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
 				.1 & .9 \\
 				.2 & .8 \\
 				.05 & 0.95 \\
-				0.01 & 0.99
+				0.001 & 0.999
 			\end{idxmat} 
-			& 	 
-			\boldsymbol\mu[S\!\!\times\!\!C, S] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
+			&
+			 \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
 				0 & 1 \\
 				1 & 0 \\
 				0 & 1 \\
 				1 & 0
 			\end{idxmat}
-			\\
-			\boldsymbol\mu[W, L] \!\!=\!\! \begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
+			\\[0.5em]
+			&\boldsymbol\mu[W, L] = & \boldsymbol\mu[S\!\!\times\!\!C, C] =\\[-0.6em]
+			&\begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
 				0 & 1 \\
 				.005 & .995 \\
 				.05 & 0.95 \\
 			\end{idxmat}
 			&
-			\boldsymbol\mu[S\!\!\times\!\!C, C] \!=\! \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
+			 \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
 				1 & 0 \\
 				1 & 0\\
 				0 & 1 \\
 				0 & 1 
-			\end{idxmat}			 
+			\end{idxmat}
+		\end{aligned}\right.\\[-3em]
 		\end{align*}
+		\vspace{-1em}
 	\end{example}
 
 	\begin{vfull}
@@ -498,13 +526,12 @@
 		\end{itemize}
 	\end{vfull}
 
-	\changeon
 	Before we continue, we first need some notation:
 	\begin{defn}
 		If $M = (\mathcal N, \mathcal L, \mathcal V, \bmu)$ is a \MN, let $W_{\cal V}$  denote the set of a-priori possible worlds, i.e., selections out of each $\mathcal V(N)$.
 		\[ W_{\cal V} := \prod_{N \in \mathcal N}\mathcal V(N) \]
 	\end{defn}
-	\changeoff
+
 			
 %	\section{Semantics}\label{sec:semantics}
 	These graphs admit multiple semantics. We think of \modelnames\ as being a representation of beliefs in and of themselves, rather than a compression of something more fundamental such as a probability distribution. Still, we will find it useful to interpret them in various ways: doing so will make it possible to compare them more directly with existing graphical models, which one thinks of as really just being compressed distributions. In this section, we would like to highlight three important semantics.
@@ -515,15 +542,12 @@
 
 	
 	\begin{defn}
-		If $M = (\mathcal N, \mathcal L, \mathcal V, \boldsymbol\mu)$ is a \MN, let $\llbracket M \rrbracket_\Set$ be the set of distributions over the variables in $M$ consistent with $\boldsymbol\mu$ on every marginal. Formally,
-		
-		\[ \Big\llbracket M \Big\rrbracket_\Set := \left\{\mu \in \Delta[W_{\cal V}] ~\middle|~
+		If $M = (\mathcal N, \mathcal L, \mathcal V, \boldsymbol\mu)$ is a \MN, let $\llbracket M \rrbracket_\Set$ be the set of distributions over the variables in $M$ consistent with $\boldsymbol\mu$ on every marginal. Formally,		
+		\[ \Big\llbracket M \Big\rrbracket_\Set \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta[W_{\cal V}]\ \middle|\!
 		\begin{array}{l}
-		\mu(B = b \mid A = a) = \boldsymbol\mu[A,B](b \mid a) \\[0.2em]
-		\qquad\text{for all $A, B \in \mathcal L$, $a \in\mathcal V(A)$, and $b \in \mathcal V(B)$} \end{array} \right\}\]
-	\end{defn}	
-
-	\changeon
+		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) = \boldsymbol\mu[A,\!B](b \mid a) \\[0.1em]
+		~\text{$\forall A, B \!\in\! \mathcal L$, $a \!\in\!\mathcal V(A)$, $b \!\in\! \mathcal V(B)$} \end{array}\!\!\! \right\}\]
+	\end{defn}
 	We can now finally give a formal definition of consistency.
 	\begin{defn} \label{def:weak-consistent}
 		$M$ is consistent iff $\bbr{M}_\Set \neq \varnothing$.
@@ -541,8 +565,7 @@
 	\begin{prop}%[restate=thmsetconvex] 
 		\label{prop:convex}
 		$\bbr{M}_\Set$ is convex, for any \MN\ $M$.
-	\end{prop}
-	\changeoff
+	\end{prop}%
 	\begin{proof}
 		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
 		
@@ -579,18 +602,15 @@
 	\begin{defn}
 		The inconsistency, $\zeta$, of a \MN\ $M = (\cal N, L, V, \bmu)$ with respect to a distribution $p \in \Delta[W_{\cal V}]$ is
 		\[
-			\zeta(({\cal N, L, V}, \bmu) ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-			\sum_{L=(A, B) \in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A = a) } \right]
+			\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
+			\sum_{L \in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A = a) } \right]
 		\]
 		where $D_{KL}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$.
 	\end{defn}	
 	
-	
-	
-	\begin{defn}
-		If we think of the inconsistency as a potential energy, we can use something like a Boltzmann law to get likelihood over distributions. We therefore define
-		\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
-	\end{defn}
+	If we think of the inconsistency as a potential energy, we can use something like a Boltzmann law to get likelihood over distributions. We therefore define	
+	\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
+
 
 	\begin{prop}
 		$\zeta$ is a convex function in $p$
