@@ -59,12 +59,6 @@
 \savebox{\hourglassbox}{\includegraphics[height=.8em]{hourglass.png}}
 \newcommand\hourglass{\usebox{\hourglassbox}}
 
-%%% What do I even call them anyway?
-\newcommand{\modelname}{Probabilistic Dependency Graph}
-\newcommand{\modelnames}{Probabilistic Dependency Graphs}
-\newcommand{\MN}{PDG}%	allow for much more modularity than available to Bayesian Networks (examples below), and
-\newcommand{\MNs}{PDGs}
-
 %%%%%%%%%%%%%%%% SHORTCUTS FOR COMMONLY USED THINGS %%%%%%%%%%%%%%
 
 \newcommand\Set{\textbf{Set}}
@@ -79,7 +73,15 @@
 \newcommand\bb[1]{\mathbbm{#1}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\title{Probabilistic Dependency Graphs}
+
+
+%%% What do I even call them anyway?
+\newcommand{\modelname}{Conditional Pseudomarginal Graph}
+\newcommand{\modelnames}{\modelname s}
+\newcommand{\MN}{CPG}%	allow for much more modularity than available to Bayesian Networks (examples below), and
+\newcommand{\MNs}{\MN s}
+
+\title{\modelnames}
 
 \author{} % LEAVE BLANK FOR ORIGINAL SUBMISSION.
 
@@ -105,8 +107,9 @@
 	\maketitle
 
 	\begin{abstract}
-		Graphical models have enjoyed success in compressing probability distributions over joint settings of random variables, by making use of independence assumptions. However, because they make , they are not expressive enough to represent mental states of agents who might not have globally consistent beliefs. 
-		
+		Graphical models have enjoyed success in compressing probability distributions over joint settings of random variables, by making use of independence assumptions. 
+		However, because they model probability distributions, they are not expressive enough to represent mental states of agents who might not have globally consistent beliefs. 
+			
 		
 %		We introduce \modelnames\ (\MNs) to combat these issues. \MNs\ are like unshackled Bayesian nets, interpreted more locally and whose links are interpreted as conditional sub-distributions. The result is a “graphical model” in a looser sense which may not always be either complete or consistent (from the perspective of a distribution), which can be easily combined with graph operations. We find that by solely altering the set of nodes and links and then running consistency reduction algorithm (one of which is a generalized version of belief propagation), we can recover important capabilities of Bayesian networks, such as the ability to estimate conditional and marginal distributions given observations, belief updating via Jeffrey’s rule. Further afield, we discover that this process also naturally models simple learning algorithms, and acting according to a decision rule (see the other paper for more). Bayesian networks, and to some extent, factor graphs, can be seen as special cases of \MNs.
 	\end{abstract}
@@ -118,14 +121,16 @@
 	% How to resolve (1) absent any information, or (2) I don't know, need further information.
 	% inacurate to model people as having consistent 
 
-	Inconsistencies are bad. Unfortunately, they are difficult to avoid: reasonable people are often simultaneously unaware of any inconsistencies in their beliefs, and yet still think it probable that they are not entirely consistent.%
+	Inconsistencies are bad. \changed{Still, fully examining every possible interaction between beliefs at all times is taxing and restrictive, making inconsistency} difficult to avoid: reasonable people are often simultaneously unaware of any inconsistencies in their beliefs, and yet still think it probable that they are not entirely consistent.%
 		\footnote{In some sense, this is the reason arguments exist: it is possible to get a person to agree to premises and reject a conclusion, revealing inconsistency---inconsistency which can then be used to change someone else's mental state. }
-	
-	Standard representations, including existing graphical models, are unable to represent such belief states.
-	While we share the distaste for inconsistency, we nonetheless think it important to represent: in addition to modeling an overwhelmingly common feature of humans, the possibility of inconsistency also	
-	allows us to talk about intermediate stages of belief updating (\cref{sec:belief-update}), 
+
+		
+	\changed{Standard models of mental state, including most graphical models, intentionally discourage inconsistencies where possible so that they can more naturally represent probability distributions, and therefore struggle to represent inconsistent belief states.}
+	While we share the distaste for inconsistency, we nonetheless think it important to represent: in addition to modeling an overwhelmingly common feature of humans, the possibility of inconsistency 
+	\changed{allows our model (called a \modelname\ or \MN)
+	to portray} intermediate stages of belief updating (\cref{sec:belief-update}), 
 	provides a rationale for providing multiple justifications 
-	(corroborating evidence means more when there is a possibility of conflict instead; see \cref{ex:corrob}),
+	(corroborating evidence means more \changed{in the presence of possible conflict}; see \cref{ex:corrob}),
 	and	\changed{recasts} standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\cref{sec:algorithms}). 
 	
 	%While we share the distaste of inconsistency, we also see its possibility as an integral part of reasoning, and we will even be able to recover standard algorithms (conditioning, etc.) as special cases of inconsistency reduction (\cref{sec:algorithms}). 
@@ -139,18 +144,15 @@
 	%Separately, people enjoy conceptual modularity: features of the world (like the random variables which generate a graphical model) can be noticed, forgotten, and beliefs about their dependencies can be incorporated into our mental states without all of one's distantly unrelated beliefs.
 	%These two features are in fact related, and we present here a representation of uncertainty which models both.
 	
-	The graphical model we propose, which we call a \modelname\ (\MN),
-	also offers other advantages over more standard approaches. \MNs\ are more modular than Bayesian Networks, provide better locality than Factor Graphs (\cref{sec:factor-graphs}), and more; for a complete list, see \cref{sec:list-of-benefits}.
-	The rest of this section consists of examples focusing on the benefits of representing inconsistency and improved modularity, 
-	and the failure of alternatives to quite capture what we have in mind.
+	\changed{The second feature of \MNs\ to highlight is their modularity. We can leverage the new freedom to entirely remove the overhead and assumptions required to make structural changes to the graph, skirting computational costs and enabling concept formation, without also sacrificing interpretability, as factor graphs do (see \cref{sec:factor-graphs}). }
+	The rest of this section consists of examples focusing on the benefits of possible inconsistency and improved modularity, and the failure of alternatives to capture what we have in mind. \changed{For a complete list of \MN features, and more impressive examples with the full formalism,} see \cref{sec:list-of-benefits,sec:more-examples}.
 	
 	\begin{example}\label{ex:guns-and-floomps}
-		You have arrived in a foreign country well-known for having very clear laws. From prior reading, you have subjective probability 0.95 that owning guns is against the law. Upon landing, you end up talking to some teenagers who use the local slang---after which you believe with 10\% probability that the law prohibits floomps.
+		You arrive in a foreign country known for having very clear laws. From prior reading, you have subjective probability 0.95 that owning guns is against the law. Upon landing, you end up talking to some teenagers who use the local slang---after which you believe with 10\% probability that the law prohibits floomps.
 		
 		Let's try to represent this as a Bayesian Network. Make a graph with two nodes: let $F$ be the binary variable (taking values $\{f, \overline f\}$) indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicate the legality of guns. 
-		The semantics of a Bayes Nets offer us two choices: assume that the two are independent, or choose a direction and make up some numbers to put in the table.
-		As there is no reason to believe that either variable depends on the other, we don't put any links between them.
-		Here is the resulting ``network'':	
+		The semantics of a Bayes Nets offer us two choices: assume that the two are independent, or choose a direction and make up some numbers for the table.
+		As there is no reason to believe that either variable depends on the other, we opt for the latter, resulting the following ``network'':	
 		
 		\begin{center}
 			\scalebox{0.9}{
@@ -174,12 +176,12 @@
 			}
 		\end{center}
 		
-		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; let $E$ be the CPT associated to this realization.
+		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; let $E$ be the Conditional Probability Table (CPT) associated to this realization.
 		A first reaction might be to simply add this conditional information by adding $F$ as a parent of $G$ and incorporating $E$ into the Bayes Net, \changed{but it is not clear what to do with our original CPT on $G$}.
 			% which amounts to throwing out our old prior distribution on $G$; 
 			% another instinct might be to perform a Bayesian update, but this new information is conditional and probabilistic, not an event.
 		\changed{In fact} $E$ conflicts with the other two links, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
-		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first
+		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first.
 			\changed{}
 			%There are three different dimensions along which this could be resolved: rejecting either prior belief, or $E$; in general any mixture would do. 
 			
@@ -198,9 +200,9 @@
 %
 %		\end{enumerate} 
 		
-		By contrast, consider the corresponding \MN.
-		In a \MN, the conditional probability tables are attached to edges, rather than nodes of the graph. 
-		We will represent the conditional probability tables for links $L = A\to B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B = b \mid A = a)$. 		
+		By contrast, consider the corresponding \MN,
+		in which the CPTs are attached to edges, rather than nodes of the graph. 
+		We will represent the conditional probability tables for links $L \!=\! A\!\to\! B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$. 		
 		In order to represent unconditional probabilities cleanly% (among other things; see section \ref{sec:algebra})
 		, we introduce the \emph{unit variable}, $\mathsf 1$, or `$\mathrm{true}$', which always takes its unique value (which we call $\star$). 
 		
@@ -230,20 +232,19 @@
 				\draw[heldout, dashed, arr] (floomp) -- coordinate(C) (gun);
 				\node[below=1em of C] {
 					\color{heldout}
-					\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
+					E =\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
 						0.92 & 0.08 \\ 0.08 & 0.92 \\
 					\end{idxmat}
 				};
 			\end{tikzpicture}
 			}
-			\caption{\MN\ representation of the inconsistent state before resolution}
+			\caption{An inconsistent \MN, requiring resolution}
 			\label{fig:gun-floomp-diagram}
 		\end{figure}
 		
-		The original state of knowledge, consists of all three nodes and the two edges from $\mathsf 1$, displayed in black and gray. This is like our earlier Bayes Net graph, except we no longer need to make the assumption up front that $F$ and $G$ are independent, so we don't (we will do this later if necessary): we merely record the constraints imposed by the given probabilities.
+		The original state of knowledge consists of all three nodes and the two edges from $\mathsf 1$, displayed in black and gray. This is like our earlier Bayes Net graph, except \changed{we no longer assume $F$ and $G$ to be independent (but will later if necessary)}: we merely record the constraints imposed by the given probabilities.
 		
-		$E$ can be added directly to the diagram in the form of the light blue link from $F$ to $G$ without any issues. This does not change the meaning of the link from $\mathsf 1 \to G$, sidestepping issue \ref{item:noarrow}: the added modularity lets us simply add the information, and resolve inconsistencies when convenient. 
-		Regarding point \ref{item:waiting-good}, we can stay in this conflicted state as long as necessary (again not even representable in other graphical models), and the operation is even reversible: all we need to do to recover our original belief state is delete the new edge.			
+		\changed{$E$ can be added directly to the diagram as a link from $F$ to $G$ without any changing the meaning of the link from $\mathsf 1 \to G$, which we retain: the added modularity lets us simply include information, and resolve inconsistencies later. Unlike a Bayesian update, the operation is even reversible:} all we need to do to recover our original belief state is delete the new edge.\footnote{\changed{Probably not going to make the cut but it might be worth saying at some point that Jeffrey updates are usually reversible but tricky b/c of downstream consequences and order dependence}}	
 	\end{example}			
 	
 	
@@ -255,47 +256,50 @@
 %		, and also a third trait of interest: in addition to being so over-constrained as to be inconsistent with all distributions, \MNs\ can be too under-constrained to pick out a single distribution.
 %	%		illustrate particularly well the biggest difference between the two interpretations of a graph: when two arrows point to the same node. 	
 	
-%	\Cref{ex:guns-and-floomps} 
-	The ability to represent these `over-constrained' states of belief, in which it is possible for there to be inconsistency, can be valuable even when there is none. Conversely, \MNs\ can represent under-constrained: any subgraph of a \MN\ is still a \MN, unlike for plain Bayesian Networks. Our next example illustrates both of these effects, while also highlighting an additional way in which BNs fail to be as modular as we might like.
-
+	The ability to represent these `over-constrained' states of belief, in which it is possible for there to be inconsistency, can also be valuable even when there is none. 
+	\changed{Unlike other models, which require special coloring of nodes, \MNs\ also cleanly represent `under-constrained' beliefs, such as conditional ones, without modification.}
+	Our next example illustrates both, and highlights one more way in which BNs fail to be as modular as we might hope.
+	
 	
 	\begin{example} \label{ex:planet}
-		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas). That is to say, we have a conditional probability table:
+		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), \changed{resulting in the CPT from \cref{fig:planet-initial}.}
 		
-		\begin{center}
-			\scalebox{0.9}{
-			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) = 
-			\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
+		\begin{figure}[h]
+			\centering
+			\scalebox{0.8}{
+				\begin{tikzpicture}[center base]
+				\node[dpadded,light pad,fill opacity=.2] (SS) at (0.2, 1.2) {Size};
+				\node[dpadded,light pad,fill opacity=.2] (CC) at (2.6, 1.2) {Composition};
+				\node[dpadded,light pad,fill opacity=0] (LL) at (1.4,0) {Life};
+				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {Water};
+				\draw[arr] (CC) -- (LL);
+				\draw[arr] (SS) -- (LL);
+				\draw[arr, dotted, opacity=0.5] (WW) -- (LL);
+				\end{tikzpicture}	
+			}%		
+			~~\scalebox{0.8}{
+%			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) =$\\
+			$\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
 				.1 & .9 \\
 				.2 & .8 \\
 				.05 & 0.95 \\
 				0.001 & 0.999
 			\end{idxmat} $}
-			
-			\scalebox{0.8}{
-			\begin{tikzpicture}[center base]
-			\node[dpadded,light pad,fill opacity=0] (SS) at (-0.4, 1.2) {Size};
-			\node[dpadded,light pad,fill opacity=0] (CC) at (3.4, 1.2) {Composition};
-			\node[dpadded,light pad,fill opacity=0] (LL) at (1.2,0) {Life};
-			\draw[arr] (CC) -- (LL);
-			\draw[arr] (SS) -- (LL);
-			\end{tikzpicture}	
-			}
-		\end{center}
+			\caption{CPT and desired new node in \cref{ex:planet}}
+			\label{fig:planet-initial}
+		\end{figure}
 		\vspace{1em}
 	
-		This one conditional probability table is a fragment of the Bayesian Network on the right, but in order to \changed{fully} interpret the picture as a BN
-		, we would also require distributions over the values of  the root nodes `Size' and `Composition'---things we may not know anything about. 
-		Because many joint distributions are compatible with this table, we consider this data \emph{under-constrained}.
+		\changed{This corresponds to the \emph{conditional} Bays Net on the left---note that in order to avoid giving unconditional distributions on `Size' and `Composition' (i.e., represent the under-constrained belief), we needed to color both nodes and alter the semantics of the diagram.}
 		
 		\begin{vfull}
 			A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.
 		\end{vfull}
 
-		Now our biologist friend now reminds us that life requires water, and gives us a probability estimate for the existence of life on a planet, with and without water. We trust this friend completely, and totally believe these probabilities. Unfortunately, but there's no way to place it as the parent of the $L$ node, because we don't know what the correlations are between water, size, and composition; neither are we prepared to give a probability of live given a full description of the three, and may not even have the space to keep such a thing.%
+		Now our biologist friend now reminds us that life requires water, and computes probabilities for the existence of life on a planet, with and without water. We trust this friend completely. \changed{We'd like to introduce a new node, `Water', but if we make it a parent of `Life', because we don't know how this information interacts with size, and composition; neither are we prepared to give a probability of live given a full description of the three, and this table would be much larger}.%
 			\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
-		Let $S, C, W, L$ be shortenings of Size, Composition, Water, and Life, respectively.
-		\MNs\ allow us to interpret each arrow individually, using a picture like this:
+		Let $S, C, W, L$ be the respective shortenings of our variables.
+		\MNs\ allow us to interpret the last arrow individually, using a picture like this:
 
 		\begin{center}
 		\scalebox{0.9}{
@@ -309,14 +313,14 @@
 		\end{tikzpicture}}
 		\end{center}
 	
-		This means that we have two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also \changed{needing} to provide information about the correlations between $W$ and $S\times C$ we do not have. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+		This means that we have two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also \changed{providing} information about the correlations between $W$ and $S\times C$ we do not have. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
 	\end{example}
 	
 %	Though perhaps difficult to see in example \Cref{ex:guns-and-floomps},
 	\MNs\ are strictly more expressive than Bayesian Networks, and there is a straightforward conversion from a BN to a \MN\ (section \ref{sec:bn-convert}). 
 	%The two graphical models also look alike (and indeed are exactly the same for linear chains of variables);
 %	\note{Changed. The focus was wrong in the previous one you told me to cut, but this part is still useful I think.} 
-	From a technical perspective, the biggest difference between \MNs\ and BNs is the interpretation of two colliding arrows, as highlighted in \cref{ex:smoking}.
+	For those staring at the details, the biggest difference between \MNs\ and BNs is the interpretation of two colliding arrows, as highlighted in \cref{ex:smoking}.
 	
 	
 
@@ -389,9 +393,12 @@
 %			\end{tikzpicture}}
 %		\end{center}
 		\changed{
-		Just as in the previous example, simply adding $T$ to the parents of $C$ would make it impossible to use our old table, and require us to guess at the interactions between tanning beds and smoking, which we have no information about.	}
+		As before, simply adding $T$ to the parents of $C$ makes it impossible to use the old table, and require us to guess at the interactions between tanning beds and smoking.	}
 		% This is again an illustration of the modularity and the possibility for inconsistency; compare the right half of the diagram (shaded slightly darker) with the topological equivalent in example \ref{ex:planet}.
 	\end{example}	
+
+
+	\todo{One final example, this time with directed factor graphs? Or illustrate power of sub-stochasticity?}
 	
 	\changed{
 	While other graphical representations (such as factor graphs) are also more modular, they do not represent inconsistency either, and raise their own issues (see \cref{sec:factor-graphs}). 
@@ -423,7 +430,7 @@
 	
 %	We give the definition below for the finite case.  
 	\changeon
-	We have seen some examples of \MNs, but elided all of the details; we now begin a more careful treatment of these mathematical objects. Rather than representing a probability distribution, \MNs\ can be thought of as representing \emph{constraints} on distributions.
+	We have seen some examples of \MNs, but elided all of the details; we now begin a more careful treatment of these mathematical objects. Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.
 	
 	Compared to a Bayseian Network, a \MN\ still consists of a directed graph, and the interpretations of the edges are still conditional probability tables, but now each edge is interpreted individually, rather than in groups with a shared target node. For instance, the graph
 	\begin{tikzcd}[column sep=1em]
@@ -438,7 +445,7 @@
 		A \emph{strict \modelname} is a tuple $(\mathcal N, \mathcal L, \mathcal V, \bmu)$ where
 		\begin{itemize}[nosep]
 			\item $\mathcal N$~~is a finite collection of nodes
-			\item $\mathcal L \subseteq N \times N$~~is a set of directed links between nodes
+			\item $\mathcal L \subseteq {\cal N} \times {\cal N}$~~is a set of directed links between nodes
 			\item $\mathcal V : \mathcal N \to \mathbf{FinSet} $~~is an $N$-indexed family of measurable sets, representing the values that a node can take
 			\item $\bmu: ((A,B): \mathcal L) \to \mathcal V(A) \to \Delta(\mathcal{V}(B))$~~is a family of conditional probability distributions on $\mathcal V(B)$ indexed by the values of $A$ for every link $(A,B) \in \mathcal L$ %
 		\end{itemize}
@@ -711,72 +718,34 @@
 	\end{enumerate}
 	\changeoff
 	
-	% Parents as a multi-set
-	%
-	
-	The semantics of a Baysian network ensure that there is no inconsistency: the arrows into a node taken together collectively determine a single well-defined probability distribution. Formally they consist of a set of nodes $\cal N$, and for each $N \in \cal N$, a set of parents $\mathrm{Par}(N)$, and a conditional probability distribution $\Pr( N \mid \mathrm{Par}(N))$, which is a distribution over the values of $N$ for each setting of every variable in $\mathrm{Par}(N)$. While each of our arrows can be interpreted by itself as a marginal, a collection of arrows into a single node must be taken together to have any meaning in a BN. 
-	
 	The procedure for converting to a BN is simple: we simply take every node's incoming arrows, and insert the product of its parents as a node before it. With this procedure, if a node $N$ has just one parent $P$, we replace the subgraph [$P \to N$] with [$P \to N \stackrel\sim\rightleftarrows N$], which is redundant so we don't draw this. If a node had zero parents (i.e., the BN just gives it a probability distribution not dependent on anything), we insert the product of zero things, i.e., the singleton node $\mathsf 1$ (with $\mathcal V(\mathsf 1) = \{\star \}$), and set $\Pr(N \mid \star) = \Pr(N)$. 
 	
 	This sound much more complicated than it is. Consider the example below, where the left is a BN, and the right is the corresponding \modelname.
-	\begin{center}
-		
-		\begin{tikzcd}[center base, column sep=2.5em]
-			& A \ar[dl]\ar[dr] \\
-			B \ar[dr] && C \ar[dl]\\
-			& D &
-		\end{tikzcd}
-		\hfil
-		\begin{tikzcd}[center base, column sep=2em, dpad]
-			& \mathsf 1 \ar[d] &\\
-			& A \ar[dl]\ar[dr ]% \ar[dd,dashed, gray] 
-			\\
-			B && C \\
-			& B \times C \ar[ul, gray!70] \ar[ur, gray!70]\ar[d] & \\
-			& D &
-		\end{tikzcd}
-	\end{center}
-	\vspace{0.5em}
+	
+%	\begin{center}
+%		\scalebox{0.8}{
+%		\begin{tikzcd}[center base, column sep=1.5em, ampersand replacement=\&]
+%			\& A \ar[dl]\ar[dr] \\
+%			B \ar[dr] \&\& C \ar[dl]\\
+%			\& D \&
+%		\end{tikzcd}
+%		\begin{tikzcd}[center base, column sep=1.4em, dpad, row sep=1em, ampersand replacement=\&]
+%			\& \mathsf 1 \ar[d] \& \\
+%			\& A \ar[dl]\ar[dr] \& % \ar[dd,dashed, gray] 
+%			\\
+%			B \& \& C \\
+%			\& B \times C \ar[ul, gray!70] \ar[ur, gray!70]\ar[d] \& \\
+%			\& D \&
+%		\end{tikzcd}
+%		}
+%	\end{center}
+%	\vspace{0.5em}
 
 	We have effectively changed two things: first, visually encoded the probability distribution of $A$ as the arrow $1 \to A$ (which we are now allowed to omit; sometimes you don't want priors on things, such as your own actions). Second, we have combined the two arrows $B \to D$ and $C \to D$ into a single one, $B \times C \to D$. Though certainly more verbose, this is arguably visually clearer if want to follow arrows: you cannot compute $D$ from $B$; you need both $B$ and $C$.
 	
 	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.
 		
-	\subsubsection{Formalism}
-	To show exactly how they correspond, we need a more formal definition of a Bayesian Network:
-	\begin{defn}
-			A Baysian network (BN) is a tuple
-			\[
-				\mathcal B = \left(\mathcal N : \mathbf{FinSet}, ~~\mathrm{Par}: \mathcal N \to 2^{\mathcal N},~~ \mathcal S: \mathcal N \to \mathbf{FinSet},~~\Pr: \prod_{N : \mathcal N}  \left[ \mathcal S_N \times \left(\prod_{P : \mathrm{Par}(N)} \mathcal S_P\right)  \to [0,1] \right] \right)
-			\]
-			such that
-			\begin{itemize}[nosep]
-				\item the graph $\bigcup_{N, P \in \mathrm{Par}(N)}(N, P)$ is acyclic, i.e., there exists no cycle of nodes $N_0, N_1, \cdots, N_k = N_0$ in $\mathcal N^k$ such that $N_{i+1} \in \mathrm{Par}(N_i)$ for each $i \in \{0, 1, \cdots, k\}$.
-				\item For all $N \in \mathcal N$, $\Pr(N)$ is a probability distribution on $\mathcal S_N$, i.e., 
-				\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
-			\end{itemize}
-		\end{defn}
-	
-	
-		\begin{defn}
-			If $B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a Bayesian Network, then let $\Gamma (B)$ denote the corresponding \MN\ given by the procedure in section \ref{sec:bn-convert}. Explicitly, 
-			\[ \Gamma\mathcal B :=  (\mathcal N', \mathcal L, \mathcal V, \bmu) \]
-			where % $\mathcal N'$ is the original nodes, plus
-			\begin{align*}
-				\mathcal N' &=  \left\{ \Big.\{N\} \mid N \in \mathcal N\right\} \cup \left\{ \mathrm{Par}(N) ~\middle|~ N \in \cal N \right\} \\%
-				\mathcal L &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
-					\left\{\vphantom{\Big|} (P, \{X\}) \mid X \in P, P = \mathrm{Par}(N) \text{ for some }N \in \mathcal N \right\} \\
-				\mathcal V_N &= \prod_{X \in N} \mathcal S_X \\
-%					{\color{gray}\Sigma_N = \bigotimes_{X \in N} 2^{\mathcal S_X}, \text{the product algebra of discrete $\sigma$-algebras}} \\
-				\mathbf p &= \begin{cases}
-					 	(\mathrm{Par}(N), \{N\}) &\mapsto \lambda(p, B).~ \displaystyle\sum_{b \in  B} \Pr(b \mid p) \\
-					 	(P, X) &\mapsto, \lambda (p, B).~ \displaystyle \mathbbm 1_{\displaystyle\pi_X(p) \in B}
-					\end{cases}
-			\end{align*}
-			%\cpm p(\frac{a}{z}|b)
-		\end{defn}
-		All we've done is explicitly add parent nodes and projection edges to our graph, and also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
-		
+
 		We can now state the following theorem, showing that Bayesian Networks are a special case of \MNs: 
 		\begin{theorem}
 			If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}_\MaxEnt =\{\Pr_B\}$.
@@ -850,9 +819,9 @@
 	\end{prop}
 
 
-	\begin{theorem}
+	\begin{conj}
 		$\bbr{M}_\MaxEnt = \Pr_{\Phi(M)}$
-	\end{theorem}
+	\end{conj}
 	\changeoff
 	
 	
@@ -1033,7 +1002,7 @@
 		\item The modularity enables type-forming rules which can be used to implement deductive inference.
 		\item In contrast with a simple collection of constraints, inconsistencies can be more local, and individual pieces of information have limited impact on the semantics.
 	\end{enumerate} % trade-off: harder to analyze.
-	
+	\subsection{}\label{sec:more-examples}
 	
 	\onecolumn
 	\appendix
@@ -1064,4 +1033,38 @@
 	
 	
 	The complexity of the representation is $O(XV + L V^2)$, compared to $O(XW)$
+	
+	\section{Formalism for other Graphical Models}
+	\begin{defn}
+		A Baysian network (BN) is a tuple
+		\[
+		\mathcal B = \left(\mathcal N : \mathbf{FinSet}, ~~\mathrm{Par}: \mathcal N \to 2^{\mathcal N},~~ \mathcal S: \mathcal N \to \mathbf{FinSet},~~\Pr: \prod_{N : \mathcal N}  \left[ \mathcal S_N \times \left(\prod_{P : \mathrm{Par}(N)} \mathcal S_P\right)  \to [0,1] \right] \right)
+		\]
+		such that
+		\begin{itemize}[nosep]
+			\item the graph $\bigcup_{N, P \in \mathrm{Par}(N)}(N, P)$ is acyclic, i.e., there exists no cycle of nodes $N_0, N_1, \cdots, N_k = N_0$ in $\mathcal N^k$ such that $N_{i+1} \in \mathrm{Par}(N_i)$ for each $i \in \{0, 1, \cdots, k\}$.
+			\item For all $N \in \mathcal N$, $\Pr(N)$ is a probability distribution on $\mathcal S_N$, i.e., 
+			\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
+		\end{itemize}
+	\end{defn}
+	
+	
+	\begin{defn}
+		If $B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a Bayesian Network, then let $\Gamma (B)$ denote the corresponding \MN\ given by the procedure in section \ref{sec:bn-convert}. Explicitly, 
+		\[ \Gamma\mathcal B :=  (\mathcal N', \mathcal L, \mathcal V, \bmu) \]
+		where % $\mathcal N'$ is the original nodes, plus
+		\begin{align*}
+		\mathcal N' &=  \left\{ \Big.\{N\} \mid N \in \mathcal N\right\} \cup \left\{ \mathrm{Par}(N) ~\middle|~ N \in \cal N \right\} \\%
+		\mathcal L &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
+		\left\{\vphantom{\Big|} (P, \{X\}) \mid X \in P, P = \mathrm{Par}(N) \text{ for some }N \in \mathcal N \right\} \\
+		\mathcal V_N &= \prod_{X \in N} \mathcal S_X \\
+		%					{\color{gray}\Sigma_N = \bigotimes_{X \in N} 2^{\mathcal S_X}, \text{the product algebra of discrete $\sigma$-algebras}} \\
+		\mathbf p &= \begin{cases}
+		(\mathrm{Par}(N), \{N\}) &\mapsto \lambda(p, B).~ \displaystyle\sum_{b \in  B} \Pr(b \mid p) \\
+		(P, X) &\mapsto, \lambda (p, B).~ \displaystyle \mathbbm 1_{\displaystyle\pi_X(p) \in B}
+		\end{cases}
+		\end{align*}
+		%\cpm p(\frac{a}{z}|b)
+	\end{defn}
+	All we've done is explicitly add parent nodes and projection edges to our graph, and also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
 \end{document}
