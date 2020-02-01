@@ -21,6 +21,8 @@
 
 \usepackage{subcaption}
 \usepackage{comment}
+%\usepackage{proof-at-the-end}
+
 
 %\includecomment{vfull}
 %\includecomment{vcat}
@@ -76,12 +78,14 @@
 
 
 %%% What do I even call them anyway?
-\newcommand{\modelname}{Conditional Pseudomarginal Graph}
+\newcommand{\ModelName}{Pseudomarginal Dependency Graph}
+\newcommand{\modelname}{pseudomarginal dependency graph}
+\newcommand{\modelnamehyper}{pseudomarginal dependency hypergraph}
 \newcommand{\modelnames}{\modelname s}
-\newcommand{\MN}{CPG}%	allow for much more modularity than available to Bayesian Networks (examples below), and
+\newcommand{\MN}{PDG}
 \newcommand{\MNs}{\MN s}
 
-\title{\modelnames}
+\title{\ModelName s}
 
 \author{} % LEAVE BLANK FOR ORIGINAL SUBMISSION.
 
@@ -107,7 +111,8 @@
 	\maketitle
 
 	\begin{abstract}
-		Graphical models have enjoyed success in compressing probability distributions over joint settings of random variables, by making use of independence assumptions. 
+		Graphical models cleverly compress probability distributions over joint settings of random variables, by making use of independence assumptions.
+		
 		However, because they model probability distributions, they are not expressive enough to represent mental states of agents who might not have globally consistent beliefs. 
 			
 		
@@ -320,13 +325,13 @@
 	\MNs\ are strictly more expressive than Bayesian Networks, and there is a straightforward conversion from a BN to a \MN\ (section \ref{sec:bn-convert}). 
 	%The two graphical models also look alike (and indeed are exactly the same for linear chains of variables);
 %	\note{Changed. The focus was wrong in the previous one you told me to cut, but this part is still useful I think.} 
-	For those staring at the details, the biggest difference between \MNs\ and BNs is the interpretation of two colliding arrows, as highlighted in \cref{ex:smoking}.
+	\changed{In some sense}, the biggest difference between \MNs\ and BNs is the interpretation of two colliding arrows, as highlighted in \cref{ex:smoking}.
 	
 	
 
 	\begin{example}\label{ex:smoking}
 		Consider the classic example used to introduce Bayesian nets, in which the four variables are interest are booleans indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \cref{subfig:smoking-bn}.
-		\begin{figure*}[h!]
+		\begin{figure*}[ht!]
 			\centering
 			
 			\begin{subfigure}[b]{0.3\textwidth}
@@ -356,9 +361,8 @@
 				\mergearr{SH}{S}{C}
 				
 				\node[dpadded, fill opacity=0.05,dashed] (T) at (6.5,0) {$T$};
-				\draw[arr,dashed] (T) -- (C);
-	
-\				\end{tikzpicture}}
+				\draw[arr,dashed] (T) -- (C);	
+				\end{tikzpicture}}
 				\caption{Corresponding \MN}
 				\label{subfig:smoking-pdg}
 			\end{subfigure}
@@ -368,7 +372,7 @@
 		\end{figure*}
 		
 		The BN is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. It encodes an assumption that every node is independent of its non-descendants given its parents.
-		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and would require much more empiricism \changed{to properly validate}.
+		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and would \changed{require empiricism to validate}.
 		
 		The \MN, on the other hand, represents merely the set of constraints on marginals given in the tables. Depending on our chosen semantics (we offer several in section \ref{sec:formal+semantics}), we can further interpret the constraints. For instance, by looking at the maximum entropy distribution consistent with the constraints, we get back the independence assumptions from the BN, and can thereby view \Cref{subfig:smoking-pdg} as representing the same distribution as the BN.
 				
@@ -430,99 +434,82 @@
 	
 %	We give the definition below for the finite case.  
 	\changeon
-	We have seen some examples of \MNs, but elided all of the details; we now begin a more careful treatment of these mathematical objects. Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.
+	We have seen some examples of \MNs, but elided the details; we now begin a more careful treatment of \MNs\ as mathematical objects. Rather than representing a probability distribution, \MNs\ can be thought of as (soft) \emph{constraints} on distributions.
+
+	If a probability distribution is a soft constraint on the set of possible worlds, then a \MN\ is a soft constraint on the set of probability distributions.
 	
-	Compared to a Bayseian Network, a \MN\ still consists of a directed graph, and the interpretations of the edges are still conditional probability tables, but now each edge is interpreted individually, rather than in groups with a shared target node. For instance, the graph
-	\begin{tikzcd}[column sep=1em]
-		A \ar[r] & C &  \ar[l] B
-	\end{tikzcd}
-	would be interpreted as a single conditional probability table $\Pr(C\mid A, B)$ in a BN, but as two separate tables $\Pr(C \mid A)$ and $\Pr(B \mid A)$ in a \MN.
+	The key insight is that in specifying a distribution via a graphical model, you have also implicitly defined not only the distribution you intended, but also a natural higher-order scoring on distributions not only through the description of the distribution 
+	
+	% MRF/expfamily: 
+	% specifying a probability distribution by linear sum of energy potentials (each world has an energy). (@fixed temp = scale variable), is equivalent to a probability distribution.
+	% By specifying a set of soft constraints on distributions, we specify potentials on 
+	
+	
+	
+	% Relation to KB
+	
+	\todo\
+	
+	
+	Compared to a Bayseian Network, a \MN\ still consists of a directed graph, and the edges still inform conditional probability tables, but now each edge is interpreted individually. For instance, the graph
+	$A \!\rightarrow\! C \!\leftarrow\! B$,
+	\changed{which would be interpreted as a single table $\Pr(C\mid A, B)$ in a BN, would be two separate tables $\Pr(C \mid A)$ and $\Pr(B \mid A)$ in a \MN.}
 
 	%
-	\changeoff
-
-	\begin{defn}\label{def:model}
-		A \emph{strict \modelname} is a tuple $(\mathcal N, \mathcal L, \mathcal V, \bmu)$ where
+	
+	
+	\begin{defn}\label{def:hypermodel}
+		A \emph{\modelnamehyper} is a tuple $(\mathcal N, \mathcal L, \mathcal V, \bmu)$ where
 		\begin{itemize}[nosep]
 			\item $\mathcal N$~~is a finite collection of nodes
-			\item $\mathcal L \subseteq {\cal N} \times {\cal N}$~~is a set of directed links between nodes
-			\item $\mathcal V : \mathcal N \to \mathbf{FinSet} $~~is an $N$-indexed family of measurable sets, representing the values that a node can take
-			\item $\bmu: ((A,B): \mathcal L) \to \mathcal V(A) \to \Delta(\mathcal{V}(B))$~~is a family of conditional probability distributions on $\mathcal V(B)$ indexed by the values of $A$ for every link $(A,B) \in \mathcal L$ %
+			\item $\mathcal L \subseteq 2^{\cal N} \times 2^{\cal N}$~~is a set of directed links from one subset of $\cal N$ to another.
+			\item $\mathcal V : \mathcal N \to \mathbf{MeasSet} $~~is an $\cal N$-indexed family of measurable sets, representing the values that each node $N \in \mathcal N$ can take
+			\item $\bmu\colon (({\bf A,B})\colon \mathcal L) \to \prod\limits_{A\in \bf A} \mathcal V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\mathcal{V}(B)\right]$ is a family of conditional probability distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \mathcal L$ %
 		\end{itemize}
 	\end{defn}
+	
+
+	\begin{defn}\label{def:model}
+		A \textit{\modelname} (s\MN) is a \modelnamehyper\ where every link has just one source and target node.
+	\end{defn}
+
+	\begin{defn}
+		A \MN\ is \emph{strict} if $\bmu$
+	\end{defn}
+
+	\begin{theorem}[restate=thmhyperequiv]
+		Every \modelnamehyper\ is equivalent to a \MN\ with additional variables.
+%		\todo{define ``equivalence'' and prove.}
+	\end{theorem}
+	\begin{proof}
+		This is done to introduce a new node whose domain corresponding to every set of variables that participates in a link. For instance, the \MN\ in \cref{ex:planet} is translated as follows:
+		\begin{center}
+			\scalebox{0.8}{
+			\begin{tikzpicture}
+				\node[dpadded] (L) at (1.3,0) {$L$};
+				\node[dpadded] (W) at (-0.5,0) {$W$};
+				
+				\node[dpadded,light pad, dashed] (SC) at (3, 0){\footnotesize $S \times C$};
+				\node[dpadded] (S) at (5, 0.5) {$S$};
+				\node[dpadded] (C) at (5, -0.5) {$C$};
+				
+				\draw[arr, ->>] (SC) -- (S);
+				\draw[arr, ->>] (SC) -- (C);
+				\draw[arr] (SC) -- (L);
+				\draw[arr] (W) -- (L);
+			\end{tikzpicture}}
+		\end{center}
+		See \cref{sec:hyper-convert} for the full example and proof.
+	\end{proof}
+	\changeoff
+
 
 %	If every $\mathcal V(N)$ is finite with all subsets measurable, then $\bmu_{A,B}$ is just a conditional probability table, or a stochastic matrix.
-	\changed{
-	You may have noted that this only includes data for the normal arrows, rather than the multi-tailed ones described in the examples. This can be achieved either by generalizing $\mathcal L$ to higher orders, or introducing product nodes; we opt for the latter as it simplifies the formalism and paves the way for additional special nodes in \cref{sec:algebra}.
-	}
+%	\changed{
+%	You may have noted that this only includes data for the normal arrows, rather than the multi-tailed ones described in the examples. This can be achieved either by generalizing $\mathcal L$ to higher orders, or introducing product nodes; we opt for the latter as it simplifies the formalism and paves the way for additional special nodes in \cref{sec:algebra}.
+%	}
 
-	\begin{example}[continues=ex:planet]
-		Earlier in example \ref{ex:planet}, we displayed the arrow from $S$ and $C$ to $L$ as a directed hyper-edge. While we would like to maintain this intuition, the way to do this is using only graphs with edges, as in \cref{def:model}, is to use intermediate nodes:
-		
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (S) at (-0.5, 2) {$S$};
-			\node[dpadded] (C) at (3.1, 2) {$C$};
-			\node[dpadded] (L) at (1.3,0) {$L$};
-			\node[dpadded] (W) at (-2,0) {$W$};
-%			
-			\node[dpadded,light pad] (SC) at (1.3, 1.4){\footnotesize $S \times C$};
-%			
-			\draw[arr, ->>] (SC) -- (S);
-			\draw[arr, ->>] (SC) -- (C);
-			\draw[arr] (SC) -- (L);
-			\draw[arr] (W) -- (L);
-		\end{tikzpicture}
-		\end{center}
-		We will sometimes use double headed arrows like this to emphasize degenerate conditional distributions, which are deterministic.
-		We can now present this \MN\ formally with the elements specified in definition \ref{def:model}.		
-		\begin{align*}
-			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
-			&\mathcal L = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
-			\mathcal V &\left\{\begin{aligned}
-			\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
-			\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
-			\mathcal V(L) &=  \{ l, \lnot l \} \\
-			\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
-			\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
-				% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
-			\end{aligned}\right.\\
-%		\end{align*}
-%		\vspace{-1em}
-%		\begin{align*}
-	 	\bmu & \left\{~\begin{aligned}
-		&\boldsymbol\mu[S\!\!\times\!\!C, L] = & \boldsymbol\mu[S\!\!\times\!\!C, S] = \\[-0.6em]
-			 &\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
-				.1 & .9 \\
-				.2 & .8 \\
-				.05 & 0.95 \\
-				0.001 & 0.999
-			\end{idxmat} 
-			&
-			 \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
-				0 & 1 \\
-				1 & 0 \\
-				0 & 1 \\
-				1 & 0
-			\end{idxmat}
-			\\[0.5em]
-			&\boldsymbol\mu[W, L] = & \boldsymbol\mu[S\!\!\times\!\!C, C] =\\[-0.6em]
-			&\begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
-				0 & 1 \\
-				.005 & .995 \\
-				.05 & 0.95 \\
-			\end{idxmat}
-			&
-			 \begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
-				1 & 0 \\
-				1 & 0\\
-				0 & 1 \\
-				0 & 1 
-			\end{idxmat}
-		\end{aligned}\right.\\[-3em]
-		\end{align*}
-		\vspace{-1em}
-	\end{example}
+	
 
 	\begin{vfull}
 		This works pretty well for the two edges that we described before, but the structural overhead of the additional de-sugaring: the $\boldsymbol\mu[S\times C\to S]$ and $\boldsymbol\mu[S\times C\to C]$ tables, as well as the set $\mathcal V(S \times C)$ seem like they didn't need to be specified, and one might even feel that it would be a mistake to allow any other table. Some reasons for this design decision include:
@@ -567,28 +554,11 @@
 %		\[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}_\Set \} \]
 %	\end{defn}
 	
-	
-	Finally, we state the most important mathematical characterization of these objects
-	\begin{prop}%[restate=thmsetconvex] 
+	\begin{lemma}[restate=thmsetconvex] 
 		\label{prop:convex}
 		$\bbr{M}_\Set$ is convex, for any \MN\ $M$.
-	\end{prop}%
-	\begin{proof}
-		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
-		
-		By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
-		For brevity, we will use little letters ($a$) in place of events ($A = a$).
-		Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
-		\begin{align*}
-		&~ \Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a)\\ &= 
-		\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
-		&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
-		&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
-		&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
-		&= \bmu_{A,B}(a,b)
-		\end{align*}
-		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}_\Set$.
-	\end{proof}
+	\end{lemma}%
+
 	
 	
 %	\changed{
@@ -619,22 +589,10 @@
 	\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
 
 
-	\begin{prop}
+	\begin{prop}[restate=thmzetaconvex]
 		$\zeta$ is a convex function in $p$
 	\end{prop}
-	\begin{proof}
-		It is well-known that $D_{KL}$ is convex, in the sense that 
-		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
-		Choose any link $L \in \mathcal L$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
-		Setting $q_1 = q_2 = \bmu_L(a)$, we get
-		\[ D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \]
-		Since this is true for every $a$ and link, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
-		\begin{align*}
-		 	\E_{a\sim p(A=a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
-		 	\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
-		 	\zeta(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \zeta(M;p_1) + (1-\lambda) \zeta(M;p_2)
-		\end{align*}
-	\end{proof}
+	
 	\begin{conj}
 		$\bbr{M}_\zeta$ is a quasiconvex function.
 	\end{conj}
@@ -647,10 +605,10 @@
 	\end{defn}
 
 
-	We may also consider the links as having different strengths: if we associate a positive ``temperature'' coefficient, to each edge, with higher numbers indicating higher uncertainty about the actual value.
+	We may also consider the links as having different strengths: if we associate a positive `inverse temperature' coefficient $\beta$ to each edge, .
 	
 	\begin{defn}
-		A weighted \MN\ is a \MN\ $M = (\cal N, L, V, \bmu)$ together with a temperature $T_L \in \mathbb {RP}^1$ for each link $L \in \mathcal L$.
+		A weighted \MN\ is a \MN\ $M = (\cal N, L, V, \bmu)$ together with an inverse temperature $\beta_L \in \mathbb R$ for each link $L \in \mathcal L$.
 	\end{defn}
 
 
@@ -939,7 +897,22 @@
 				\item Composition works out in general as we place no restrictions on anything, but
 				\item If every edge in $\mathcal L$ represents the causal structure of their relationship, then the image of the resulting diagram will be flat, and so effectively there will only be at most one, belief, and no possibility of conflict.
 				\item Interpreting with a different model of uncertainty (such as the powerset, giving us non-deterministic possibility) is simply an exchange of interpretation. However, for nice interaction with deterministic functions and logic, this notion of uncertainty must be a monad.
-			\end{enumerate}
+			\end{enumerate}	\begin{proof}
+			Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
+			
+			By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+			For brevity, we will use little letters ($a$) in place of events ($A = a$).
+			Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
+			\begin{align*}
+				&~ \Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a)\\ &= 
+				\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
+				&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+				&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+				&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
+				&= \bmu_{A,B}(a,b)
+			\end{align*}
+			and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}_\Set$.
+		\end{proof}
 			
 			\item This highlights the role of the ``qualitative'' and ``quantitative'' versions of this framework (which work out much more cleanly than for BNs in a categorical sense)
 			
@@ -981,7 +954,22 @@
 		These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariants can be expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that something has gone wrong.
 		In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags.
 		
-		Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$. 
+		Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$. 	\begin{proof}
+			Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
+			
+			By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+			For brevity, we will use little letters ($a$) in place of events ($A = a$).
+			Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
+			\begin{align*}
+				&~ \Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a)\\ &= 
+				\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
+				&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+				&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+				&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
+				&= \bmu_{A,B}(a,b)
+			\end{align*}
+			and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}_\Set$.
+		\end{proof}
 		By construction, the result must be a distribution, and nothing can possibly go wrong so long as we can always decide on exactly one distribution which is sufficient for our purposes.
 		%	By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
 		
@@ -1007,11 +995,115 @@
 	\onecolumn
 	\appendix
 	\section{Proofs}
-%	\thmsetconvex*
+	\thmsetconvex*
+	\begin{proof}
+		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
+		
+		By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+		For brevity, we will use little letters ($a$) in place of events ($A = a$).
+		Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
+		\begin{align*}
+			\Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a) &= 
+			\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
+			&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+			&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+			&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
+			&= \bmu_{A,B}(a,b)
+		\end{align*}
+		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}_\Set$.
+	\end{proof}
 	
 	
+	\thmzetaconvex*
+	\begin{proof}
+		It is well-known that $D_{KL}$ is convex, in the sense that 
+		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
+		Choose any link $L \in \mathcal L$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
+		Setting $q_1 = q_2 = \bmu_L(a)$, we get
+		\[ D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \]
+		Since this is true for every $a$ and link, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
+		\begin{align*}
+			\E_{a\sim p(A=a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
+			\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
+			\zeta(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \zeta(M;p_1) + (1-\lambda) \zeta(M;p_2)
+		\end{align*}
+	\end{proof}
 
-	\section{Misc}
+	\subsection{Hyper Graph Conversion}\label{sec:hyper-convert}
+	\begin{example}[continues=ex:planet]
+		Earlier in example \ref{ex:planet}, we displayed the arrow from $S$ and $C$ to $L$ as a directed hyper-edge. While we would like to maintain this intuition, the way to do this is using only graphs with edges, as in \cref{def:model}, is to use intermediate nodes:
+		
+		\begin{center}
+			\begin{tikzpicture}
+				\node[dpadded] (S) at (-0.5, 2) {$S$};
+				\node[dpadded] (C) at (3.1, 2) {$C$};
+				\node[dpadded] (L) at (1.3,0) {$L$};
+				\node[dpadded] (W) at (-2,0) {$W$};
+				
+				\node[dpadded,light pad] (SC) at (1.3, 1.4){\footnotesize $S \times C$};
+				
+				\draw[arr, ->>] (SC) -- (S);
+				\draw[arr, ->>] (SC) -- (C);
+				\draw[arr] (SC) -- (L);
+				\draw[arr] (W) -- (L);
+			\end{tikzpicture}
+		\end{center}
+		We will sometimes use double headed arrows like this to emphasize degenerate conditional distributions, which are deterministic.
+		We can now present this \MN\ formally with the elements specified in definition \ref{def:model}.		
+		\begin{align*}
+			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
+			&\mathcal L = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
+			\mathcal V &\left\{\begin{aligned}
+				\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
+				\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
+				\mathcal V(L) &=  \{ l, \lnot l \} \\
+				\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
+				\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
+				% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
+			\end{aligned}\right.\\
+			%		\end{align*}
+			%		\vspace{-1em}
+			%		\begin{align*}
+			\bmu & \left\{~\begin{aligned}
+				&\boldsymbol\mu[S\!\!\times\!\!C, L] = & \boldsymbol\mu[S\!\!\times\!\!C, S] = \\[-0.6em]
+				&\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
+					.1 & .9 \\
+					.2 & .8 \\
+					.05 & 0.95 \\
+					0.001 & 0.999
+				\end{idxmat} 
+				&
+				\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
+					0 & 1 \\
+					1 & 0 \\
+					0 & 1 \\
+					1 & 0
+				\end{idxmat}
+				\\[0.5em]
+				&\boldsymbol\mu[W, L] = & \boldsymbol\mu[S\!\!\times\!\!C, C] =\\[-0.6em]
+				&\begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
+					0 & 1 \\
+					.005 & .995 \\
+					.05 & 0.95 \\
+				\end{idxmat}
+				&
+				\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
+					1 & 0 \\
+					1 & 0\\
+					0 & 1 \\
+					0 & 1 
+				\end{idxmat}
+			\end{aligned}\right.\\[-2em]
+		\end{align*}
+		\vspace{-0.5em}
+	\end{example}
+
+	We now proceed with the proof
+	
+	\thmhyperequiv*
+	\todo{}
+
+	\section{Alternate Presentations}
 	\subsection{Random Variables}
 	If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$,\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$} and 
 	{\color{gray}$\mathcal L \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
