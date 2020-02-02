@@ -404,13 +404,18 @@
 
 	\todo{One final example, this time with directed factor graphs? Or illustrate power of sub-stochasticity?}
 	
-	\changed{
+	\changeon
+	\begin{example}
+		content
+	\end{example}
+
+	
 	While other graphical representations (such as factor graphs) are also more modular, they do not represent inconsistency either, and raise their own issues (see \cref{sec:factor-graphs}). 
 	
 	Thus far, we have given a taste of why \MNs\ could be valuable: they can represent under and over-constrained epistemic states, allow us to avoid making unnecessary assumptions, and are more modular, in the sense that changes to the underlying graph are much simpler and require fewer assumptions than for Bayesian Networks.	
 	%
 	However, we have only described parts of our simplest model; before we get to the more powerful variants, we need to formalize what we have.
-	}
+	\changeoff
 	
 	
 
@@ -467,10 +472,12 @@
 			\item $\bmu\colon (({\bf A,B})\colon \mathcal L) \to \prod\limits_{A\in \bf A} \mathcal V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\mathcal{V}(B)\right]$ is a family of conditional probability distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \mathcal L$ %
 		\end{itemize}
 	\end{defn}
+
+	The name is chosen because each arrow is a pseudomarginal (in the sense of not necessarily)
 	
 
-	\begin{defn}\label{def:model}
-		A \textit{\modelname} (s\MN) is a \modelnamehyper\ where every link has just one source and target node.
+	\begin{defn}[\MN]\label{def:model}
+		A \textit{\modelname} is a \modelnamehyper\ where every link has just one source and target node.
 	\end{defn}
 
 	\begin{defn}
@@ -482,7 +489,7 @@
 %		\todo{define ``equivalence'' and prove.}
 	\end{theorem}
 	\begin{proof}
-		This is done to introduce a new node whose domain corresponding to every set of variables that participates in a link. For instance, the \MN\ in \cref{ex:planet} is translated as follows:
+		This is done by introducing a new node corresponding to every non-singleton set of variables that participates in a link. For instance, the \MN\ in \cref{ex:planet} is translated as follows:
 		\begin{center}
 			\scalebox{0.8}{
 			\begin{tikzpicture}
@@ -590,12 +597,15 @@
 
 
 	\begin{prop}[restate=thmzetaconvex]
-		$\zeta$ is a convex function in $p$
+		$\zeta$ is a convex function in $p$.
 	\end{prop}
 	
-	\begin{conj}
+	\begin{fact}
 		$\bbr{M}_\zeta$ is a quasiconvex function.
-	\end{conj}
+	\end{fact}
+	\begin{coro}
+		a
+	\end{coro}
 
 	\begin{defn}
 		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
@@ -616,8 +626,7 @@
 		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have temperature 1, and we give our new observation $10^{-3}$.
 		
 		Then $\bbr{M}_\zeta$
-	\end{example}
-	
+	\end{example}	
 	
 	
 	\changeoff
@@ -658,6 +667,9 @@
 
 	
 	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo} for more.
+	
+	\subsection{As Probabilisitic Programs}
+	
 	
 
 	\section{Relations to Other Graphical Models}\label{sec:other-graphical-models}
@@ -704,10 +716,10 @@
 	In order to fully get the joint representation given by the BN we would also need to make the final assumption that $B \CI C \mid A$. This is possible to do with an extra arrow, but this solution doe not scale well and clutters the diagram. Instead, we will leave the picture as it is, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.
 		
 
-		We can now state the following theorem, showing that Bayesian Networks are a special case of \MNs: 
-		\begin{theorem}
-			If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}_\MaxEnt =\{\Pr_B\}$.
-		\end{theorem}
+	We can now formally state that Bayesian Networks are a special case of \MNs: 
+	\begin{theorem}
+		If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}_\MaxEnt =\{\Pr_B\}$.
+	\end{theorem}
 	
 	\subsection{Factor Graphs} \label{sec:factor-graphs}
 	
@@ -780,6 +792,9 @@
 	\begin{conj}
 		$\bbr{M}_\MaxEnt = \Pr_{\Phi(M)}$
 	\end{conj}
+
+	\subsection{Directed Factor Graphs}
+
 	\changeoff
 	
 	
@@ -1159,4 +1174,46 @@
 		%\cpm p(\frac{a}{z}|b)
 	\end{defn}
 	All we've done is explicitly add parent nodes and projection edges to our graph, and also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
+	
+	\section{Thermodynamics}
+	Let $W$ be a finite set of states.
+	
+	\textbf{From Potentials to Distributions.}
+	Suppose $U: W \to \mathbb R$ is a potential function, assigning an energy to each state. Imagine there's a particle that could be in any number of states, that the only consideration in transitioning from one state $w$ to another $w'$ is the energy of each state,%
+		\footnote{The thermodynamics, of course, ignore the kinetics of the system. Thought of an Ising model, the edges form a complete graph, and the edge weights are uniform. Thought of as a stochastic matrix, it is rank one, whose latent variable is just the energy of a state.}
+	and that low-energy states are more exponentially more likely,\footnote{this can also be replaced by weaker assumptions; see the thermodynamics literature for more motivation}
+	the unique stationary state is the Boltzmann distribution:
+	\[ \mu(w) \propto \exp( - U(w) / kT ) \]
+	where $k$ is the Boltzmann constant and $T$ is the thermodynamic temperature. Note that at unboundedly high temperatures, the differences between potentials don't matter (all states are equally likely), whereas at as the temperature approaches zero, the Boltzmann distribution puts zero mass on anything that's not a global minimum, and otherwise splits the mass equally. Therefore, if $U$ achieves a unique global minimum $w^*$, the corresponding $\mu(w) = \delta_{w,w^*}$ is a point mass on the minimum energy world $w^*$.
+	
+	It is standard and notationally useful to re-parameterize with the inverse temperature $\beta := 1/kT$ -- and we will refer to the Boltzmann distribution associated to a given potential $U$ (and inverse temperature $\beta$) as 
+	\[ P_{\beta}(U) := w \mapsto  \frac{1}{Z_U(\beta)}\exp\Big(-\beta U(w)\Big) \]
+	Where $Z_U(\beta) = \sum_{w \in W} \exp(-\beta U(\beta))$ is a normalizing factor, sometimes called the ``partition function''.	
+	
+	\textbf{From Distributions to Potentials}.	
+	On the other hand, under similar assumptions, if given a probability distribution $\mu$ over $W$, there is a natural potential energy that resulted in it, 
+	\[ E_{\beta}(\mu) := w \mapsto \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right)  \]
+	which might be recognizable as negative log liklihood or the ``surprise'' of an event happening. By construction, $P_\beta \circ E_\beta$ is the identity on probability distributions:
+	\begin{align*}
+		 \Big(P_\beta \circ E_\beta(\mu)\Big) (w) &= \frac{1}{Z_{ E_\beta (\mu) }} \exp \left( - \ln \left(\frac{1}{\mu(w)}\right) \right) \\
+		 &= \left(\frac{1}{\sum\limits_{w' \in W} \mu(w')}\right)\mu(w) \\
+		 &= \mu(w)
+	\end{align*}
+	and $E_\beta \circ P_\beta$ is the identity on potential functions (up to a constant factor):
+	\begin{align*}
+		\Big(E_{\beta}\circ P_\beta(U)\Big)(w) &= \frac{1}{\beta} \ln \left(\frac{1}{\frac{1}{Z_U(\beta)}\exp(-\beta U(w))}\right) \\
+		&=  \frac{1}{\beta} \Big[\ln Z_U(\beta) - (-\beta U(w)) \Big]\\
+		&= U(w) + \frac{1}{\beta} \ln Z_U (\beta)
+	\end{align*}
+	The constant factor $-\frac{1}{\beta} \ln Z_U(\beta)$ coincideds with the Heimholtz free energy of the system.
+	
+	
+	We now turn the question of what probability distributions are most favorable, for which we use formulate the Gibbs free energy, $G_U(\nu) := {\E}_\nu( U )  - H(\nu)$. If $U$ was generated by a probability distribution $\mu$, we then have
+	
+	\begin{align*}
+		G_\mu(\nu) &= {\E}_\nu( E_\beta(\mu) )  - T H(\nu) \\
+		&= \sum_{w \in W}\nu(w) \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right) - T \left[\sum_{w \in W} \nu(w) \ln \left(\frac{1}{\nu(w)}\right)\right]\\
+		&= D \left(\mu || \nu \right)
+	\end{align*}
+	
 \end{document}
