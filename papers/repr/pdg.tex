@@ -13,11 +13,12 @@
 \usepackage[margin=1in]{geometry}
 
 
+
 \usepackage{times}% Set the typeface to Times Roman
 % :( :( :( :(
 
 \input{../model-commands.tex}
-
+%\usetikzlibrary{arrows}
 
 \usepackage{subcaption}
 \usepackage{comment}
@@ -32,8 +33,8 @@
 
 
 %%%%%% Commands to highlihght changes in the document.
-\definecolor{note-fg}{rgb}{0.0,.4,0.2} % green
-%\definecolor{note-fg}{rgb}{.2,0,.4} % purple
+%\definecolor{note-fg}{rgb}{0.0,.4,0.2} % green
+\definecolor{note-fg}{rgb}{.2,0,.4} % purple
 
 %\newcommand\changed[1]{\colorbox{light gray}{\parbox{\linewidth}{#1}}}
 \newcommand\changed[1]{{\color{note-fg} #1}}
@@ -402,11 +403,14 @@
 	\end{example}	
 
 
-	\todo{One final example, this time with directed factor graphs? Or illustrate power of sub-stochasticity?}
+	%\todo{One final example, this time with directed factor graphs? Or illustrate power of sub-stochasticity?}
 	
 	\changeon
+	For our final introductory example, we will show how we can use the modularity and this interpretation of arrows to do more complicated reasoning.
+%	Interpreting arrows this way has numerous related benefits: one of them is that 
+		
 	\begin{example}
-		content
+		\todo{}
 	\end{example}
 
 	
@@ -414,7 +418,7 @@
 	
 	Thus far, we have given a taste of why \MNs\ could be valuable: they can represent under and over-constrained epistemic states, allow us to avoid making unnecessary assumptions, and are more modular, in the sense that changes to the underlying graph are much simpler and require fewer assumptions than for Bayesian Networks.	
 	%
-	However, we have only described parts of our simplest model; before we get to the more powerful variants, we need to formalize what we have.
+	%However, we have only described parts of our simplest model; before we get to the more powerful variants, we need to formalize what we have.
 	\changeoff
 	
 	
@@ -463,7 +467,7 @@
 		A \emph{\modelnamehyper} is a tuple $(\mathcal N, \mathcal L, \mathcal V, \bmu)$ where
 		\begin{itemize}[nosep]
 			\item $\mathcal N$~~is a finite collection of nodes
-			\item $\mathcal L : \mathcal P (2^{\cal N} \times 2^{\cal N}) \times \mathrm{Id}$~~is a (multi)-set of directed links from one subset of $\cal N$ to another.
+			\item $\mathcal L \subseteq 2^{\cal N} \times 2^{\cal N} \times \mathrm{Label}$~~is a set of directed links, each of which has a source and target subset of $\cal N$.
 			\item $\mathcal V : \mathcal N \to \mathbf{MeasSet} $~~is an $\cal N$-indexed family of measurable sets, representing the values that each node $N \in \mathcal N$ can take
 			\item $\bmu\colon\!\big(\!({\bf A,B})\colon \!\mathcal L\big) \to \prod\limits_{A\in \bf A} \!\!\mathcal V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\mathcal{V}(B)\right]$ is a family of conditional probability (sub)-distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \mathcal L$ %
 		\end{itemize}
@@ -694,8 +698,12 @@
 	\changeon
 	Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them --- one  benefit to keeping local data in the form of conditional distributions is that you can compose them; paths from $X$ to $Y$ correspond to estimates of $Y$ from $X$.
 	
-	Specifically, if 	
-	\[(\mathbf g\circ \mathbf f) [c \mid a] :=  \sum_{b \in \mathcal V( B)} \mathbf f[ b \mid a]~ \mathbf g[c \mid b] \]
+	Specifically, if $f(b \mid a) : \mathcal V_A \to \Delta \mathcal V_B$ and $g(c \mid b) : \mathcal V_B \to \Delta \mathcal V_C$ are conditional distributions, then the probabalistic composition $g\circ f : \mathcal V_A \to \Delta\mathcal V_C$ is defined as
+	\begin{align*}
+			(g\circ  f) (c \mid a) :=  \sum_{b \in \mathcal V B}\!\! f (b \mid a)\ g(c \mid b)
+	\end{align*}
+
+	As a result, 
 	
 	\changeoff
 	% This means we can sample them
@@ -705,35 +713,96 @@
 	\section{Relations to Other Graphical Models}\label{sec:other-graphical-models}
 	\changeon
 	Bayesian Networks may be the most widespread graphical models, but they are certainly not the only ones. In some sense, each can emulate the others, to various degrees of ease.
-	
+
+	\usetikzlibrary{decorations.markings}	
 	\begin{figure*}[t]
 		\centering
 		\begin{tikzpicture}
-			\begin{scope}[every node/.style={, , outer sep=4pt}]
-				\node (BN) at (0,2) {BN};
-				\node (FG) at (3,3) {FG};
-				\node (DFG) at (2,2) {FG$^\rightarrow$};
-				\node (SDFG) at (4,2) {FG$^\rightharpoonup$};
-				\node (MRF) at (1, 3) {MRF};
-				\node (PDGH) at (2,1) {PDG$_{}$};
-				\node (PDG) at (4,1) {PDG};
-			\end{scope}
+			\begin{scope}[every node/.style={ellipse, fill, fill opacity=0.05,text opacity=1,
+						outer sep=2pt,font=\bfseries}, xscale=2.5,yscale=1.2]
+				\node (KB) at (-3, 0.5) {KB};
+				\node (CG) at (-3, 1.5) {CG};
+
+				\node (CFG) at (-1.2, 0.4) {CFG};
+				\node (CRF) at (-2, 0) {CRF};
 			
-			\begin{scope}[every edge/.append style={right hook->}]
+				\node (MRF) at (-2, 1) {MRF};
+				\node (FG) at (-1,1.35) {FG};
+				\node (SDFG) at (0,1.5) {FG$^\rightharpoonup$};
+				\node (DFG) at (1,1.35) {FG$^\rightarrow$};
+				\node (BN) at (2,1) {BN};
+
+				\node (CBN) at (2,0) {CBN};
+				\node (DN) at (1.3, 0.6) {DN}; 
+
+				\node (sPDGH) at (0,0.5) {sPDG$_{\text{hyper}}\!\!$};
+				\node (PDGH) at (-0.8,-.5) {PDG$_{\text{hyper}}\!\!\!$};
+				\node (PDG) at (0,-.85) {PDG};
+				\node (sPDG) at (0.8,-.5) {sPDG};
+
+				\node (prog) at (3, -0.2) {PProgSet};
+				
+				\node (CPS) at (1, -1.4) {CPS};	
+				\node (PlateBN) at (-2.5, -1.2) {PlateBN};
+				\node (LPS) at (-1,-1.4) {$\underline {\mathcal P}$};
+			\end{scope}
+	
+			% lossless		
+			\begin{scope}[every edge/.append style={->}]%right hook->
 				\draw (BN) edge (DFG) (DFG) edge (SDFG);
 				\draw (MRF) edge (FG) (FG) edge (SDFG);
-				\draw[->] (DFG) -- (FG);
-				\draw (BN) edge (PDGH);
-				\draw[->, transform canvas={yshift=2pt}] (PDGH) -- (PDG);
-				\draw[->, transform canvas={yshift=-2pt}] (PDG) -- (PDGH);
+%				\draw[->] (DFG) -- (FG);
+				\draw (CBN) edge[bend left = 5, shorten >=7pt] (sPDGH);
+				\draw (CG) edge[bend left=10] (FG);
+				\draw (KB) edge (CG);
+				
+				\draw (sPDGH) edge (PDGH) (sPDG) edge (PDG);
+				
+				\draw (BN) edge (DN) (DN) edge (sPDGH);
+				\draw (DFG) edge (sPDGH);
+				
+				\draw (MRF) edge (CRF) (CRF) edge (CFG);
+				\draw (BN) edge (CBN);
+				\draw (FG) edge (CFG);
+				
+				\draw (CG) edge[out=-55, in=195, looseness=1.5, shorten >=7pt] (sPDGH);
+				\draw (prog) edge[bend left=5] (sPDG);
+				\draw (CPS) edge[out=180,in=-30] (PDG);
+				\draw (PlateBN) edge[bend right=5] (PDGH);
+				\draw (LPS) edge[out=0, in=-150] (PDG);
 			\end{scope}
+	
+			% PDG Equivalences
+%			\draw[->, transform canvas={yshift=2pt}] (PDGH) -- (PDG);
+%			\draw[->, transform canvas={yshift=-2pt}] (PDG) -- (PDGH);
+%			
+%			\draw[->, transform canvas={yshift=2pt}] (sPDGH) -- (sPDG);
+%			\draw[->, transform canvas={yshift=-2pt}] (sPDG) -- (sPDGH);
+			
+			\draw[double equal sign distance, shorten <=0pt, shorten >=0pt] (PDGH) -- (PDG);
+			\draw[double equal sign distance] (sPDGH) -- (sPDG);
+
+			
+			% Projections. Lose information but preserve something.
+			\begin{scope}[every edge/.append style={densely dashed, red, ->}]
+				\draw (sPDGH) edge[bend left=10, out=10] (FG) (sPDGH) edge[bend right=10, out=-5] (FG);
+				\draw (SDFG) edge[bend right=20] (FG);
+			\end{scope}
+			% Inefficient conversions.
+			\begin{scope}[every edge/.append style={ultra thick, dotted, line cap=round,
+					decoration={markings,mark=at position 1 with {\arrow[xshift=2pt,scale=.8]{>}}},
+					postaction={decorate}}]
+				\draw (CFG) edge (sPDGH);
+				\draw (SDFG) edge (sPDGH);
+			\end{scope}
+		
 %			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
 %			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
 %			
 %			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert})$} (EDW);
 %			
 		\end{tikzpicture}
-		\caption{Relations Between Graphical Models}
+		\caption{Transformations Between Graphical and Epistemic Models}
 		\label{fig:}
 	\end{figure*}
 
@@ -812,7 +881,7 @@
 	\begin{example}[continues=ex:planet]
 		\changed{In our planet example, we treat each link as a factor, the product of which gives the correct relative likelihoods for each of $S \times C \times W \times L$. Our initial knowledge, consisting only of the CPT , we have 
 		\[ \Pr(s, c, w, l) \propto \phi_1(s,c,l)  \]
-		where $\phi_1(s,c,l) = \textbf{p}(L\!=\!l | S\!=\!s, C\!=\!c)$, and no normalization is required. For this reason, conditional probability distributions are sometimes thought of as locally normalized. Unlike for BNs, there is no structural barrier to adding our second node, with $\phi_2(w,l) = \Pr(L\!=\!l\mid W\!=\!w)$. The combination of the two factors is represented graphically in \cref{fig:planet-factorgraph}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. }
+		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required. For this reason, conditional probability distributions are sometimes thought of as locally normalized. Unlike for BNs, there is no structural barrier to adding our second node, with $\phi_2(w,l) = \Pr(L\!=\!l\mid W\!=\!w)$. The combination of the two factors is represented graphically in \cref{fig:planet-factorgraph}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. }
 		
 		\begin{figure}[h]
 			\centering
@@ -830,10 +899,12 @@
 				\draw[thick] (W) -- (f2) -- (L);
 			\end{tikzpicture}
 			}
-			\caption{}
+			\caption{Factor graph for \cref{ex:planet}}
 			\label{fig:planet-factorgraph}
 		\end{figure}
-	 	Note that ($\mathcal N \!=\! \{S,C,W,L\}, \Phi \!=\! \{\phi_1,\phi_2\}$) form a bipartite graph, which is equivalent to a hyper-graph over $\mathcal N$. However, 
+	 	Note that ($\mathcal N \!=\! \{S,C,W,L\}, \Phi \!=\! \{\phi_1,\phi_2\}$) form a bipartite graph, which is equivalent to a hyper-graph over $\mathcal N$. 
+	 	
+	 	
 	
 	\end{example}	
 	
@@ -874,19 +945,29 @@
 	\begin{conj}
 		$\bbr{M}_\MaxEnt = \Pr_{\Phi(M)}$
 	\end{conj}
+	\begin{coro}\label{thm:noninj}
+		For every distribution $\mu \in W_{\cal V}$, there exist \MNs\ $M_1$ and $M_2$ such that $\bbr{M_1} \neq \bbr{M_2}$. 
+	\end{coro}
+	
+	\todo{Fix up}
+	A \MN\ clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw: A
+	
+	
+	Perhaps more surprising is that the 
+	
 	\begin{conj}
-		For every distribution $\mu \in W_{\cal X}$, there exist multiple \MNs\ $M_1$ and $M_2$ such that $\bbr{M_1} \neq \bbr{M_2}$. 
+		Information can be determined by 
 	\end{conj}
 
 	\begin{fact}
 		\begin{enumerate}
-			\item A subgraph or super-graph of a factor graph is also a factor graph, but requires a different normalization constant in order to run sampling algorithms, which is NP-hard to compute.
+			\item Any sub or super-graph of a factor graph is also a factor graph, but requires renormalization (\#P-hard) to sample.
 		\end{enumerate}
 	\end{fact}
 
 	\subsection{Directed Factor Graphs}
 	
-	One solution, by \cite{frey} is to also enforce some local constraints. While this indeed solves the issues we were having earlier, in which 
+	One solution, by \cite{frey} is to also enforce some local constraints. While this indeed solves issues \ref{fg-problem:}, in which 
 
 	\changeoff
 	
@@ -923,8 +1004,10 @@
 	 	The weighted distributions generated by \MNs\ are strictly more expressive than those generated by distributions.
 	\end{theorem}
 	
-	A very weak version of this can already be seen in un-normalized factor graphs: there are multiple potentials that all correspond to the same distribution with minimum free energy: . 
-	Similarly, although it is common in an inference setting to simply set the temperature parameter $\beta = 1$ and ignore it it. do not change the temperature parameter, this too is problematic: 
+	A very weak version of this can already be seen in un-normalized factor graphs: by multiplying a factor $\phi$ by a constant $\alpha$, one obtains a free energy $G' = - \ln \alpha + G$, i.e., with a mere additive shift. However, this shift doesn't really distinguish belief states, which is part of why we're so eager to normalize the distribution.
+	There is also an opportunity to modify $\beta$, but in standard graphical model literature, people set $\beta = 1$ and forget about it.%
+		\footnote{\changed{A similar complaint, that temperature parameters are ignored, is filed in \cite{fixing-a-broken-elbo}, in which many information theoretic trade-offs, such as $\beta-$VAEs, can be exposed by allowing thermodynamic $\beta \neq 1$}}
+	The proof of \cref{thm:free-energy-strictly-more-expressive} is a useful example, so we include it here:
 
 	\begin{proof}
 		\todo{case where $\bbr{M}_\MaxEnt = \bbr{M'}_\MaxEnt$ but $\bbr{M} \neq \bbr{M'}$}
@@ -939,7 +1022,7 @@
 		$$\bbr{\Gamma(B)^{(1)}} = D(- || \Pr_\beta) = \mathcal G_{E(\Pr_B)}$$
 	\end{conj}
 	
-	For factor graphs, we already know how to use the thermodynamic parameters, in this case, they line up for all temperatures, as shown in the following, stronger result:
+	For factor graphs, the connection to thermodynamic parameters has previously been made explicit \cite{}, which allows us to formulate the following, stronger result:
 	
 	\begin{conj}
 		For a factor graph $\Phi$, $\bbr{\Psi(\Phi)^{(\beta)}} = \mathcal G_{E_\beta(\Phi)}$.
