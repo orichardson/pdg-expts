@@ -463,7 +463,7 @@
 		A \emph{\modelnamehyper} is a tuple $(\mathcal N, \mathcal L, \mathcal V, \bmu)$ where
 		\begin{itemize}[nosep]
 			\item $\mathcal N$~~is a finite collection of nodes
-			\item $\mathcal L \subseteq 2^{\cal N} \times 2^{\cal N}$~~is a set of directed links from one subset of $\cal N$ to another.
+			\item $\mathcal L : \mathrm{List}(2^{\cal N} \times 2^{\cal N})$~~is a set of directed links from one subset of $\cal N$ to another.
 			\item $\mathcal V : \mathcal N \to \mathbf{MeasSet} $~~is an $\cal N$-indexed family of measurable sets, representing the values that each node $N \in \mathcal N$ can take
 			\item $\bmu\colon\!\big(\!({\bf A,B})\colon \!\mathcal L\big) \to \prod\limits_{A\in \bf A} \!\!\mathcal V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\mathcal{V}(B)\right]$ is a family of conditional probability (sub)-distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \mathcal L$ %
 		\end{itemize}
@@ -693,8 +693,13 @@
 %	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo} for more.
 	
 	\subsection{As Probabilisitic Programs}
-	Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them --- one benefit of keeping local data in the form of conditional distributions is that sampling is compositional: the number of paths that 
-	\todo{}
+	\changeon
+	Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them --- one  benefit to keeping local data in the form of conditional distributions is that you can compose them; paths from $X$ to $Y$ correspond to estimates of $Y$ from $X$.
+	
+	Specifically, if 	
+	\[(\mathbf g\circ \mathbf f) [c \mid a] :=  \sum_{b \in \mathcal V( B)} \mathbf f[ b \mid a]~ \mathbf g[c \mid b] \]
+	
+	\changeoff
 	% This means we can sample them
 	% Also, compose them
 	% and a
@@ -830,7 +835,7 @@
 			\caption{}
 			\label{fig:planet-factorgraph}
 		\end{figure}
-	 	Note that ($\mathcal N={S,C,W,L}, \Phi = {\phi_1,\phi_2}$) form a bipartite graph, which is equivalent to a hyper-graph over $\mathcal N$. However, 
+	 	Note that ($\mathcal N \!=\! \{S,C,W,L\}, \Phi \!=\! \{\phi_1,\phi_2\}$) form a bipartite graph, which is equivalent to a hyper-graph over $\mathcal N$. However, 
 	
 	\end{example}	
 	
@@ -907,7 +912,7 @@
 			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
 			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
 			
-			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert})$} (EDW);
+			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert~})$} (EDW);
 			
 			\draw[->] (EW) to node[above] {$\E^*$} (EDW);
 		\end{tikzpicture}
@@ -932,7 +937,8 @@
 	A priori, \cref{thm:free-energy-strictly-more-expressive} might be thought of as merely a novel function we came up with, but in fact this is not the case--- when the \MN\ is a Bayesian network, this is just the normal Gibbs free energy.
 
 	\begin{conj}
-		For any Bayesian Network $B$, $\bbr{\Gamma(B)^{(1)}} = D(- || \Pr_\beta) = \mathcal G_{E(\Pr_B)}$.
+		For any Bayesian Network $B$, 
+		$$\bbr{\Gamma(B)^{(1)}} = D(- || \Pr_\beta) = \mathcal G_{E(\Pr_B)}$$
 	\end{conj}
 	
 	For factor graphs, we already know how to use the thermodynamic parameters, in this case, they line up for all temperatures, as shown in the following, stronger result:
@@ -945,7 +951,7 @@
 
 		
 
-	\section{The Full Model: Sub-stochastic Transitions} \label{sec:full-model}
+	\section{Non-Strict \MNs\ and Sub-distributions} \label{sec:full-model}
 	
 	In this section we will see why we called the object in \cref{def:model} a \textit{strict} \MN.	
 	Sometimes an otherwise very useful variable might not apply in a small percentage of cases; in this case, we want a way of putting all of the extra probability mass in a ``something else happened'' bucket, giving us effectively a sub-stochastic matrix, or a a lower probability on singletons. For instance, the variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``not applicable / something else'' bucket. 
@@ -1035,7 +1041,62 @@
 
 	\section{Using Inconsistency}	
 	\subsection{Belief Updates} \label{sec:belief-update}
+	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ (in their formulation, these are still distributions) to a new one consistent with the input $I$. 
 	
+	For us, belief revision is simply adding marginals to the picture, and then resolving inconsistencies. In fact, our representation makes this rather pretty: the observation of a Jeffrey input is simply a factorization of existing links through a new finite random variable; observing a Bayesian input is the the particular case where the variable is binary and the observation is certain.
+	Jeffrey's rule prescribes a posterior probability $p'$ by:
+	\[ p'(a) = \sum_{b \in B} p(a \mid b) \pi_b \qquad \text{for all outcomes $a \subseteq \cal W$} \]
+	
+	Since variables can be thought of as partitions of outcomes, and at this point we're looking at the classical picture, where $p$ is a distribution on all variables, we can draw a much cleaner picture, where the summation is implicit:
+	
+	Now, $p' := p(\mathcal W \mid B)$ is just the left-most path. The gray arrow on the bottom left is just a projection / computation from the state of the world, and the dashed one is its inversion given by Bayes' rule, which is why the conditioning works out as in the formula. If we really want to match the formulation exactly we can put $a$ into the picture--- but rather than a subset of the outcomes, $a$ is now a value that some variable can take. We can even create a special indicator variable for it, $\mathbbm 1_a$.
+	
+	
+	\begin{figure}[h]
+		\centering
+%		\scalebox{0.8}{
+%			\begin{tikzpicture}[center base]
+%				\node[dpadded] (1) at (0,3) {$\sf 1$};
+%				\node[dpadded] (W) at (0,0) {$\cal W$};
+%				\node[dpadded] (B) at (-2,1) {$B$};
+%				
+%				\draw[arr] (1) to node[fill=white]{$p$} (W);
+%				\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+%				
+%				\draw[arr, gray] (W) to[bend left=10] (B);
+%				\draw[arr, dashed] (B) to[bend right=30] (W);	
+%		\end{tikzpicture}}
+		\scalebox{0.8}{
+		\begin{tikzpicture}[center base]
+			\useasboundingbox (-3,-1) rectangle (3.5,4);
+			\node[dpadded] (1) at (0,3) {$\sf 1$};
+			\node[dpadded] (W) at (0,0) {$W$};
+			\node[dpadded] (B) at (-2,1) {$B$};
+			\node[dpadded] (1a) at (2.5, 0){$\mathbbm 1_a$};
+			\coordinate (Q) at (6,0); % to even out controls
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr] (1) to node[fill=white]{$\pi$} (B);
+			
+			\draw[arr, gray] (W) to[bend left=10] (B);
+			\draw[arr, dashed] (B) to[bend right=30] (W);	
+			
+			\draw[arr] (W) to (1a);
+			
+			\draw[arr,blue!50] (1) .. controls (-5.5,2) and (-2,-2) .. node[fill=white]{$p'(a)$} (1a);
+			\draw[arr,orange!70] (1) .. controls (0.3,1) and (1,0.3) .. node[fill=white]{$p(a)$} (1a);
+		\end{tikzpicture}}
+		\caption{\MN\ Belief Updating via Inconsistency}
+	\end{figure}
+	
+	Visually it's much clearer what's going on: we've replaced the probability distribution $1 \to \cal W$ with the one that factors through $B$ via the new observation $\pi$. In terms of evaluation, this means the orange path to $\mathbbm 1_a$ has been replaced by the blue one.
+	This presentation also suggests a natural way we can generalize this to our setting, where we don't necessarily have full distributions but only a collection of marginals: we simply try to factor every distribution $1 \to *$ through $B$ via $\pi$, as done with $\cal W$ above. The other marginals can stay the same, and the difference propagates through via composition.
+	
+	In our case, there's also a simpler thing we could do, that's even more psychologically plausible: just add the new marginal $\pi$ to our collection. Sure, it's probably inconsistent, but we can let the our inconsistency reduction take care of that. One might worry that it is likely we will now violate the responsiveness axiom \cite{dietrich2016belief}, as we could reject $\pi$ --- but I argue that this is not a concern. So long as an agent keeps observing or remembering the observation, we are effectively continuously reapplying consistency reduction while anchoring the new observation, until the responsiveness axiom is satisfied. This actually makes more sense than the standard belief revision picture: if a person doesn't spend long enough looking at it or thinking about it, they may forget or partially reject implications of this new view.
+	
+	\todo{Spend time converting the conservativeness axiom to this framework}
+	
+	One more benefit: belief revision no longer needs to happen immediately; we can add the marginal to our picture and deal with it later. This makes for an account which is much better suited to cognitively bounded agents, who might have more pressing matters than sorting through beliefs, and who might do them out of order.
 
 	\section{Algorithms}\label{sec:algorithms}
 	\subsection{Belief Propagation}
