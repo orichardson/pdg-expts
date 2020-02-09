@@ -21,7 +21,7 @@ class CopiedType(type):
         #         # replace it with a wrapped version
         #         attribute = wrapper(attribute)
         #     newClassDict[attributeName] = attribute
-                i
+                
         found_dict = {}
         
         for b in bases:
