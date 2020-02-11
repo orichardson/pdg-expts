@@ -30,6 +30,7 @@
 %\includecomment{vcat}
 \excludecomment{vfull}
 \excludecomment{vcat}
+\newcommand{\commentout}[1]{\ignorespaces}
 %\excludecomment{nonintro}
 
 
@@ -87,7 +88,7 @@
 \newcommand\bmu{\boldsymbol{\mu}}
 \newcommand{\V}{\mathcal V}
 \newcommand{\N}{\mathcal N}
-\newcommand{\Li}{\mathcal L}
+\newcommand{\Ed}{\mathcal E}
 \newcommand{\sfM}{\mathsf M}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,35 +132,67 @@
 	\maketitle
 
 	\begin{abstract}
-		Graphical models cleverly compress probability distributions over joint settings of random variables, by making use of independence assumptions.
-		
-		However, because they model probability distributions, they are not expressive enough to represent mental states of agents who might not have globally consistent beliefs. 
-			
-		
-%		We introduce \modelnames\ (\MNs) to combat these issues. \MNs\ are like unshackled Bayesian nets, interpreted more locally and whose links are interpreted as conditional sub-distributions. The result is a “graphical model” in a looser sense which may not always be either complete or consistent (from the perspective of a distribution), which can be easily combined with graph operations. We find that by solely altering the set of nodes and links and then running consistency reduction algorithm (one of which is a generalized version of belief propagation), we can recover important capabilities of Bayesian networks, such as the ability to estimate conditional and marginal distributions given observations, belief updating via Jeffrey’s rule. Further afield, we discover that this process also naturally models simple learning algorithms, and acting according to a decision rule (see the other paper for more). Bayesian networks, and to some extent, factor graphs, can be seen as special cases of \MNs.
+		We introduce a new type of graphical model, \emph{\ModelName s} (\MNs).  
+		They can capture inconsistent beliefs in a natural way and are, in a precise sense, more modular than standard
+		approaches such as Bayesian networks (BNs), 
+		in that they make it easier for	a modeler to incorporate new information 
+		%oli1: this feels like the wrong sense: they make it easier to re-structure information!
+		\commentout{without having to restructure
+		the representation of current information.}
+		and restructure the representation, without having to finalize a distribution.
+		%joe1*: this is a point you should trumpet loudly
+		%oli1: untangle the sentence
+		\commentout{As we show, when viewed as a \MN, a BN $G$ represents many}
+		As we show, a BN $G$, when viewed as a \MN\ $\sfM$, may represent
+		distributions, but we can recover the one given by the semantics of BNs as
+		the one that maximizes entropy among all the distributions consistent
+		with $\sfM$.  
+		%joe1: we may want to say a bit more, or beef up this sentence
+		We show by example how \MNs\ are a natural modeling tool.
+		\todo{add more of the results we agree go in the final version}
 	\end{abstract}
 
 %	\tableofcontents
 
 	\section{Introduction}
-	% Want to resolve inconsistencies. can't talk abuot it until we can represent.
-	% How to resolve (1) absent any information, or (2) I don't know, need further information.
-	% inacurate to model people as having consistent 
-	
-	We introduce the \ModelName\ (\MN), a directed graphical model for specifying local beliefs. They are strictly more expressive and modular than existing directed graphical models, and in particular this allows them represent inconsistent belief states.
-	
-	
 
+	\commentout{We introduce the \ModelName\ (\MN), a directed graphical model for specifying local beliefs. They are strictly more expressive and modular than existing directed graphical models, and in particular this allows them represent inconsistent belief states.
+	
+	
 	To be clear, inconsistencies are bad. Still, constantly examining every possible interaction between beliefs is taxing and restrictive, making them difficult to avoid: reasonable people are often simultaneously unaware of any inconsistencies in their beliefs, and yet still think it probable that they are not entirely consistent.%
+%oli1: what do you think of this footnote? 
 		\footnote{In some sense, this is the reason arguments exist: it is possible to get a person to agree to premises and reject a conclusion, revealing inconsistency---inconsistency which can then be used to change someone else's mental state. }		
-	Most graphical models eliminate the possibility of inconsistency by fiat, %so as to better represent probability distributions. 
+	Most graphical models eliminate the possibility of inconsistency by fiat, 
 	making them poorly suited to representing inconsistent belief states.
 	While we do not endorse inconsistency, we nonetheless think it important to represent: in addition to modeling an overwhelmingly common feature of humans, the possibility of inconsistency 
 	allows our model (called a \modelname\ or \MN)
 	to portray intermediate stages of belief updating (\cref{sec:belief-update}), 
 	provides a rationale for providing multiple justifications 
 	(corroborating evidence means more in the presence of possible conflict; see \cref{ex:corrob}),
-	and	recasts standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\cref{sec:algorithms}). 
+	and	recasts standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\cref{sec:algorithms}). }
+
+%joe1*: the first paragraph is where you grab the reader.  You need to
+%tell a story.  This is not telling our story.  I've rewritten the
+%whole beginning
+In this paper we introduce yet another graphical for modeling beliefs,
+\emph{Probabilistic Dependency Graphs} (PDGs).  
+There are already many such models in the literature, including 
+%joe1: we probably should add some standard references to these
+%approaches.  
+Bayesian networks (BNs), factor graphs, and Markov networks.  Why does
+the world need one more?
+
+Our original motivation for introducing PDGs was to be able to capture
+inconsistency.  While being inconsistent is clearly not a good thing,
+we wanted to be able to model the process of resolving inconsistency;
+to do so, we had to be able to model the inconsistency itself.  But our
+approach to modeling inconsistency has many other advantages.  In particular,
+as we shall see, it gives us greatly improved modularity; we can add
+new information to a graph without having to change what's already
+there.  Moreover, PDGs extend BNs in a natural way.
+
+We start by giving some examples that motivate PDGs and display some
+of their advantages.
 	
 	%%% ATTEMPT 1
 	%As we will see, one reason these inconsistencies are difficult to avoid is our conceptual modularity: features of the world can be noticed, forgotten, and fragments of beliefs can be locally recombined long before they crystallize into global distributions or theorems.	
@@ -171,24 +204,36 @@
 	More generally, we wish to highlight \MNs\ substantially improved modularity.
 	We can exploit the absence of a global consistency mandate to entirely remove the computational overhead and assumptions required to make structural changes to the graph (sometimes incurring inconsistency). 
 	As a result, we can make more dramatic transformations of representation, and consolidate the computational costs of resolving them.
-	
-	
+		
 %	Despite their flexibility, \MNs\ perhaps counter-intuitively offer a way to recognize when something has gone wrong, and 
 	
 	Finally, the theoretical backing is clean: the formulation plays nicely with both the old information theoretic foundations of factor graphs, and the type theory we gesture towards.
-	The modifications we make bring graphical models in line with other notions of locality in mathematics, such as manifolds and sheaves, in which multiple restricted pictures can be glued together to form something with global structure.
+	The modifications we make bring graphical models in line with other notions of locality in mathematics, 
+%joe1: If you're going to bring these up, you would have to explain
+%the connection.  We do not want to do that here (maybe somewhere much
+%later in the full paper), so we shouldn't mention it here.  If you
+%mention it, you need to add references.
+%oli1: why do should explain it here? We haven't fully explained anything yet. I mention it again when I the union precisely. I was hoping to advertise another strand of the story: that 
+	such as manifolds and sheaves, in which multiple restricted pictures can be glued together to form something with global structure.
 	
-	
-	
-%	skirting computational costs and enabling concept formation, without also sacrificing interpretability, as factor graphs do (see \cref{sec:factor-graphs}). }
+
 	The rest of this section consists of examples focusing on the benefits of improved modularity and possible, and the failure of Bayesian Networks to capture what we have in mind (we later compare to other graphical models in \cref{sec:other-graphical-models,sec:many-relations-graphical-models}). \MNs\ have other desirable features as well; for a complete list, see \cref{sec:list-of-benefits}.
 	
 	\begin{example}\label{ex:guns-and-floomps}
-		You arrive in a foreign country known for having very clear laws. From prior reading, you have subjective probability 0.95 that owning guns is against the law. Upon landing, you end up talking to some teenagers who use the local slang---after which you believe with 10\% probability that the law prohibits floomps.
+		You arrive in a foreign country known for having very clear laws. From prior reading, you ascribe probability 0.95 to owning guns being against the law. Upon arrival, you end up talking to some teenagers who use the local slang, 
+		after which you believe that with probility .1, the law prohibits floomps. 
 		
-		Let's try to represent this as a Bayesian Network. Make a graph with two nodes: let $F$ be the binary variable (taking values $\{f, \overline f\}$) indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicate the legality of guns. 
-		The semantics of a Bayes Nets offer us two choices: assume that the two are independent, or choose a direction and make up some numbers for the table.
-		As there is no reason to believe that either variable depends on the other, we opt for the latter, resulting the following ``network'':	
+		The obvious way to represent this as a BN involves two binary random variables, $F$ (taking values $\{f, \overline f\}$), indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicating the legality of guns. 
+		The semantics of a Bayes Net offer us two choices:
+		we either assume that $F$ and $G$ are independent and give
+%oli1: `priors' seems wrong, I want to say marginals.
+		priors for $F$ and $G$, or we choose a
+		direction of dependency, in which case we can only 
+		incorporate one of the two, and must give a conditional probability table.           
+		As there is no reason to believe that either variable depends on the
+		other, the natural choice is to assume independence, giving us the
+		following BN:
+		
 		
 		\begin{center}
 			\scalebox{0.9}{
@@ -211,17 +256,28 @@
 			}
 		\end{center}
 		
-		You later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp. illegal), then there's a 92\% chance guns are as well; let $E$ be the Conditional Probability Table (CPT) associated to this realization.
-		A first reaction might be to simply add this conditional information by adding $F$ as a parent of $G$ and incorporating $E$ into the Bayes Net, but it is not clear what to do with our original CPT on $G$.
+		Now suppose that you later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp., illegal), then there's a 92\% chance guns are as well.
+%oli1: is cpt intentionally lowercase? 
+		Let $T$ be the conditional probability table (cpt) that describes this belief.
+		A first reaction might be to simply incorporate this conditional information by
+		adding $F$ as a parent of $G$, and then associating the cpt $T$ with $G$.
+		But then what should we do with the original prior probability we had
+		for $G$?  Should we just discard it?
 			% which amounts to throwing out our old prior distribution on $G$; 
 			% another instinct might be to perform a Bayesian update, but this new information is conditional and probabilistic, not an event.
-		In fact, $E$ conflicts with the other two tables, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
-		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first.
+		It is easy to check that there is no probability distribution that is
+		consistent with the two original priors on $F$ and $G$ and the cpt
+		$T$, so if we are to represent our information with a BN, we must
+		resolve the inconsistency.  
+%		In fact, $E$ conflicts with the other two tables, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
+%		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first.
 			
-			%There are three different dimensions along which this could be resolved: rejecting either prior belief, or $E$; in general any mixture would do. 
+		%There are three different dimensions along which this could be resolved: rejecting either prior belief, or $E$; in general any mixture would do. 
 			
-			
-		Note that it may not be in your best interest to sort this out right away. The choice of resolution may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully---it may be worth sitting on the inconsistency so that you can resolve it properly later, rather than resolving it as best you can immediately.
+		However, it may not be reasonable to sort this out right away.
+		How to resolve it may be clearer if you can get confirmation
+		that guns are indeed floomps, or read the laws more carefully.
+%		Note that it may not be in your best interest to sort this out right away. The choice of resolution may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully---it may be worth sitting on the inconsistency so that you can resolve it properly later, rather than resolving it as best you can immediately.
 
 %		\begin{enumerate} 
 %			\item Even though the additional information takes the form of a conditional probability table, adding an edge with this table in our Bayes Net overwrites other information: by adding a link $F \to G$, the Bayes Net effectively overwrites our old beliefs about $G$. 
@@ -234,13 +290,23 @@
 %				\label{item:waiting-good}
 %
 %		\end{enumerate} 
-		
-		By contrast, consider the corresponding \MN,
-		in which the CPTs are attached to edges, rather than nodes of the graph. 
-		We will represent the CPT for a link $L \!\colon\! A\!\to\! B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$. 		
+		By way of contrast, consider the corresponding \MN. In a \MN, the CPTs
+		are attached to edges, rather than nodes of the graph.  
+		The CPT associated with an edge $e$ is a matrix
+		$\mat e$, where the element $\mat e_{a,b}$ at row $a$ and column $b$
+		is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$.  
+
+%		We will represent the CPT for a link $L \!\colon\! A\!\to\! B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$. 		
 		In order to represent unconditional probabilities% (among other things; see section \ref{sec:algebra})
-		, we introduce a \emph{unit variable}, $\mathsf 1$, or `$\mathrm{true}$', which always takes its unique value, $\star$. 
+		, we introduce a \emph{unit variable} %$\mathsf 1$, or `$\mathrm{true}$',
+		which takes on only one possible value,	which we denote $\star$.
 		
+		
+		Thus, we have the following
+		\MN, where the edges from $\mathsf 1$ to $F$ and $G$ are
+		associated with the prior probabilities of $F$ and
+		$G$, and the edge from $F$ to $G$ is associated with
+		the cpt $T$.
 		\begin{figure}[h]
 			\centering
 			\scalebox{0.9}{
@@ -267,7 +333,7 @@
 				\draw[heldout, dashed, arr] (floomp) -- coordinate(C) (gun);
 				\node[below=1em of C] {
 					\color{heldout}
-					E =\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
+					T =\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\overline g$}
 						0.92 & 0.08 \\ 0.08 & 0.92 \\
 					\end{idxmat}
 				};
@@ -277,8 +343,8 @@
 			\label{fig:gun-floomp-diagram}
 		\end{figure}
 		
-		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like our Bayes Net from before, except we no longer assume $F$ and $G$ to be independent% (but will later if necessary)
-		---we merely record the constraints imposed by the given probabilities.
+		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like our Bayes Net from before, except we no longer assume $F$ and $G$ to be independent;% (but will later if necessary)
+		we merely record the constraints imposed by the given probabilities.
 	
 		\note{\emph{(This is from our discussion but parts of it seem out of the way so I haven't integrated it yet. It probably needs to be moved.)}
 			
@@ -299,9 +365,22 @@
 			
 			Fortunately, the multiple semantics of \MNs\ allow us to eat our cake and have it too: by recording only the constraints, we avoid leaning too hard on independence assumptions, but can still reap the benefits through maximum-entropy semantics: the maximum entropy distribution associated with the constraints is the one prescribed by the Bayesian Network.
 		}
-		
-		$E$ can be added directly to the model as a link $F$ to $G$ without changing the meaning of the link from $\mathsf 1 \to G$, which we retain: the added modularity lets us simply include information, and resolve inconsistencies later. Unlike a Bayesian update, the operation is even reversible: all we need to do recover our original belief state is delete the new edge, effectively making it possible to mull over and then reject an observation. This also speaks to the relative modularity of \MNs. 
-	\end{example}			
+	
+		The key point here is that we can incorporate the new information into
+		our original representation (the graph in \Cref{fig:gun-floomp-diagram}
+		without the edge from $F$ to $G$) simply  by adding the edge from $F$
+		to $G$ and the associated cpt.  Doing so does not change the meaning
+		of the original edges.  The added modularity lets us simply include
+		information, and resolve inconsistencies later. Unlike a Bayesian
+		update, the operation is even reversible: all we need to do recover
+		our original belief state is delete the new edge, effectively making
+		it possible to mull over and then reject an observation.
+	\end{example}
+
+	It may seem that, while our approach has advantages, we have lost a
+	key benefit of BNs: the ability to exploit (conditional)
+	independencies, which, as Pearl \citeyear{Pearl} has argued
+	forcefully, are omnipresent.  As we shall see, this is not the case.  
 	
 %	
 %	\\Cref{ex:planet} highlights a difference \MNs\ }
@@ -311,21 +390,43 @@
 %	%		illustrate particularly well the biggest difference between the two interpretations of a graph: when two arrows point to the same node. 	
 	
 	The ability to represent these `over-constrained' states of belief, in which it is possible for there to be inconsistency, can also be valuable even when there isn't any. 
-	Unlike other models, which require special coloring of nodes, \MNs\ also cleanly represent `under-constrained' beliefs, such as conditional ones, without modification.
+	Unlike standard conditional models, which require a special selection of `observed' nodes, \MNs\ also cleanly represent `under-constrained' beliefs, such as conditional ones, without modification.
 	Our next example illustrates both, and highlights one more way in which BNs fail to be as modular as we might hope.
-	
+%oli1: what we lose in this shortening:
+% 1. beginning to introduce `over-constrained' and `under-constrained' terminology. I think this is useful for understanding why the set semantics are not enough.
+% 2. no segue into conditional BNs, or acknowledgement that they are the standard solution to under-constrainedness
+% 3. no signposting on the difficulty of adding parents.
+% >> shortening of paragraph above
+%The modularity of PDGs is useful even when there is no inconsistency, as the following example shows.        
+
 	
 	\begin{example} \label{ex:planet}
-		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), resulting in the CPT from \cref{fig:planet-initial}.
+		Suppose that an astrobiologist has beliefs about how 
+		likely we are to find life on a
+		planet, given its size (big or small) and
+		its composition (mostly made of rocks vs. gas), as represented
+		in the cpt on the right of \Cref{fig:planet-initial} (where $S$ and
+		$C$ stand for ``Size'' and ``Composition''
+		%oli1: this is not part of the cpt on the right, and we also say it below.
+		%; ignore the faint node labeled $W$ for now
+		): 
+%		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), resulting in the CPT from \cref{fig:planet-initial}.
 		
 		\begin{figure}[h]
 			\centering
 			\scalebox{0.8}{
 				\begin{tikzpicture}[center base]
-				\node[dpadded,light pad,fill opacity=.2] (SS) at (0.2, 1.2) {Size};
-				\node[dpadded,light pad,fill opacity=.2] (CC) at (2.6, 1.2) {Composition};
-				\node[dpadded,light pad,fill opacity=0] (LL) at (1.4,0) {Life};
-				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {Water};
+				\node[dpadded,light pad,fill opacity=.2] (SS) at (0.2, 1.2) {S};
+%joe1*: please remove the coloring; it's unnecessary, and a
+%distraction.  
+%oli1: it is necessary to distinguish the observed nodes
+% for this diagram to make any sense. There is a very clear
+% standard for how to do this: to make them darker. Do
+% you think we should have a technically incorrect diagram
+% and try to explain around it, or 
+				\node[dpadded,light pad,fill opacity=.2] (CC) at (2.6, 1.2) {C};
+				\node[dpadded,light pad,fill opacity=0] (LL) at (1.4,0) {L};
+				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {W};
 				\draw[arr] (CC) -- (LL);
 				\draw[arr] (SS) -- (LL);
 				\draw[arr, dotted, opacity=0.5] (WW) -- (LL);
@@ -344,30 +445,90 @@
 		\end{figure}
 		\vspace{1em}
 	
-		Ignoring the faint ``water'' node for now, the diagram on the left corresponds to the \emph{conditional} Bays Net on the left---note that the nodes `Size' and `Composition' would need tables of their own to be fully interpreted as a Bayesian Network. Without any such beliefs, we would have to use a \emph{conditional} Bayes Net, and explicitly mark both nodes as `observed'---a rigid distinction enforced at a type level which is unnecessary in \MNs.
-		
+		Ignoring the faint ``water'' node for now, the diagram on the left
+		% corresponds to the \emph{conditional} Bays Net for this table%
+%joe1: you have to say more about what a conditional Bayes net is and
+%add a reference; I've now done this
+%		---note that the nodes `Size' and `Composition' would need tables of their own to be fully interpreted as a Bayesian Network. Without any such beliefs, we would have to use a \emph{conditional} Bayes Net, and explicitly mark both nodes as `observed'---a rigid distinction enforced 
+%joe1: why talk about ``type level''?? You're throwing unnecessary words
+%at the reader.  
+%oli1: From the modeler's perspective, you have to know for sure what the inputs are to your conditional BN, which is intended to present the inputs as an abstraction, but here it's a liability: what are the observed nodes if you remove and add some edges? graph operations will change the type of the object you're working with, which illustrates the lack of modularity. It turns out that this type-level tracking, which I imagine would make implementations of graph operations tricky, is unnecessary.
+%		at a type level which is unnecessary in \MNs.
+		corresponds to the \emph{conditional} Bayes Net \cite{koller2009probabilistic} for this table.
+		While a BN would require us to associate prior beliefs with Size and
+		Composition, a conditional BN allows us to view these nodes as
+		observations; observation ndoes do not have associated beliefs.
+		In the \MN, since there is no edge leading to Size and Composition, we
+		do not require a cpt; we do not need a special distinction between
+		observation nodes and other nodes.
+				
 		\begin{vfull}
 			A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.
 		\end{vfull}
-
-		Now our biologist friend now reminds us that life requires water, and computes probabilities for the existence of life on a planet, with and without water. We trust this friend completely. We'd like to introduce a new node, `Water', but if we make it a parent of `Life', because we don't know how this information interacts with size, and composition; neither are we prepared to give a probability of live given a full description of the three, and this table would be much larger.%
-			\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
-		Let $S, C, W, L$ be the respective shortenings of our variables.
-		\MNs\ allow us to interpret the last arrow individually, using a picture like this:
-
-		\begin{center}
-		\scalebox{0.9}{
-		\begin{tikzpicture}
-			\node[dpadded] (S) at (0.2, 1.4) {$S$};
-			\node[dpadded] (C) at (2.4, 1.4) {$C$};
-			\node[dpadded] (L) at (1.3,0) {$L$};
-			\node[dpadded] (W) at (-1,0) {$W$};
-			\cmergearr{S}{C}{L}{1.3,0.95}
-			\draw[arr] (W) -- (L);
-		\end{tikzpicture}}
-		\end{center}
 	
-		This means that we have two conditional probability tables on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also providing information about the correlations between $W$ and $S\times C$ we do not have. As with the previous example, there is now a possibility of being inconsistent, in the sense that is possible to specify the conditional distributions in the links in such a way that no joint distribution on all variables will marginalize out to them --- for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
+%		Now our biologist friend now reminds us that life requires water, and computes probabilities for the existence of life on a planet, with and without water. We trust this friend completely. We'd like to introduce a new node, `Water', but if we make it a parent of `Life', because we don't know how this information interacts with size, and composition; neither are we prepared to give a probability of live given a full description of the three, and this table would be much larger.
+%joe1*: this is a distraction.  If we had the information, we should
+%represent it, despite the increased cost. If we don't have the
+%information, we're stuck, quite independent of size concerns. 
+%oli: I'm not sure I agree. If you are only ever estimating L from W or (S,C), there's no reason to store it.
+% Secondly, it's not too bad to cheaply invent a table that does marginalize out properly to all 3, if they're consistent, 
+% thought this would be asserting something of the flavour of independence between L and S,C----this is the thing that 
+% someone who uses BNs right now would do. Why not do it? Partly because you're asserting something about independence but
+% people who use BNs have already made peace with this. Another reason: it's a lot bigger.
+%				\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+	
+%oli1: using the word astrobiologist multiple times is space consuming. by using 1st person plural, it's shorter because we can unambiguously use pronouns, and avoid gender. Is using 1st person plural (or 2nd person singular) like I did in example 1, taboo?
+		Now suppose that the astrobiologist is reminded by a biologist that life
+		requires water, and is given probabilities (which he views as
+		reliable) for the existence of life on a planet, with and 
+		without water. Of course, we would now like to incorporate this
+		information in he representation.  The first step is clearly to add a
+		new node labeled $W$, for ``water''.  But if we make $W$ a parent of
+		$L$ (as clearly seems appropriate, given that life depends on water), we
+		will have a problem with a BN representation of the situation, since
+		we cannot construct the cpt that we would need to associate with $L$;
+		we do not know the probability of life given all setting of the
+		variables  $S$, $C$, and $W$.
+		
+
+%joe1*: Oliver, this is bad.  The only difference between this picture
+%and the one above is the hyperedge between S and C, which you barely
+%mention in passing and don't explain at all.  We should either cut
+%this, or explain the issue.  The key point is the issue is not the
+%new edge from W to L; we've already explained that.  It's the fact
+%that the two separate edges from S to C are not right.  This is also
+%an issue in Example 3.  You could tell a story somewhat along the
+%lines of ``The PDG given in Figure 2 is actually not the best
+%representation of our beliefs.  The problem is that we actually have
+%beliefs about L conditional on both S and C; the PDG above would
+%require us to associate with the edge from S to L only the
+%probability of L given S, and similarly from the edge from S to L.
+%For now, the we capture the joint dependency is by using a
+%\emph{hyperedge}, as shown in Figure 3 [put in your figure here].
+%And keep going from there.  You could perhaps cute Eample 3
+%altogether, since it seems that this discussion would subsume it.
+%oli1: ah, you're right. I will fix---but I do think the rewrite made the problem worse, as before the diagram above was clearly a conditional BN, and we haven't shown what the PDG looks like yet (and there's no precedent to think they're the same because the one in example 1 looks very different from the BN counterpart).
+%oli1: as for example3: there is one additional independence. The tables alone uniquely determine a distribution here, but there are still many in example3 because of the correlations. This example has the benefit of also showing the under-constrained representation and being smaller. I think for now I'll describe more here and dramatically reduce example3. 
+
+
+		Of course, we also want to keep the joint dependence on both $S$ and $C$ together; to distinguish this from the case where we had wanted to separate out `water', we use an edge with two tails, sometimes called a hyper-edge. The resulting \MN\ is shown in \Cref{fig:plannet-pdg}.
+
+		\begin{figure}
+			\centering
+			\scalebox{0.9}{
+			\begin{tikzpicture}
+				\node[dpadded] (S) at (0.2, 1.4) {$S$};
+				\node[dpadded] (C) at (2.4, 1.4) {$C$};
+				\node[dpadded] (L) at (1.3,0) {$L$};
+				\node[dpadded] (W) at (-1,0) {$W$};
+				\cmergearr{S}{C}{L}{1.3,0.95}
+				\draw[arr] (W) -- (L);
+			\end{tikzpicture}}	
+			\caption{the \MN\ for \Cref{ex:planet}}
+			\label{fig:plannet-pdg}
+		\end{figure}
+	
+		The two edges in \Cref{fig:plannet-pdg} correspond to the two conditional distributions we have on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also providing information about the correlations between $W$ and $S\times C$. As with the previous example, there is now a possibility of being inconsistent, in the sense that there exist CPTS for the two edges that are not compatible with any joint distribution---for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
 	\end{example}
 	
 %	Though perhaps difficult to see in example \Cref{ex:guns-and-floomps},
@@ -379,7 +540,7 @@
 	
 
 	\begin{example}\label{ex:smoking}
-		Consider the classic example used to introduce Bayesian nets, in which the four variables are interest are booleans indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \cref{subfig:smoking-bn}.
+		Consider the classic example used to introduce Bayesian nets, with four binary variables indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \cref{subfig:smoking-bn}.
 		\begin{figure*}[ht!]
 			\centering
 			
@@ -420,13 +581,14 @@
 			\label{fig:smoking-bn+pdg}
 		\end{figure*}
 		
-		The BN is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. It encodes an assumption that every node is independent of its non-descendants given its parents.
-		Most of the time, we do not make the independence assumption because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and would require empiricism to validate.
+%		The BN is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. 
+		The BN achieves a compact representation of a joint distribution by encoding the an assumption that every node is independent of its non-descendants given its parents.
+		Most of the time, we do not make the independence assumption in a BN because we know for certain that the variables are independent; rather, we just suspect that the identified links are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and would require empiricism to validate.
 		
-		The \MN, on the other hand, represents merely the set of constraints on marginals given in the tables. Depending on our chosen semantics (we offer several in section \ref{sec:semantics}), we can further interpret the constraints. For instance, by looking at the maximum entropy distribution consistent with the constraints, we get back the independence assumptions from the BN, and can thereby view \Cref{subfig:smoking-pdg} as representing the same distribution as the BN.
+		A \MN\ does not make these assumptions. Depending on our chosen semantics (we offer several in section \ref{sec:semantics}), we can further interpret the constraints. For instance, by looking at the maximum entropy distribution consistent with the constraints, we get back the independence assumptions from the BN, and can thereby view \Cref{subfig:smoking-pdg} as representing the same distribution as the BN.
 				
-		Now, suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
-		The \MN\, on the other hand, has no trouble, and is simply the union of the two pieces of information, as in \ref{subfig:smoking-pdg}.
+		Suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
+		The \MN\, once again has no trouble: we can simply merge the graphs, as in \ref{subfig:smoking-pdg}.
 		
 %		\begin{center}
 %			\scalebox{0.9}{
@@ -463,7 +625,7 @@
 		You're a math teacher. You used to teach at $A$, which is in a poorer area and rated more poorly, and now teach at $B$, where the students care more about education. The institutions both teach differential equations, but in different ways: $A$ focuses on numerics, whereas $B$ focuses on analytic solutions.
 		
 		You you're about to give a test on Laplace transforms.
-		You have some distribution $G_B$ of likely grades for students in $B$, but you also have a good model of the distribution $G_A$ of grades a student from $A$ might get. We want to model this epistemic state, and now present three alternative modeling choices.
+		You have some distribution $G_B$ of likely grades for students in $B$, but you also have a good model of the distribution $G_A$ of grades a student from $A$ might get. We want to model this epistemic state.
 
 		Here are two alternative modeling choices: we can either (1) use a single variable $\cal I$ whose values are possible institutions, (2) have separate variables for each institution.
 		
@@ -471,7 +633,7 @@
 			\todo{diagram of (1) and (2)}
 %			\begin{tikzpicture}
 %				\node[dpadded] (I) at (0,0) {$I$};	
-%				\node[dpadded] (L) at (0,2) {$\mathcal L$};
+%				\node[dpadded] (L) at (0,2) {$\Ed$};
 %			\end{tikzpicture}
 		\end{center}
 		
@@ -516,29 +678,41 @@
 	\section{Formal Construction and Syntax}\label{sec:formal+syntax}
 	
 %	We give the definition below for the finite case.  
-	
-	We have seen some examples of \MNs, but elided the details; we now begin a more careful treatment of \MNs\ as mathematical objects. 
-	
+	We have seen some examples of \MNs; we now provide the formal definitions.
+%	We have seen some examples of \MNs, but elided the details; we now begin a more careful treatment of \MNs\ as mathematical objects. 
 %	\moveme{Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.}
-
-	
-	
 	Compared to a Bayesian Network, a \MN\ still consists of a directed graph, and the edges still inform conditional probability tables, but now each edge is interpreted individually. Consider the graph
 	\[ A \!\rightarrow\! C \!\leftarrow\! B,\]
 	which would be interpreted as three tables $\Pr(C\mid A, B), \Pr(A), \Pr(B)$ in a BN. Interpreting it as a \MNs, there are no distributions on $A$ or $B$, and the arrows into $C$ would be split into two separate tables $\Pr(C \mid A)$ and $\Pr(B \mid A)$, rather than a joint one. 	
 
-	\def\mnvars[#1]{(\mathcal N#1, \mathcal L#1, \mathcal V#1, \bmu#1)}
+	\def\mnvars[#1]{(\N#1, \Ed#1, \V#1, \bmu#1)}
 	\begin{defn}[\MN]\label{def:model}
 		A \emph{\modelname} is a tuple $\mnvars[]$ where
 		\begin{itemize}[nosep]
-			\item $\N$~~is a finite collection of nodes, or variables
-			\item $\Li \subseteq \N \times \N \times \mathrm{Label}$~~is a set of directed links, each of which has a source and target in $\N$.%
+			\item $\N$~~is a finite collection of nodes 
+			
+		%joe1*: NO!  Unless you have a compeling reason for parallel edges
+		%(which should then be introduced via an example), you should cut
+		%this.  Make things as simple as possible! 
+		%oli1: the union doesn't work out if they're not labeled. There are definitely examples where you have parallel edges (two candidate probabilities b/c you've deleted a node and haven't resolved it, or two conflicting observations...). Having parallel edges will make the formalism cleaner as well, because we will definitely have parallel paths. 
+			\item $\Ed \subseteq \N \times \N \times \mathrm{Label}$~~is a set of directed links, each of which has a source and target in $\N$.%
 				\footnote{Though likely to be inconsistent, a \MN\ might admit parallel edges, in which we need to tag edges with a label to identify them, but in most cases, we will use empty labels.}
 			\item $\V$ associates each node $N \in \mathcal N$ with a set $\V(N)$ or $\V_N$, representing the values that node $N$ can take.
-			\item $\bmu\colon \big(\!({A,B,\ell})\colon \! \Li \big) \to \V(A) \to \underline\Delta\V(B)$
-			% $\colon\!\big(\!({\bf A,B})\colon \! \Li \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
+%joe1*: NO!!!  No sub-probabilities.  If you absolutely must introduce
+%them, there needs to be serious discussion of them.  Most readers
+%won't know what a sub-probability is.  Again, this is a distraction.  
+%oli: I do introduce them, just below. I've thought a lot about where to put this. I don't want to have a totally separate definition for the strict version because it takes up so much space. 
+			\item $\bmu\colon \big(\!({A,B,\ell})\colon \! \Ed \big) \to \V(A) \to \underline\Delta\V(B)$
+			% HYPERGRAPH \bmu TYPE: $\colon\!\big(\!({\bf A,B})\colon \! \Ed \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
 			%%% Above is the type of $\bmu$. I think it's important to have it there.
-			gives a (sub)-distribution over $\V_B$ given each possible value of $\V_A$ and for every link $({A,B,\ell}) \in \mathcal L$.
+			gives a (sub)-distribution over $\V_B$ given each possible value of $\V_A$ and for every link $({A,B,\ell}) \in \Ed$.
+%joe1*: I strongly disagree.  Compare the simplicity and ease of
+%comprehensibility of what I wrote (which I claim is completely
+%precise -- there are no questions to be answered) with what you wrote
+%oli: it requires natural language to parse. Also, is there a difference between associating to each element of x a distribution on B and associatinga  distribution on B with each element x?. I also cant express my preferred currying: I immediately see that \mu_L is a distribution on B --- and I now need more text to explain what I mean by \bmu_L(a). I've been in the position of intuitively thinking I understand an applied math paper only to realize I've subtly misunderstood the type so many times.
+% It is also a much better visual anchor, and I find it way easier to read than a block of description, even if the description took the same amount of paper space.
+% Finally, I have a personal quest to get people to explicitly use their dependent types. 
+%			 \item $\mu$: for each edge $(X,Y)$, $\mu$ associates a distribution on $B$ with each element $x \in \V(X)$.
 			
 			\note{The type of $\bmu$ doesn't take up much space and answers questions about the words above. I still want to keep it.}
 		\end{itemize}
@@ -552,13 +726,13 @@
 %		A \emph{\modelnamehyper} is a tuple $\mnvars[]$ where
 %		\begin{itemize}[nosep]
 %			\item $\N$~~is a finite collection of nodes
-%			\item $\Li \subseteq 2^{\N} \times 2^{\N} \times \mathrm{Label}$~~is a set of directed links, each of which has a source and target subset of $\N$.
+%			\item $\Ed \subseteq 2^{\N} \times 2^{\N} \times \mathrm{Label}$~~is a set of directed links, each of which has a source and target subset of $\N$.
 %			\item $\V$ associates each node $N \in \mathcal N$ with a set $\V(N)$ or $\V_N$, representing the values that node $N$ can take.
 %			\item $\bmu$
-%			 % $\colon\!\big(\!({\bf A,B})\colon \! \Li \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
+%			 % $\colon\!\big(\!({\bf A,B})\colon \! \Ed \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
 %			%%% Above is the type of $\bmu$. I think it's important to have it there.
-%			associates conditional probability (sub)-distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \mathcal L$ %
-%			\note{The type of $\bmu$ is $\big(\!({\bf A,B})\colon \! \Li \big) \to \V(A) \to \underline\Delta\V(B)$. It doesn't take up much space and answers lots of questions about the words above.}
+%			associates conditional probability (sub)-distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every link $({\bf A,B}) \in \Ed$ %
+%			\note{The type of $\bmu$ is $\big(\!({\bf A,B})\colon \! \Ed \big) \to \V(A) \to \underline\Delta\V(B)$. It doesn't take up much space and answers lots of questions about the words above.}
 %		\end{itemize}
 %
 %	\end{defn}
@@ -566,7 +740,7 @@
 	While the definition above is sufficient to represent the class of all legal \MNs, 
 	we will often use two additional bits of syntax to represent common constraints: 
 	\begin{itemize}
-		\item A special unary variable $\sf 1$ that always takes its unique value $\star$. It is used to represent unconditional distributions, as in \cref{ex:guns-and-floomps,ex:smoking}. For strict \MNs, this is no different from any other variable that can take only a single value. 
+		\item A special variable $\sf 1$ that always takes its unique value $\star$. It is used to represent unconditional distributions, as in \cref{ex:guns-and-floomps,ex:smoking}. For strict \MNs, this is no different from any other variable that can take only a single value. 
 		\begin{examplex}\label{ex:worldsonly}
 			A probability distribution $p$ over a measurable set $W$ of possible worlds is represented as 
 			\begin{center}
@@ -599,7 +773,7 @@
 	
 	\end{itemize}
 
-	An astute reader is probably wondering how \cref{def:model} can capture the multi-tailed arrows we needed in \cref{ex:planet,ex:smoking}; the answer that this notation is really shorthand for a new node at the junction, with projections. For instance, the \MN\ in \cref{ex:planet} is translated roughly as follows:
+	An astute reader is probably wondering how \cref{def:model} can capture the multi-tailed arrows we needed in \cref{ex:planet,ex:smoking}; the answer that this notation is roughly shorthand for a new node at the junction, with projections. For instance, the \MN\ in \cref{ex:planet} is translated as follows:
 	\begin{center}
 		\scalebox{0.8}{
 			\begin{tikzpicture}
@@ -627,7 +801,7 @@
 
 
 	\begin{defn}[\MNH]\label{def:modelhyper}
-		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Li, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Li \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyper-edges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Li$, we have a table of distributions $\bmu_L$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
+		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Ed, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Ed \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyper-edges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Ed$, we have a table of distributions $\bmu_L$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
 	\end{defn}
 
 	\Cref{thm:hyperequiv} shows \MNs\ and \MNH s to be equivalent, though in different cases one may seem more natural than the other.
@@ -636,21 +810,24 @@
 
 
 %	If every $\mathcal V(N)$ is finite with all subsets measurable, then $\bmu_{A,B}$ is just a conditional probability table, or a stochastic matrix.
-%	You may have noted that this only includes data for the normal arrows, rather than the multi-tailed ones described in the examples. This can be achieved either by generalizing $\mathcal L$ to higher orders, or introducing product nodes; we opt for the latter as it simplifies the formalism and paves the way for additional special nodes in \cref{sec:algebra}.
+%	You may have noted that this only includes data for the normal arrows, rather than the multi-tailed ones described in the examples. This can be achieved either by generalizing $\Ed$ to higher orders, or introducing product nodes; we opt for the latter as it simplifies the formalism and paves the way for additional special nodes in \cref{sec:algebra}.
 
 	\subsection{Notation and Operations}
 
 	To make our lives easier in the future, we introduce some simplifying conventions and notation:
 	% $M$ is always a \MN\ unless otherwise specified, and $M = \mnvars[]$; similarly, $M' = \mnvars[']$, and so on. 
-	If $\sfM$ is a \MN, then $\mnvars[^\sfM] := \sfM$, allowing us to use internals without de-structuring the tuple.
+	If $\sfM$ is a \MN, then $\mnvars[^\sfM] := \sfM$, allowing us to use internals without de-structuring the entire tuple.
 	
 	Next, if $\sfM$ is a \MN and $S \subseteq \N^\sfM$ is a subset of its variables, then let 
-	$$\V^\sfM(S) :=  \!\!\prod_{N \in S} \!\!\V^\sfM_N,\quad \V^{\sfM}_\none(S) = \!\!\prod_{N \in S \setminus \{\sf 1\}}\!\!\Big(\V^\sfM_N \cup \{\none\} \Big)$$
-	be the settings of $S$ with and without $\none$, and $\V(\sfM), \V_\none(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$ and $\V_\none^\sfM(\N^\sfM)$, respectively.\footnote{We leave ${\sf 1}$ out in the second case because it cannot take $\none$, and the sets are isomorphic either way.}
+	$$\V^\sfM(S) :=  \!\!\prod_{N \in S} \!\!\V^\sfM_N,\quad \V^{\sfM}_\none(S) = \!\!\prod	_{N \in S \setminus \{\sf 1\}}
+		\!\!\!\! \Big(\V^\sfM_N \cup \{\none\} \Big)\footnote{We leave ${\sf 1}$ out in the second case because it cannot take $\none$, and the sets are isomorphic either way.}$$
+	be the settings of $S$ with and without $\none$, and $\V(\sfM), \V_\none(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$ and $\V_\none^\sfM(\N^\sfM)$, respectively.%
+		
 	
 	For instance, if $M$ is as in \cref{ex:guns-and-floomps}, 
 	$W_M = \{fg, \bar f g, f \bar g, \bar f \bar g \}$ and 
 	$W_\sfM^\none = W_\sfM \cup \{ \none g, f \none, \none\none \}$. As this $\sfM$ is strict, all of these additional worlds get zero probability. \todo{Replace with \cref{ex:teacher} once finalized for a more illustrative example.}
+%	Finally, let $\mu_\none$ be the unique distribution on $\V_\None(M)$ such that 
 	
 	
 	In each examples in the introduction, something has happened causing us to combine pieces of diagrams, or make additions. The formal underpinning of this process is a \emph{union} of \modelnames.
@@ -659,9 +836,9 @@
 		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a \MN\ with the ordinary union of their nodes (necessary to align and glue \MNs\ together), and disjoint union of their edges. Explicitly,
 		\begin{align*}
 			\N^{\sfM \cup \sfM'} &= \N^\sfM \cup \N^{\sfM'},  \\
-			\Li^{\sfM \cup \sfM'} \!=& \Li^\sfM \sqcup \Li^{\sfM'}\!
-				=  \{ (A, B, \text{inl}(\ell) : (A,B,\ell)\in \Li^\sfM \}  \\
-					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell) : (A,B,\ell)\in \Li^{\sfM'} \} \\ 
+			\Ed^{\sfM \cup \sfM'} \!=& \Ed^\sfM \sqcup \Ed^{\sfM'}\!
+				=  \{ (A, B, \text{inl}(\ell) : (A,B,\ell)\in \Ed^\sfM \}  \\
+					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell) : (A,B,\ell)\in \Ed^{\sfM'} \} \\ 
 			\V^{\sfM \cup \sfM'} (N) &= \begin{cases}
 					\V^{\sfM}(N) & \text{if }N \in \N^\sfM \\
 					\V^{\sfM'}(N) &\text{if }N \in \N^{\sfM'} 
@@ -702,7 +879,7 @@
 		\[ \Big\llbracket \sfM \Big\rrbracket_\Set \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
-		~\text{$\forall (A, B,\ell) \!\in\! \mathcal L$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
+		~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
 	\end{defn}
 
 	For strict \MNs, \cref{def:set-semantics} precisely defines the set of distributions whose marginals exactly match; in general, we only require that $\mu(b \mid A)$ exceed $\bmu(b \mid a)$ --- intuitively, if an agent can only set upper and lower bounds, and $\mu$ is between them, then $\mu$ is consistent with the agent's beliefs. 
@@ -719,17 +896,17 @@
 	
 	We can also now finally give a formal definition of consistency.
 	\begin{defn} \label{def:weak-consistent}
-		$\sfM$ is consistent if there is some $\mu \neq \mu_\none \in \bbr{\sfM}_\Set$, and strictly consistent if there is some $\mu \in \bbr{\sfM}_\Set$ that assigns no mass to any world where a variable takes $\none$.
+		$\sfM$ is consistent if there is some $\mu \in \bbr{\sfM}_\Set$, and strictly consistent if there is some $\mu \in \bbr{\sfM}_\Set$ that assigns no mass to any world where a variable takes $\none$.
 	\end{defn}
 	
-	\note{By contrast, $\sfM$ is over-constrained if there were \emph{some $\bmu$} of the same type as $\bmu^\sfM$ such that $\bbr{\N^\sfM, \Li^\sfM, \V^\sfM, \bmu}_\Set = \emptyset$, and under-constrained if every $\bmu$ of this type yields $\big| \bbr{\N^\sfM, \Li^\sfM, \V^\sfM, \bmu}_\Set \big| > 1$.
+	\note{By contrast, $\sfM$ is over-constrained if there were \emph{some $\bmu$} of the same type as $\bmu^\sfM$ such that $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set = \emptyset$, and under-constrained if every $\bmu$ of this type yields $\big| \bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set \big| > 1$.
 	}
 
 %	The `weakly' can be omitted; we introduce it here to contrast it with a stronger version in \cref{def:strong-consistent}.
 	
 %	Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
 %	\begin{defn}
-%		Consider again the \MN\ $M = (\mathcal N, \mathcal L, \mathcal V, \bmu)$. Define 
+%		Consider again the \MN\ $M = (\mathcal N, \Ed, \mathcal V, \bmu)$. Define 
 %		\[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}_\Set \} \]
 %	\end{defn}
 
@@ -740,7 +917,7 @@
 	
 	This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if $X \cap Y = \emptyset$, then $R \dcap S = R \times S$. 
 
-	\begin{prop}
+	\begin{prop}\label{prop:union-set-semantics}
 		$\bbr{M}_\Set \dcap \bbr{M'}_\Set = \bbr{M \cup M'}_\Set$.
 	\end{prop}
 
@@ -759,102 +936,27 @@
 %	\end{conj}
 
 
-
-
-	\subsection{As Weighted Distributions}
-	
-	
-%	If a probability distribution is a soft constraint on the set of possible worlds, then a \MN\ is a soft constraint on the set of probability distributions.
-	As far as $\bbr{-}_\Set$ goes, all inconsistent \MNs\ are equivalent, which is unsatisfying --- for instance, there's a difference between thinking a 60\% head-biased coin will land heads 63\% of the time, as opposed to 0\% of the time. %and estimates of distributions from samples are necessarily going to be a little off. 
-	
- 	We therefore move to generalize the semantics in the previous section. For a candidate distribution $\nu$, rather than assigning it a 0/1 score of whether or not it is consistent, we give it a continuous one, intuitively encoding how far we have to nudge things to make it consistent. We only want to score distributions based on the links $\Li$ that an agent actually has expressed, and we will measure similarity by relative entropy: the number of bits required to encode the $\bmu^\sfM$ given an optimal code for $\nu$.  Perhaps one might think that this seems backwards: we're giving a 
- 		
-	\begin{defn}\label{def:zeta-score}
-		The (strict) inconsistency, $\zeta$, of a \MN\ $\sfM = \mnvars[]$ with respect to a distribution $p \in \Delta[\V_{\none}(\sfM)]$ (in $\Delta \V(\sfM)$ respectively) is given by
-		\[
-			\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-			\sum_{\substack{L \in \cal L}{L = (A,B, \ell)}}\!\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A \sheq a) } \right]
-		\]
-		where $D_{\mathrm{KL}}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
-		
-		When $\mu, \nu$ are sub-distributions, we define $\kldiv{\nu}{\mu} = \inf \kldiv{\nu'}{\mu'}$ to be the minimum possible for strict distributions $\mu' \geq \mu$, $\nu' \geq \nu$ compatible with $\mu,\nu$. 
-	\end{defn}
-
-
-	\begin{examplex}[continues=ex:worldsonly]
-		For the \MN\ $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\zeta(\sfM; \nu) = \kldiv{\nu}{\mu}$. As we will see in \cref{sec:thermo}, this quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
-	\end{examplex}
-	
-	In specifying a distribution via a graphical model, you have not only implicitly defined not only the distribution you intended, but also a natural higher-order scoring on distributions through the language.
-	
-	Inconsistency is something we try to minimize, making it analogous to a physical system trying to minimize its potential energy. If we think of the inconsistency as a potential energy directly, we can use something like a Boltzmann law (\cref{eq:boltzmann}) to get likelihood over distributions. We therefore define a weighted distribution by
-	\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
-
-	One nice consequence of this definition is that the maximum value of $\bbr{M}_\zeta(\mu)$ is $1$, in keeping with the standard on weighted distributions \cite{halpern2015weighted}; indeed all consistent distributions have weight 1. Still, there's something missing: we've now captured inconsistency
-
-	\begin{prop}[restate=thmzetaconvex]
-		$\zeta$ is a convex function in $p$.
-	\end{prop}
-	As a result, $\bbr{M}_\zeta$ is a quasiconvex function, and hence there is a unique global minimum, and local optimization will find it.
-
-	\begin{defn}
-		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
-		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \zeta (M; \mu) 
-%			= -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p)
-			 \]		
-	\end{defn}
-
-	We may also consider the links as having different strengths: if we associate a positive `inverse temperature' coefficient $\beta$ to each edge, we can define
-	\[
-		\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-		\sum_{(A,B,\ell) \in \cal L}~\mathop{\mathbb E}_{a \sim p} \frac{1}{\beta_L} \left[\kldiv[\Big]{\bmu_{A,B,\ell}(a) }{ p(B | A \sheq a) } \right]
-	\]
-	
-	\begin{defn}
-		A weighted \MN\ $(M, \beta)$ is a \MN\ $\sfM$ together with an inverse temperature $\beta_L \in \mathbb R^+ \cup \{\infty\}$ for each link $L \in \Li^\sfM$.
-	\end{defn}
-
-	We an always take a \MN\ $M$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM^{(\beta\colon\!=\beta_0)}$.
-	
-	As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
-	
-	\begin{prop}
-		If $M$ is consistent, $\bbr{M^{(\infty)}}^* = \bbr{M}\MaxEnt$.
-	\end{prop}
-
-
-	\begin{example}[continues=ex:guns-and-floomps]
-		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have $\beta = 1$, and we give our new observation $\beta = 10^{-3}$.
-		
-		Then $\bbr{M}_\zeta$
-		
-		In this example, the temperature parameters are like Barycentric coordinates over the triangle of edges, indicating how much each will would change in response to the inconsistency.
-	\end{example}	
-	
-	
-	
-	
 	\subsection{As Distributions}
 	
-%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
-%	\begin{array}{l}
-%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
-%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
+	%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
+	%	\begin{array}{l}
+	%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
+	%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
 	We promised way back in \cref{ex:guns-and-floomps} that we'd be able to get the same mileage out of representing maximum entropy distributions that Bayesian Networks do; to do this we also offer a way of interpreting a \MN\ as a single distribution, and relate this to the weighted distribution semantics above.	
 	
 	\begin{vfull}
-	%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
+		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
 		
 		\begin{defn}
 			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
-	
+			
 			\begin{align*}
 				\llbracket M \rrbracket_{\mathbf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
-	%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
+				%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
 			\end{align*}
 		\end{defn}
 	\end{vfull}
-
+	
 	\begin{theorem} 
 		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
 	\end{theorem}
@@ -871,8 +973,97 @@
 	
 	This theorem justifies taking the \MN\ as primary, an ordinary collection of nodes and edges, which makes it cleaner to define and compose paths. 
 
+	\subsection{As Weighted Distributions}
 	
-%	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo} for more.
+	
+%	If a probability distribution is a soft constraint on the set of possible worlds, then a \MN\ is a soft constraint on the set of probability distributions.
+	As far as $\bbr{-}_\Set$ goes, all inconsistent \MNs\ are equivalent, which is unsatisfying --- for instance, there's a difference between thinking a 60\% head-biased coin will land heads 63\% of the time, as opposed to 0\% of the time. %and estimates of distributions from samples are necessarily going to be a little off. 
+	
+ 	We therefore move to generalize the semantics in the previous section. For a candidate distribution $\nu$, rather than assigning it a 0/1 score of whether or not it is consistent, we give it a continuous one, intuitively encoding how far we have to nudge things to make it consistent. We only want to score distributions based on the links $\Ed$ that an agent actually has expressed, and we will measure similarity by relative entropy: the number of bits required to encode the $\bmu^\sfM$ given an optimal code for $\nu$.  Perhaps one might think that this seems backwards: we're giving a 
+ 		
+	\begin{defn}\label{def:zeta-score}
+		The (strict) inconsistency, $\zeta$, of a \MN\ $\sfM = \mnvars[]$ with respect to a distribution $p \in \Delta[\V_{\none}(\sfM)]$ (or $\Delta \V(\sfM)$ if strict) is given by
+		\[
+			\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
+			\!\!\!\!\!\sum_{\substack{L \in \cal L\\L = (A,B, \ell)}}\!\! \mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B | A \sheq a) } \right]
+		\]
+		where $D_{\mathrm{KL}}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
+		
+		When $\mu, \nu$ are sub-distributions, we define 
+		\[ \kldiv{\nu}{\mu} = \inf_{\substack{\nu' \geq \nu, \mu' \geq \mu}} \kldiv{\nu'}{\mu'} \] 
+		to be the minimum possible for strict distributions $\mu', \nu'$ compatible with $\mu,\nu$. 
+	\end{defn}
+
+
+	\begin{examplex}[continues=ex:worldsonly]
+		For the \MN\ $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\zeta(\sfM; \nu) = \kldiv{\nu}{\mu}$. As we will see in \cref{sec:thermo}, this quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
+		
+		
+	\end{examplex}
+	
+	In specifying a distribution via a graphical model, you have not only implicitly defined not only the distribution you intended, but also a natural higher-order scoring on distributions through the language.
+	
+	Inconsistency is something we try to minimize, making it analogous to a physical system trying to minimize its potential energy. If we think of the inconsistency as a potential energy directly, we can use something like a Boltzmann law (\cref{eq:boltzmann}) to get likelihood over distributions. We therefore define a weighted distribution by
+	\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
+
+	One nice consequence of this definition is that the maximum value of $\bbr{M}_\zeta(\mu)$ is $1$, in keeping with the standard on weighted distributions \cite{halpern2015weighted}; indeed all consistent distributions have weight 1. Still, there's something missing: we've now captured inconsistency
+
+	\begin{prop}[restate=thmzetaconvex]
+		$\zeta$ is a convex function in $p$.
+	\end{prop}
+	As a result, $\bbr{M}_\zeta$ is a quasiconvex function, and hence every local minimum is a global minimum.
+
+	\begin{defn}
+		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
+		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \zeta (M; \mu) 
+%			= -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p)
+			 \]		
+	\end{defn}
+
+	We may also consider the links as having different strengths: if we associate a positive `inverse temperature' coefficient $\beta$ to each edge, we can define
+
+	\begin{defn}
+		A weighted \MN\ $(M, \beta)$ is a \MN\ $\sfM$ together with an inverse temperature $\beta_L \in \mathbb R^+ \cup \{\infty\}$ for each link $L \in \Ed^\sfM$.
+	\end{defn}
+
+	with corresponding inconsistency $\zeta((\sfM, \beta) ; p) :=$
+	\[
+		%\inf_{p \in \Delta(W^{\mathcal V})}~
+		\sum_{\substack{L \in \cal L\\L = (A,B, \ell)}}\!\! \mathop{\mathbb E}_{a \sim p(A)} \left[\frac{1}{\beta_L}\kldiv[\Big]{\bmu_{L}(a) }{ p(B | A \sheq a) } \right]
+	\]
+
+	We an always take a \MN\ $M$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM^{(\beta\colon\!=\beta_0)}$.
+	
+	As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
+	
+	\begin{prop}
+		If $M$ is consistent, $\bbr{M^{\beta\!:\!=\infty}}^* = \bbr{M}\MaxEnt$.
+	\end{prop}
+
+
+	\begin{example}[continues=ex:guns-and-floomps]
+		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have $\beta = 1$, and we give our new observation $\beta = 10^{-3}$.
+		
+		Then $\bbr{M}_\zeta$
+		
+		In this example, the temperature parameters are like Barycentric coordinates over the triangle of edges, indicating how much each will would change in response to the inconsistency.
+	\end{example}	
+	
+	
+%	We promised that this would generalize
+	We now offer natural generalizations of those in \cref{sec:set-of-distribution-semantics}.
+	
+	\begin{prop}[analog of \cref{prop:union-set-semantics}]
+		$\bbr{\sfM \cup \sfM'}_\zeta = \bbr{\sfM}_\zeta + \bbr{\sfM'}_\zeta$
+	\end{prop}
+	\begin{coro}
+		As $\bbr{\sfM}_\zeta$
+	\end{coro}
+	
+	
+
+	
+%	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo-background} for more.
 	
 	\subsection{As Probabilisitic Programs}\label{sec:prog-semantics}
 	
@@ -886,12 +1077,19 @@
 	
 	This can be recognized as a matrix multiplication $f$ and $g$ regarded as sub-stochastic matrices.
 	Thinking about graphical models this way makes thinking about chains of reasoning simpler, gives us a way out of storing probability tables, and suggests additional applications.
-	\[ \bbr{M}_\lambda = \Big\{ \text{paths } p = N_0 \xrightarrow{p^1} N_1 \xrightarrow{p^2}\cdots\xrightarrow{p^n}N_n \Big\} \]
+	
+	More formally, we can define
+	\[ \bbr{M}_\lambda = \left\{
+			\begin{aligned}
+				 \text{paths } p = N_0 \xrightarrow{p^1} N_1 \xrightarrow{p^2}\cdots\xrightarrow{p^n}N_n \\
+				 \text{such that } (N_{i-1}, N_i, p^i) \in \Ed^\sfM
+			\end{aligned}
+		\right\} \]
 	
 	\begin{example}
 		Composition of arrows in a tables in chain is simply an easy case of varaible elimination. 
 		
-		\centerline{
+		\[
 			\scalebox{0.8}{
 			\begin{tikzcd}[dpad, ampersand replacement=\&]
 				A \ar[r]\& C
@@ -899,9 +1097,9 @@
 			\begin{tikzcd}[dpad, ampersand replacement=\&]
 				A \ar[r]\& B \ar[r] \& C
 			\end{tikzcd}}
-		}	
+		\]	
 
-		Conversely, factorization of a table $A \to C$ into tables $A \to B$ and $B \to C$ (i.e., a stochastic matrix factorization) is a form of simplification, and is likely to be smaller if $|B|$ is small.
+		Conversely, factorization of a table $A \to C$ into tables $A \to B$ and $B \to C$ (i.e., a stochastic matrix factorization) corresponds to splitting a program into two steps, and the data necessary to describe it will be smaller if $|B|$ is small.
 	\end{example}	
 	
 	% It also has not escaped us that \MNs\ have a particularly nice description in categorical terms, which we do not pursue further here.
@@ -910,8 +1108,8 @@
 	Even given infinite time, some paths in $\bbr{\sfM}_\lambda$ may be infinite.
 	
 	\begin{defn}
-		A \MN\ $M$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
-		$$\bigcap_i\ \bbr*{\vphantom{\Big|}p_i^0\circ \cdots\circ p_i^k}_\Set \neq \varnothing$$
+		A \MN\ $\sfM$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
+		$$\bigcap_{p \in P}\ \bbr*{\vphantom{\Big|}p^0\circ \cdots\circ p^k}_\Set \neq \varnothing$$
 	\end{defn}
 
 	\begin{example}
@@ -1044,10 +1242,6 @@
 %		% \item A tree. 
 %	\end{enumerate}
 	
-	
-	
-	
-	
 %	\begin{center}
 %		\scalebox{0.8}{
 %		\begin{tikzcd}[center base, column sep=1.5em, ampersand replacement=\&]
@@ -1069,12 +1263,27 @@
 
 
 	
-	In \cref{ex:smoking}, to fully get the joint representation given by the BN, we also need to make the final assumption that $SC \CI S \mid PS$. This is possible to do explicitly with an extra arrow meaningless arrow, but this solution doe not scale well, historically has meant the opposite thing, and clutters the diagram. Instead, we leave the picture alone, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.
+	In \cref{ex:smoking}, to fully get the joint representation given by the BN, we also need to make the final assumption that $SC \CI S \mid PS$. This is possible to do explicitly with an extra arrow meaningless arrow, but this solution doe not scale well, looks like it means a dependence (the opposite of our intention), and clutters the diagram. Instead, we leave the picture alone, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.
+	
+	One particularly useful scoring function is the following one, maximizing Shannon entropy:
+	\[ \bbr{\sfM}\MaxEnt := \Big\llbracket M \Big\rrbracket_\Set^{-H(\cdot)} \]
+	
+	\begin{theorem} 
+		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
+	\end{theorem}
+	\begin{proof}
+		\vspace{-1em}
+		This is a direct consequence of \cref{prop:convex}
+	\end{proof}
 
 	We can now formally state that Bayesian Networks are a special case of \MNs: 
-	\begin{theorem}
+	\begin{theorem}\label{thm:bns-are-pdgs}
 		If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}\MaxEnt =\{\Pr_B\}$.
 	\end{theorem}
+
+	\Cref{thm:bns-are-pdgs} asserts that a Bayesian Network, interpreted as a hyper-graph
+
+	
 
 	\begin{fact}
 		\begin{enumerate}
@@ -1152,11 +1361,11 @@
 	
 	
 	
-	Let $\Phi(M)$ be the factor graph associated to $M$, and $\Phi(\mathcal B)$ be the one associated with a Bayesian network. That is, the clique index set is $\mathcal L$, and where each link from a product of variables $\{A_i\}$ to 
+	Let $\Phi(M)$ be the factor graph associated to $M$, and $\Phi(\mathcal B)$ be the one associated with a Bayesian network. That is, the clique index set is $\Ed$, and where each link from a product of variables $\{A_i\}$ to 
 	each variable 
 	
 %	\begin{align*}
-%		\Phi( \mathcal N, \mathcal L, \mathcal V, \bmu ) = (\alpha, \{ \phi_{} ) \}
+%		\Phi( \mathcal N, \Ed, \mathcal V, \bmu ) = (\alpha, \{ \phi_{} ) \}
 %	\end{align*}
 
 	\begin{prop}
@@ -1176,7 +1385,7 @@
 	\end{proof}
 	
 	\todo{Fix up}
-	A \MN\ clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw, as this makes them poor choices as cannonical descriptions of distributions, which is why so much attention is given to I-maps in \cite{graphical models}. However, directed models causal connotation distinct from the distribution also lends to their success as an epistemic representation.
+	A \MN\ clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw, as this makes them poor choices as cannonical descriptions of distributions, which is why so much attention is given to I-maps in \cite{koller2009probabilistic}. However, directed models causal connotation distinct from the distribution also lends to their success as an epistemic representation.
 
 	\begin{fact}
 		\begin{enumerate}
@@ -1186,7 +1395,7 @@
 
 	\subsection{Directed Factor Graphs}
 	
-	One solution, by \cite{frey} is to also enforce some local constraints. While this indeed solves issues \todo{make full list of problems to refer to, select from notes} \ref{fg-problem:}, it still leaves issues $\#-\#$.
+	One solution, by \cite{frey2012extending} is to also enforce some local constraints. While this indeed solves issues \todo{make full list of problems to refer to, select from notes} \ref{fg-problem:}, it still leaves issues $\#-\#$.
 	
 	Directed factor graphs are much more explicit with their factorizations than BNs, and in many ways they are closely related to \MNs. Consider example \ref{ex:directedfg}
 	
@@ -1201,7 +1410,7 @@
 %	\subsection{Conditional Random Fields}
 %	A conditional random field (CRF) is an undirected graphical model which represents a conditional distribution, making it \emph{under-constrained}.
 	
-	\section{A Thermodynamic Perspective}
+	\section{A Thermodynamic Perspective}\label{sec:thermo}
 	\begin{figure}[t]
 		\centering
 		\begin{tikzpicture}
@@ -1223,7 +1432,7 @@
 		\caption{Energy / Distribution Transformations}
 	\end{figure}
 
-	See \ref{sec:thermo} for background in free energies. %and \cite{} for weighted probability distributions.
+	See \ref{sec:thermo-background} for background in free energies. %and \cite{} for weighted probability distributions.
 	
 	\begin{theorem}\label{thm:free-energy-strictly-more-expressive}
 	 	The weighted distributions generated by \MNs\ are strictly more expressive than those generated by distributions.
@@ -1231,7 +1440,7 @@
 	
 	A very weak version of this can already be seen in un-normalized factor graphs: by multiplying a factor $\phi$ by a constant $\alpha$, one obtains a free energy $G' = - \ln \alpha + G$, i.e., with a mere additive shift. However, this shift doesn't really distinguish belief states, which is part of why we're so eager to normalize the distribution.
 	There is also an opportunity to modify $\beta$, but in standard graphical model literature, people set $\beta = 1$ and forget about it.%
-		\footnote{A similar complaint, that temperature parameters are ignored, is filed in \cite{fixing-a-broken-elbo}, in which many information theoretic trade-offs, such as $\beta-$VAEs, can be exposed by allowing thermodynamic $\beta \neq 1$}
+		\footnote{A similar complaint, that temperature parameters are ignored, is filed in \cite{fixing-broken-elbo}, in which many information theoretic trade-offs, such as $\beta-$VAEs, can be exposed by allowing thermodynamic $\beta \neq 1$}
 	The proof of \cref{thm:free-energy-strictly-more-expressive} is a useful example, so we include it here:
 
 	\begin{proof}
@@ -1269,22 +1478,24 @@
 	\section{Non-Strict \MNs\ and Sub-distributions} \label{sec:full-model}
 	
 	
-	\begin{enumerate}
-		\item A program which has not yet terminated (recall \cref{sec:prog-semantics}).
-		\item The set of worlds constructed in any way other than just products of sets---the most important of which is the union
-			% IMPORTANT TO EXPAND:
-			%	this is a key feature of the modularity we have
-			% 	if you were to simply say W = W_1 + W_2, none of the
-			%	random variables would even be defined anyore. This 
-			%	dramatically increases expressive power.
-		\item First order selections and guards
-		\item Implication
-	\end{enumerate}
+%	\begin{enumerate}
+%		\item A program which has not yet terminated (recall \cref{sec:prog-semantics}).
+%		\item The set of worlds constructed in any way other than just products of sets---the most important of which is the union
+%			% IMPORTANT TO EXPAND:
+%			%	this is a key feature of the modularity we have
+%			% 	if you were to simply say W = W_1 + W_2, none of the
+%			%	random variables would even be defined anyore. This 
+%			%	dramatically increases expressive power.
+%		\item First order selections and guards
+%		\item Implication
+%	\end{enumerate}
 
 
-	\subsection{Better Worlds}
+	\subsection{More Expressive Worlds}
 	\subsection{Partial Computations}
-	\subsection{Implication}
+	\subsection{Implication and Conditional Knowledge}
+	
+	\subsection*{rest}
 	
 	\todo{I still need to heavily edit this section, I can cut it down a lot and it's only minorly edited since it was pulled from previous doc}
 	
@@ -1532,7 +1743,7 @@
 	\section{Proofs}
 	\thmsetconvex*
 	\begin{proof}
-		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \mathcal L$.
+		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any link $(A,B) \in \Ed$.
 		
 		By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
 		For brevity, we will use little letters ($a$) in place of events ($A = a$).
@@ -1553,7 +1764,7 @@
 	\begin{proof}
 		It is well-known that $D_{KL}$ is convex, in the sense that 
 		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
-		Choose any link $L \in \mathcal L$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
+		Choose any link $L \in \Ed$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
 		Setting $q_1 = q_2 = \bmu_L(a)$, we get
 		\[ D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \]
 		Since this is true for every $a$ and link, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
@@ -1589,7 +1800,7 @@
 		\hfill\begin{minipage}{0.4\textwidth}	
 		\begin{align*}
 			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
-			&\mathcal L = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
+			&\Ed = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
 			\mathcal V &\left\{\begin{aligned}
 				\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
 				\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
@@ -1656,8 +1867,8 @@
 		\section{Alternate Presentations}
 		\subsection{Random Variables}
 		If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$,\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$} and 
-		{\color{gray}$\mathcal L \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
-		\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\mathcal L$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\mathcal L$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
+		{\color{gray}$\Ed \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
+		\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\Ed$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\Ed$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
 		%and $(W, \mathcal F', p)$ is a subjective probability representing an agent's belief 
 		
 		
@@ -1668,7 +1879,7 @@
 			\textit{/outline:}
 			On the one hand, $(\prod_{N \in \cal N} \mathcal V(N).\text{set}, \bigotimes_{N \in \cal N} \mathcal V(N).\text{algebra}, \bmu)$ is a measure space, with $\{X_N = \pi_N : \left(\prod\mathcal V(N')\right) \to  \mathcal V(N) \}_{N \in \cal N}$ a set of random variables
 			
-			and  on the other, $(I, \mathcal L, \mathcal X', \mu|_{\cal L})$ is a strict \MN.
+			and  on the other, $(I, \Ed, \mathcal X', \mu|_{\cal L})$ is a strict \MN.
 		\end{proof}
 		
 		This is the technical underpinning of our flippant, noncommittal treatment of possible worlds: any time we are thinking in terms of random variables or probability distributions on a fixed set $W$, we can instead reduce
@@ -1694,11 +1905,11 @@
 	
 	\begin{defn}
 		If $B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a Bayesian Network, then let $\Gamma (B)$ denote the corresponding \MN\ given by the procedure in section \ref{sec:bn-convert}. Explicitly, 
-		\[ \Gamma\mathcal B :=  (\mathcal N', \mathcal L, \mathcal V, \bmu) \]
+		\[ \Gamma\mathcal B :=  (\mathcal N', \Ed, \mathcal V, \bmu) \]
 		where % $\mathcal N'$ is the original nodes, plus
 		\begin{align*}
 		\mathcal N' &=  \left\{ \Big.\{N\} \mid N \in \mathcal N\right\} \cup \left\{ \mathrm{Par}(N) ~\middle|~ N \in \cal N \right\} \\%
-		\mathcal L &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
+		\Ed &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
 		\left\{\vphantom{\Big|} (P, \{X\}) \mid X \in P, P = \mathrm{Par}(N) \text{ for some }N \in \mathcal N \right\} \\
 		\mathcal V_N &= \prod_{X \in N} \mathcal S_X \\
 		%					{\color{gray}\Sigma_N = \bigotimes_{X \in N} 2^{\mathcal S_X}, \text{the product algebra of discrete $\sigma$-algebras}} \\
@@ -1711,7 +1922,7 @@
 	\end{defn}
 	All we've done is explicitly add parent nodes and projection edges to our graph, and also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
 	
-	\section{Thermodynamics}\label{sec:thermo}
+	\section{Thermodynamics}\label{sec:thermo-background}
 	Let $W$ be a finite set of states.
 	
 	\textbf{From Potentials to Distributions.}
@@ -1842,10 +2053,10 @@
 		\note{I will not put any time into this, as it's not going in the paper, but it's here as a placeholder, and I'll list some reasons why this is worth thinking about.}
 		One reason this works out so nicely is every construction is universal. We can in fact give a simpler categorical presentation of \MNs\ for those who already know category theory. The highlights are as follows:
 		\begin{enumerate}
-			\item A \MN\ is an attention-shaped diagram in the Markov category. That is, functor from the free category generated by the graph $(\mathcal N, \mathcal L)$ representing attention, to the Markov category. Indeed $\mathcal V$ is the action on objects, assigning each $\mathcal N$ to a measurable set, $\bmu$ is the action on morphisms, sending edges in $\mathcal L$ to Markov kernels between their associated objects. 
+			\item A \MN\ is an attention-shaped diagram in the Markov category. That is, functor from the free category generated by the graph $(\mathcal N, \Ed)$ representing attention, to the Markov category. Indeed $\mathcal V$ is the action on objects, assigning each $\mathcal N$ to a measurable set, $\bmu$ is the action on morphisms, sending edges in $\Ed$ to Markov kernels between their associated objects. 
 			\begin{enumerate}
 				\item Composition works out in general as we place no restrictions on anything, but
-				\item If every edge in $\mathcal L$ represents the causal structure of their relationship, then the image of the resulting diagram will be flat, and so effectively there will only be at most one, belief, and no possibility of conflict.
+				\item If every edge in $\Ed$ represents the causal structure of their relationship, then the image of the resulting diagram will be flat, and so effectively there will only be at most one, belief, and no possibility of conflict.
 				\item Interpreting with a different model of uncertainty (such as the powerset, giving us non-deterministic possibility) is simply an exchange of interpretation. However, for nice interaction with deterministic functions and logic, this notion of uncertainty must be a monad.
 			\end{enumerate}
 			
@@ -1857,10 +2068,10 @@
 		
 		\section{Algebra}\label{sec:algebra}
 		\begin{defn}
-			If $\sigma$ is a signature, a $\sigma$-\MN\ $M'$ on a \MN\ $M=(\mathcal N, \mathcal L, \mathcal V, \mu)$ is a \modelname\ $(\mathcal N', \mathcal L', \mathcal V', \mu')$ such that
+			If $\sigma$ is a signature, a $\sigma$-\MN\ $M'$ on a \MN\ $M=(\mathcal N, \Ed, \mathcal V, \mu)$ is a \modelname\ $(\mathcal N', \Ed', \mathcal V', \mu')$ such that
 			\begin{itemize}
 				\item $\mathcal N':= T_\sigma(\mathcal N)$ is the term algebra for the signature $\sigma$ over the alphabet $\Sigma = \mathcal N$.
-				\item $\mathcal L' = \mathcal L \cup \mathcal L^\sigma$ is $\mathcal L$ extended with extra links for operations that are 
+				\item $\Ed' = \Ed \cup \Ed^\sigma$ is $\Ed$ extended with extra links for operations that are 
 			\end{itemize}
 		\end{defn}
 		
