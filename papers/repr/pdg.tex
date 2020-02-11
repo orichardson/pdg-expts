@@ -50,6 +50,7 @@
 
 
 
+
 \usepackage[nointegrals]{ wasysym }
 
 \addbibresource{../refs.bib}
@@ -69,7 +70,7 @@
 \newcommand\FinSet{\textbf{FinSet}}
 \newcommand\MeasSet{\textbf{MeasSet}}
 %\newcommand\MaxEnt{{\substack{\mathbf{Max}\\\mathbf{Ent}}}}
-\newcommand\MaxEnt{{\overset{\uparrow}{\mathbf H}}}
+\newcommand\MaxEnt{_{\mathbf H}^*}
 
 
 \newcommand{\none}{\varobslash}
@@ -102,9 +103,7 @@
 \newcommand{\MNH}{PDH}
 \newcommand{\MNs}{\MN s}
 
-
-
-
+\numberwithin{equation}{section}
 
 \title{\ModelName s}
 
@@ -466,7 +465,7 @@
 		You you're about to give a test on Laplace transforms.
 		You have some distribution $G_B$ of likely grades for students in $B$, but you also have a good model of the distribution $G_A$ of grades a student from $A$ might get. We want to model this epistemic state, and now present three alternative modeling choices.
 
-		Here are three alternative modeling choices: we can either (1) use a single variable $\cal I$ whose values are possible institutions, (2) have separate variables for each institution, or (3) have different variables for grades of students.
+		Here are two alternative modeling choices: we can either (1) use a single variable $\cal I$ whose values are possible institutions, (2) have separate variables for each institution.
 		
 		\begin{center}
 			\todo{diagram of (1) and (2)}
@@ -482,17 +481,12 @@
 		We can try to get around this by letting $\mathcal  I$ take values $A$, $B$, and ``other'', but now you need to supply a distribution on grade given ``other''; maybe this is just like an unconditional distribution on grades. You might not know whether which school is more ``average'' nor even what the appropriate reference frame is: do you take an average by state, or country? And how much do you need to correct your estimate given that ``other'' does NOT include $A$ or $B$? This is implausible to estimate. 		
 	
 	
-		\todo{wrap this up, discuss (2) and (3). }
-		\todo{Make the case for}
+		\todo{wrap this up, discuss (2). }
 		%TODO (2): using indicator variables
 		
 		%TODO (3): using two G vars
 		
-		Ultimately the problem is a lack of expressive power and modularity: we need a way of letting 
-		
-
-		
-		
+		Ultimately the problem is a lack of expressive power and modularity: we need a way of describing a belief which may not always be applicable. 		
 		
 %		You really have no idea how well a student would do from other institutions would do, as you're not familiar with their material or the kind of people they attract. 
 		
@@ -525,7 +519,7 @@
 	
 	We have seen some examples of \MNs, but elided the details; we now begin a more careful treatment of \MNs\ as mathematical objects. 
 	
-	\moveme{Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.}
+%	\moveme{Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.}
 
 	
 	
@@ -573,7 +567,7 @@
 	we will often use two additional bits of syntax to represent common constraints: 
 	\begin{itemize}
 		\item A special unary variable $\sf 1$ that always takes its unique value $\star$. It is used to represent unconditional distributions, as in \cref{ex:guns-and-floomps,ex:smoking}. For strict \MNs, this is no different from any other variable that can take only a single value. 
-		\begin{examplex}
+		\begin{examplex}\label{ex:worldsonly}
 			A probability distribution $p$ over a measurable set $W$ of possible worlds is represented as 
 			\begin{center}
 				\scalebox{0.8}{
@@ -651,8 +645,8 @@
 	If $\sfM$ is a \MN, then $\mnvars[^\sfM] := \sfM$, allowing us to use internals without de-structuring the tuple.
 	
 	Next, if $\sfM$ is a \MN and $S \subseteq \N^\sfM$ is a subset of its variables, then let 
-	$$\V^\sfM(S) :=  \!\!\prod_{N \in S} \!\!\V^\sfM_N,\quad \V^{\sfM}_\none(S) = \!\!\prod_{N \in S \setminus \sf 1}\!\!\Big(\V^\sfM_N \cup \{\none\} \Big)$$
-	be the settings of $S$ with and without $\none$, and $\V(\sfM), \V_\none(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$ and $\V_\none^\sfM(\N^\sfM)$, respectively.
+	$$\V^\sfM(S) :=  \!\!\prod_{N \in S} \!\!\V^\sfM_N,\quad \V^{\sfM}_\none(S) = \!\!\prod_{N \in S \setminus \{\sf 1\}}\!\!\Big(\V^\sfM_N \cup \{\none\} \Big)$$
+	be the settings of $S$ with and without $\none$, and $\V(\sfM), \V_\none(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$ and $\V_\none^\sfM(\N^\sfM)$, respectively.\footnote{We leave ${\sf 1}$ out in the second case because it cannot take $\none$, and the sets are isomorphic either way.}
 	
 	For instance, if $M$ is as in \cref{ex:guns-and-floomps}, 
 	$W_M = \{fg, \bar f g, f \bar g, \bar f \bar g \}$ and 
@@ -701,21 +695,25 @@
 	We view of \modelnames\ as being a representation of beliefs in and of themselves, rather than a compression of something more fundamental such as a probability distribution. That said, it is still incredibly important to interpret them in various ways, as this will give us ways of comparing them to other graphical models, prove things about \MNs, and give a lot more intuition about how they work.
 	
 	\subsection{As Sets of Distributions}\label{sec:set-of-distribution-semantics}
-	If we think of a \MN\ as kind of like a BN except without independence assumptions, then just as a BN represents a single distribution on joint settings of its variables, a \MN\ might be thought of as representing the set of all distributions that marginalize out to it exactly, with or without the independence assumptions.
+	If we think of a \MN\ as kind of like a BN except without independence assumptions, then just as a BN represents a single distribution on joint settings of its variables, a \MN\ might be thought of as representing the set of all distributions that are compatible with it exactly, with or without the independence assumptions.
 
 	\begin{defn} \label{def:set-semantics}
 		If $\sfM\sheq\mnvars[]$ is a \MN, let $\llbracket \sfM \rrbracket_\Set$ be the set of distributions over the variables in $\sfM$ consistent with $\boldsymbol\mu$ on every link. Formally,		
 		\[ \Big\llbracket \sfM \Big\rrbracket_\Set \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
-		~\text{$\forall (A, B, L) \!\in\! \mathcal L$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
+		~\text{$\forall (A, B,\ell) \!\in\! \mathcal L$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
 	\end{defn}
+
+	For strict \MNs, \cref{def:set-semantics} precisely defines the set of distributions whose marginals exactly match; in general, we only require that $\mu(b \mid A)$ exceed $\bmu(b \mid a)$ --- intuitively, if an agent can only set upper and lower bounds, and $\mu$ is between them, then $\mu$ is consistent with the agent's beliefs. 
 
 	\begin{example}
 		Notice that $S := \bbr{
 			A \overset{p}{\to} B
 		}_\Set$ has a natural identification with 
-		the conditional distribution $p( B \mid A)$. $S(b\mid a)$ is well-defined since $\mu(\cdot\mid a)$ is the same for all $\mu \in S$ (and unique since it's the only commonality). With the standard tool (a conditional Bayesian Network), this is usually achieved in a less flexible manner: by explicitly separating out the ``observed'' nodes at the beginning of the construction.
+		the conditional distribution $p( B \mid A)$. $S(b\mid a)$ is well-defined since $\mu(\cdot\mid a)$ is the same for all $\mu \in S$ (and unique since it's the only commonality). With the standard tool (a conditional Bayesian Network), this is usually achieved in a less flexible manner: by explicitly separating out the ``observed'' nodes at the beginning of the construction. 
+		
+		Though true for \MNs, subgraph of a BN may or may not be a BN itself, and may or not even be compatible with the original even if interpreted as a conditional BN, due to the independence assumptions. Once again, the standard model struggles more to deal with structural changes to the underlying graph.
 	\end{example}
 	
 	
@@ -746,7 +744,7 @@
 		$\bbr{M}_\Set \dcap \bbr{M'}_\Set = \bbr{M \cup M'}_\Set$.
 	\end{prop}
 
-	From the two special cases of $\dcap$ discussed above, one can see that adding new links, (which we will see correspond to observations in \cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect.
+	From the two special cases of $\dcap$ discussed above, one can see that adding new links, (which we will see correspond to observations in \cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. Note that all of this is done by combining \MNs, which is only possible because of their extreme modularity.
 	
 	There is one final property of $\bbr{-}_\Set$ that may be interesting on its own, and will become useful later:
 	
@@ -767,56 +765,70 @@
 	
 	
 %	If a probability distribution is a soft constraint on the set of possible worlds, then a \MN\ is a soft constraint on the set of probability distributions.
+	As far as $\bbr{-}_\Set$ goes, all inconsistent \MNs\ are equivalent, which is unsatisfying --- for instance, there's a difference between thinking a 60\% head-biased coin will land heads 63\% of the time, as opposed to 0\% of the time. %and estimates of distributions from samples are necessarily going to be a little off. 
 	
-	In specifying a distribution via a graphical model, you have not only implicitly defined not only the distribution you intended, but also a natural higher-order scoring on distributions not only through the description of the distribution 
-	
- 	This generalizes the semantics in the previous section. For a candidate distribution $\mu$, rather than assigning it a 0/1 score of whether or not it is consistent, we give it a continuous one.
-
-	\begin{defn}
-		The inconsistency, $\zeta$, of a \MN\ $M = (\cal N, L, V, \bmu)$ with respect to a distribution $p \in \Delta[W_{\cal V}]$ is
+ 	We therefore move to generalize the semantics in the previous section. For a candidate distribution $\nu$, rather than assigning it a 0/1 score of whether or not it is consistent, we give it a continuous one, intuitively encoding how far we have to nudge things to make it consistent. We only want to score distributions based on the links $\Li$ that an agent actually has expressed, and we will measure similarity by relative entropy: the number of bits required to encode the $\bmu^\sfM$ given an optimal code for $\nu$.  Perhaps one might think that this seems backwards: we're giving a 
+ 		
+	\begin{defn}\label{def:zeta-score}
+		The (strict) inconsistency, $\zeta$, of a \MN\ $\sfM = \mnvars[]$ with respect to a distribution $p \in \Delta[\V_{\none}(\sfM)]$ (in $\Delta \V(\sfM)$ respectively) is given by
 		\[
 			\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-			\sum_{L \in \cal L}~\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A = a) } \right]
+			\sum_{\substack{L \in \cal L}{L = (A,B, \ell)}}\!\mathop{\mathbb E}_{a \sim p(A)} \left[\kldiv[\Big]{\bmu_{L}(a) }{ p(B \mid A \sheq a) } \right]
 		\]
-		where $D_{KL}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$.
-	\end{defn}	
+		where $D_{\mathrm{KL}}$ is the relative entropy, taken between the two distributions over $B$: one given by the link from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
+		
+		When $\mu, \nu$ are sub-distributions, we define $\kldiv{\nu}{\mu} = \inf \kldiv{\nu'}{\mu'}$ to be the minimum possible for strict distributions $\mu' \geq \mu$, $\nu' \geq \nu$ compatible with $\mu,\nu$. 
+	\end{defn}
+
+
+	\begin{examplex}[continues=ex:worldsonly]
+		For the \MN\ $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\zeta(\sfM; \nu) = \kldiv{\nu}{\mu}$. As we will see in \cref{sec:thermo}, this quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
+	\end{examplex}
 	
-	If we think of the inconsistency as a potential energy, we can use something like a Boltzmann law to get likelihood over distributions. We therefore define	
+	In specifying a distribution via a graphical model, you have not only implicitly defined not only the distribution you intended, but also a natural higher-order scoring on distributions through the language.
+	
+	Inconsistency is something we try to minimize, making it analogous to a physical system trying to minimize its potential energy. If we think of the inconsistency as a potential energy directly, we can use something like a Boltzmann law (\cref{eq:boltzmann}) to get likelihood over distributions. We therefore define a weighted distribution by
 	\[\bbr{M}_\zeta := \mu \mapsto e^{-\zeta(M;\mu)}\]
 
+	One nice consequence of this definition is that the maximum value of $\bbr{M}_\zeta(\mu)$ is $1$, in keeping with the standard on weighted distributions \cite{halpern2015weighted}; indeed all consistent distributions have weight 1. Still, there's something missing: we've now captured inconsistency
 
 	\begin{prop}[restate=thmzetaconvex]
 		$\zeta$ is a convex function in $p$.
 	\end{prop}
-	As a result, $\bbr{M}_\zeta$ is a quasiconvex function, and hence local optimization will find global optima.
+	As a result, $\bbr{M}_\zeta$ is a quasiconvex function, and hence there is a unique global minimum, and local optimization will find it.
 
 	\begin{defn}
 		The inconsistency of a \MN\ $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
 		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \zeta (M; \mu) 
 %			= -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p)
-			 \]
-		
+			 \]		
 	\end{defn}
 
-
-	We may also consider the links as having different strengths: if we associate a positive `inverse temperature' coefficient $\beta$ to each edge.
+	We may also consider the links as having different strengths: if we associate a positive `inverse temperature' coefficient $\beta$ to each edge, we can define
+	\[
+		\zeta(M ; p) := %\inf_{p \in \Delta(W^{\mathcal V})}~
+		\sum_{(A,B,\ell) \in \cal L}~\mathop{\mathbb E}_{a \sim p} \frac{1}{\beta_L} \left[\kldiv[\Big]{\bmu_{A,B,\ell}(a) }{ p(B | A \sheq a) } \right]
+	\]
 	
 	\begin{defn}
-		A weighted \MN\ $(M, \beta)$ is a \MN\ $M = (\cal N, L, V, \bmu)$ together with an inverse temperature $\beta_L \in \mathbb R^+ \cup \{\infty\}$ for each link $L \in \mathcal L$.
+		A weighted \MN\ $(M, \beta)$ is a \MN\ $\sfM$ together with an inverse temperature $\beta_L \in \mathbb R^+ \cup \{\infty\}$ for each link $L \in \Li^\sfM$.
 	\end{defn}
 
-	We an always take a \MN\ $M$ and uniformly assign every edge the same inverse temperature $\beta$; we'll call this $M^{-\beta-}$.
+	We an always take a \MN\ $M$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM^{(\beta\colon\!=\beta_0)}$.
+	
+	As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
 	
 	\begin{prop}
-		If $M$ is consistent, $\bbr{M^{(\infty)}}^* = \bbr{M}_\MaxEnt$.
+		If $M$ is consistent, $\bbr{M^{(\infty)}}^* = \bbr{M}\MaxEnt$.
 	\end{prop}
 
 
 	\begin{example}[continues=ex:guns-and-floomps]
-		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have temperature 1, and we give our new observation $10^{-3}$.
+		Recall the \MN\ from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial links $1 \to F$ and $1\to G$ have $\beta = 1$, and we give our new observation $\beta = 10^{-3}$.
 		
 		Then $\bbr{M}_\zeta$
-		\todo{}
+		
+		In this example, the temperature parameters are like Barycentric coordinates over the triangle of edges, indicating how much each will would change in response to the inconsistency.
 	\end{example}	
 	
 	
@@ -828,73 +840,83 @@
 %	\begin{array}{l}
 %	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
 %	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
+	We promised way back in \cref{ex:guns-and-floomps} that we'd be able to get the same mileage out of representing maximum entropy distributions that Bayesian Networks do; to do this we also offer a way of interpreting a \MN\ as a single distribution, and relate this to the weighted distribution semantics above.	
 	
-	When ultimately pressed on a decision, an agent hasincentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics, we also offer a way of interpreting a \MN\ as a single distribution for this purpose. 
+	\begin{vfull}
+	%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
+		
+		\begin{defn}
+			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
 	
-	\begin{defn}
-		If  $M$ is a \MN, $\bbr{M}_{\mathbf S} \subseteq \Delta W_{M}$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
-%% ALTERNATE, BIG
-%		\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
-%			\begin{array}{l}
-%			\ell(\mu) \succeq \ell(\mu') \\[0.2em]
-%			\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
-		\begin{align*}
-			\llbracket M \rrbracket_{\mathbf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
-%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
-		\end{align*}
-	\end{defn}
-	One particularly useful scoring function is the following one, maximizing Shannon entropy:
-	\[ \Big\llbracket M \Big\rrbracket_\MaxEnt := \Big\llbracket M \Big\rrbracket_\Set^{-H(\cdot)} \]
+			\begin{align*}
+				\llbracket M \rrbracket_{\mathbf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
+	%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
+			\end{align*}
+		\end{defn}
+	\end{vfull}
 
 	\begin{theorem} 
-		If $M$ is consistent, then $\bbr{M}_\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}_\MaxEnt$ is empty.
+		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
 	\end{theorem}
 	\begin{proof}
 		\vspace{-1em}
 		This is a direct consequence of \cref{prop:convex}
-	\end{proof}
-
-
+	\end{proof}	
 	
+	Now that we have all stated all three formal semantics of \MNs, we can now formally state the equivalence between \MNs\ and \MNH s. 
 	
-	Now that we have all stated all three formal semantics of $\MNs$
-
-	
-	
-
 	\begin{theorem}[restate=thmhyperequiv]\label{thm:hyperequiv}
-		Every \modelnamehyper\ $M$ is equivalent to a \MN\ $M'$ with additional variables. That is, for each semantics $\bbr{-}$ and transformation $\varphi$ we define, $\bbr{M} = \bbr{M'}$ and $\varphi(M) = \varphi(M')$.
-		%		\todo{define ``equivalence'' and prove.}
+		Every \modelnamehyper\ $M$ is equivalent to a \MN\ $M'$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{M} = \bbr{M'}$.
 	\end{theorem}
-	\begin{proof}
-		This is done by introducing a new node corresponding to every non-singleton set of variables that participates in a link.  and proof.
-	\end{proof}
 	
-	This theorem allows us to consider any \MN\ as merely an ordinary collection of nodes and edges, which rely on to define and compose paths.
-	
+	This theorem justifies taking the \MN\ as primary, an ordinary collection of nodes and edges, which makes it cleaner to define and compose paths. 
 
 	
 %	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \cref{sec:thermo} for more.
 	
 	\subsection{As Probabilisitic Programs}\label{sec:prog-semantics}
 	
-	Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them --- one  benefit to keeping local data in the form of conditional distributions is that you can compose them; paths from $A$ to $B$ correspond to noisy estimates of $B$ from $A$.
+	One final way of viewing \MNs\ is as a set of probabilistic programs, corresponding to the links. 
+	Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them: paths from $A$ to $B$ correspond to noisy estimates of $B$ from $A$.
 	
-	Specifically, if $f(b \mid a) : \mathcal V_A \to \Delta \mathcal V_B$ and $g(c \mid b) : \mathcal V_B \to \Delta \mathcal V_C$ are conditional distributions, then the probabalistic composition $g\circ f : \mathcal V_A \to \Delta\mathcal V_C$ is
+	Specifically, if $f(b \mid a) : \mathcal V_A \to \Delta \mathcal V_B$ and $g(c \mid b) : \mathcal V_B \to \Delta \mathcal V_C$ are conditional distributions, then the probabilistic composition $g\circ f : \mathcal V_A \to \Delta\mathcal V_C$ is
 	\begin{align*}
-			(g\circ  f) (c \mid a) :=  \sum_{b \in \mathcal V B}\!\! f (b \mid a)\ g(c \mid b)
+		(g\circ  f) (c \mid a) :=  \sum_{b \in \mathcal V B}\!\! f (b \mid a)\ g(c \mid b)
 	\end{align*}
 	
 	This can be recognized as a matrix multiplication $f$ and $g$ regarded as sub-stochastic matrices.
-	Thinking about grpahical models this way makes thinking about chains of reasoning simpler, gives us a way out of storing probability tables, and suggests additional applications.
+	Thinking about graphical models this way makes thinking about chains of reasoning simpler, gives us a way out of storing probability tables, and suggests additional applications.
+	\[ \bbr{M}_\lambda = \Big\{ \text{paths } p = N_0 \xrightarrow{p^1} N_1 \xrightarrow{p^2}\cdots\xrightarrow{p^n}N_n \Big\} \]
+	
+	\begin{example}
+		Composition of arrows in a tables in chain is simply an easy case of varaible elimination. 
+		
+		\centerline{
+			\scalebox{0.8}{
+			\begin{tikzcd}[dpad, ampersand replacement=\&]
+				A \ar[r]\& C
+			\end{tikzcd}\hspace{3em}
+			\begin{tikzcd}[dpad, ampersand replacement=\&]
+				A \ar[r]\& B \ar[r] \& C
+			\end{tikzcd}}
+		}	
+
+		Conversely, factorization of a table $A \to C$ into tables $A \to B$ and $B \to C$ (i.e., a stochastic matrix factorization) is a form of simplification, and is likely to be smaller if $|B|$ is small.
+	\end{example}	
+	
 	% It also has not escaped us that \MNs\ have a particularly nice description in categorical terms, which we do not pursue further here.
 	
-	Furthermore, thinking about the mental state of an agent as a collection of programs you could run from any concept gives our first interpretation of a sub-distribution: probability mass assigned to $\none$ by a link $p$ has not terminated yet (if at all). 
+	Furthermore, thinking about the mental state of an agent as a collection of programs you could run from any concept gives our first natural interpretation of a sub-distribution (more in \cref{sec:full-model}): probability mass assigned to $\none$ by a link $p$ has not terminated yet (if at all). 
+	Even given infinite time, some paths in $\bbr{\sfM}_\lambda$ may be infinite.
 	
 	\begin{defn}
-		A \MN\ $M$ is \emph{strongly consistent} if every collection of paths $\{P_i\}_i$ is compatible, in that 
+		A \MN\ $M$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
 		$$\bigcap_i\ \bbr*{\vphantom{\Big|}p_i^0\circ \cdots\circ p_i^k}_\Set \neq \varnothing$$
 	\end{defn}
+
+	\begin{example}
+		Bayesian Networks and conditional Bayesian Networks are strongly consistent.
+	\end{example}
 
 	\begin{prop}
 %		$ \text{strongly consistent}  \subsetneq \quad 
@@ -913,7 +935,7 @@
 
 	\section{Relations to Other Graphical Models}\label{sec:other-graphical-models}
 	
-	Bayesian Networks may be the most widespread graphical models, but they are certainly not the only ones. In some sense, each can emulate the others, to various degrees of ease. A large number of them can be seen in \cref{fig:model-transformations}. Here we will only a few of the most important classes; see \cref{sec:many-relations-graphical-models} for more.
+	Bayesian Networks may be the most widespread graphical models, but they are certainly not the only ones. In some sense, each can emulate the others, to various degrees of ease. A large number of them can be seen in \cref{fig:model-transformations}. Here we will only a few of the most important classes; see \cref{sec:many-relations-graphical-models} for a full description of the diagram.
 
 	\usetikzlibrary{decorations.markings}	
 	\begin{figure*}[t]
@@ -1051,7 +1073,7 @@
 
 	We can now formally state that Bayesian Networks are a special case of \MNs: 
 	\begin{theorem}
-		If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}_\MaxEnt =\{\Pr_B\}$.
+		If $B$ is a Bayesian Network, then $\bbr{\Gamma(B)}\MaxEnt =\{\Pr_B\}$.
 	\end{theorem}
 
 	\begin{fact}
@@ -1143,7 +1165,7 @@
 
 
 	\begin{conj}
-		$\bbr{M}_\MaxEnt = \Pr_{\Phi(M)}$
+		$\bbr{M}\MaxEnt = \Pr_{\Phi(M)}$
 	\end{conj}
 	\begin{coro}\label{thm:noninj}
 		For every distribution $\mu \in W_{\cal V}$, there exist \MNs\ $M_1$ and $M_2$ such that $\bbr{M_1} \neq \bbr{M_2}$. 
@@ -1155,12 +1177,6 @@
 	
 	\todo{Fix up}
 	A \MN\ clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw, as this makes them poor choices as cannonical descriptions of distributions, which is why so much attention is given to I-maps in \cite{graphical models}. However, directed models causal connotation distinct from the distribution also lends to their success as an epistemic representation.
-	
-	Perhaps more surprising is that the 
-	
-	\begin{conj}
-		Information can be determined by 
-	\end{conj}
 
 	\begin{fact}
 		\begin{enumerate}
@@ -1219,7 +1235,7 @@
 	The proof of \cref{thm:free-energy-strictly-more-expressive} is a useful example, so we include it here:
 
 	\begin{proof}
-		\todo{case where $\bbr{M}_\MaxEnt = \bbr{M'}_\MaxEnt$ but $\bbr{M} \neq \bbr{M'}$}
+		\todo{case where $\bbr{M}\MaxEnt = \bbr{M'}\MaxEnt$ but $\bbr{M} \neq \bbr{M'}$}
 		
 		
 	\end{proof}
@@ -1361,7 +1377,7 @@
 	\subsection{Belief Updates} \label{sec:belief-update}
 	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ to a new one consistent with the input $I$. 
 	
-	For us, belief revision is simply adding marginals to the picture, and then resolving inconsistencies. 
+	For us, belief revision is simply adding links to the picture, and then resolving inconsistencies. 
 	The observation of a Jeffrey input is simply a factorization of existing links through a new finite random variable; observing a Bayesian input is the the particular case where the variable is binary and the observation is certain.
 	Jeffrey's rule prescribes a posterior probability $p'$ by:
 	\[ p'(a) = \sum_{b \in B} p(a \mid b) \pi_b \qquad \text{for all outcomes $a \subseteq \cal W$} \]
@@ -1422,11 +1438,11 @@
 	
 	\subsection{Sampling}
 	
-	One of the nice  about 
-	We still need a sampling 
+	One of the nice about directed graphical models is that the model itself is roughly a sampling algorithm. For instance, taking a Bayes Net $\cal B$ and generating samples according to the tables is an efficient way to get samples from the $\Pr_{\mathcal B}$.
+
 	
 	\begin{conj}
-		The conditional marginal of the maximum entropy distribution $\bbr{M}_\MaxEnt(b \mid a)$ is in the convex hull of the compositions of paths $A \to B$. 
+		The conditional marginal of the maximum entropy distribution $\bbr{M}\MaxEnt(b \mid a)$ is in the convex hull of the compositions of paths $A \to B$. 
 	\end{conj}
 	
 
@@ -1703,7 +1719,10 @@
 		\footnote{The thermodynamics, of course, ignore the kinetics of the system. Thought of an Ising model, the edges form a complete graph, and the edge weights are uniform. Thought of as a stochastic matrix, it is rank one, whose latent variable is just the energy of a state.}
 	and that low-energy states are more exponentially more likely,\footnote{this can also be replaced by weaker assumptions; see the thermodynamics literature for more motivation}
 	the unique stationary state is the Boltzmann distribution:
-	\[ \mu(w) \propto \exp( - U(w) / kT ) \]
+	\begin{equation}
+		 \mu(w) \propto \exp( - U(w) / kT ) \label{eq:boltzmann}
+	\end{equation}
+
 	where $k$ is the Boltzmann constant and $T$ is the thermodynamic temperature. Note that at unboundedly high temperatures, the differences between potentials don't matter (all states are equally likely), whereas at as the temperature approaches zero, the Boltzmann distribution puts zero mass on anything that's not a global minimum, and otherwise splits the mass equally. Therefore, if $U$ achieves a unique global minimum $w^*$, the corresponding $\mu(w) = \delta_{w,w^*}$ is a point mass on the minimum energy world $w^*$.
 	
 	It is standard and notationally useful to re-parameterize with the inverse temperature $\beta := 1/kT$ -- and we will refer to the Boltzmann distribution associated to a given potential $U$ (and inverse temperature $\beta$) as 
