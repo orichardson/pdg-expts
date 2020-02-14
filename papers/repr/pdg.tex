@@ -24,6 +24,10 @@
 	url=true, 
 	doi=true]{biblatex}
 	
+\defbibheading{asdfb}[\refname]{%
+	\chapter*{#1}%
+	\markboth{#1}{#1}}
+	
 \DeclareCiteCommand{\parencite}[\mkbibparens]
 	{\usebibmacro{prenote}}
 	{\usebibmacro{citeindex}%
@@ -39,11 +43,19 @@
 
 
 
-% Version control. 
+%%%% Version knobs %%%%%. 
 %\includecomment{vfull}
-%\includecomment{vcat}
 \excludecomment{vfull}
+
+%\includecomment{vcat}
 \excludecomment{vcat}
+
+\excludecomment{vnotation}
+\newcommand{\notation}[1]{}
+\begin{vnotation}
+	\newcommand{\notation}[1]{#1}
+\end{vnotation}
+
 \newcommand{\commentout}[1]{\ignorespaces}
 \newcommand{\vfullfootnote}[1]{}
 \begin{vfull}
@@ -172,7 +184,7 @@
 
 %	\tableofcontents
 
-	\section{Introduction}
+	\section{INTRODUCTION}
 
 	\commentout{We introduce the \ModelName\ (\MN), a directed graphical model for specifying local beliefs. They are strictly more expressive and modular than existing directed graphical models, and in particular this allows them represent inconsistent belief states.
 	
@@ -208,6 +220,8 @@ While being inconsistent is clearly not a good thing,
 we wanted to be able to model the process of resolving inconsistency;
 to do so, we had to be able to model the inconsistency itself.  
 But our approach to modeling inconsistency has many other advantages.
+%oli1: I've taken most of your suggestions and merged some of my old points back in
+% that I think deserve a spot in the story.
 % In particular,
 %as we shall see, it gives us greatly improved modularity; we can add
 %new information to a graph without having to change what's already
@@ -242,11 +256,15 @@ But our approach to modeling inconsistency has many other advantages.
 %later in the full paper), so we shouldn't mention it here.  If you
 %mention it, you need to add references.
 %oli1: why should it here? We haven't fully explained anything yet. I mention it again when I the union precisely.
-	such as manifolds \parencite[e.g.,][p.12]{atlases} and sheaves, in which multiple restricted pictures can be glued together to form something with global structure.
+%oli1: I've now added one possible reference but I'm not really leaning on it. There are a bunch of 
+% related constructions and I call out manifolds because everyone has heard of them, but if you can read the reference
+% you probably also know this happens all over the place. You might not have realized that this was similar to the union
+% construction if I don't mention it though.
+	such as manifolds \parencite[e.g.,][p.12]{atlases}, in which multiple restricted pictures can be glued together to form something with global structure.
 	
 
 %	We start by giving some examples that motivate PDGs and display some of their advantages over Bayesian Networks in particular.
-	We start with some examples to motivate \MNs\ and display some of these advantages; those looking for complete list of desirable properties can find it in \cref{sec:list-of-benefits}.
+	We start with some examples to motivate \MNs\ and display some of these advantages; those looking for a more comprehensive list can skip to \cref{sec:list-of-benefits}.
 %	We use the rest of the section to give some of examples focusing on the benefits of this improved modularity, motivate the design of agents that might , and highlight the failure of Bayesian Networks to capture what we have in mind (we compare to other graphical models in \cref{sec:other-graphical-models,sec:many-relations-graphical-models}). \MNs\ have other desirable features as well; for a complete list, see \cref{sec:list-of-benefits}.
 	
 	\begin{example}\label{ex:guns-and-floomps}
@@ -315,12 +333,11 @@ But our approach to modeling inconsistency has many other advantages.
 		is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$.  
 %		We will represent the cpt for a edge $L \!\colon\! A\!\to\! B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$. 		
 		In order to represent unconditional probabilities% (among other things; see section \ref{sec:algebra})
-		, we introduce a \emph{unit variable} $\mathsf 1$%, or `$\mathrm{true}$',
+		, we introduce a \emph{unit variable} $\mathsf 1$ %, or `$\mathrm{true}$',
 		which takes on only one possible value,	which we denote $\star$.
 		
 		
-		Thus, we have the following
-		\MN, where the edges from $\mathsf 1$ to $F$ and $G$ are
+		Thus, we have the \MN\ depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are
 		associated with the prior probabilities of $F$ and
 		$G$, and the edge from $F$ to $G$ is associated with
 		the cpt $T$.
@@ -360,9 +377,10 @@ But our approach to modeling inconsistency has many other advantages.
 			\label{fig:gun-floomp-diagram}
 		\end{figure}
 		
-		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like our Bayes Net from before, except we no longer assume $F$ and $G$ to be independent;% (but will later if necessary)
+		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like our Bayes Net from before, except we no longer assume $F$ and $G$ to be independent;
 		we merely record the constraints imposed by the given probabilities.
 	
+		\begin{vfull}
 		\note{\emph{(This is from our discussion but parts of it seem out of the way so I haven't integrated it yet. It probably needs to be moved.)}
 			
 			A proponent of Bayes Nets might argue: sure, we've assumed independence, but that was on purpose! We get a lot of mileage out of independence assumptions, and they're expensive to encode explicitly.
@@ -382,6 +400,7 @@ But our approach to modeling inconsistency has many other advantages.
 			
 			Fortunately, the multiple semantics of \MNs\ allow us to eat our cake and have it too: by recording only the constraints, we avoid leaning too hard on independence assumptions, but can still reap the benefits through maximum-entropy semantics: the maximum entropy distribution associated with the constraints is the one prescribed by the Bayesian Network.
 		}
+		\end{vfull}
 	
 		The key point here is that we can incorporate the new information into
 		our original representation (the graph in \Cref{fig:gun-floomp-diagram}
@@ -399,22 +418,19 @@ But our approach to modeling inconsistency has many other advantages.
 	independencies, which, as \textcite{pearl2014probabilistic} has argued
 	forcefully, are omnipresent.  As we shall see, this is not the case.  
 	
-%	
-%	\\Cref{ex:planet} highlights a difference \MNs\ }
-%		
-%		
-%		, and also a third trait of interest: in addition to being so over-constrained as to be inconsistent with all distributions, \MNs\ can be too under-constrained to pick out a single distribution.
-%	%		illustrate particularly well the biggest difference between the two interpretations of a graph: when two arrows point to the same node. 	
-	
-	The ability to represent these `over-constrained' states of belief, in which it is possible for there to be inconsistency, can also be valuable even when there isn't any. 
+
+	%joe1: 	shortened.  Please don't talk about coloring out of the blue.
+	%oli: I've modified but not used your replacement paragaph.
+	\todo{resolve}
+	The ability to represent these `over-constrained' states of belief, in which inconsistency is possible, can also be valuable even when there isn't any. 
 	Unlike standard conditional models, which require a special selection of `observed' nodes, \MNs\ also cleanly represent `under-constrained' beliefs, such as conditional ones, without modification.
 	Our next example illustrates both, and highlights one more way in which BNs fail to be as modular as we might hope.
 %oli1: what we lose in this shortening:
-% 1. beginning to introduce `over-constrained' and `under-constrained' terminology. I think this is useful for understanding why the set semantics are not enough.
-% 2. no segue into conditional BNs, or acknowledgement that they are the standard solution to under-constrainedness
-% 3. no signposting on the difficulty of adding parents.
-% >> shortening of paragraph above
-%The modularity of PDGs is useful even when there is no inconsistency, as the following example shows.        
+% 1. beginning to introduce `over-constrained' and `under-constrained' terminology. I think this is useful for understanding why the set semantics are not enough, and drawing a parallel to 
+% 2. no segue into conditional models, or acknowledgement that they are the standard solution to under-constrainedness
+% 3. no signposting on the difficulty of adding parents in BNs
+% Your original replacement is below.
+	\commentout{The modularity of PDGs is useful even when there is no inconsistency, as the following example shows. } 
 
 	
 	\begin{example} \label{ex:planet}
@@ -423,9 +439,9 @@ But our approach to modeling inconsistency has many other advantages.
 		planet, given its size (big or small) and
 		its composition (mostly made of rocks vs. gas), as represented
 		in the cpt on the right of \Cref{fig:planet-initial} (where $S$ and
-		$C$ stand for ``Size'' and ``Composition''
-		%oli1: this is not part of the cpt on the right, and we also say it below.
-		%; ignore the faint node labeled $W$ for now
+		$C$ stand for ``Size'' and ``Composition''%
+	%oli1: this is not part of the cpt on the right, and we also say it below.
+	%; ignore the faint node labeled $W$ for now
 		): 
 %		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), resulting in the cpt from \Cref{fig:planet-initial}.
 		
@@ -433,23 +449,20 @@ But our approach to modeling inconsistency has many other advantages.
 			\centering
 			\scalebox{0.8}{
 				\begin{tikzpicture}[center base]
-				\node[dpadded,light pad,fill opacity=.2] (SS) at (0.2, 1.2) {S};
+				\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (SS) at (0.4, 1.2) {S};
 %joe1*: please remove the coloring; it's unnecessary, and a
 %distraction.  
-%oli1: it is necessary to distinguish the observed nodes
-% for this diagram to make any sense. There is a very clear
-% standard for how to do this: to make them darker. Do
-% you think we should have a technically incorrect diagram
-% and try to explain around it, or 
-				\node[dpadded,light pad,fill opacity=.2] (CC) at (2.6, 1.2) {C};
-				\node[dpadded,light pad,fill opacity=0] (LL) at (1.4,0) {L};
+%oli1: it is necessary to distinguish the observed nodes for this diagram to make any sense.There is a very clear standard for how to do this: to make them darker. Not disitinguishing them could be confusing for people who use conditional graphical models
+% I also think it's subtle enough not to bother people who aren't looking for it, and those who do notice will be able to get satisfying results from google.
+				\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (CC) at (2.4, 1.2) {C};
+				\node[dpadded,light pad,fill opacity=0.08] (LL) at (1.4,0) {L};
 				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {W};
 				\draw[arr] (CC) -- (LL);
 				\draw[arr] (SS) -- (LL);
 				\draw[arr, dotted, opacity=0.5] (WW) -- (LL);
 				\end{tikzpicture}	
 			}%		
-			~~\scalebox{0.8}{
+			\hspace{2em}\scalebox{0.8}{
 %			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) =$\\
 			$\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
 				.1 & .9 \\
@@ -469,13 +482,14 @@ But our approach to modeling inconsistency has many other advantages.
 %		---note that the nodes `Size' and `Composition' would need tables of their own to be fully interpreted as a Bayesian Network. Without any such beliefs, we would have to use a \emph{conditional} Bayes Net, and explicitly mark both nodes as `observed'---a rigid distinction enforced 
 %joe1: why talk about ``type level''?? You're throwing unnecessary words
 %at the reader.  
-%oli1: From the modeler's perspective, you have to know for sure what the inputs are to your conditional BN, which is intended to present the inputs as an abstraction, but here it's a liability: what are the observed nodes if you remove and add some edges? graph operations will change the type of the object you're working with, which illustrates the lack of modularity. It turns out that this type-level tracking, which I imagine would make implementations of graph operations tricky, is unnecessary.
+%oli1: From the modeler's perspective, you have to know for sure what the inputs are to your conditional BN, which is intended to present the inputs as an abstraction, but here it's a liability: what are the observed nodes if you remove and add some edges? graph operations will change the type of the object you're working with, which illustrates the lack of modularity. It turns out that this type-level tracking, which I imagine make implementations and formal manipulations of graph operations trickier, is unnecessary.
+% I assume the objectionable part of this is the word `type level'? 
 %		at a type level which is unnecessary in \MNs.
 		corresponds to the \emph{conditional} Bayes Net \parencite{koller2009probabilistic} for this table.
-		While a BN would require us to associate prior beliefs with Size and
-		Composition, a conditional BN allows us to view these nodes as
-		observations; observation ndoes do not have associated beliefs.
-		In the \MN, since there is no edge leading to Size and Composition, we
+		While a BN would require us to associate prior beliefs with $S$ and
+		$C$, a conditional BN allows us to view these nodes as
+		observations; observed nodes do not have associated beliefs.
+		In the \MN, since there is no edge leading to $S$ and $C$, we
 		do not require a cpt; we do not need a special distinction between
 		observation nodes and other nodes.
 				
@@ -528,7 +542,7 @@ But our approach to modeling inconsistency has many other advantages.
 %oli1: as for example3: there is one additional independence. The tables alone uniquely determine a distribution here, but there are still many in example3 because of the correlations. This example has the benefit of also showing the under-constrained representation and being smaller. I think for now I'll describe more here and dramatically reduce example3. 
 
 
-		Of course, we also want to keep the joint dependence on both $S$ and $C$ together; to distinguish this from the case where we had wanted to separate out `water', we use an edge with two tails, sometimes called a hyper-edge. The resulting \MN\ is shown in \Cref{fig:plannet-pdg}.
+		Of course, we also want to keep the joint dependence on both $S$ and $C$ together; the graph in \Cref{fig:planet-initial} is not the right way to do this in a \MN. To distinguish the joint dependence on $S,C$ from our separate dependence on $W$, we draw an edge with two tails, sometimes called a hyper-edge. The resulting \MN\ is shown in \Cref{fig:plannet-pdg}.
 
 		\begin{figure}
 			\centering
@@ -548,13 +562,8 @@ But our approach to modeling inconsistency has many other advantages.
 		The two edges in \Cref{fig:plannet-pdg} correspond to the two conditional distributions we have on $L$: one from $S \times C$ and the other from $W$. We can now combine our two beliefs, without also providing information about the correlations between $W$ and $S\times C$. As with the previous example, there is now a possibility of being inconsistent, in the sense that there exist cptS for the two edges that are not compatible with any joint distribution---for instance, if all estimates of $L$ from the $W$ are strictly smaller than any probability estimate of $L$ from $S \times C$.
 	\end{example}
 	
-%	Though perhaps difficult to see in example \Cref{ex:guns-and-floomps},
-	\MNs\ are strictly more expressive than Bayesian Networks, and there is a straightforward conversion from a BN to a \MN\ (section \ref{sec:bn-convert}). 
-	%The two graphical models also look alike (and indeed are exactly the same for linear chains of variables);
-%	\note{Changed. The focus was wrong in the previous one you told me to cut, but this part is still useful I think.} 
-	In some sense, the biggest difference between \MNs\ and BNs is the interpretation of two colliding arrows, as highlighted in \Cref{ex:smoking}.
-	
-	
+%	\MNs\ are strictly more expressive than BNs, and there is a straightforward conversion from a BN to a \MN\ (\cref{sec:bn-convert}). 
+	We have seen two major differences between the interpretations of BNs and \MNs: the way they view colliding arrows, and the independence assumptions they make. We now put the two together and introduce a new \MN\ semantics, to illustrate how \MNs\ naturally simulate BNs, a process we formalize in \cref{sec:bn-convert}.  %\Cref{ex:smoking}.	
 
 	\begin{example}\label{ex:smoking}
 		Consider the classic example used to introduce Bayesian nets, with four binary variables indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \Cref{subfig:smoking-bn}.
@@ -602,11 +611,14 @@ But our approach to modeling inconsistency has many other advantages.
 		The BN achieves a compact representation of a joint distribution by encoding the an assumption that every node is independent of its non-descendants given its parents.
 		Most of the time, we do not make the independence assumption in a BN because we know for certain that the variables are independent; rather, we just suspect that the identified edges are by much more important than the others. Determining for sure that smoking  and second hand smoke are independent, controlling for parents' smoking habits, would extremely difficult, and would require empiricism to validate.
 		
-		A \MN\ does not make these assumptions. Depending on our chosen semantics (we offer several in section \ref{sec:semantics}), we can further interpret the constraints. For instance, by looking at the maximum entropy distribution consistent with the constraints, we get back the independence assumptions from the BN, and can thereby view \Cref{subfig:smoking-pdg} as representing the same distribution as the BN.
+		A \MN\ does not make these assumptions. However, by viewing the \MN\ through a different lens (we offer several in \cref{sec:semantics}), we can further interpret the constraints. In particular, the maximum entropy distribution consistent with the constraints, displays the independence properties assumed by BN, and in this sense, \Cref{subfig:smoking-pdg} (again ignore $T$ for now) represents the same distribution as \Cref{subfig:smoking-bn}.
+		%oli1: I added the following sentence, but I'm not sure how worried people will be and the current plan is not to talk about sampling in the abstract.
+		\begin{vfull}
+			On might worry that we've merely constructed some object we have no computational access to, but note that in this case, sampling is no harder in the \MN, We discuss this problem in more depth in \cref{sec:sampling}.
+		\end{vfull}
 				
-		Suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
-		The \MN\, once again has no trouble: we can simply merge the graphs, as in \ref{subfig:smoking-pdg}.
-		
+		Now, suppose you read a very thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control. Just as in the previous example, this cannot be encoded directly into the Bayesian Network. 
+		The \MN\, once again has no trouble: we can simply merge the graphs, as in \Cref{subfig:smoking-pdg}.
 %		\begin{center}
 %			\scalebox{0.9}{
 %			\begin{tikzpicture}
@@ -623,16 +635,17 @@ But our approach to modeling inconsistency has many other advantages.
 %			\mergearr{SH}{S}{C}
 %			\draw[arr,dashed] (T) -- (C);
 %			\end{tikzpicture}}
-%		\end{center}
-		
+%		\end{center}		
 		As before, simply adding $T$ to the parents of $C$ makes it impossible to use the old table, and require us to guess at the interactions between tanning beds and smoking.
 		% This is again an illustration of the modularity and the possibility for inconsistency; compare the right half of the diagram (shaded slightly darker) with the topological equivalent in example \ref{ex:planet}.
 	\end{example}	
 
 
-	%\todo{One final example, this time with directed factor graphs? Or illustrate power of sub-stochasticity?}
+
 	
-	
+	%joe1*: I don't understand the 	story here.  Let's discuss it when we meet
+	%oli1: I've removed it. I have other things I want to illustrate but I don't know if we have space / time for another example here or not.
+	\begin{vfull}
 	For our final introductory example, we will show how we can use the modularity and this interpretation of arrows to do more complicated reasoning.
 
 	% Worry: this example may be too first-order, and I might not understand the 
@@ -671,9 +684,11 @@ But our approach to modeling inconsistency has many other advantages.
 		
 
 	\end{example}
+	\end{vfull}
 
-	Thus far, we have given a taste of why \MNs\ could be valuable: they can represent under and over-constrained epistemic states, allow us to avoid making unnecessary assumptions, and are more modular, in the sense that changes to the underlying graph are much simpler and require fewer assumptions than for Bayesian Networks.	
-	Other graphical representations, such as factor graphs, suffer from slightly different issues, which we discuss in \cref{sec:factor-graphs}. 
+	%oli1: edited.
+	Thus far, we have given a taste of why \MNs\ could be valuable: they can represent under and over-constrained epistemic states, avoid assumptions, and allow for easier structural changes to the underlying graph.	
+	Other graphical representations, such as factor graphs, suffer from related but different issues (\cref{sec:factor-graphs}). 
 		
 
 %	\begin{enumerate}[nosep]
@@ -692,7 +707,7 @@ But our approach to modeling inconsistency has many other advantages.
 	% preference updating
 	
 	
-	\section{Formal Construction and Syntax}\label{sec:formal+syntax}
+	\section{FORMALISM AND SYNTAX}\label{sec:formal+syntax}
 	
 %	We give the definition below for the finite case.  
 	We have seen some examples of \MNs; we now provide the formal definitions.
@@ -706,36 +721,37 @@ But our approach to modeling inconsistency has many other advantages.
 	\begin{defn}[\MN]\label{def:model}
 		A \emph{\modelname} is a tuple $\mnvars[]$ where
 		\begin{itemize}[nosep]
-			\item $\N$~~is a finite collection of nodes 
+			\item $\N\notation{:\Set}$~is a finite collection of nodes, corresponding to variables
 			
 		%joe1*: NO!  Unless you have a compeling reason for parallel edges
 		%(which should then be introduced via an example), you should cut
 		%this.  Make things as simple as possible! 
 		%oli1: the union doesn't work out if they're not labeled. There are definitely examples where you have parallel edges (two candidate probabilities b/c you've deleted a node and haven't resolved it, or two conflicting observations...). Having parallel edges will make the formalism cleaner as well, because we will definitely have parallel paths. 
-			\item $\Ed \subseteq \N \times \N \times \mathrm{Label}$~~is a set of directed edges, each of which has a source and target in $\N$.%
-				\footnote{Though likely to be inconsistent, a \MN\ might admit parallel edges, in which we need to tag edges with a label to identify them, but in most cases, we will use empty labels.}
+			\item $\Ed \notation{\subseteq \N \times \N \times \mathit{Label}}$~~is a set of directed edges, each of which has a source and target in $\N$, and a (possibly empty) label\notation{$\ell \in \mathit{Label}$}.
+%				\footnote{Though likely to be inconsistent, a \MN\ might admit parallel edges, in which we need to tag edges with a label to identify them, but in most cases, we will use empty labels.}
 			\item $\V$ associates each node $N \in \mathcal N$ with a set $\V(N)$ or $\V_N$, representing the values that node $N$ can take.
 %joe1*: NO!!!  No sub-probabilities.  If you absolutely must introduce
 %them, there needs to be serious discussion of them.  Most readers
 %won't know what a sub-probability is.  Again, this is a distraction.  
-%oli: I do introduce them, just below. I've thought a lot about where to put this. I don't want to have a totally separate definition for the strict version because it takes up so much space. 
-			\item $\bmu\colon \big(\!({A,B,\ell})\colon \! \Ed \big) \to \V(A) \to \underline\Delta\V(B)$
+%oli: I did introduce them, just below---but I have now removed them.
+			\item $\bmu\notation{\colon \big(\!({A,B,\ell})\colon \! \Ed \big) \to \V(A) \to \Delta\V(B)}$
 			% HYPERGRAPH \bmu TYPE: $\colon\!\big(\!({\bf A,B})\colon \! \Ed \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
 			%%% Above is the type of $\bmu$. I think it's important to have it there.
-			associates, for each edge $(X,Y, \ell)$ a distribution on $B$ with each element $x \in \V(X)$.
-			gives a (sub)-distribution over $\V_B$ given each possible value of $\V_A$ and for every edge $({A,B,\ell}) \in \Ed$.
+			associates, for each edge $(X,Y, \ell) \in \Ed$ and $x \in \V(X)$ a distribution on $B$.
+%oli1: the above now might be confusing without the type of \Ed, because an edge is not just a pair (X,Y) but also has an identity \ell, which I now need to write down or else I'm lying and people will get confused later. I'm honestly just not sure how to resolve this.
+%[deleted comment on wanting to keep notation]
 %joe1*: I strongly disagree.  Compare the simplicity and ease of
 %comprehensibility of what I wrote (which I claim is completely
 %precise -- there are no questions to be answered) with what you wrote
 %oli1: it requires natural language to parse. Also, is there a difference between associating to each element of x a distribution on B and associatinga  distribution on B with each element x?. I also cant express my preferred currying: I immediately see that \mu_L is a distribution on B --- and I now need more text to explain what I mean by \bmu_L(a). 
-% I also have more general comments on this issue, that I sent in an email.
-%			 \item $\mu$: for each edge $(X,Y)$, $\mu$ associates a distribution on $B$ with each element $x \in \V(X)$.
+% You've addressed my more general concerns in the email.
+
 		\end{itemize}
 		
 	\end{defn}
 
-	
-	Here $\underline\Delta(X)$ is the collection of sub-distributions on $X$ --- i.e., distributions on $X \cup \{\none\}$, where $\none$ is a `null' element. We will call a \MN\ \emph{strict} if $\bmu$ never assigns mass to $\none$. So far only example \ref{ex:teacher} makes use of this, but we explore the implications carefully in \cref{sec:full-model}.
+	%oli1: here's where I defined it but it's removed now.
+	\commentout{Here $\underline\Delta(X)$ is the collection of sub-distributions on $X$ --- i.e., distributions on $X \cup \{\none\}$, where $\none$ is a `null' element. We will call a \MN\ \emph{strict} if $\bmu$ never assigns mass to $\none$. So far only example \ref{ex:teacher} makes use of this, but we explore the implications carefully in \cref{sec:full-model}.}
 	
 %	\begin{defn}[\MNH]\label{def:hypermodel}
 %		A \emph{\modelnamehyper} is a tuple $\mnvars[]$ where
@@ -771,8 +787,9 @@ But our approach to modeling inconsistency has many other advantages.
 			\end{center}
 		\end{examplex}
 		\end{vfull}
-		
-		\item Double-headed arrows $A \doubleheadrightarrow B$ indicating the degenerate special case of a cpt corresponding to a deterministic function $f : A \to B$, the distribution assigning a point mass to $f(a)\neq\none$ for each $a \in A$.
+		%oli2: I need way more examples... I only use this once...
+		\item Double-headed arrows $A \doubleheadrightarrow B$ indicating the degenerate special case of a cpt corresponding to a deterministic function $f : A \to B$, the distribution assigning a point mass to $f(a)$ for each $a \in A$.
+	%oli1: this second one in particular is useful. People don't usually do this visually in a BN, even if it's the standard construction and it might help people see how we're going to use these.
 		\begin{vfull}
 		\begin{examplex}
 			A random variable $X$ on a probability space $(\Omega, p)$ taking values in the set $\mathcal X$ in a possible outcomes is represented as 
@@ -802,10 +819,14 @@ But our approach to modeling inconsistency has many other advantages.
 % Stackoverflow page that suggests Chicago Manual of Style 
 % that suggests chapter, lemma, figure are un-capitalized
 % [https://mathoverflow.net/questions/27693/capitalization-of-theorem-names]
+%oli1: I've also changed cref to Cref which capitalizes things; other customizations
+% are also straightforward.
 
 	We can now explain how we capture the multi-tailed edges that were used in 
 %	An astute reader is probably wondering how \Cref{def:model} can capture the multi-tailed arrows we needed in
-	\Cref{ex:planet,ex:smoking}; the answer that this notation is roughly shorthand for a new node, at the junction, with projections. For instance, the \MN\ in \Cref{ex:planet} is translated as follows:
+	\Cref{ex:planet,ex:smoking}.
+	While it is possible to employ 	
+	the answer that this notation is roughly shorthand for a new node, at the junction, with projections. For instance, the \MN\ in \Cref{ex:planet} is translated as follows:
 	\begin{center}
 		\scalebox{0.8}{
 			\begin{tikzpicture}
@@ -831,39 +852,30 @@ But our approach to modeling inconsistency has many other advantages.
 	%joe1* slow down!          
 	Thus, $\V(S \times C) = \V(S) \times \V(C)$; the matrix associated with
 	the edge from $S \times C$ to $S$ gives probability 1 to $s$ when
-	given input $(s,c) \in S \times C$, and similarly for the edge from $S
-	\times C$ to $C$.  
+	given an input $(s,-) \in S \times C$, and symmetrically for the other edge. 
+	It is also possible to have done this with hyper-graphs directly; to see how both approaches work
+	out in more detail, see \Cref{sec:hyper-convert}.
+
 	
-	%joe1*: ``Composition'' comes out of the blue.  If you think that more
-	%needs to be said here, let's discuss it.  All you would need to say
-	%is ``see \cref{sec:hyper-convert} for more discussion''.  But I'd
-	%prefer to cut it altogether
-	\commentout{There are some additional technical concerns regarding composition; see \cref{sec:hyper-convert} for the full example. The choice to formalize \MNs\ this way is a design consideration that will make some things cleaner, but we can just as well formalize multi-tailed edges directly:}
+	%oli1: is this a useful comment? I know at the very least it's currently in the wrong place.
+	\commentout{In the factor graph literature, especially with regard to loopy belief propagation \parencite{wainwright2008graphical}, it is common to call a collection of marginals that are not necessarily all compatible with a distribution \emph{pseudomarginals}, making a \MN\ in some sense a collection of `conditional' pseudomarginals. This gives an alternate, more technically precise expansion of \MN\ as ``Pseudomarginal Dependency Graph''.}
 
 
-	\begin{defn}[\MNH]\label{def:modelhyper}
-		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Ed, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Ed \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyper-edges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Ed$, we have a table of distributions $\bmu_L$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
-	\end{defn}
 
-	\Cref{thm:hyperequiv} shows \MNs\ and \MNH s to be equivalent, though in different cases one may seem more natural than the other.
-	
-	In the factor graph literature, especially with regard to loopy belief propagation \parencite{wainwright2008graphical}, it is common to call a collection of marginals that are not necessarily all compatible with a distribution \emph{pseudomarginals}, making a \MN\ in some sense a collection of `conditional' pseudomarginals. This gives an alternate, more technically precise expansion of \MN\ as ``Pseudomarginal Dependency Graph''.
-
-
-%	If every $\mathcal V(N)$ is finite with all subsets measurable, then $\bmu_{A,B}$ is just a conditional probability table, or a stochastic matrix.
 %	You may have noted that this only includes data for the normal arrows, rather than the multi-tailed ones described in the examples. This can be achieved either by generalizing $\Ed$ to higher orders, or introducing product nodes; we opt for the latter as it simplifies the formalism and paves the way for additional special nodes in \cref{sec:algebra}.
 
 %joe1*: I cut this whole subsection; see below for more specific comments
-	\subsection{Notation and Operations}
+	\subsection{NOTATION AND GRAPH OPERATIONS}
 
-	To make our lives easier in the future, we introduce some simplifying conventions and notation:
+	We introduce some simplifying conventions and notation:
 	% $M$ is always a \MN\ unless otherwise specified, and $M = \mnvars[]$; similarly, $M' = \mnvars[']$, and so on. 
 %joe1*: I have absolutely no clue of what the rest of this paragraph
 %is saying.  I don't know what ``internals'' are.  I just cut it.
-	If $\sfM$ is a \MN, then let $\mnvars[^\sfM] := \sfM$, so that we may reference a component (e.g., $\V^\sfM$) of $\sfM$ without naming every component. When the choice of $\sfM$ is clear we may omit the subscript.
+%oli1: sorry, should be way clearer now.
+	If $\sfM$ is a \MN, we will reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\V^\sfM$) without naming them all explicitly. When the choice of $\sfM$ is clear we may omit the subscript.
 
-%joe1: I  also have no clue of what this means
-%or why we need it.	
+%joe1: I  also have no clue of what this means or why we need it.	
+%oli2: maybe I don't need it... but I was using it when I was using equations...
 	Next, if $\sfM$ is a \MN\ and $S \subseteq \N^\sfM$ is a subset of its variables, then let 
 	$$\V^\sfM(S) :=  \!\!\prod_{N \in S} \!\!\V^\sfM_N%
 		\begin{vfull}
@@ -871,9 +883,8 @@ But our approach to modeling inconsistency has many other advantages.
 			\!\!\!\! \Big(\V^\sfM_N \cup \{\none\} \Big)\footnote{We leave ${\sf 1}$ out in the second case because it cannot take $\none$, and the sets are isomorphic either way.}
 		\end{vfull}
 	$$
-	be the settings of $S$ with and without $\none$, and $\V(\sfM), \V_\none(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$ and $\V_\none^\sfM(\N^\sfM)$, respectively.%
-		
-	
+	be the joint settings of the variables in $S$, and $\V(\sfM)$ be shorthand for the settings of all variables, $\V^\sfM(\N^\sfM)$.	
+	%oli2: I wrote this becuase I felt like I need 
 	For instance, if $\sfM$ is as in \Cref{ex:guns-and-floomps}, 
 	$\V(\sfM)= \{fg, \bar f g, f \bar g, \bar f \bar g \}$.
 	
@@ -886,10 +897,13 @@ But our approach to modeling inconsistency has many other advantages.
 % Still used but less common and we should be more careful is a union of both vertices and sets. This will be equivalent in some cases and might be better if we rule out parallel edges. The hybrid union here is going to turn out way better in the presence of parallel edges.
 % Before you take this as evidence that both this and parllel edges aught to be eliminated, note that doing things this way also has the significant technical benefit of being defined without a very comprehensive equality check of tables, making it easier to implement and also to deal with mathematically: because you don't need to deal such a common operation not being undefined when the two argument graphs both have edge (but with different cpts) between the same pair of vertices (X->Y), every time you do this operation. 
 % If we allow unioins of graphs with an overlapping edge which IS the same (like a graph with itself), the computational complexity of an equality check is O( |V(X)| * |V(Y)| ) if we store cpts in a table (which we presumably are b/c we've thrown out probabilistic programs), which might actually be enough to resolve the inconsistency.
-	In each of the examples in the introduction, something has happened causing us to combine pieces of diagrams, or make additions. The formal underpinning of this process is a \emph{union} of \modelnames.
+% I've removed the formal notation, but I'm worried it will not be totally clear what's going on with the labels...
+% I just don't think there's enough information there to be careful with labels without it.
+%oli2: I don't understand why the below doesn't count as motivating unions.
+	In each of the examples in the introduction, something occurred that caused us to combine fragments of diagrams. The formal underpinning of this process is a \emph{union} of \modelnames.
 
 	\begin{defn}[union] \label{def:model-union}
-		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a \MN\ with the ordinary union of their nodes (necessary to align and glue \MNs\ together), and disjoint union of their edges. Explicitly,
+		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a \MN\ with the ordinary union of their nodes (necessary to align and glue \MNs\ together), and disjoint union of their edges. \notation{Explicitly,
 		\begin{align*}
 			\N^{\sfM \cup \sfM'} &= \N^\sfM \cup \N^{\sfM'},  \\
 			\Ed^{\sfM \cup \sfM'} \!=& \Ed^\sfM \sqcup \Ed^{\sfM'}\!
@@ -903,15 +917,15 @@ But our approach to modeling inconsistency has many other advantages.
 				\bmu^{\sfM}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
 				\bmu^{\sfM'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
 			\end{cases}
-		\end{align*}
-		
-		 
+		\end{align*}}
 	\end{defn}
 	The condition that $\V^\sfM$ and $\V^{\sfM'}$ agree on the shared variables is necessary for $\V^{\sfM\cup \sfM'}$ or $\bmu^{\sfM \cup \sfM'}$ to be well-defined.%
 		\vfullfootnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts, or the sheaf gluing condition}
 	
 	\begin{example}[continues=ex:guns-and-floomps]
-		In reference to \Cref{fig:gun-floomp-diagram}, let $\sfM$ be the initial knowledge \MN, represented by variables $\mathsf 1, F, G$ and the edges $1\to F,1\to G$, all in black. Let $\mathsf E$ be the \MN\ consisting of the two variables $F$ and $G$, a edge $e = (F, G,)$, interpreted by $\bmu_{e} = T$ where $T$ is the cpt as before. The entire (inconsistent) diagram with three edges is then
+		In reference to \Cref{fig:gun-floomp-diagram}, let $\sfM$ be the initial knowledge \MN, represented by the subgraph 
+			%the variables and $\mathsf 1, F, G$ and the edges $1\to F,1\to G$, 
+		in black. Let $\mathsf E$ be the \MN\ consisting of the two variables $F$ and $G$, a edge $e = (F, G,)$, interpreted by $\bmu_{e} = T$ where $T$ is the cpt as before. The entire (inconsistent) diagram with three edges is then
 		$ \sfM \cup \mathsf E$.
 	\end{example}
 
@@ -925,16 +939,25 @@ But our approach to modeling inconsistency has many other advantages.
 	\end{enumerate}}
 	
 			
-	\section{Semantics}\label{sec:semantics}
+	\section{SEMANTICS}\label{sec:semantics}
 	
 	%joe1: Much too wordy, and hides the key points
 	% We view of \modelnames\ as being a representation of beliefs in and of themselves, rather than a compression of something more fundamental such as a probability distribution. That said, it is still incredibly important to interpret them in various ways, as this will give us ways of comparing them to other graphical models, prove things about \MNs, and give a lot more intuition about how they work.
-	%oli1: The below is better written, but it does not mention the point that I was trying to make: that 
-	% I also am
-	There is more than one way of giving semantics to a \MN.  We discuss three approaches below.  The first is perhaps the most natural: associating with a \MN\ a set of distributions. This set will be empty if the \MN\ is inconsistent. 
-	The second approach also associates with a \MN\ a set of distributions, but associates with each one a \emph{weight} (cf.~\parencite{halpern2015weighted}), which intuitively can be thought of as a measure of the ``goodness'' of that distribution.  For an inconsistent \MN, some distributions may still be better than others. 
+	%oli1: The below is better written, but it does not mention the point that I was trying to make: that the constraints themselves, rather than the distsributions, should be manipulated. The semantics are just views of the distribuiton.
+	%oli2: we've already said there are multiple semantics. Why say it again? It seems like a waste of space. Also the signposting and mention of three of them is not helpful because people can read the headings below. 
+	\commentout{There is more than one way of giving semantics to a \MN.  We discuss three approaches below.}
+	%oli2: Why is it the most natural? I did ML for years and read a lot on uncertainty, but only heard of people using sets of distributions when I took your class.
+	\commentout{The first is perhaps the most natural: associating with a \MN\ a set of distributions.}
+	%oli2: why bother with this? It's basically the definition I use because I'm only allowed words. It also seems totally out of the way. 
+	\commentout{This set will be empty if the \MN\ is inconsistent. }
+	%oli2*: More generally, the set semantics and distribution semantics are just special cases of the weighted distribution semantics anyway. I don't even know why we make a big deal out of this. 
+	\commentout{The second approach also associates with a \MN\ a set of distributions, but associates with each one a \emph{weight} \parencite[cf.][]{halpern2015weighted}.  For an inconsistent \MN, some distributions may still be better than others. }
 	Intuitively, distributions that are consistent with small perturbations of a \MN\ are better than ones that are consistently only with a large perturbation. 
-	Our third approach chooses a particular distribution from the weighted set of distributions defined by the second approach, this associating with a PDG a unique distribution. As we shall show, it is this third approach that allows us to recover BNs from PDGs.
+	%oli2: we've litterally already said this twice already in the introduction. Also this section is also going to be like 1 sentence long because I'm going to define it without symbols, 
+	% in any case, this is not the place for comparing to BNs. We've done so much of this already, in the introduction, etc.
+	% there's a section later on comparing to existing graphical models. Why are we focusing on BNs so much? 
+	\commentout{Our third approach chooses a particular distribution from the weighted set of distributions defined by the second approach, this associating with a PDG a unique distribution. 
+	As we shall show, it is this third approach that allows us to recover BNs from PDGs.}
 	
 	
 	%joe1*: Oliver, please completely rewrite this section so that it's
@@ -945,18 +968,19 @@ But our approach to modeling inconsistency has many other advantages.
 	%agrees with the cpt asociated with that edge.  Even if you don't
 	%agree that this is how we should do it, view it as an exercise.  
 	\todo{}
-	\subsection{\MNs\ as sets of distributions}\label{sec:set-of-distribution-semantics}
+	\subsection{\MN S AS SETS OF DISTRIBUTIONS}\label{sec:set-of-distribution-semantics}
 	If we think of a \MN\ as kind of like a BN except without independence assumptions, then just as a BN represents a single distribution on joint settings of its variables, a \MN\ might be thought of as representing the set of all distributions that are compatible with it exactly, with or without the independence assumptions.
 
 	\begin{defn} \label{def:set-semantics}
-		If $\sfM\sheq\mnvars[]$ is a \MN, let $\llbracket \sfM \rrbracket_\Set$ be the set of distributions over the variables in $\sfM$ consistent with $\boldsymbol\mu$ on every edge. Formally,		
+		If $\sfM\sheq\mnvars[]$ is a \MN, let $\llbracket \sfM \rrbracket_\Set$ be the set of distributions over the variables in $\sfM$ consistent with $\boldsymbol\mu$ on every edge. 
+		\notation{Formally,		
 		\[ \Big\llbracket \sfM \Big\rrbracket_\Set \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
 		~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
+		}
 	\end{defn}
 
-	For strict \MNs, \Cref{def:set-semantics} precisely defines the set of distributions whose marginals exactly match; in general, we only require that $\mu(b \mid A)$ exceed $\bmu(b \mid a)$ --- intuitively, if an agent can only set upper and lower bounds, and $\mu$ is between them, then $\mu$ is consistent with the agent's beliefs. 
 
 	\begin{example}
 		Notice that $S := \bbr{
@@ -970,13 +994,18 @@ But our approach to modeling inconsistency has many other advantages.
 	
 	We can also now finally give a formal definition of consistency.
 	\begin{defn} \label{def:weak-consistent}
-		$\sfM$ is consistent if there is some $\mu \in \bbr{\sfM}_\Set$, and strictly consistent if there is some $\mu \in \bbr{\sfM}_\Set$ that assigns no mass to any world where a variable takes $\none$.
+		$\sfM$ is consistent if $\bbr{\sfM}_\Set$ inhabited. %$\neq \emtpyset$
+		%I know non-empty is more standard but the twist is unnecessary and makes things less constructive.
+		%oli2: is the following helpful? I don't know. I'm adding it because you sometimes ask for additional motivation
+		% and explanation of symbols, but it's commented out because sometimes you say things are overkill and redundant, and this feels counter-productive to me.
+		% ---that is, if there exists some distribution $\mu \in \Delta\V(\sfM)$ consistent with every marginal. 
 	\end{defn}
 	
-	\note{By contrast, $\sfM$ is over-constrained if there were \emph{some $\bmu$} of the same type as $\bmu^\sfM$ such that $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set = \emptyset$, and under-constrained if every $\bmu$ of this type yields $\big| \bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set \big| > 1$.
-	}
-
-%	The `weakly' can be omitted; we introduce it here to contrast it with a stronger version in \Cref{def:strong-consistent}.
+	Note that this is not the same things as \emph{over-constrained}:  
+	
+	\begin{defn}
+		$\sfM$ is over-constrained if there were \emph{some $\bmu$} of the same type as $\bmu^\sfM$ such that $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set = \emptyset$, and under-constrained if every $\bmu$ of this type yields $\big| \bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set \big| > 1$.
+	\end{defn}
 	
 %	Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
 %	\begin{defn}
@@ -1004,12 +1033,7 @@ But our approach to modeling inconsistency has many other advantages.
 
 	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. Note that all of this is done by combining \MNs, which is only possible because of their extreme modularity.
 	
-	There is one final property of $\bbr{-}_\Set$ that may be interesting on its own, and will become useful later:
-	
-	\begin{lemma}[restate=thmsetconvex] 
-		\label{prop:convex}
-		$\bbr{M}_\Set$ is convex, for any \MN\ $M$.
-	\end{lemma}%
+
 
 
 %	\begin{conj}
@@ -1020,24 +1044,27 @@ But our approach to modeling inconsistency has many other advantages.
 %joe1*: This also needs to be rewritten.  All the technical material
 %that you need to get the Theorem 3.5 should be pulled here; you
 %should cut Theorem 3.6
-	\subsection{\MNs\ as distributions}
+%oli2: I cut the theorem, which I now regret. I think that was more important important; it's now much harder to justify composition, and it feels less coherent. 
+%oli2: Also the only technical material is about [[M]]_Set. I don't even need to mention it here if I'm not proving it inline. It's useful in the set semantics section because it gives people a feeling for what the shape of the set semantics are, but it's not useful in this section. Therefore I have moved it back. However, I still don't know how to motivate it. What am I supposed to say to get people to care about convexity? If I need to reference this theorem, why even mention the lemma? I can prove it directly or hide it in the appendix.
+	\subsection{\MN S AS DISTRIBUTIONS}
 	
 	%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
 	%	\begin{array}{l}
 	%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
 	%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
-	We promised way back in \Cref{ex:guns-and-floomps} that we'd be able to get the same mileage out of representing maximum entropy distributions that Bayesian Networks do; to do this we also offer a way of interpreting a \MN\ as a single distribution, and relate this to the weighted distribution semantics above.	
+	We promised way back in \Cref{ex:guns-and-floomps} that we'd be able to get the same mileage out of representing maximum entropy distributions that Bayesian Networks do; to do this we also offer a way of interpreting a \MN\ as a single distribution, and relate this to the weighted distribution semantics above.
 	
-	\begin{vfull}
-		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
+	
+
+	
+	\begin{vfull}		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
 		
 		\begin{defn}
-			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{M} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{M}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
+			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{\sfM} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{\sfM}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
 			
-			\begin{align*}
-				\llbracket M \rrbracket_{\mathbf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
-				%			\llbracket M \rrbracket^{\bf S}_\ell &= \left\{\mu \in \llbracket M \rrbracket_\Set ~\Big|~ \forall \mu' \in \llbracket M \rrbracket_\Set.~ \ell(\mu) \geq \ell(\mu')  \right\} 
-			\end{align*}
+			\begin{equation*}
+				\bbr{\sfM}_{\mathbf S}^\ell &=  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \bbr{\sfM}_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
+			\end{equation*}
 		\end{defn}
 	\end{vfull}
 	
@@ -1048,22 +1075,13 @@ But our approach to modeling inconsistency has many other advantages.
 		\vspace{-1em}
 		This is a direct consequence of \Cref{prop:convex}
 	\end{proof}	
-	
-	Now that we have all stated all three formal semantics of \MNs, we can now formally state the equivalence between \MNs\ and \MNH s. 
-	
-	\begin{theorem}[restate=thmhyperequiv]\label{thm:hyperequiv}
-		Every \modelnamehyper\ $M$ is equivalent to a \MN\ $M'$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{M} = \bbr{M'}$.
-	\end{theorem}
-	
-	This theorem justifies taking the \MN\ as primary, an ordinary collection of nodes and edges, which makes it cleaner to define and compose paths. 
 
-	\subsection{As Weighted Distributions}
+	\subsection{\MN S AS WEIGHTED DISTRIBUTIONS}
 	
 	
 %	If a probability distribution is a soft constraint on the set of possible worlds, then a \MN\ is a soft constraint on the set of probability distributions.
 %Our first appraoch treats all inconsistent \MNs\ as equivalent,  which is unsatisfying.
-	The semantics in \cref{def:set-semantics} inconsistent \MNs\ are equivalent, which is unsatisfying. For
-	instance, there's a difference between thinking a 60\% head-biased coin will land heads 63\% of the time, as opposed to 0\% of the time. %and estimates of distributions from samples are necessarily going to be a little off. 	
+	The semantics in \cref{def:set-semantics} inconsistent \MNs\ are equivalent, which is unsatisfying. For 	instance, there's a difference between thinking a 60\% head-biased coin will land heads 63\% of the time, as opposed to 0\% of the time. %and estimates of distributions from samples are necessarily going to be a little off. 	
  	To address this, we generalize the semantics presented in \cref{sec:set-of-distribution-semantics}. 
  	For a candidate distribution $\nu$,
  	%joe1: it's a bad idea to use \nu for a distribution if you're using
@@ -1079,9 +1097,9 @@ But our approach to modeling inconsistency has many other advantages.
  	%rest of this section needs to be completely rewritten.  We
  	%don't need the tecnical results; we need intuition.  There
  	%should be no talk about temperature.  
- 	%oli1: 
+ 	%oli1: expressing an edge is just having the associated table. I changed it, but this seems clear to me... I feel like unless I do it almost entirely sybmolically this will be a valid complaint. 
  	\todo{rewrite}
- 	We only want to score distributions based on the edges $\Ed$ that an agent actually has expressed, and we will measure similarity by relative entropy: the number of bits required to encode the $\bmu^\sfM$ given an optimal code for $\nu$.  Perhaps one might think that this seems backwards: we're giving a \todo{}
+ 	We only want to score distributions based on the edges $\Ed$ that an agent actually has, and we will measure similarity by relative entropy: the number of bits required to encode the $\bmu^\sfM$ given an optimal code for $\nu$.  Perhaps one might think that this seems backwards: we're giving a \todo{}
  		
 	\begin{defn}\label{def:zeta-score}
 		The (strict) inconsistency, $\zeta$, of a \MN\ $\sfM = \mnvars[]$ with respect to a distribution $p \in \Delta[\V_{\none}(\sfM)]$ (or $\Delta \V(\sfM)$ if strict) is given by
@@ -1241,9 +1259,9 @@ But our approach to modeling inconsistency has many other advantages.
 
 
 
-	\section{Relations to Other Graphical Models}\label{sec:other-graphical-models}
+	\section{RELATIONS TO OTHER GRAPHICAL MODELS}\label{sec:other-graphical-models}
 	
-	Bayesian Networks may be the most widespread graphical models, but they are certainly not the only ones. In some sense, each can emulate the others, to various degrees of ease. A large number of them can be seen in \Cref{fig:model-transformations}. Here we will only a few of the most important classes; see \cref{sec:many-relations-graphical-models} for a full description of the diagram.
+	\MNs\ can emulate other graphical models with various degrees of ease. A large number of them can be seen in \Cref{fig:model-transformations}. We now discuss some of the best known classes; see \cref{sec:many-relations-graphical-models} for a full description of the diagram.
 
 	\usetikzlibrary{decorations.markings}	
 	\begin{figure*}[t]
@@ -1341,9 +1359,9 @@ But our approach to modeling inconsistency has many other advantages.
 	
 	
 	
-	\subsection{Bayesian Networks} \label{sec:bn-convert}
+	\subsection{BAYESIAN NETWORKS} \label{sec:bn-convert}
 		
-	A \MN\ can be seen as a generalization of a Bayesian Network in three directions. (1) which each node has a set of parents, each node of a \MN\ has possibly many sets of parents (or none), one set per incoming edge. (2) We no longer require conditional independence of non-descendants given children, and (3) we allow sub-distributions.
+
 	
 %	\begin{enumerate}
 %		\item (1) In contrast with a Bayesian Network, in which each node has a set of parents, each node of a \MN\ has possibly many sets of parents, where each set of parents corresponds to a different constraint, associated to a different table, and (2) We no longer require conditional independence of non-descendants given children
@@ -1402,7 +1420,7 @@ But our approach to modeling inconsistency has many other advantages.
 		\end{enumerate}
 	\end{fact}
 	
-	\subsection{Factor Graphs} \label{sec:factor-graphs}
+	\subsection{FACTOR GRAPHS} \label{sec:factor-graphs}
 	
 	Bayesian Networks may be the best known graphical models, but they are not the most expressive. We now turn to a very general class of undirected graphical models, often thought of as a generalization of Bayesian and Markov Networks.
 	\begin{defn}
@@ -1422,7 +1440,7 @@ But our approach to modeling inconsistency has many other advantages.
 	\begin{example}[continues=ex:planet]
 		In our planet example, we treat each edge as a factor, the product of which gives the correct relative likelihoods for each of $S \times C \times W \times L$. Our initial knowledge, consisting only of the cpt , we have 
 		\[ \Pr(s, c, w, l) \propto \phi_1(s,c,l)  \]
-		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required. For this reason, conditional probability distributions are sometimes thought of as locally normalized, which is precisely the condition directed factor graphs \parencite{frey} impose. Unlike for BNs, there is no structural barrier to adding our second node, with $\phi_2(w,l) = \Pr(L\!=\!l\mid W\!=\!w)$. The combination of the two factors is represented graphically in \Cref{fig:planet-factorgraph}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 
+		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required. For this reason, conditional probability distributions are sometimes thought of as locally normalized, which is precisely the condition directed factor graphs \parencite{frey2012extending} impose. Unlike for BNs, there is no structural barrier to adding our second node, with $\phi_2(w,l) = \Pr(L\!=\!l\mid W\!=\!w)$. The combination of the two factors is represented graphically in \Cref{fig:planet-factorgraph}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 
 		
 		\begin{figure}[h]
 			\centering
@@ -1503,7 +1521,7 @@ But our approach to modeling inconsistency has many other advantages.
 		\end{enumerate}
 	\end{fact}
 
-	\subsection{Directed Factor Graphs}
+	\subsection{DIRECTED FACTOR GRAPHS}
 	
 	One solution, by \parencite{frey2012extending} is to also enforce some local constraints. While this indeed solves issues \todo{make full list of problems to refer to, select from notes} \ref{fg-problem:}, it still leaves issues $\#-\#$.
 	
@@ -1585,67 +1603,7 @@ But our approach to modeling inconsistency has many other advantages.
 
 		
 
-	\section{Non-Strict \MNs\ and Sub-distributions} \label{sec:full-model}
-	
-	
-%	\begin{enumerate}
-%		\item A program which has not yet terminated (recall \cref{sec:prog-semantics}).
-%		\item The set of worlds constructed in any way other than just products of sets---the most important of which is the union
-%			% IMPORTANT TO EXPAND:
-%			%	this is a key feature of the modularity we have
-%			% 	if you were to simply say W = W_1 + W_2, none of the
-%			%	random variables would even be defined anyore. This 
-%			%	dramatically increases expressive power.
-%		\item First order selections and guards
-%		\item Implication
-%	\end{enumerate}
 
-
-	\subsection{More Expressive Worlds}
-	\subsection{Partial Computations}
-	\subsection{Implication and Conditional Knowledge}
-	
-	\subsection*{rest}
-	
-	\todo{I still need to heavily edit this section, I can cut it down a lot and it's only minorly edited since it was pulled from previous doc}
-	
-	In this section we will see why we called the object in \Cref{def:model} a \textit{strict} \MN.	
-	Sometimes an otherwise very useful variable might not apply in a small percentage of cases; in this case, we want a way of putting all of the extra probability mass in a ``something else happened'' bucket, giving us effectively a sub-stochastic matrix, or a a lower probability on singletons. For instance, the variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``not applicable / something else'' bucket. 
-	
-	There are several closely concepts that we will be able to employ with our framework after integrating them
-	\begin{enumerate}[nosep]
-		\item Allowing random variables to be partial, rather than total functions of $W$. 
-%		\item Relaxing the requirement $\mu(W) = 1$ to $\mu(W) \leq 1$
-		\item Allow matrices to be sub-stochastic, rather than stochastic
-		\item Replacing probabilities, with the more general class of lower probability measures.
-%		\item Errors
-	\end{enumerate}
-
-	This generalization is useful, but our primary motivation for this generalization is so that we can represent implication, and thus a weakening of knowledge as it travels through our graph, in a way that is not just entropy (which might not be distinguishable from certain knowledge of a high entropy distribution otherwise). 
-
-	At first glance, though, it might not be clear why this particular weakening buys us anything at all, because we can always just add the ``something else'' bucket $\none$, to $\mathcal V(X)$ for each $X$, and come up with a new strict \MN. A variable which might not make sense can always take a \texttt{null} value, and so now the set of possible is once again exhaustive. From the perspective of providing conditional distributions, however, this resolution poses a problem: our marginals now require us to estimate distributions from a null value--- this is problematic, as a big part of the reason we've been using edges to avoid assigning probabilities to everything. Suppose you are trying to represent the belief that you're happier when you get the right answer as a marginal edge $L[\mathrm{RightAns}\to \smiley]$. We now need a distribution on happiness when you get the right answer, when you get the wrong answer, and also for when $\none$. Why might it not be applicable? Are you not solving problems because you're skiing? Because you've been injured? Maybe you are solving problems but there are multiple right answers? You can't just answer with a prior over happiness if you want to have consistent beliefs, because solving problems and happiness might be correlated. One \emph{could} have such a thing but it seems unreasonable not to be able to express a belief about ``does the right answer make you happy?'' without also answering the much more difficult question, ``how happy are you when `the right answer' is not applicable to your current situation?''
-
-	To see how this increases our expressive power, suppose $A, B$ are binary variables (taking values $a, \bar a$ and $b, \bar b$ respectively). While we can easily easily represent $A = B$, $A = \lnot B$ as stochastic matrices,
-
-	\[ p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 1 & 0 \\ 0 & 1 \end{idxmatphant}
-	\qquad\text{and}\qquad p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 0 & 1 \\ 1 & 0 \end{idxmatphant}
-	\]
-
-	we cannot (via stochastic matrices) represent an assertion that $A \Rightarrow B$ without also giving a distribution over $B$ given $\bar a$. One strategy is a uniform prior (used in \cite{}), but this can easily lead to avoidable inconsistencies --- perhaps for totally different reasons you have very good reason to believe that the true distribution of $B$ is true in 90\% of cases; you don't want an arbitrary assumption of a prior competing with actual knowledge.
-
-	For this reason, we drop the requirement that our null element, $\none$, indexes a distribution in marginals. Below is an example of transition matrix $A \to B$ including the extra element. As mentioned, the last row is not something we are keeping track of.
-	
-	\[ \begin{idxmat}{$a_0$, $a_1$, $a_2$, $\none$}{$b_0$, $b_1$,  $\none$}
-	.2 & .1 & 0.7 \\
-	0 & 0 & 1 \\
-	1 & 0 & 0\\\hline
-	{\color{gray}.2} & {\color{gray}.6} & {\color{gray}0}
-	\end{idxmat} \]
-
-	Furthermore, because the final column is just whatever is necessary to make the rows sum to 1, we don't need to keep that either; as a result, it is sufficient to keep a smaller matrix without any $\none$-indices; the only price that we pay is that this matrix is \emph{sub}-stochastic rather than stochastic: its row entries sum to at most 1, rather than exactly 1. Composition works just as before; the product of sub-stochastic matrices is sub-stochastic. A probability distribution alone, and by extension a standard Bayesian network cannot do this --- because we require the look-up tables to exactly match all possible values, we can't drop any without totally giving up on any world which looks like that.	
-
-%	\subsection{Relatstion to Lower Probability Measures}
-	
 	
 	
 	\begin{vfull}
@@ -1694,8 +1652,8 @@ But our approach to modeling inconsistency has many other advantages.
 	\end{vfull}
 
 
-	\section{Using Inconsistency}	
-	\subsection{Belief Updates} \label{sec:belief-update}
+	\section{USING INCONSISTENCY}	
+	\subsection{BELIEF UPDATING} \label{sec:belief-update}
 	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ to a new one consistent with the input $I$. 
 	
 	For us, belief revision is simply adding edges to the picture, and then resolving inconsistencies. 
@@ -1754,10 +1712,10 @@ But our approach to modeling inconsistency has many other advantages.
 	
 	One more benefit: belief revision no longer needs to happen immediately; we can add the marginal to our picture and deal with it later. This makes for an account which is much better suited to cognitively bounded agents, who might have more pressing matters than sorting through beliefs, and who might do them out of order.
 
-	\section{Algorithms}\label{sec:algorithms}
-	\subsection{Belief Propagation}
+	\section{ALGORITHMS}\label{sec:algorithms}
+	\subsection{BELIEF PROPAGATION}
 	
-	\subsection{Sampling}
+	\subsection{SAMPLING}
 	
 	One of the nice about directed graphical models is that the model itself is roughly a sampling algorithm. For instance, taking a Bayes Net $\cal B$ and generating samples according to the tables is an efficient way to get samples from the $\Pr_{\mathcal B}$.
 
@@ -1771,7 +1729,7 @@ But our approach to modeling inconsistency has many other advantages.
 
 
 
-	\section{Discussion}
+	\section{DISCUSSION}
 	
 	
 	A probability distribution is in many ways the appropriate idealized object to carry around with you.
@@ -1779,17 +1737,16 @@ But our approach to modeling inconsistency has many other advantages.
 	Question: if we had more mental power, would we be more or less consistent? Unclear. Do dogs have more or less consistent beliefs than we do? They may just not have as many concepts. We clearly use a lot of our computation for storing things and making up concepts.
 	
 	
-	\subsection{Future Work}
-	Categorical representation, details of sum-product algorithm on graphs with sub-distributions, the orginal goal: modeling dynamic preferences.
+
 	
-	
+	\begin{vfull}
 	\subsection{Useful Avenues of Empirical study}
 	
 	\begin{enumerate}
 		\item Figure out how to empirically measure some kind of inconsistency, and lots of imagined correlates, such as amount of indecision, other people taking advantage of you, environments that would encourage "double-think". If there's a robust, multi-feature correlation between IQ and inconsistency, one concludes that additional mental power does not lead to coherence, and therefore some logical limits may not be as relevant as previously thought.
 		\item 
 	\end{enumerate}
-	
+	\end{vfull}
 	
 	
 
@@ -1812,8 +1769,10 @@ But our approach to modeling inconsistency has many other advantages.
 		\item A vectorized / bundled version of conditional probability spaces that includes torsion
 		\item An attention-shaped diagram into the Markov Category
 		\item A second-order constraint on worlds that allows you to modify free energies.
-	\end{itemize}	
-	
+	\end{itemize}
+
+	\subsection{Future Work}
+	Categorical representation, details of sum-product algorithm on graphs with sub-distributions, the orginal goal: modeling dynamic preferences.
 
 	\begin{vfull}
 		\subsection{Inconsistency} \label{sec:consistency-ethos}
@@ -1833,8 +1792,8 @@ But our approach to modeling inconsistency has many other advantages.
 		The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
 	\end{vfull}
 	
-	\section{Conclusions}
-	\subsection{A List of \MN\ Benefits}\label{sec:list-of-benefits}
+	\section{CONCLUSION}
+	\subsection{A LIST OF \MN\ BENEFITS}\label{sec:list-of-benefits}
 	\todo{revisit after finished}
 	\begin{enumerate}[nosep]
 		\item We can represent both over-constrained and under-constrained mental states, both of which we argue are important components of an agent's state.
@@ -1845,8 +1804,9 @@ But our approach to modeling inconsistency has many other advantages.
 		\item The modularity enables type-forming rules which can be used to implement deductive inference.
 		\item In contrast with a simple collection of constraints, inconsistencies can be more local, and individual pieces of information have limited impact on the semantics.
 	\end{enumerate} % trade-off: harder to analyze.
-
-	\printbibliography
+	
+	\subsubsection*{References}
+	\printbibliography[heading=none]
 	
 	\onecolumn
 	\appendix
@@ -1885,6 +1845,33 @@ But our approach to modeling inconsistency has many other advantages.
 		\end{align*}
 	\end{proof}
 
+
+	
+
+
+	\section{Alternate Presentations}
+	\subsection{Random Variables}
+	If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$,\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$} and 
+	{\color{gray}$\Ed \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
+	\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\Ed$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\Ed$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
+	%and $(W, \mathcal F', p)$ is a subjective probability representing an agent's belief 
+	
+	
+	\begin{prop}
+		There is a natural correspondence between strict \MNs\ as defined in \Cref{def:model}, and ensembles such that \todo{spell this out explicitly to avoid vague categorical intuition} \ldots $\mu$'s are defined on same set and produce same values.
+	\end{prop}
+	\begin{proof}
+		\textit{/outline:}
+		On the one hand, $(\prod_{N \in \cal N} \mathcal V(N).\text{set}, \bigotimes_{N \in \cal N} \mathcal V(N).\text{algebra}, \bmu)$ is a measure space, with $\{X_N = \pi_N : \left(\prod\mathcal V(N')\right) \to  \mathcal V(N) \}_{N \in \cal N}$ a set of random variables
+		
+		and  on the other, $(I, \Ed, \mathcal X', \mu|_{\cal L})$ is a strict \MN.
+	\end{proof}
+	
+	This is the technical underpinning of our flippant, noncommittal treatment of possible worlds: any time we are thinking in terms of random variables or probability distributions on a fixed set $W$, we can instead reduce
+	
+	
+	The complexity of the representation is $O(XV + L V^2)$, compared to $O(XW)$
+	
 	\subsection{Hyper Graph Conversion}\label{sec:hyper-convert}
 	\begin{example}[continues=ex:planet]
 		Earlier in example \ref{ex:planet}, we displayed the arrow from $S$ and $C$ to $L$ as a directed hyper-edge. While we would like to maintain this intuition, the way to do this is using only graphs with edges, as in \Cref{def:model}, is to use intermediate nodes:
@@ -1908,52 +1895,52 @@ But our approach to modeling inconsistency has many other advantages.
 		We can now present this \MN\ formally with the elements specified in definition \ref{def:model}.
 		
 		\hfill\begin{minipage}{0.4\textwidth}	
-		\begin{align*}
-			&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
-			&\Ed = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
-			\mathcal V &\left\{\begin{aligned}
-				\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
-				\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
-				\mathcal V(L) &=  \{ l, \lnot l \} \\
-				\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
-				\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
-				% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
-			\end{aligned}\right.\\
-		\end{align*}
+			\begin{align*}
+				&\mathcal N = \{S,~ C, ~L, ~W, ~S\times C \} \\
+				&\Ed = \{ (S \times C, L), (W, L), (S\times C, S), (S\times C, C)\} \\
+				\mathcal V &\left\{\begin{aligned}
+					\mathcal V(S) &= \{\mathit{b}, \mathit{s} \}\\
+					\mathcal V(C) &= \{ \mathit{r}, \mathit{g} \} \\
+					\mathcal V(L) &=  \{ l, \lnot l \} \\
+					\mathcal V(W) &= \{ \textit{none}, \textit{some}, \textit{mostly}\}\\
+					\mathcal V(S \times C) &= \mathcal V(S) \times \mathcal V(C) 
+					% = \small\text{$\{(big, rocky), (small,rocky), (big, gasseous), (small,gasseous)\}$}
+				\end{aligned}\right.\\
+			\end{align*}
 		\end{minipage}%
 		\begin{minipage}{0.5\textwidth}
-		\begin{align*}
-			\bmu & \left\{~\begin{aligned}
-				\boldsymbol\mu[S\times&C, L] = &\boldsymbol\mu[S\times&C, S] = \\[-0.6em]
-				&\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
-					.1 & .9 \\
-					.2 & .8 \\
-					.05 & 0.95 \\
-					0.001 & 0.999
-				\end{idxmat} 
-				&&
-				\quad\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
-					0 & 1 \\
-					1 & 0 \\
-					0 & 1 \\
-					1 & 0
-				\end{idxmat}
-				\\[0.5em]
-				\boldsymbol\mu[W, &L] =  &\boldsymbol\mu[S\times&C, C] =\\[-0.6em]
-				&\begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
-					0 & 1 \\
-					.005 & .995 \\
-					.05 & 0.95 \\
-				\end{idxmat}
-				&&
-				\quad\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
-					1 & 0 \\
-					1 & 0\\
-					0 & 1 \\
-					0 & 1 
-				\end{idxmat}
-			\end{aligned}\right.\\[-1em]
-		\end{align*}
+			\begin{align*}
+				\bmu & \left\{~\begin{aligned}
+					\boldsymbol\mu[S\times&C, L] = &\boldsymbol\mu[S\times&C, S] = \\[-0.6em]
+					&\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{$l$,$\lnot l$}
+						.1 & .9 \\
+						.2 & .8 \\
+						.05 & 0.95 \\
+						0.001 & 0.999
+					\end{idxmat} 
+					&&
+					\quad\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{s,b}
+						0 & 1 \\
+						1 & 0 \\
+						0 & 1 \\
+						1 & 0
+					\end{idxmat}
+					\\[0.5em]
+					\boldsymbol\mu[W, &L] =  &\boldsymbol\mu[S\times&C, C] =\\[-0.6em]
+					&\begin{idxmat}{{none}, {some}, {mostly}}{$l$,$\bar l$}
+						0 & 1 \\
+						.005 & .995 \\
+						.05 & 0.95 \\
+					\end{idxmat}
+					&&
+					\quad\begin{idxmat}{{b,s}, {s,r}, {b, g}, {s,g}}{r,g}
+						1 & 0 \\
+						1 & 0\\
+						0 & 1 \\
+						0 & 1 
+					\end{idxmat}
+				\end{aligned}\right.\\[-1em]
+			\end{align*}
 		\end{minipage}
 		\vspace{0.5em}
 		
@@ -1964,39 +1951,25 @@ But our approach to modeling inconsistency has many other advantages.
 			\item We will eventually also want to allow for the possibility of keeping only a relaxed, approximate representation of $\mathcal V$ and $\bmu$, and in particular, of the ones constructed logically in this way. By specifying them explicitly for now, we will have to do less work to regain manual control in \cref{sec:abstraction}
 		\end{itemize}
 	\end{example}
-
-	We now proceed with the proof
 	
-	\thmhyperequiv*
+	
+	The choice to formalize \MNs\ this way is a design consideration that makes some things cleaner, but we can just as well formalize multi-tailed edges directly, as follows:
+	
+	\begin{defn}[\MNH]\label{def:modelhyper}
+		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Ed, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Ed \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyper-edges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Ed$, we have a table of distributions $\bmu_L$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
+	\end{defn}
+	
+	\Cref{thm:hyperequiv} shows \MNs\ and \MNH s to be equivalent, though in different cases one may seem more natural than the other, as illustrated in the following theorem.
+	
+	\begin{theorem}[restate=thmhyperequiv]\label{thm:hyperequiv}
+		Every \MNH\ $H$ is equivalent to a \MN\ $\sfM$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{H} = \bbr{\sfM}$.
+	\end{theorem}
 	\begin{proof}
 		\todo{}
 	\end{proof}
 	
+	This theorem justifies taking the \MN\ as primary, an ordinary collection of nodes and edges, which makes it cleaner to define and compose paths. 
 
-	\begin{vfull}
-		\section{Alternate Presentations}
-		\subsection{Random Variables}
-		If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$,\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$} and 
-		{\color{gray}$\Ed \subseteq I \times I$ is a collection of pairs of variables such that the agent } 
-		\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\Ed$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\Ed$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
-		%and $(W, \mathcal F', p)$ is a subjective probability representing an agent's belief 
-		
-		
-		\begin{prop}
-			There is a natural correspondence between strict \MNs\ as defined in \Cref{def:model}, and ensembles such that \todo{spell this out explicitly to avoid vague categorical intuition} \ldots $\mu$'s are defined on same set and produce same values.
-		\end{prop}
-		\begin{proof}
-			\textit{/outline:}
-			On the one hand, $(\prod_{N \in \cal N} \mathcal V(N).\text{set}, \bigotimes_{N \in \cal N} \mathcal V(N).\text{algebra}, \bmu)$ is a measure space, with $\{X_N = \pi_N : \left(\prod\mathcal V(N')\right) \to  \mathcal V(N) \}_{N \in \cal N}$ a set of random variables
-			
-			and  on the other, $(I, \Ed, \mathcal X', \mu|_{\cal L})$ is a strict \MN.
-		\end{proof}
-		
-		This is the technical underpinning of our flippant, noncommittal treatment of possible worlds: any time we are thinking in terms of random variables or probability distributions on a fixed set $W$, we can instead reduce
-		
-		
-		The complexity of the representation is $O(XV + L V^2)$, compared to $O(XW)$
-	\end{vfull}
 	
 	\section{Formalism for other Graphical Models}
 	\begin{defn}

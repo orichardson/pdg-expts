@@ -1,0 +1,92 @@
+
+
+
+
+
+
+
+
+%% After definition.
+For strict \MNs, \Cref{def:set-semantics} precisely defines the set of distributions whose marginals exactly match; in general, we only require that $\mu(b \mid A)$ exceed $\bmu(b \mid a)$ --- intuitively, if an agent can only set upper and lower bounds, and $\mu$ is between them, then $\mu$ is consistent with the agent's beliefs. 
+
+%definition of 
+ and strictly consistent if there is some $\mu \in \bbr{\sfM}_\Set$ that assigns no mass to any world where a variable takes $\none$.
+
+
+%%% Example of notation for possible worlds.
+and $\V_\none(\sfM) = \V(\sfM) \cup \{ \none g, f \none, \none\none \}$. 
+	As this $\sfM$ is strict, all of these additional worlds get zero probability. 
+		\todo{Replace with \Cref{ex:teacher} once finalized for a more illustrative example.}
+	
+	Finally, let $\mu_\none$ be the unique distribution on $\V_\none(M)$ that assigns point mass to $\none$ for every variable.
+
+
+
+
+%%%%%%% Main section.
+
+\section{Non-Strict \MNs\ and Sub-distributions} \label{sec:full-model}
+
+
+%	\begin{enumerate}
+%		\item A program which has not yet terminated (recall \cref{sec:prog-semantics}).
+%		\item The set of worlds constructed in any way other than just products of sets---the most important of which is the union
+%			% IMPORTANT TO EXPAND:
+%			%	this is a key feature of the modularity we have
+%			% 	if you were to simply say W = W_1 + W_2, none of the
+%			%	random variables would even be defined anyore. This 
+%			%	dramatically increases expressive power.
+%		\item First order selections and guards
+%		\item Implication
+%	\end{enumerate}
+
+
+\subsection{More Expressive Worlds}
+\subsection{Partial Computations}
+\subsection{Implication and Conditional Knowledge}
+
+\subsection*{rest}
+
+\todo{I still need to heavily edit this section, I can cut it down a lot and it's only minorly edited since it was pulled from previous doc}
+
+In this section we will see why we called the object in \Cref{def:model} a \textit{strict} \MN.	
+Sometimes an otherwise very useful variable might not apply in a small percentage of cases; in this case, we want a way of putting all of the extra probability mass in a ``something else happened'' bucket, giving us effectively a sub-stochastic matrix, or a a lower probability on singletons. For instance, the variable describing whether or not your answer is correct doesn't make sense if you weren't solving problems; the amount of money in your wallet doesn't make sense if you don't own one, and so forth. So now, when you're trying to predict the probability of certain amounts of money in your wallet, some of the probability mass needs to go into the ``not applicable / something else'' bucket. 
+
+There are several closely concepts that we will be able to employ with our framework after integrating them
+\begin{enumerate}[nosep]
+	\item Allowing random variables to be partial, rather than total functions of $W$. 
+%		\item Relaxing the requirement $\mu(W) = 1$ to $\mu(W) \leq 1$
+	\item Allow matrices to be sub-stochastic, rather than stochastic
+	\item Replacing probabilities, with the more general class of lower probability measures.
+%		\item Errors
+\end{enumerate}
+
+This generalization is useful, but our primary motivation for this generalization is so that we can represent implication, and thus a weakening of knowledge as it travels through our graph, in a way that is not just entropy (which might not be distinguishable from certain knowledge of a high entropy distribution otherwise). 
+
+At first glance, though, it might not be clear why this particular weakening buys us anything at all, because we can always just add the ``something else'' bucket $\none$, to $\mathcal V(X)$ for each $X$, and come up with a new strict \MN. A variable which might not make sense can always take a \texttt{null} value, and so now the set of possible is once again exhaustive. From the perspective of providing conditional distributions, however, this resolution poses a problem: our marginals now require us to estimate distributions from a null value--- this is problematic, as a big part of the reason we've been using edges to avoid assigning probabilities to everything. Suppose you are trying to represent the belief that you're happier when you get the right answer as a marginal edge $L[\mathrm{RightAns}\to \smiley]$. We now need a distribution on happiness when you get the right answer, when you get the wrong answer, and also for when $\none$. Why might it not be applicable? Are you not solving problems because you're skiing? Because you've been injured? Maybe you are solving problems but there are multiple right answers? You can't just answer with a prior over happiness if you want to have consistent beliefs, because solving problems and happiness might be correlated. One \emph{could} have such a thing but it seems unreasonable not to be able to express a belief about ``does the right answer make you happy?'' without also answering the much more difficult question, ``how happy are you when `the right answer' is not applicable to your current situation?''
+
+To see how this increases our expressive power, suppose $A, B$ are binary variables (taking values $a, \bar a$ and $b, \bar b$ respectively). While we can easily easily represent $A = B$, $A = \lnot B$ as stochastic matrices,
+
+\[ p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 1 & 0 \\ 0 & 1 \end{idxmatphant}
+\qquad\text{and}\qquad p(B \mid A) = \begin{idxmatphant}{$a$,$\bar a$}{$b$, $\bar b$}{} 0 & 1 \\ 1 & 0 \end{idxmatphant}
+\]
+
+we cannot (via stochastic matrices) represent an assertion that $A \Rightarrow B$ without also giving a distribution over $B$ given $\bar a$. One strategy is a uniform prior (used in \cite{}), but this can easily lead to avoidable inconsistencies --- perhaps for totally different reasons you have very good reason to believe that the true distribution of $B$ is true in 90\% of cases; you don't want an arbitrary assumption of a prior competing with actual knowledge.
+
+For this reason, we drop the requirement that our null element, $\none$, indexes a distribution in marginals. Below is an example of transition matrix $A \to B$ including the extra element. As mentioned, the last row is not something we are keeping track of.
+
+\[ \begin{idxmat}{$a_0$, $a_1$, $a_2$, $\none$}{$b_0$, $b_1$,  $\none$}
+.2 & .1 & 0.7 \\
+0 & 0 & 1 \\
+1 & 0 & 0\\\hline
+{\color{gray}.2} & {\color{gray}.6} & {\color{gray}0}
+\end{idxmat} \]
+
+Furthermore, because the final column is just whatever is necessary to make the rows sum to 1, we don't need to keep that either; as a result, it is sufficient to keep a smaller matrix without any $\none$-indices; the only price that we pay is that this matrix is \emph{sub}-stochastic rather than stochastic: its row entries sum to at most 1, rather than exactly 1. Composition works just as before; the product of sub-stochastic matrices is sub-stochastic. A probability distribution alone, and by extension a standard Bayesian network cannot do this --- because we require the look-up tables to exactly match all possible values, we can't drop any without totally giving up on any world which looks like that.	
+
+%	\subsection{Relatstion to Lower Probability Measures}
+
+
+
+%%%%%%%%%%%% Relations to other models
+	A \MN\ can be seen as a generalization of a Bayesian Network in three directions. (1) which each node has a set of parents, each node of a \MN\ has possibly many sets of parents (or none), one set per incoming edge. (2) We no longer require conditional independence of non-descendants given children.% and (3) we allow sub-distributions.
