@@ -45,13 +45,14 @@
 
 %\includecomment{vcat}
 \excludecomment{vcat}
+\definecolor{notationcolor}{rgb}{0.9,0.9,.9} % purple
 
-
-\specialcomment{vnotation}{\begingroup\color{verylight}}{\endgroup}
+%\includecomment{vnotation}
 \excludecomment{vnotation}
-\newcommand{\notation}[1]{}
+
+\newcommand{\notation}[2][]{#1}
 \begin{vnotation}
-	\newcommand{\notation}[1]{#1}
+	\renewcommand{\notation}[2][]{{\color{notationcolor} #2}}
 \end{vnotation}
 
 \newcommand{\commentout}[1]{\ignorespaces}
@@ -258,16 +259,15 @@ and also modify the graph without changing its informational content.
 %joe2: Cut; I don't understand what it means to ``consolidate
 %computational costs'', and we don't discuss this issue. 
 %oli2: Rather than paying the update cost for every observation and thought, you can just incorporate observations and think about them later. This seems very congruous with the story, and in particular with the ``you may not want to resolve conflicts right away'' bit, partly because it's expensive. I don't know the bit I wrote specifically about this is still in the document or not.
-%joe2: I also don't
-know what it would mean for a representation to be more dramatic.
+%joe2: I also don't know what it would mean for a representation to be more dramatic.
 %This is a case of ``show, don't tell''.  Let the examples do the talking.
 %oli2: I agree and I should probably get some more examples. Still I wanted this paragraph to go somewhere: it seems to me the reason it's beneficial to the things you're keeping track of, and the processing you need to make sense of it, is because you can do weirder graph transformations and resolve all of the inconsistency at once, rather than ensuring things are up-to-date at all times.
 %oli2*: Analogy: constantly making sure the document has the right formatting. Ultimately the formatting may help but making sure it's corretly formatted after every character you type is `taxing and restrictive'. Fixing your habits allows you to make bigger modifications to the document, and consolidate the cost of fixing the formatting.
 %	As a result, we can make more dramatic transformations of
 %        representation, and consolidate the computational costs of
 %        resolving them. 
-
-	
+%
+%
 %joe2: Oliver, instead of spraying the reader with a lot of
 %unexplained bullets, you need to go over these points carefully
 %later, and explain them.  I assume that by ``theoretical backing''
@@ -306,8 +306,7 @@ know what it would mean for a representation to be more dramatic.
 %	such as manifolds \parencite[e.g.,][p.12]{atlases}, in which
 %        multiple restricted pictures can be glued together to form
 %        something with global structure. 
-	
-
+%
 %	We start by giving some examples that motivate PDGs and display some of their advantages over Bayesian Networks in particular.
 	We start with some examples to motivate \MNs\ and display some of these advantages; those looking for a more comprehensive list can skip to \Cref{sec:list-of-benefits}.
 %	We use the rest of the section to give some of examples focusing on the benefits of this improved modularity, motivate the design of agents that might , and highlight the failure of Bayesian Networks to capture what we have in mind (we compare to other graphical models in \Cref{sec:other-graphical-models,sec:many-relations-graphical-models}). \MNs\ have other desirable features as well; for a complete list, see \Cref{sec:list-of-benefits}.
@@ -676,7 +675,7 @@ edge with two tails, sometimes called a
 		that are not compatible with any joint distribution---for instance, if
 		all estimates of $L$ from the $W$ are strictly smaller than any
 		probability estimate of $L$ from $S \times C$. 
-	
+%	
 	\end{example}
 	
 	%	\MNs\ are strictly more expressive than BNs, and there is a straightforward conversion from a BN to a \MN\ (\Cref{sec:bn-convert}). 
@@ -866,8 +865,7 @@ sections, we formalize \MNs and relate them to other approaches.
 	
 	We have seen some examples of \MNs; we now provide the formal definitions.
 %	\moveme{Rather than representing a probability distribution, \MNs\ can be thought of as \emph{constraints} on distributions.}
-% joe2: I cut this.  What is the point of the example?  Why is it here?
-What does it tell me that other examples haven't already told me.
+% joe2: I cut this.  What is the point of the example?  Why is it here? What does it tell me that other examples haven't already told me.
 % oli2: It is not particularly helpful. It is here because I was told many times not to go straight into the definitions; to slow down and motivate things, and then once I put this in you stopped mentioning it.
 	\commentout{Compared to a Bayesian Network, a \MN\ still consists of a directed graph, and the edges still inform conditional probability tables, but now each edge is interpreted individually. Consider the graph
 	\[ A \!\rightarrow\! C \!\leftarrow\! B,\]
@@ -1212,7 +1210,7 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 	\begin{defn} \label{def:set-semantics} %oli2: made words better. 
 		If $\sfM\sheq\mnvars[]$ is a \MN, let $\bbr\sfM\SD$ be the set of distributions over the variables in $\sfM$ that whose conditional marginals on every edge are exactly those given in $\boldsymbol\mu$.
 		\notation{Formally,		
-		\[ \Big\llbracket \sfM \Big\rrbracket_\Set \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
+		\[ \Big\llbracket \sfM \Big\rrbracket\SD \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
 		~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
@@ -1220,51 +1218,90 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 	\end{defn}
 
 %	In our next example, we show that a single CPT is identified, through this semantics, with a  
-	
+	A set of distributions may be identified with the set of properties that are true of all of its elements. 
 
 	\begin{example}
-		Consider any conditional probability distribution $p(B \mid A)$, thought of as a probabilistic function from $\V(A)$ to $\V(B)$, and its corresponding \MN\ ${\mathsf p} := A \smash{\xrightarrow{p}} B$ with exactly one edge, associated with cpt $p$. 
-	%oli2: I am trying to emulate your example of writing out everything super precisely here. 
-	%oli2: also when writing I get bogged down in making sure all the details are there. Even if we wanted this in the end, I feel like I would be more efficient doing something in between. I am now explaining everything to the maximum amount of detail out of terror. It takes me forever, I get lost in the sentence structure, and can't really tell if I'm doing it right. I also worry that this focus on the details, obscures the more important larger picture.
+		Consider any conditional probability distribution $p(y \mid x)$, thought of as a probabilistic function from $\V(X)$ to $\V(Y)$, and its corresponding \MN\ ${\mathsf p} := X \smash{\xrightarrow{p}} Y$ with exactly one edge, associated with cpt $p$. 
+	%oli2.meta: I am trying to emulate your example of writing out everything super precisely here. I'm finding I get bogged down in making sure all the details are there. Even if we wanted this in the end, I feel like I would be more efficient doing something in between. I am now explaining everything to the maximum amount of detail out of terror. It takes me forever, I get lost in the sentence structure, and can't really tell if I'm doing it right. I also worry that this focus on the details, obscures the more important larger picture.
 	 
 %		Let $S := \bbr{\sf p}\SD$. 
 %		We claim that that $\bbr{\sf p
 %%			A \overset{p}{\to} B
 %		}\SD$ has a natural identification with 
 %		the conditional distribution $p( B \mid A)$. 
-		We claim that $\bbr{\sf p}\SD$ itself can be naturally identified with $\sf p$.
-		By definition, for any $\mu \in S$, the resulting distribution $\mu_B(\cdot\mid a) = p(a)$ on $\V(B)$
-		
-		$S(b\mid a)$ is well-defined since $\mu(\cdot\mid a)$ is the same for all $\mu \in S$ (and unique since it's the only commonality). With the standard tool (a conditional Bayesian Network), this is usually achieved in a less flexible manner: by explicitly separating out the ``observed'' nodes at the beginning of the construction. 
-		
-		Though true for \MNs, subgraph of a BN may or may not be a BN itself, and may or not even be compatible with the original even if interpreted as a conditional BN, due to the independence assumptions. Once again, the standard model struggles more to deal with structural changes to the underlying graph.
-	\end{example}
-
-
-	\begin{example}
-		\todo{Compose $A \to B$ and $B \to C$.}
+		We claim that $\bbr{\sf p}\SD$ itself can be naturally identified with the conditional distribution $p$. 
+		By definition, for any $x \in \V(X)$ and $\mu \in \bbr{\sf p}\SD$, the marginal distribution $\mu_Y(\cdot\mid X\sheq x) = p(x)$. 
+		Since each $\mu \in S$ agree, 
+		$$ \bbr{\mathsf p}\SD(y\mid x) = \Big\{ \mu(y \mid x) : \mu \in \bbr{\mathsf p}\SD \Big\} = \Big\{ p(y \mid x) \Big\}. $$
+		Moreover, this is the only property that each $\mu \in \bbr{S}$ agree on, and so the function $p$ itself can be determined from from $\bbr{\sf p}$.
+%
+%		 since $\mu(\cdot\mid a)$ is the same for all $\mu \in S$ (and unique since it's the only commonality).
+		% With the standard tool (a conditional Bayesian Network), this is usually achieved in a less flexible manner: by explicitly separating out the ``observed'' nodes at the beginning of the construction. 
+%		
+		% Once again, the standard model struggles more to deal with structural changes to the underlying graph.
 	\end{example}
 	
 	
 	We can also now finally give a formal definition of consistency.
 	\begin{defn} \label{def:weak-consistent}
-		$\sfM$ is consistent if $\bbr{\sfM}_\Set$ inhabited. %oli2: could also say $\neq \emtpyset$
-		%I know non-empty is more common but the double negative is unnecessary and makes things non constructive for no reason. 
+		$\sfM$ is consistent if $\bbr{\sfM}\SD$ inhabited. %oli2: could also say non-empty or $\neq \emtpyset$
+		%I know non-empty is more common but the double negative is unnecessary and makes things non constructive for no reason, and I want to push for this terminology in general.
 		%oli2: is the following helpful? I don't know. I'm adding it because you sometimes ask for additional motivation
 		% and explanation of symbols, but it's commented out because sometimes you say things are overkill and redundant, and this feels counter-productive to me.
 		% ---that is, if there exists some distribution $\mu \in \Delta\V(\sfM)$ consistent with every marginal. 
 	\end{defn}
 	
-	Note that this is not the same things as \emph{over-constrained}:  
-	
+	\note{\emph{This is partly to answer your question; I am prepared to cut it from the abstract. I find it a useful illustration, and I think an example along these lines would be helpful.}
+
+	Note that being inconsistent is not the same things as \emph{over-constrained}: 	
 	\begin{defn}
-		$\sfM$ is over-constrained if there were \emph{some $\bmu$} of the same type as $\bmu^\sfM$ such that $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set = \emptyset$, and under-constrained if every $\bmu$ of this type yields $\big| \bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}_\Set \big| > 1$.
+		$\sfM = \mnvars[]$ is over-constrained if there exists \emph{some $\bmu'$} assigning cpts to the same edges as $\bmu$, such that $(\N, \Ed, \V, \bmu')$ is consistent \notation{(i.e., $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}\SD = \emptyset$)}, and under-constrained if there are multiple distributions in $(\N, \Ed, \V, \bmu')$ for \emph{every such $\bmu'$}, making this a property of the qualitative \MN\ $(\N, \Ed, \V)$. 
+	\end{defn}
+
+	We know that an under-constrained \MN\ is consistent without even looking at the tables. However if a we know that an \emph{over-constrained} \MN\ is actually consistent (when it could have easily contradicted itself), the information provides corroborating evidence, and one can take this as support in favor of the beliefs. 
+	}
+
+
+	%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
+	We have said repeatedly that \MNs\ enjoy modularity, and seen in \cref{ex:guns-and-floomps,ex:planet,ex:smoking} cases in which capturing the relevant information involves taking a union of two graphs, some of which may include new concepts. We wish to verify that our semantics are well-behaved with respect to this composition.	 
+	We therefore ask: what happens if we combine two \MNs\ $\sfM$ and $\sfM'$ together? Intuitively, the set of distributions $\bbr{\sfM \cup \sfM'}\SD$ consistent with the combined constraints $\sfM\cup \sfM'$ should be the intersection of the distributions $\bbr{\sfM}\SD \cap \bbr{\sfM'}\SD$ consistent with each \MN\ separately. This is almost correct, but $\sf M$ and $\sfM'$ may be over different set of variables, in which case the sets of distributions are automatically disjoint, as they are over different sets of possible worlds. To address this, we define a more sophisticated intersection of distributions that must agree on all overlapping marginals. %(\cref{def:marginal-dist-intersection})
+	
+	\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
+		If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
+%oli: remove the coment below to hide the notation.
+%		\notation[$R \dcap S$~]
+			{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
+		is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
+		
+		This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
 	\end{defn}
 	
+	
+%	It is now natural to ask: how does this semantics interact with the \MN\ union (\Cref{def:model-union})? 	
+	Now that we have the correct definition, we immediately get our desired property:
+	
+	\begin{prop}\label{prop:union-set-semantics}
+		$\bbr{M \cup M'}\SD = \bbr{M}\SD \dcap \bbr{M'}\SD$.
+	\end{prop}
+
+	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
+	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
+	
+	\begin{example}\label{ex:sd-compose-unconditional}
+		Suppose we now have two \MNs\ with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
+		%
+		\begin{align*}
+			&\bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y}\SD \\
+				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y}|X = q \Big\} 
+		\end{align*}
+		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
+	\end{example}
+
+
 %	Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
 %	\begin{defn}
 %		Consider again the \MN\ $M = (\mathcal N, \Ed, \mathcal V, \bmu)$. Define 
-%		\[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}_\Set \} \]
+%		\[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}\SD \} \]
 %	\end{defn}
 
 
@@ -1274,34 +1311,41 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 %semantics.  I cut all of it.
 %oli1: This is all about semantics: I'm showing that they're not ad-hoc, by saying that the semantics is well-behaved with respect  to the one modular operation I'm using (graph unions)
 %joe2: My comment above still stands.  This should all be cut.  You
-still haven't convinced the reader (at least, not this one) that we
-need union at all.  This is a distraction.
-%oli2: I've already commented on this at length above, but... a distraction from what? I honestly don't know what could be more valuable than this in set-of-distributions semantics section.
-	\todo{}
-	It is now natural to ask: how does this semantics interact with the \MN\ union (\Cref{def:model-union})? 	
-	If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
-	$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$
-	is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
-	
-	This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if $X \cap Y = \emptyset$, then $R \dcap S = R \times S$. 
+% still haven't convinced the reader (at least, not this one) that we
+% need union at all.  This is a distraction.
+%oli2: I've already commented on this at length above, but... a distraction from what? I honestly don't know what could be more valuable than this in set-of-distributions semantics section: we're showing that this semantics is modular. 
+%oli2: I've rewritten this so that the story is clearer. It may still need to be moved; I'm open to suggestion about where.
 
-	\begin{prop}\label{prop:union-set-semantics}
-		$\bbr{M}_\Set \dcap \bbr{M'}_\Set = \bbr{M \cup M'}_\Set$.
-	\end{prop}
 
-	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. Note that all of this is done by combining \MNs, which is only possible because of their extreme modularity.
+
+
 	
-	There is one final property of $\bbr{-}_\Set$ that may be interesting on its own, and will become useful later:
+	
+%	There is one final property of $\bbr{-}\SD$ that may be interesting on its own, and will become useful later:
+%	What sets of distributions can we get in this way? 
+%oli2: I don't know where to move this right now. It is about sets of distributions so I want to  keep it here.
+%	One might be curious which sets of distributions can be realized by \MNs\ through this semantics. 
+	It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
+	\todo{say something more useful.}
 
 	\begin{lemma}[restate=thmsetconvex] 
 		\label{prop:convex}
-		$\bbr{M}_\Set$ is convex, for any \MN\ $M$.
+		$\bbr{\sfM}\SD$ is convex, for any \MN\ $\sfM$.
 	\end{lemma}%
 
 
+	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
+	\begin{vfull}
+	If the intersection of two sets is convex, then 
+	\begin{conj}\label{prop:intersect-set-semantics}
+		$$\bbr{M \cap M'}\SD = \text{ConvHull}(\bbr{M}\SD \mathop{\dot\cup} \bbr{M'}\SD).$$
+	\end{conj}
+	\end{vfull}
+	
+
 
 %	\begin{conj}
-%		If $\mathcal P$ is a closed, recursive, convex set of probability measures, then there is a \MN\ $M$ such that $\bbr{M}_\Set = \mathcal P$ 
+%		If $\mathcal P$ is a closed, recursive, convex set of probability measures, then there is a \MN\ $M$ such that $\bbr{M}\SD = \mathcal P$ 
 %	\end{conj}
 
 
@@ -1310,18 +1354,19 @@ need union at all.  This is a distraction.
 %should cut Theorem 3.6
 %oli2: I cut the theorem, which I now regret. I think that was more important important; it's now much harder to justify composition, and it feels less coherent. 
 %oli2: Also the only technical material is about [[M]]_Set. I don't even need to mention it here if I'm not proving it inline. It's useful in the set semantics section because it gives people a feeling for what the shape of the set semantics are, but it's not useful in this section. Therefore I have moved it back. However, I still don't know how to motivate it. What am I supposed to say to get people to care about convexity? If I need to reference this theorem, why even mention the lemma? I can prove it directly or hide it in the appendix.
-	\subsection{\MN S AS DISTRIBUTIONS} \label{sec:maxent-semantics}
-	
-	%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
-	%	\begin{array}{l}
-	%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
-	%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
-	We promised way back in \Cref{ex:guns-and-floomps} that we'd be able to get the same mileage out of representing maximum entropy distributions that Bayesian Networks do; to do this we also offer a way of interpreting a \MN\ as a single distribution, and relate this to the weighted distribution semantics above.
-	
-	
+	\subsection{\MN S AS ENTROPIC DISTRIBUTIONS} \label{sec:maxent-semantics}
 
+	The semantics given in \Cref{sec:set-of-distribution-semantics} does not allow us to express independencies at all; we now show that by maximizing entropy, we can recover independencies. 
 	
-	\begin{vfull}		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
+	\begin{vfull}	
+		%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
+		%	\begin{array}{l}
+		%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
+		%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
+		
+		
+		
+		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
 		
 		\begin{defn}
 			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{\sfM} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{\sfM}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
@@ -1331,14 +1376,35 @@ need union at all.  This is a distraction.
 			\end{equation*}
 		\end{defn}
 	\end{vfull}
-	
+
 	\begin{theorem} 
-		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
+		If $\sfM$ is a consistent \MN, then there is a unique $\mu \in \bbr\sfM\SD$ that maximizes the Shannon entropy, 
+		$$H(\mu) = \!\!\!\sum_{x \in \mathrm{Supp}(\mu)}\!\!\! \mu(x) \log \frac{1}{\mu(x)},$$
+		where $\mathrm{Supp}(\mu\notation[)]{ : \Delta W) = W}$ is the support of $\mu$.
 	\end{theorem}
 	\begin{proof}
 		\vspace{-1em}
-		This is a direct consequence of \Cref{prop:convex}
+		This is a direct consequence of \Cref{prop:convex} and the fact that entropy is strictly concave.
 	\end{proof}	
+
+	\begin{defn}
+		If $\sfM$ is a consistent \MN, let $\bbr{\sfM}\MaxEnt$ be the unique distribution $\mu \in \bbr{\sfM}\SD$ of maximum entropy.
+	\end{defn}
+
+
+	% we can motivate composition here!
+%	\begin{example}[composition]
+%		Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\mathsf A = Z \xrightarrow{p'} X$, represents a distribution conditioned on $Z$, rather than an unconditional one. 
+%		\[ \bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y}\SD \]
+%		
+%		Now, suppose we are interested in the conditional marginal of $Y$ given $Z$. 
+%		
+%		Note, however, 
+%	\end{example}
+
+
+
+	We return to the idea of using a \MN\ to represent a unique distribution in \Cref{sec:uniq-dist-semantics-2}, after having developed our final semantics. 
 
 	\subsection{\MN S AS WEIGHTED DISTRIBUTIONS} \label{sec:weighted-semantics}
 	
@@ -1442,6 +1508,12 @@ need union at all.  This is a distraction.
 		
 		In this example, the temperature parameters are like Barycentric coordinates over the triangle of edges, indicating how much each will would change in response to the inconsistency.
 	\end{example}	
+
+	\begin{example}[Dempster's rule]
+		Suppose $p$ and $q$ are distributions over a set $W$. 
+		
+		For those familiar with factor graphs, this example might 
+	\end{example}
 	
 	
 %	We promised that this would generalize
@@ -1453,11 +1525,13 @@ need union at all.  This is a distraction.
 	\begin{coro}
 		As $\bbr{\sfM}_\zeta$
 	\end{coro}
+
+	\subsubsection{From Weighted Distributions to Distributions}\label{sec:uniq-dist-semantics-2}
 	
 	
 
 	
-%	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}_\Set$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \Cref{sec:thermo-background} for more.
+%	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}\SD$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \Cref{sec:thermo-background} for more.
 	
 %joe1*: I cut this.  You haven't explained in what sense a conditional
 %distribuiton is a program, you havne't motivated it, it takes us too
@@ -1507,7 +1581,7 @@ need union at all.  This is a distraction.
 	
 	\begin{defn}
 		A \MN\ $\sfM$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
-		$$\bigcap_{p \in P}\ \bbr*{\vphantom{\Big|}p^0\circ \cdots\circ p^k}_\Set \neq \varnothing$$
+		$$\bigcap_{p \in P}\ \bbr*{\vphantom{\Big|}p^0\circ \cdots\circ p^k}\SD \neq \varnothing$$
 	\end{defn}
 
 	\begin{example}
@@ -1674,15 +1748,16 @@ need union at all.  This is a distraction.
 	In \Cref{ex:smoking}, to fully get the joint representation given by the BN, we also need to make the final assumption that $SC \CI S \mid PS$. This is possible to do explicitly with an extra arrow meaningless arrow, but this solution doe not scale well, looks like it means a dependence (the opposite of our intention), and clutters the diagram. Instead, we leave the picture alone, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.
 	
 	One particularly useful scoring function is the following one, maximizing Shannon entropy:
-	\[ \bbr{\sfM}\MaxEnt := \Big\llbracket M \Big\rrbracket_\Set^{-H(\cdot)} \]
+	\[ \bbr{\sfM}\MaxEnt := \Big\llbracket M \Big\rrbracket\SD^{-H(\cdot)} \]
 	
-	\begin{theorem} 
-		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
-	\end{theorem}
-	\begin{proof}
-		\vspace{-1em}
-		This is a direct consequence of \Cref{prop:convex}
-	\end{proof}
+%OOps, This is already stated in the semantics section
+%	\begin{theorem} 
+%		If $M$ is consistent, then $\bbr{M}\MaxEnt$ contains a unique distribution; otherwise $\bbr{M}\MaxEnt$ is empty.
+%	\end{theorem}
+%	\begin{proof}
+%		\vspace{-1em}
+%		This is a direct consequence of \Cref{prop:convex}
+%	\end{proof}
 
 	We can now formally state that Bayesian Networks are a special case of \MNs: 
 	\begin{theorem}\label{thm:bns-are-pdgs}
@@ -2094,9 +2169,9 @@ need union at all.  This is a distraction.
 	\section{Proofs}
 	\thmsetconvex*
 	\begin{proof}
-		Choose any two distributions $p, q \in \bbr{M}_\Set$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any edge $(A,B) \in \Ed$.
+		Choose any two distributions $p, q \in \bbr{M}\SD$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any edge $(A,B) \in \Ed$.
 		
-		By the definition of $\bbr{M}_\Set$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+		By the definition of $\bbr{M}\SD$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
 		For brevity, we will use little letters ($a$) in place of events ($A = a$).
 		Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
 		\begin{align*}
@@ -2107,7 +2182,7 @@ need union at all.  This is a distraction.
 			&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
 			&= \bmu_{A,B}(a,b)
 		\end{align*}
-		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}_\Set$.
+		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}\SD$.
 	\end{proof}
 	
 	
