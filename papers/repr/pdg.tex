@@ -34,6 +34,7 @@
 
 \input{../model-commands.tex}
 
+\usepackage{float}
 \usepackage{subcaption}
 %\usepackage{proof-at-the-end}
 
@@ -511,7 +512,7 @@ inconsistency, as the following example shows.
 %without explaining them in context. I cut this again.
 %	Unlike standard conditional models, which require a special
 %        selection of `observed' nodes, \MNs\ also cleanly represent
-%        `under-constrained' beliefs, such as conditional ones,   without
+%        `un[b]{0.3\textwidth}der-constrained' beliefs, such as conditional ones,   without
 %              selection of `observed' nodes, \MNs\ also cleanly represent
 %        `under-constrained' beliefs, such as conditional ones, without
 %        modification. 
@@ -1799,9 +1800,6 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 	\end{figure*}
 
 	
-	
-	
-	
 	\subsection{BAYESIAN NETWORKS} \label{sec:bn-convert}
 		
 
@@ -1868,6 +1866,10 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 	
 	\setcounter{section}{4}
 	\subsection{FACTOR GRAPHS} \label{sec:factor-graphs}
+
+	\tikzset{fgnode/.style={dpadded,inner sep=0.6em, circle},
+	factor/.style={light pad}}	
+
 	% What I want to see is a serious discussion of the advantages and disadvantages of factor graphs vs. PDGs, illustrated by examples. This is critical.
 	
 	
@@ -1878,15 +1880,16 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 	
 	%% informal, unclear.
 	\begin{quickdefn}
-		A \emph{factor graph} is a collection of random variables $\mathcal X = \{X_i\}$ and a collection of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of $\mathcal X$.
+		A \emph{factor graph} is a collection of random variables $\mathcal X = \{X_i\}$ and a collection of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of $\mathcal X$.
 	\end{quickdefn}	
 	\begin{defn}
-		A \emph{factor graph} $(\mathcal I, \phi)$ on an indexed set of random variables $\mathbf X = \{ X_j \}_{j \in J}$, where each $X_i$ can take values $\V(X_i) =: \mathcal X_i$, consists of  
-	% technically, a dependent sum \mathbb X : \Sigma_{j : J} X_j
-%		a set $\cal I$, where each $\alpha \in \cal I$ is a
-	% technically a multi-subset of 2^J...
-		an indexed collection of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, where each $\alpha$ determines a selection $\iota(\alpha) \subseteq 2^J$ of the variable indices, and the associated factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R^{\geq 0}$ assigns a non-negative score to a setting $\vec x_\alpha \in \mathcal X_\alpha$ of the variables corresponding to $\iota(\alpha)$, where $X_\alpha \prod_{j \in \iota(\alpha)} \mathcal X_j$
+		A \emph{factor graph} on variables $\{X_i\}$ is a set of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of the variables.
 		
+		More precisely, a factor graph $ (\{\phi_\alpha\}_{\alpha \in \cal I})$ on an indexed set of random variables $\mathbf X = \{ X_j \}_{j \in J}$, 
+		is a pair $(\mathcal I, \boldsymbol\phi)$, where $\cal I$ is a set,
+		each element $\alpha\notation{\in \mathcal I}$ of which determines a selection $\iota(\alpha) \subseteq J$ of the variable indices, and
+		$\boldsymbol\phi$ is an indexed collection of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, 
+		where each factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R_{\geq 0}$ assigns a non-negative score to joint settings $\vec x_\alpha \notation{\in \mathcal X_\alpha}$ of every variable in $\iota(\alpha)$, all values of which we denote by $\mathcal X_\alpha\notation{ := \prod_{j \in \iota(\alpha)} \mathcal V(X_j)}$. 
 	\end{defn}\begin{fulldefn}
 		A \emph{factor graph} $(\mathcal I, \phi)$ on an indexed set of random variables $X : \Sigma_{}$, where each $X_i$ can take values $\V(X_i) =: \mathcal X_i$, consists of  
 		% technically, a dependent sum \mathbb X : \Sigma_{j : J} X_j
@@ -1895,22 +1898,232 @@ the edge from $S \times C$ to $C$ gives probability 1 to $c$.
 		a set of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, where each $\alpha$ determines a selection $\iota(\alpha) \subseteq 2^J$ of the variable indices, and the associated factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R^{\geq 0}$ assigns a non-negative score to a setting $\vec x_\alpha \in \mathcal X_\alpha := \prod_{j \in \iota(\alpha)} \mathcal X_j$ of the variables corresponding to $\iota(\alpha)$.
 		
 	\end{fulldefn}
+
+	% $(J, \mathcal I)$
+	While the qualitative structure $(\mathbf X, \mathbf{Pa})$ of a BN on variables $\mathbf X$ is a directed graph, the qualitative structure $(\mathbf X, \mathcal I)$ of a factor graph on $\mathbf X$ is technically an undirected \emph{multi-hyper-graph}\footnotemark on $\bf X$, which is equivalent to a bipartite graph $({\mathbf X, \cal I}, \iota)$ with extra vertices (drawn as squares) corresponding to the factors. 
+	%Examples of these can be seen in \Cref{fig:fg-convert,}
 	
+%	\note{Though easier to define in terms of MRFs, and this obscures the relationship to BNs and MRFs; this  paper in particular is an attempt to claim that adding and removing nodes is not something to sweep under the rug.}
+	
+	\footnotetext{That is, a set of ``nodes'' $\N$ and a collection (possibly containing multiple copies) of ``hyper edges'' $\Ed$, each of which corresponds to a subset of $\N$}
+	
+%	The important thing about 
 	A factor graph $\Phi = (\{\phi_\alpha\}_{\alpha \in \cal I})$ on $\mathbf X$ defines a probability distribution over $\V(\mathbf X)$ by 
-	\[ \Pr_F(\vec x) \propto \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha}) \]
-	where $\vec{x}$ is a joint setting on all of the variables, $\alpha$	
-	
-	
-	\begin{example}
-		A BN $\mathcal B$, 
-	\end{example}
-	
+	\begin{align*}
+		\Pr\nolimits_\Phi(\vec x) &:\propto \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha}) 
+		&= \frac{1}{Z_\Phi} \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha})
+	\end{align*}
+	where $\vec{x}$ is a joint setting on all of the variables, $\vec{x}_\alpha$ is the restriction of $\vec{x}$ to only the variables selected by $\alpha$, and $Z_\Phi$ is the constant required to normalize the distribution.
 
-	\begin{defn}\label{fg-convert}
+	How do you design a distribution with the factors? We now illustrate by example.
+	% has to be placed early or else the page is wrong. 
+	\begin{figure*}[t!]
+		\centering
+		\begin{subfigure}[b]{0.22\textwidth}
+		\scalebox{0.9}{
+		\begin{tikzpicture}[center base]
+			\node[fgnode] (F) at (-1.5,0) {$F$};
+			\node[fgnode] (G) at (1.5,0) {$G$};
+			\node[factor, above=0.5 of F] (f) {$\phi_F$};
+			\node[factor, above=0.5 of G] (g) {$\phi_G$};
+			
+			\draw[thick] (F) -- (f) (G) -- (g);
+			\draw[thick, dashed] (F) -- node[factor, fill=white]{$T$} (G);
+		\end{tikzpicture} }
+			\caption{}\label{subfig:fg-gf}
+		\end{subfigure}%
+		\hspace{2em}\vline\hspace{2em}%
+		\begin{subfigure}[b]{0.3\textwidth}
+		\scalebox{0.9}{
+			\begin{tikzpicture}[center base, scale=0.9]
+				\node[fgnode] (S) at (-0.4, 2) {$S$};
+				\node[fgnode] (C) at (3, 2) {$C$};
+				\node[fgnode] (L) at (1.3,0) {$L$};
+				\node[fgnode, dashed] (W) at (-2,0) {$W$};
+				
+				\node[factor] (f1) at (1.3, 1.3){$\phi_1$};
+				\node[factor, dashed] (f2) at (-0.3, 0){$\phi_2$};
+				
+				\draw[thick] (S) -- (f1) -- (C) (f1) -- (L);
+				\draw[thick, dashed] (W) -- (f2) -- (L);
+		\end{tikzpicture} }
+			\caption{}\label{subfig:fg-planet}
+	
+		\end{subfigure}%
+		\hspace{2em}\vline\hspace{2em}%
+		\begin{subfigure}[b]{0.3\textwidth}%
+%			\vspace{-1em}
+			\scalebox{0.9}{
+				\begin{tikzpicture}[center base, xscale=1.4,
+					fgnode/.append style={minimum width=3em}]
+					\node[factor] (1) at (1.65,1) {};
+					\node[factor] (center) at (3.95, 0){};
+					
+					\node[fgnode] (PS) at (1.65,-0.5) {$PS$};
+					\node[fgnode] (S) at (3.3, 0.8) {$S$};
+					\node[fgnode] (SH) at (3.3, -0.8) {$SH$};
+					\node[fgnode] (C) at (4.8,0) {$C$};
+					
+					\draw[thick] (1) -- (PS);
+					\draw[thick] (PS) --node[factor, fill=white]{} (S);
+					\draw[thick] (PS) --node[factor, fill=white]{} (SH);
+					\draw[thick] (S) -- (center) (center) -- (SH) (C) -- (center);
+					
+					
+					\node[fgnode, fill opacity=0.02,dashed] (T) at (4.8, -2) {$T$};
+					\draw[thick,dashed] (T) -- node[factor, fill=white]{}  (C);	
+			\end{tikzpicture}}
+			\caption{}\label{subfig:fg-smoking}
+		\end{subfigure}%
+		\caption{Candidate factor graphs for \Cref{ex:guns-and-floomps,ex:planet,ex:smoking}}
+		\label{fig:fg-intro-examples}
+	\end{figure*}
+	
+%	A factor graph is really just an exponential family \cite{wainwright2008graphical}, 
+
+
+	\begin{example}\label{ex:fg-exam}
+		To contrast with our other examples, which will all be local and correspond to directed models, we first present a more general factor graph designed to display some stranger features.
 		
-	\end{defn}
+		Suppose Alice, Bob, Clara, and David each had a take-home exam; let $\mathbf X = \{A, B, C, D\}$ be binary random variables taking $\{1,0\}$, corresponding to whether or not each person passed the exam. 
+		
+		We want a joint distribution over possible outcomes; our knowledge, depicted graphically in \Cref{fig:fg-exam}, is as follows:	
+		
+		\begin{figure}[H]
+			\centering
+			\scalebox{0.8}{
+				\begin{tikzpicture}[scale=0.75]
+					%			\node[bpt={a1|$a_1$}] at (0,0.2){};
+					%			\node[tpt={a2|$a_2$}, below=.4 of a1] {};
+					%			\node[bDom={$A$ (A) around \lab{a1}\lab{a2}},fgnode] {};
+					%
+					%			\node[bpt={b1|$b_1$}] at (4,0.2){};
+					%			\node[tpt={b2|$b_2$}, below=.4 of b1] {};
+					%			\node[bDom={$B$ (B) around \lab{b1}\lab{b2}}] {};
+					
+					\node[fgnode] (A) at (0, 0) {$A$};
+					\node[fgnode] (B) at (3, -1) {$B$};
+					\node[fgnode] (C) at (3.5, 1.4) {$C$};
+					\node[fgnode] (D) at (6, -1) {$D$};
+					
+					
+					
+					\node[factor] (f1) at (-2, 0){$\phi_1$};
+					\node[factor] (f2) at (1.8,.4){$\phi_2$};
+					\node[factor] (f3) at (1.3, -1.3){$\phi_3$};
+					\node[factor] (f4) at (6, 1){$\phi_4$};
+					
+					
+					\draw[thick] (f1) -- (A) -- (f2) -- (B) -- (f3) -- (A);
+					\draw[thick] (C) -- (f2);
+			\end{tikzpicture} }	
+			\caption{Factor Graph: exam scores}
+			\label{fig:fg-exam}
+		\end{figure}
+		
+		
+		\begin{enumerate}[nosep]
+			\item[$\phi_1$.] A. priori., Alice is 4 times as likely to pass as not, and so $\phi_1(a) = 4$ if $a = 1$, and 1 otherwise.
+			\item[$\phi_2$.] Alice, Bob, and Clara collaborated. Clara is very persuasive, and Alice trusts her, so an outcome in which everyone gets the same score is 8 times more likely; one in which only Alice and Clara share a score is 4 times as likely, and one in which only Bob and Clara share a score is twice as likely.
+			\[ \phi_2(a,b,c) = \left\{\begin{aligned}
+				8 &~~ \text{if~} a = b = c; &
+				4 &~~ \text{if~}c = a \neq b; \\
+				2 &~~ \text{if~}c = b \neq b; &
+				1 &~~ \text{otherwise}
+			\end{aligned}\right. \]
+			\item[$\phi_3$.] Alice thinks very poorly of Bob, and ultimately reverses the answers to all his questions; she's guarantee to fail if he passes, and vice versa. $\phi_3(a,b) = 1$ if $a \neq b$ and 0 if $a=b$.
+			\item[$\phi_4$.] The test is on factor graphs, which was unlikely, so $\phi_4() = 0.25$. This is true independent of anyone's scores, and doesn't bear on the distribution, so it will get normalized out.
+		\end{enumerate}
+		We don't know anything about David.
+		Note some features of this example:
+		\begin{itemize}[nosep]
+			\item $\phi_3$ totally overrides the first case of $\phi_2$. 
+			%The intuition of relative likelihoods, only works locally.
+			\item Although $\phi_3$ was symmetric, our story is not: Alice doesn't trust Bob, and not the other way around. There is an important distinction in the story (this changes Alice's score, and not Bob's), but this cannot be captured. 
+			\item To get any marginal distribution such as $\Pr(B)$, you have to take into account every factor, including those such as $\phi_1$ that are not connected to $B$.
+			\item To emphasize that a factor is more important, we cannot simply scale it, as the scaling will be normalized out; the only control available is to changing the variance of its items. When viewed as a exponential family, \todo{links}
+		\end{itemize}
+	\end{example}
 
-	%%%%%%%%%%%%%%% LIKLIHOOD 
+	Generally, factor graphs are learned from data or translated from another model, rather than specified by hand. \Cref{ex:fg-exam} should make it clear why: there is a lot of freedom in specifying the factors, even though the particular settings of which do matter, the interactions are global and it's hard to see how they will play out. Still, they are excellent descriptions of independencies.
+%	 David's score is independent of everything else in the picture, and though the other three are a clique, we can see different interactions
+
+	Any BN $\mathcal B = (\N, \mathbf{Par}, \V, p)$ can be seen naturally as a factor graph. By the their global semantics, we have
+	\begin{align*}
+		\Pr_{\cal B}(\vec x) = \prod_{N \in \N} p_N( \vec x_N \mid \mathbf{Par}_N(\vec x))
+	\end{align*} 
+	We can read the factors off of this equation directly: set $\cal I = \N$, connect every variable $X$, and all of its parents $\mathbf{Par}_X$, to the factor corresponding to $X$, by $\iota(X) := \{X\} \cup \mathbf{Par}_X$. Define the function $\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid \mathbf{Par}_X \!\!=\!\! \vec y)$ to simply be the cpt at $X$.
+	Examples of this can be seen in the solid components of \Cref{subfig:fg-gf,subfig:fg-smoking}, which correspond to the initial to BNs in \Cref{ex:guns-and-floomps,ex:smoking}, respectively.
+	
+	There is also an obvious way to view a \MN\ as a factor graph: simply ignore the directions of the edges, and use the tables as factors. If $\sfM$ is a \MN\, let $\Phi(\sfM)$ be the factor graph obtained in this way. There may not be a way to recover the \MN\ from the resulting factor graph.
+	
+	 %Moreover, this process does not 
+	\todo{discuss conditions under which $\bbr{\sfM}\MaxEnt = \Pr_{\Phi(\sfM)}$.}
+	\todo{Discuss representation of factor graph in terms of \MN.}
+
+
+	
+	\begin{example}\label{ex:planet-fg}
+		In our planet example, we treat each edge as a factor, the product of which gives the correct relative likelihoods for each of $S \times C \times W \times L$. Our initial knowledge, consisting only of the cpt, we have 
+		\[ \Pr(s, c, w, l) \propto \phi_1(s,c,l)  \]
+		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required. For this reason, conditional probability distributions are sometimes thought of as locally normalized, which is precisely the condition directed factor graphs \parencite{frey2012extending} impose.
+		
+		In contrast with BNs, there is no structural barrier to adding a new node, and factor $\phi_2(w,l) \!=\! \Pr(L\!=\!l\mid W\!=\!w)$ --- though to make sense of this as a probability we have to re-compute the normalization constant. The combination of the two factors is represented graphically in \Cref{subfig:fg-planet}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 		
+	\end{example}
+
+
+	While factor graphs are powerful statistical models, we argue that they are not well suited to modeling for epistemic state, for several reasons. 
+
+	\begin{enumerate}
+		\item They are undirected, making causal modeling, sampling, and compositions (e.g., from \cref{ex:sd-compose-unconditional,ex:randomvars}) difficult. This is resolved in \parencite{frey2012extending} by directed factor graphs. 
+		\label{fgproblem:undirected}
+		\item The global normalization is well-known to computationally difficult (\#P-hard), and is over-eager in sweeping all inconsistencies, as we discuss in \Cref{ex:planet-fg}. One effect of this very global focus is that looking at a few factors locally may not provide an accurate picture of how they work, as we saw in \Cref{ex:fg-exam}. \label{fgproblem:global}
+		\item Factors cannot be re-weighted by importance while still preserving the ratios of likelihoods between alternatives; recall the point . \label{fgproblem:reweight}
+		\item There is no possibility of corroborating evidence \label{fgproblem:corrob}s
+		\item They are volatile: the addition of a new node can arbitrarily change the distribution \label{fgproblem:volatile} (\Cref{ex:fg-volatile,ex:fg-volatile-2})
+	\end{enumerate}
+
+
+	In \Cref{ex:fg-volatile}, the designer is lucky in a sense: it is obvious that the model is broken, and the fix is to delete a single suspicious-looking factor. Of course, without trying the NP hard normalization, there's no way to tell that anything is wrong. In general, things could be much worse: the failure to normalize can be spread out over many nodes, and even if the factor graph normalizes, a single additional factor connected to all variables can unilaterally force the factor graph to represent an arbitrary distribution at any world that has not been marked as impossible by another factor. This global normalization process in some sense is a catch-all fix that ensures that the factor graph is well-defined, but does not preserve any local meanings whatsoever.
+	
+	
+	By contrast, \MNs\ are unaffected by any data that is not connected  to the rest of the graph, raise red flags when things go wrong, and no individual link can override another: instead it gets stuck in an inconsistent state; we assert once again that this is much more desirable.
+	
+	%	\todo{This section, too, requires a lot of editing. I have a list of features I want to object to, that I still need to put here in place of this}
+	%This is a lot more modular (we can add and remove factors as we like). 
+	%We now have a distribution that represents both beliefs, but this is not really what we were thinking of earlier.
+	%Beyond simply the inevitable effects of representing our knowledge as a distribution, such as forcing us to implicitly adopt marginal distributions over the variables $S,C$, and $W$, a product of factors has additional undesirable properties that are not shared by \MNs:
+	%	While general, factor graphs sacrifice interpretability and important internal features of our original belief representation, so that they can represent distributions.
+	
+	
+
+	
+	Similarly, let $\Phi(\mathcal B)$ be representation of a Bayesian network $\mathcal B$ as a factor graph. We now verify a few facts about the relations between the semantics of these conversions.
+	
+	%	\begin{align*}
+	%		\Phi( \mathcal N, \Ed, \mathcal V, \bmu ) = (\alpha, \{ \phi_{} ) \}
+	%	\end{align*}
+	
+	\begin{prop} \label{prop:}
+		If $\mathcal B$ is a BN, then $\Phi(\mathcal B) = \Phi(\Gamma(\mathcal B))$
+	\end{prop}
+	
+	
+	
+	\begin{conj}\label{thm:noninj}
+		$\bbr{M}\MaxEnt = \Pr_{\Phi(M)}$
+	\end{conj}
+	\begin{coro}\label{coro:same-dist;different-weight}
+		For every distribution $\mu \in W_{\cal V}$, there exist \MNs\ $M_1$ and $M_2$ that represent the same distributions, $\bbr{M_1}\MaxEnt=\bbr{M_2}\MaxEnt=\mu$, but $\bbr{M_1} \neq \bbr{M_2}$. 
+	\end{coro}
+	\begin{proof}
+		For any $\mu$ we can always add marginals which are already assumed, altering probability but different free weighted distributions; by \Cref{thm:noninj}, this depends only on the probability.
+	\end{proof}
+	
+	A \MN\ clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw, as this makes them poor choices as canonical descriptions of distributions, which is why so much attention is given to I-maps in \parencite{koller2009probabilistic}. However, separation from a probability distribution has not been empirically damaging. Despite being less expressive and obscuring independence relations, BNs continue to be a more popular modeling tool. The causal picture they can provide, beyond anything in the distribution, is evidently worth a lot.
+
+
+
 
 	\begin{notfocus}
 	\subsection{DIRECTED FACTOR GRAPHS}
