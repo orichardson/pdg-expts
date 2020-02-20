@@ -180,22 +180,9 @@
 	\maketitle
 	
 	\begin{abstract}
-		We introduce a new type of graphical model, \emph{\ModelName s} (\MNs).  
-		They can capture inconsistent beliefs in a natural way and are, in a precise sense, more modular than standard
-		approaches such as Bayesian networks (BNs), 
-		in that they make it easier for	a modeler to incorporate new information 
-		and restructure the representation, without having to
-		finalize a distribution. 
-		As we show, a BN, when viewed as a \MN,
-		may represent many 
-		distributions, but we can recover the distribution given by the
-		semantics of BNs as 
-		the one that maximizes entropy among all the distributions consistent
-		with $\sfM$.  
+		We introduce a new type of graphical model, \emph{\ModelName s} (\MNs). They can capture inconsistent beliefs in a natural way and are, in a precise sense, more modular than standard approaches such as Bayesian networks (BNs), in that they make it easier for	a modeler to incorporate new information and restructure the representation, without having to finalize a distribution. As we show, a BN, when viewed as a \MN, may represent many distributions, but we can recover the distribution given by the semantics of BNs as the one that maximizes entropy among all the distributions consistent with $\sfM$.  
 		%joe1: we may want to say a bit more, or beef up this sentence
 		We show by example how \MNs\ are a natural modeling tool.
-		%joe2: it's not clear that we need to say more in the abstract,
-		%although I don't have strong feelings about it
 		\todo{add more of the results we agree go in the final version}
 	\end{abstract}
 
@@ -220,11 +207,11 @@
 	(corroborating evidence means more in the presence of possible conflict; see \Cref{ex:corrob}),
 	and	recasts standard algorithms such as belief propagation and conditioning on evidence as resolutions of inconsistency (\Cref{sec:algorithms}). }
 
-In this paper we introduce yet another graphical for modeling beliefs, \emph{Probabilistic Dependency Graphs} (PDGs). There are already many such models in the literature, including Bayesian networks (BNs), factor graphs, conditional versions of both, and more \parencite[see]{koller2009probabilistic}. Why does the world need one more?
+In this paper we introduce yet another graphical for modeling beliefs, \emph{Probabilistic Dependency Graphs} (PDGs). There are already many such models in the literature, notably including Bayesian networks (BNs), factor graphs, but also many others \parencite[For an overview, see][]{koller2009probabilistic}. Why does the world need one more?
 
-Our original motivation for introducing PDGs was to be able to capture inconsistency. While being inconsistent is clearly not a good thing, we wanted to be able to model the process of resolving inconsistency; to do so, we had to be able to model the inconsistency itself. But our approach to modeling inconsistency has many other advantages.
-In particular, as we shall see, \MN s are significantly more modular than other approaches.
-%joe3*: I don't know how we modify the graph without changing it's
+Our original motivation for introducing PDGs was to be able to capture inconsistency. While inconsistency is clearly not something we endorse, we wanted to be able to model the process of resolving it; to do so, we had to model the inconsistency itself. But our approach to modeling inconsistency has many other advantages.
+In particular, \MN s are significantly more modular than other approaches: they can be easily ablated or combined in ways that preserve their semantics.
+%joe3*: I don't know ho	w we modify the graph without changing it's
 %informational content.  That doesn't make sense to me.  I also don't
 %now what it means to add information ``efficiently''
 %oli3: Since our meeting, I've remembered what I meant: you can change
@@ -236,8 +223,6 @@ In particular, as we shall see, \MN s are significantly more modular than other 
 %We can efficiently both add new information to a graph without changing the existing structure, and also modify the graph without changing its informational content.
 % Though we may incur inconsistency by doing so, relaxing this
 % coupling makes it easier to talk about representational learning.
-We can easily add new information to a graph without changing the existing structure. 
-
 %joe2: Cut; I don't understand what it means to ``consolidate
 %computational costs'', and we don't discuss this issue. 
 %oli2: Rather than paying the update cost for every observation and
@@ -327,7 +312,7 @@ We can easily add new information to a graph without changing the existing struc
 %        something with global structure. 
 %
 %	We start by giving some examples that motivate PDGs and display some of their advantages over Bayesian Networks in particular.
-	We start with some examples to motivate \MNs\ and display some
+We start with some examples to motivate \MNs\ and display some
 %joe3: it's OK to recap some advantages at the ed, but many of the
 %ones on your list are ones we won't get to in the paper.
 %oli3: Don't you think it's useful to list the things we're able to do that couldn't go in the paper? In any case, this section will be modified accordingly; what's there will be what we want to give them.
@@ -336,34 +321,15 @@ We can easily add new information to a graph without changing the existing struc
 of these advantages.
 %	We use the rest of the section to give some of examples focusing on the benefits of this improved modularity, motivate the design of agents that might , and highlight the failure of Bayesian Networks to capture what we have in mind (we compare to other graphical models in \Cref{sec:other-graphical-models,sec:many-relations-graphical-models}). \MNs\ have other desirable features as well; for a complete list, see \Cref{sec:list-of-benefits}.
 	
-	\begin{example}\label{ex:guns-and-floomps}
-		You arrive in a foreign country known for having very clear laws. From prior reading, you ascribe probability 0.95 to owning guns being against the law. Upon arrival, you end up talking to some teenagers who use the local slang, 
-		after which you believe that with probility .1, the law prohibits floomps. 
+	\begin{example}
+		\label{ex:guns-and-floomps}
+		You arrive in a foreign country known for having very clear laws. From prior reading, you ascribe probability 0.95 to owning guns being against the law. Upon arrival, you end up talking to some teenagers who use the local slang, after which you believe that with probility .1, the law prohibits floomps. 
 		
-		The obvious way to represent this as a BN involves two binary random variables, $F$ (taking values $\{f, \overline f\}$), indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicating the legality of guns. 
-		The semantics of a Bayes Net offer us two choices:
-		we either assume that $F$ and $G$ are independent and give
-%oli1: `priors' seems wrong, I want to say marginals.
-%joe2: people talk about them as priors.  The key point is that they're unconditional
-%oli2: I'm also ok with priors, which is shorter. I also thought
-%marginals were almost always unconditional, 
-% 	which is why `marginal constraint graph' felt like the wrong name for PDGs.
-%		priors for $F$ and $G$, or we choose a
-%joe3: actually, on further though, marginal imply that there's a
-%probability on a big space which is being marginalized.  While that's
-%true, that's not how it's presented.  I just went with the sipmler
-%``probability'' 
-%they're unconditional (unconditional) marginals of $F$ and $G$, or we choose a
-		(unconditional) probability of $F$ and $G$, or we choose a
-		direction of dependency,
+		The obvious way to represent this as a BN involves two binary random variables, $F$ (taking values $\{f, \overline f\}$), indicating the legality of floomps, and $G$ (taking values $g, \overline g$) indicating the legality of guns. The semantics of a Bayes Net offer us two choices: we either assume that $F$ and $G$ are independent and give (unconditional) probabilities of $F$ and $G$, or we choose a direction of dependency,
 %joe3: incorporate one of the two what?  what does ``incorporate''
 %mean here?
 %oli3: I'm 
-%                in which case we can only incorporate one of the two,
-                and must give a conditional probability table.           
-		As there is no reason to believe that either variable depends on the
-		other, the natural choice is to assume independence, giving us the
-		following BN:
+   and give one of the two unconditional probabilities and a conditional probability table. As there is no reason to believe that either variable depends on the other, the natural choice is to assume independence, giving us the following BN:
 		
 		
 		\begin{center}
@@ -387,18 +353,10 @@ of these advantages.
 			}
 		\end{center}
 		
-		Now suppose that you later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp., illegal), then there's a 92\% chance guns are as well.
-		Let $T$ be the conditional probability table (cpt) that describes this belief.
-		A first reaction might be to simply incorporate this conditional information by
-		adding $F$ as a parent of $G$, and then associating the cpt $T$ with $G$.
-		But then what should we do with the original probability we had
-		for $G$?  Should we just discard it?
+		Now suppose that you later discover that ``floomp'' is likely to be another word for gun, and come to believe that if floomps are legal (resp., illegal), then there's a 92\% chance guns are as well. Let $T$ be the conditional probability table (cpt) that describes this belief. A first reaction might be to simply incorporate this conditional information by adding $F$ as a parent of $G$, and then associating the cpt $T$ with $G$. But then what should we do with the original probability we had for $G$?  Should we just discard it?
 			% which amounts to throwing out our old prior distribution on $G$; 
 			% another instinct might be to perform a Bayesian update, but this new information is conditional and probabilistic, not an event.
-		It is easy to check that there is no probability distribution that is
-		consistent with the two original priors on $F$ and $G$ and also the cpt
-		$T$, so if we are to represent our information with a BN, we must
-		resolve the inconsistency.  
+		It is easy to check that there is no probability distribution that is consistent with the two original priors on $F$ and $G$ and also the cpt $T$, so if we are to represent our information with a BN, which always represents a consistent distribution, we must resolve the inconsistency.  
 %		In fact, $E$ conflicts with the other two tables, in the sense that there is no joint distribution on $\{F, G\}$ such that all three tables are accurate. 
 %		Therefore, there is no Bayes Net that contains all three pieces of information exactly: one has to resolve the inconsistency first.
 			
@@ -407,26 +365,10 @@ of these advantages.
                 %``your interests'', which are largel irrelevant
 %		
 %However, it may not be in your best interest to sort this out right away.
-However, it may be better not to sort this out right away.
-		How to resolve it may be clearer if you can get confirmation
-		that guns are indeed floomps, or read the laws more carefully.
+		However, it may be better not to sort this out right away. How to resolve it may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully.
 
-
-		By way of contrast, consider the corresponding \MN. In a \MN, the cpts
-		are attached to edges, rather than nodes of the graph.  
-		The cpt associated with an edge $e$ is a matrix
-		$\mat e$, where the element $\mat e_{a,b}$ at row $a$ and column $b$
-		is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$.  
-%		We will represent the cpt for a edge $L \!\colon\! A\!\to\! B$ as matrices $\mat L$, whose element $\mat L_{a,b}$ at row $a$, column $b$ is the conditional probability $\Pr(B \!\!=\!\!b \mid A \!\!=\!\! a)$. 		
-		In order to represent unconditional probabilities% (among other things; see section \ref{sec:algebra})
-		, we introduce a \emph{unit variable} $\mathsf 1$ %, or `$\mathrm{true}$',
-		which takes on only one possible value,	which we denote $\star$.
-%joe3: removed paragraph break		
-%		
-		Thus, we have the \MN\ depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are
-		associated with the unconditional probabilities of $F$ and
-		$G$, and the edge from $F$ to $G$ is associated with
-		the cpt $T$.
+		By way of contrast, consider the corresponding \MN.
+		In a \MN, the cpts are attached to edges, rather than nodes of the graph. The cpt associated with an edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$ at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid X \!\!=\!\! x)$; such a matrix where each row sums to 1, is called a stochastic matrix, In order to represent unconditional probabilities, we introduce a \emph{unit variable} $\mathsf 1$ which takes on only one possible value,	which we denote $\star$. Thus, we have the \MN\ depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are associated with the unconditional probabilities of $F$ and $G$, and the edge from $F$ to $G$ is associated with the cpt $\mat p$.
 		\begin{figure}[h]
 			\centering
 			\scalebox{0.9}{
@@ -453,7 +395,7 @@ However, it may be better not to sort this out right away.
 				\draw[heldout, dashed, arr] (floomp) -- coordinate(C) (gun);
 				\node[below=1em of C] {
 					\color{heldout}
-					T =\begin{idxmat}[\footnotesize\color{heldout}\text]{$f$,$\overline f$}{$g$, $\	overline g$}
+					$\mat p =$\begin{idxmat}[\color{heldout}\smallt]{$f$,$\overline f$}{$g$, $\overline g$}
 						0.92 & 0.08 \\ 0.08 & 0.92 \\
 					\end{idxmat}
 				};
@@ -462,17 +404,7 @@ However, it may be better not to sort this out right away.
 			\caption{An inconsistent \MN, requiring resolution}
 			\label{fig:gun-floomp-diagram}
 		\end{figure}
-                %joe3
-%		
-		The original state of knowledge consists of all three
-                nodes and the two black edges  e  $\mathsf 1$. This is
-%joe3
-%                like our Bayes Net from before, except we no longer
-   like Bayes Net that we considered abovefrom before, except we no longer
-                assume that $F$ and $G$ are independent; 
-	%oli2: I implemented your change but personally I like "assume
-        %... to be indep" much more than "assume that ... are indep" 
-		we merely record the constraints imposed by the given probabilities.
+		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like Bayes Net that we considered above, except we no longer assume $F$ and $G$ to be independent; we merely record the constraints imposed by the given probabilities.
 	
 		\begin{vfull}
 		\note{\emph{(This is from our discussion but parts of it seem out of the way so I haven't integrated it yet. It probably needs to be moved.)}
@@ -496,25 +428,24 @@ However, it may be better not to sort this out right away.
 		}
 		\end{vfull}
 	
-		The key point here is that we can incorporate the new information into
+		The key point is that we can incorporate the new information into
 		our original representation (the graph in \Cref{fig:gun-floomp-diagram}
 		without the edge from $F$ to $G$) simply  by adding the edge from $F$
 		to $G$ and the associated cpt.  Doing so does not change the meaning
-		of the original edges.  The added modularity lets us simply include
+		of the original edges.  This presentation lets us simply include
 		information, and resolve inconsistencies later. Unlike a Bayesian
 		update, the operation is even reversible: all we need to do recover
 		our original belief state is delete the new edge, effectively making
 		it possible to mull over and then reject an observation.
 	\end{example}
 
-	It may seem that, while our approach has advantages, we have lost a
-	key benefit of BNs: the ability to exploit (conditional)
-	independencies, which, as \textcite{pearl2014probabilistic} has argued
-	forcefully, are omnipresent.  As we shall see, this is not the case.  
-  %joe3: added
-We can recover the (probability distribution represented by the)
-Bayes Net from the set of distribution consistent the PDG.
-We returnto this point below; for now, we show that 
+	%oli3:
+	A BN compactly represents distribution by assuming that every node is independent of its non-descendants given its parents. A choice not to make such assumptions can be cast in either a postive or negative light. 
+	On one hand, eliminating unfounded assumptions is important, and independences in particular are notoriously difficult to demonstrate emperically: there is always a possibility of unobserved confounders. On the other hand, conditional independences are valuable, and as \textcite{pearl2014probabilistic} has argued forcefully, omnipresent.
+	%: in $\chi^2$ test for instance, independence is the null hypothesis.	 
+	It seems that \MNs\ have lost this key benefit of BNs.  As we shall see, this is not the case.  
+	
+
 	%joe1: 	shortened.  Please don't talk about coloring out of the blue.
 	%oli: I've modified but not used your replacement paragaph.
 %joe2: we should be consistent about single quote vs. double quotes.
@@ -539,8 +470,6 @@ We returnto this point below; for now, we show that
 %joe3
 %The modularity of PDGs is useful even when there is no
 %inconsistency, as the following example shows. 
-the modularity of PDGs can be useful even when there is no
-inconsistency.
 %joe2: Cut; what do ``observed nodes'' have to do with
 %under-constrained beliefs.  What makes a conditional belief
 %underconstrained?   There's a simple clean story here, and you're
@@ -574,242 +503,6 @@ inconsistency.
 % Your original replacement is below.
 %joe2: And i reveerted back to it.  I feel quite strongly that
 %less is more here.
-\commentout{The modularity of PDGs is useful even when there is no inconsistency, as the following example shows. } 
-
-	
-	\begin{example} \label{ex:planet}
-		Suppose that an astrobiologist has beliefs about how 
-		likely we are to find life on a
-		planet, given its size (big or small) and
-		its composition (mostly made of rocks vs. gas), as represented
-		in the cpt on the right of \Cref{fig:planet-initial} (where $S$ and
-		$C$ stand for ``Size'' and ``Composition''%
-	%oli1: this is not part of the cpt on the right, and we also say it below.
-	%; ignore the faint node labeled $W$ for now
-		): 
-%		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), resulting in the cpt from \Cref{fig:planet-initial}.
-		
-		\begin{figure}[h]
-			\centering
-			\scalebox{0.8}{
-				\begin{tikzpicture}[center base]
-				\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (SS) at (0.4, 1.2) {S};
-%joe1*: please remove the coloring; it's unnecessary, and a
-%distraction.  
-%oli1: it is necessary to distinguish the observed nodes for this diagram to make any sense.There is a very clear standard for how to do this: to make them darker. Not disitinguishing them could be confusing for people who use conditional graphical models
-% I also think it's subtle enough not to bother people who aren't looking for it, and those who do notice will be able to get satisfying results from google.
-%joe:You have what seems like a shaded box around S and C.  Please
-%remove it.  We don't mention it in the text. Why
-%confuse the reader?   
-			\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (CC) at (2.4, 1.2) {C};
-				\node[dpadded,light pad,fill opacity=0.08] (LL) at (1.4,0) {L};
-%oli3: removed the node.
-%				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {W};
-				\draw[arr] (CC) -- (LL);
-				\draw[arr] (SS) -- (LL);
-%				\draw[arr, dotted, opacity=0.5] (WW) -- (LL);
-				\end{tikzpicture}	
-			}%		
-			\hspace{2em}\scalebox{0.8}{
-%			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) =$\\
-			$\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
-				.1 & .9 \\
-				.2 & .8 \\
-				.05 & 0.95 \\
-				0.001 & 0.999
-			\end{idxmat} $}
-%joe2
-%			\caption{cpt and desired new node in \Cref{ex:planet}}
-			\caption{Adding a node to a BN.}
-			\label{fig:planet-initial}
-		\end{figure}
-		\vspace{1em}
-
-%joe2*: we haven't said that W stands for water yet.  More importantly,
-%why bother adding the W to the diagram at all.  You have it in the
-%next one, which is the only place we need it.  I would just cut the
-%phrase, and the W from the diagram.
-%oli2: I find it helpful to see all three arrows and realize the
-%diagram has a symmetry we didn't intend. What do you think of adding
-%a reference to the diagram in our discussion below of why the BN
-%doesn't work?
-%joe3: I don't want to make a big fuss about this, since there are so
-%many other problems, but I still don't see benefit of having the W
-%and then saying ``ignore it'', when you have it in the next figure.
-%You're just making life harder for the reader.  I have no problem
-%with adding this to the discussion of why the BN doesn't work if you
-%have omething useful to say.
-%oli3: I've removed the ndoe
-%		Ignoring the faint node labeled $W$ for now,
-		The diagram on the left
-%joe1: you have to say more about what a conditional Bayes net is and
-%add a reference; I've now done this
-%		---note that the nodes `Size' and `Composition' would need tables of their own to be fully interpreted as a Bayesian Network. Without any such beliefs, we would have to use a \emph{conditional} Bayes Net, and explicitly mark both nodes as `observed'---a rigid distinction enforced 
-%joe1: why talk about ``type level''?? You're throwing unnecessary words
-%at the reader.  
-%oli1: From the modeler's perspective, you have to know for sure what the inputs are to your conditional BN, which is intended to present the inputs as an abstraction, but here it's a liability: what are the observed nodes if you remove and add some edges? graph operations will change the type of the object you're working with, which illustrates the lack of modularity. It turns out that this type-level tracking, which I imagine make implementations and formal manipulations of graph operations trickier, is unnecessary.
-%joe2: I'm afraid that I don't understand the comment above at all.  I
-% understand the individual words, but not the sentences.  For example,
-% I don't understand in what sense a BN ``is intended to present the
-% inputs as an abstraction''.  I don't even know what it means to
-% present inputs as an abstraction.   
-%oli2: "intended to present inputs as an abstraction"--- a CBN is
-%sometimes thought of as abstracting away the inputs and just
-%providing function inputs -> joint distributions. Figure 5.15 (pg
-%193) of KF09 illustrates this better. If you modify the graph (e.g.,
-%delete the Age -> Dead link in the Motor diagram in Fig 5.15) the
-%things that are supposed to be ``inputs'' might change. This requires
-%a lot of book-keeping to do if you take the formal construction
-%(explicitly identifying observed nodes) serioiusly.
-%joe3: I stand by my comment: I didn't know what you were talking
-%about and I expect most readers won't. Readers can't read your mind
-%to know what you're thinking of here.  For the (I suspect very few)
-%readers who do now, this will be a distraction.  
-%oli2: However, there is probably an easy fix, and it turns out PDGs also don't get quite as much as I thought for free (though they still get more from the set semantics than BNs would); example 7 shows part of this. 
-%		at a type level which is unnecessary in \MNs.
-		corresponds to the \emph{conditional} Bayes Net \parencite{koller2009probabilistic} for this table.
-		While a BN would require us to associate prior beliefs with $S$ and
-		$C$, a conditional BN allows us to view these nodes as
-		observations; observed nodes do not have associated beliefs.
-		In the \MN, since there is no edge leading to $S$ and $C$, we
-		do not require a cpt; we do not need a special distinction between
-		observation nodes and other nodes.
-				
-		\begin{vfull}
-			A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.
-		\end{vfull}
-	
-%		Now our biologist friend now reminds us that life requires water, and computes probabilities for the existence of life on a planet, with and without water. We trust this friend completely. We'd like to introduce a new node, `Water', but if we make it a parent of `Life', because we don't know how this information interacts with size, and composition; neither are we prepared to give a probability of live given a full description of the three, and this table would be much larger.
-%joe1*: this is a distraction.  If we had the information, we should
-%represent it, despite the increased cost. If we don't have the
-%information, we're stuck, quite independent of size concerns. 
-%oli: I'm not sure I agree. If you are only ever estimating L from W or (S,C), there's no reason to store it.
-% Secondly, it's not too bad to cheaply invent a table that does marginalize out properly to all 3, if they're consistent, 
-% thought this would be asserting something of the flavour of independence between L and S,C----this is the thing that 
-% someone who uses BNs right now would do. Why not do it? Partly because you're asserting something about independence but
-% people who use BNs have already made peace with this. Another reason: it's a lot bigger.
-%				\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
-	
-%oli1: using the word astrobiologist multiple times is space consuming. by using 1st person plural, it's shorter because we can unambiguously use pronouns, and avoid gender. Is using 1st person plural (or 2nd person singular) like I did in example 1, taboo?
-%joe2: You've got two agents.  I'm not a big fan of ``we'' as a way of
-%avoiding gender, but in any case, since you are referring to the
-%astrobiologist in the third person, you would have to use ``they''
-%(which strikes me as exceeingly strange).  
-%oli2: not a big deal but originally the astrobiologists were first
-%person plural, which is why I asked.
-%joe3: No; it's third person plural                  
-		Now suppose that the astrobiologist is reminded by a biologist that life
-		requires water, and is given probabilities (which she views as
-		reliable) for the existence of life on a planet, with and 
-		without water. Of course, we would now like to incorporate this
-		information in the representation.  The first step is clearly to add a
-		new node labeled $W$, for ``water''.  But if we make $W$ a parent of
-		$L$ (as clearly seems appropriate, given that life depends on water), we
-		will have a problem representing this information using a BN, since 
-		we cannot construct the cpt that we would need to associate with $L$;
-		we do not know the probability of life given all setting of the
-		variables  $S$, $C$, and $W$.
-		
-
-%joe1*: Oliver, this is bad.  The only difference between this picture
-%and the one above is the hyperedge between S and C, which you barely
-%mention in passing and don't explain at all.  We should either cut
-%this, or explain the issue.  The key point is the issue is not the
-%new edge from W to L; we've already explained that.  It's the fact
-%that the two separate edges from S to C are not right.  This is also
-%an issue in Example 3.  You could tell a story somewhat along the
-%lines of ``The PDG given in Figure 2 is actually not the best
-%representation of our beliefs.  The problem is that we actually have
-%beliefs about L conditional on both S and C; the PDG above would
-%require us to associate with the edge from S to L only the
-%probability of L given S, and similarly from the edge from S to L.
-%For now, the we capture the joint dependency is by using a
-%\emph{hyperedge}, as shown in Figure 3 [put in your figure here].
-%And keep going from there.  You could perhaps cute Eample 3
-%altogether, since it seems that this discussion would subsume it.
-%oli1: ah, you're right. I will fix---but I do think the rewrite made the problem worse, as before the diagram above was clearly a conditional BN, and we haven't shown what the PDG looks like yet (and there's no precedent to think they're the same because the one in example 1 looks very different from the BN counterpart).
-%oli1: as for example3: there is one additional independence. The tables alone uniquely determine a distribution here, but there are still many in example3 because of the correlations. This example has the benefit of also showing the under-constrained representation and being smaller. I think for now I'll describe more here and dramatically reduce example3. 
-
-
-%joe2: We can't ``keep'' the joint dependence; the point is that the
-%previous graph did not capture the joint dependence.  You have to
-%explain that carefully.  Slow down and tell a story!    You're still
-%not doing that.   I rewrote it.
-%oli2: We ``keep'' it in the sense that we had it in the BN before we 
-% started trying to add things and mess with the information. As far as 
-% the story goes, we still know about that table.
-%oli2: I also don't know why my version doesn't count as a story. If anything,
-% I've given intuition and pointed unambiguously to the issue without
-% being overly  
-% technical. The paragraph you wrote is
-% technically very clear, but I find it hard to parse, and I start to get lost
-% due to the repeated symbols and short words. I can
-% see why this could be considered better but I don't understand the story
-% analogy here at all. 
-%oli2: My experience explaining this concept suggests that, drawing
-%the hyper-edge alone  
-% is enough to get people to immediately see why it is necessary and
-% what it represents. 
-%		Of course, we also want to keep the joint dependence
-%                on both $S$ and $C$ together; the graph in
-%                \Cref{fig:planet-initial} is not the right way to do
-%                this in a \MN.
-%joe3: Why don't you ask a friend to read both version and see what
-%they say.
-We can avoid these problems if we represent the situation using a
-PDG.  Adding a node from $W$ to $L$ in a PDG does not require us to
-give the probability of $L$ conditional on $S$, $C$, and $W$. That
-said, the graph is Figure~\ref{fig:planet-initial} (with the node $W$
-added) is not a correct representation of the situation as a PDG.  The
-problem is that, in a PDG, the edges from $S$ to $L$ and from $C$ to
-$L$ would require us to give only the probability of $L$ conditional
-on $S$ and the probability of $S$ conditional on $C$.  We want to
-indicate that $L$ actually depends jointly on $S$ and $C$.
-To distinguish the joint dependence on
-%joe2: back to your story, except that I want to suggest that this is a
-%temporary fix.
-%$S,C$ from our separate dependence on $W$, we draw an
-$S$ and $C$ from the separate dependence on $W$, for now, we draw an
-edge with two tails, sometimes called a
-%joe2
-\emph{hyperedge}. The resulting \MN\ is shown in
-\Cref{fig:plannet-pdg}. 
-
-		\begin{figure}
-			\centering
-			\scalebox{0.9}{
-			\begin{tikzpicture}
-				\node[dpadded] (S) at (0.2, 1.4) {$S$};
-				\node[dpadded] (C) at (2.4, 1.4) {$C$};
-				\node[dpadded] (L) at (1.3,0) {$L$};
-				\node[dpadded] (W) at (-1,0) {$W$};
-				% \cmergearr{S}{C}{L}{1.3,0.95}
-				\draw[arr] (W) -- (L);
-			\end{tikzpicture}}	
-			\caption{the \MN\ for \Cref{ex:planet}}
-			\label{fig:plannet-pdg}
-		\end{figure}
-	
-	%joe2: The first sentence isn't saying anything new, I don't know what
-	%you mean when you talk about combining beliefs in the next sentence.
-	%oli2: I accept the cut, but this seems like an unfair criticism given that the reason it's not new is because of the new text you just wrote above it.
-	%oli2: Relatedly, perhaps one point of miscommunication is
-	%that you explain figures beforehand, and I have a habit of
-	%introducing a figure, and then explaining it in the paragraph
-	        %that follows?
-%joe3: maybe, although I think there's more to it ...                
-		% The two edges in \Cref{fig:plannet-pdg} correspond to the two
-		%conditional distributions we have on $L$: one from $S \times C$ and
-		%%the other from $W$. We can now combine our two beliefs, without also
-		%providing information about the correlations between $W$ and $S\times C$.
-		As with the previous example, there is now a possibility of being
-		inconsistent, in the sense that there exist cpts for the two edges
-		that are not compatible with any joint distribution---for instance, if
-		all estimates of $L$ from the $W$ are strictly smaller than any
-		probability estimate of $L$ from $S \times C$. 
-%	
-	\end{example}
-	
 	%	\MNs\ are strictly more expressive than BNs, and there is a straightforward conversion from a BN to a \MN\ (\Cref{sec:bn-convert}). 
 %joe2: We aren't introducing a new semantics, since we haven't
 %introduced a semantics so far.  This is the wrong story for this example.
@@ -821,19 +514,10 @@ edge with two tails, sometimes called a
 %        together and introduce a new \MN\ semantics, to illustrate how
 %        \MNs\ naturally simulate BNs, a process we formalize in
 %        \Cref{sec:bn-convert}.  %\Cref{ex:smoking}.	 
-	We now return to the issue of independence.
-	The BN achieves a compact representation of a joint distribution by
-	%joe2
-	assuming a number of (conditional) independencies (specifically, 
-	that every node is independent of its non-descendants given its
-	parents).  
-	%joe2
-	%Most of the time, we do not make the independence assumption in a BN
-	Typically, when using a BN, we do not know for certain that these
-	independencies hold.  Rather, we believe that we get a reasonable
-	approximation of reality  by assuming them.  In PDG's, we can, in a
-	sense, both make the assumption and allow for the possibility that it
-	does not hold.
+	%oli3: This is too much text, and it overlaps with the above. Rewriting.
+% The BN achieves a compact representation of a joint distribution by  assuming a number of (conditional) independencies (specifically, that every node is independent of its non-descendants given its parents). Typically, when using a BN, we do not know for certain that these independencies hold.  Rather, we believe that we get a reasonable approximation of reality  by assuming them.  In PDG's, we can, in a sense, both make the assumption and allow for the possibility that it does not hold.
+
+
 	%oli2*: We need to address the following complaint: sure, we
         %could also use sets of distributions for BNs and not assume
         %anything about indpendence as well; it's even a thing that
@@ -893,7 +577,8 @@ edge with two tails, sometimes called a
 	
 
 	\begin{example}\label{ex:smoking}
-		Consider the classic example used to introduce Bayesian nets, with four binary variables indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \Cref{subfig:smoking-bn}.
+		We now consider the classic (quantitative) Bayesian network $\cal B$, which has four binary variables indicating whether a person ($C$) develops cancer, ($S$) smokes, ($SH$) is exposed to second hand smoke, and ($PS$) has parents who smoke, presented graphically in \Cref{subfig:smoking-bn}. We now walk through what is requried to represent $\cal B$ as the \MN $\Gamma(\mathcal B)$, shown in \Cref{subfig:smoking-pdg}.
+% 
 		\begin{figure*}[ht!]
 			\centering
 			
@@ -905,7 +590,7 @@ edge with two tails, sometimes called a
 				PS \ar[ur]\ar[dr] \&\& C \\
 				\& SH \ar[ur]
 				\end{tikzcd}}
-				\caption{Bayesian Network}
+				\caption{Bayesian Network, $\cal B$}
 				\label{subfig:smoking-bn}
 			\end{subfigure}%			
 			\hspace{2em}\vline\hspace{2em}
@@ -926,7 +611,7 @@ edge with two tails, sometimes called a
 				\node[dpadded, fill opacity=0.05,dashed] (T) at (6.5,0) {$T$};
 				\draw[arr,dashed] (T) -- (C);	
 				\end{tikzpicture}}
-				\caption{Corresponding \MN}
+				\caption{Corresponding \MN, $\Gamma(\mathcal B)$}
 				\label{subfig:smoking-pdg}
 			\end{subfigure}
 		
@@ -935,36 +620,29 @@ edge with two tails, sometimes called a
 		\end{figure*}
 		
 %		The BN is a compact representation of a joint distribution over all four variables, which achieves compactness by taking advantage of independence between variables. 
-		The BN achieves a compact representation of a joint
 %joe3: a BN is just a graph; it's not ecnoding anything
 %                distribution by encoding the an assumption that every
-        distribution by assuming that every
-                node is independent of its non-descendants given its
-                parents. 
+%oli3: 
+% The BN achieves a compact representation of a join distribution by assuming that every node is independent of its non-descendants given its parents. 
 %joe3: removed paragraph break. Rewrote sentences; we're not using
 %different lenses, but giving differentsemantics
+%oli3: that's the same thing.
 %
 %A \MN\ does not make these assumptions. However, by viewing the
 %\MN\ through a different lens (we offer several in
 %\Cref{sec:semantics}), we can further interpret the constraints. In
 %particular, the maximum entropy distribution consistent with the
-We do not make these assumptions when giving semantics to a PDG.
-There may be many distributions consistent with the marginal
-probabilities described by the PDG, and the independences presumed by
-the BN need not hold for them.   However, if we consider the PDG $G_P$
-that naturally correspond to a BN $G$, we show that we can recover the
-unique distribution characterized by $G$ that exhibits all the
-independencies as the distribution that maximizes entropy among 
-all those consistent with $G_P$.   
-%constraints, displays the independence properties assumed by BN, and
-%in this sense, \Cref{subfig:smoking-pdg} (again ignore $T$ for now)
-For example, the distribution that maximizes entropy among all those
-consistent with the PDG in 
-\Cref{subfig:smoking-pdg} (ignoring the node $T$)
-%joe3
-%represents the same distribution as \Cref{subfig:smoking-bn}. 
-is exactly the dstribution that is represented by the BN in
-\Cref{subfig:smoking-bn}.  
+%oli3: this is false. Maximum entropy is exactly these assumptions.
+% We do not make these assumptions when giving semantics to a PDG.
+
+		We start with just nodes corresponding to the variables in $\cal B$, and also a special node $\sf 1$ from \Cref{ex:guns-and-floomps}. and an edge ${\sf 1}$ to $PS$, to which we associate the unconditional probability that one's parents smoke, given by the table attached to $PS$ in $\cal B$.
+		The cpts on $S$ and $SH$ we can also repurpose for the PDG directly, assigning them to the edges $PS \to S$ and $PS \to SH$, respectively. There are two remaining problems: (1) modeling the last table in $\cal B$, which corresponds to the conditional probability of $C$ given $S,SH$, and (2) recovering the additional independece assumptions in the graph.
+		
+		We start with (1). We should not simply add the edges $S \to C$ and $SH \to C$ that are present in $\cal B$, because as we saw in \Cref{ex:guns-and-floomps}, this would need an interpretation as two separate tables, one indicating the probability of $C$ given  $S$, and the other indicating the probability of $C$ given $SH$. Though we could get both tables by marginalizing, this would lose an important correlation that is present in $\cal B$.  
+		To distinguish the joint dependence on $S$ and $SH$, for now, we draw an edge with two tails, sometimes called a \emph{hyperedge}, which completes the diagram in \Cref{fig:smoking-pdg}.
+
+		We now return to the issue of independence (2). There are many distributions consistent with the marginal probabilities described, and the independences presumed by $\cal B$ need not hold for them. To model this, we supply a maximum-entropy semantics, that allows us to temporarily view the \MN\ $\Gamma(\mathcal B)$ as representing the unique distrubion that maximizes entropy, among all those consistent with the marginals. In \Cref{thm:bns-are-pdgs}, we will show that this distribution is the same as the one specified by $\cal B$.
+
 %oli1: I added the following sentence, but I'm not
                 %sure how worried people will be and the current plan
 %is not to talk about sampling in the abstract.
@@ -976,17 +654,18 @@ is exactly the dstribution that is represented by the BN in
 %		more depth in \Cref{sec:sampling}. 
 %		\end{vfull}
 				
-		Now, suppose you read a very thorough empirical study
-                which demonstrates that people who use tanning beds
-                have a 10\% incidence of cancer, compared with 1\% in
-                the control. Just as in the previous example, this
-                cannot be encoded directly into the Bayesian Network.  
-		The \MN\, once again has no trouble:
+		Now, suppose we read a thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control, and would like to add this information to $\cal B$. 
+		The first step is clearly to add a new node labeled $T$, for ``tanning bed use''.  But simply making $T$ a parent of $C$ (as clearly seems appropriate, given the incidence of cancer depends on tanning bed use), requires a substantial expansion of the cpt, and, in particular, requires us to guess at the interactions between tanning beds and smoking. 
+		
+		%FOR_LATER.
+		In some sense, the only reasonable guess is that . So why put it here?
+		
+		Just as in the previous example, this cannot be encoded directly into the Bayesian Network. The \MN\ $\Gamma(\mathcal B)$ has no trouble:
 %joe3: I have no clue what graphs you're merging.  There is only one
 %graph in sight; you're add a node to it
 %                we can simply
 %                merge the graphs, as in \Cref{subfig:smoking-pdg}. 
-We can simply add the node $T$ with an edge to $C$ that is associated with the
+	We can simply add the node $T$ with an edge to $C$ that is associated with the
 appropriate cpt.
                 %		\begin{center}
 %			\scalebox{0.9}{
@@ -1005,15 +684,250 @@ appropriate cpt.
 %			\draw[arr,dashed] (T) -- (C);
 %			\end{tikzpicture}}
 %		\end{center}		
-	        As before, in a BN, simply adding $T$ to the parents
-%joe3
-%                of $C$ makes it impossible to use the old table, and
-%                require us to guess at the interactions between
-                of $C$ requires updating the cpt, and, in particular,
-                requires us to guess at the interactions between
-                tanning beds and smoking. 
+	       
 		% This is again an illustration of the modularity and the possibility for inconsistency; compare the right half of the diagram (shaded slightly darker) with the topological equivalent in example \ref{ex:planet}.
 	\end{example}	
+
+
+% Goal here: introduce a graph with more stuff:
+%  - Graph union.
+% - 
+
+
+	\begin{example} \label{ex:planet}
+		Suppose that an astrobiologist has beliefs about how 
+		likely we are to find life on a
+		planet, given its size (big or small) and
+		its composition (mostly made of rocks vs. gas), as represented
+		in the cpt on the right of \Cref{fig:planet-initial} (where $S$ and
+		$C$ stand for ``Size'' and ``Composition''%
+		%oli1: this is not part of the cpt on the right, and we also say it below.
+		%; ignore the faint node labeled $W$ for now
+		): 
+		%		Suppose we have a belief about how size and composition affect the habitability of a planet: say we're astrobiologists, and we have some sense of how likely we are to find life on a given planet, supposing we knew its size (big or small) and its composition (mostly made of rocks vs gas), resulting in the cpt from \Cref{fig:planet-initial}.
+		
+		\begin{figure}[h]
+			\centering
+			\scalebox{0.8}{
+				\begin{tikzpicture}[center base]
+				\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (SS) at (0.4, 1.2) {S};
+				%joe1*: please remove the coloring; it's unnecessary, and a
+				%distraction.  
+				%oli1: it is necessary to distinguish the observed nodes for this diagram to make any sense.There is a very clear standard for how to do this: to make them darker. Not disitinguishing them could be confusing for people who use conditional graphical models
+				% I also think it's subtle enough not to bother people who aren't looking for it, and those who do notice will be able to get satisfying results from google.
+				%joe:You have what seems like a shaded box around S and C.  Please
+				%remove it.  We don't mention it in the text. Why
+				%confuse the reader?   
+				\node[dpadded,light pad,fill opacity=.25, minimum width=1.8em] (CC) at (2.4, 1.2) {C};
+				\node[dpadded,light pad,fill opacity=0.08] (LL) at (1.4,0) {L};
+				%oli3: removed the node.
+				%				\node[dpadded,light pad,fill opacity=.1, dashed, text opacity=0.3] (WW) at (-0.5, 0) {W};
+				\draw[arr] (CC) -- (LL);
+				\draw[arr] (SS) -- (LL);
+				%				\draw[arr, dotted, opacity=0.5] (WW) -- (LL);
+				\end{tikzpicture}	
+			}%		
+			\hspace{2em}\scalebox{0.8}{
+				%			$\Pr(\text{Life} ~|~ \text{Size}, \text{Comp}) =$\\
+				$\begin{idxmat}{{big, rocks}, {small,rocks}, {big, gas}, {small,gas}}{life, no life}
+				.1 & .9 \\
+				.2 & .8 \\
+				.05 & 0.95 \\
+				0.001 & 0.999
+				\end{idxmat} $}
+			%joe2
+			%			\caption{cpt and desired new node in \Cref{ex:planet}}
+			\caption{Adding a node to a BN.}
+			\label{fig:planet-initial}
+		\end{figure}
+		\vspace{1em}
+		
+		%joe2*: we haven't said that W stands for water yet.  More importantly,
+		%why bother adding the W to the diagram at all.  You have it in the
+		%next one, which is the only place we need it.  I would just cut the
+		%phrase, and the W from the diagram.
+		%oli2: I find it helpful to see all three arrows and realize the
+		%diagram has a symmetry we didn't intend. What do you think of adding
+		%a reference to the diagram in our discussion below of why the BN
+		%doesn't work?
+		%joe3: I don't want to make a big fuss about this, since there are so
+		%many other problems, but I still don't see benefit of having the W
+		%and then saying ``ignore it'', when you have it in the next figure.
+		%You're just making life harder for the reader.  I have no problem
+		%with adding this to the discussion of why the BN doesn't work if you
+		%have omething useful to say.
+		%oli3: I've removed the ndoe
+		%		Ignoring the faint node labeled $W$ for now,
+		The diagram on the left
+		%joe1: you have to say more about what a conditional Bayes net is and
+		%add a reference; I've now done this
+		%		---note that the nodes `Size' and `Composition' would need tables of their own to be fully interpreted as a Bayesian Network. Without any such beliefs, we would have to use a \emph{conditional} Bayes Net, and explicitly mark both nodes as `observed'---a rigid distinction enforced 
+		%joe1: why talk about ``type level''?? You're throwing unnecessary words
+		%at the reader.  
+		%oli1: From the modeler's perspective, you have to know for sure what the inputs are to your conditional BN, which is intended to present the inputs as an abstraction, but here it's a liability: what are the observed nodes if you remove and add some edges? graph operations will change the type of the object you're working with, which illustrates the lack of modularity. It turns out that this type-level tracking, which I imagine make implementations and formal manipulations of graph operations trickier, is unnecessary.
+		%joe2: I'm afraid that I don't understand the comment above at all.  I
+		% understand the individual words, but not the sentences.  For example,
+		% I don't understand in what sense a BN ``is intended to present the
+		% inputs as an abstraction''.  I don't even know what it means to
+		% present inputs as an abstraction.   
+		%oli2: "intended to present inputs as an abstraction"--- a CBN is
+		%sometimes thought of as abstracting away the inputs and just
+		%providing function inputs -> joint distributions. Figure 5.15 (pg
+		%193) of KF09 illustrates this better. If you modify the graph (e.g.,
+		%delete the Age -> Dead link in the Motor diagram in Fig 5.15) the
+		%things that are supposed to be ``inputs'' might change. This requires
+		%a lot of book-keeping to do if you take the formal construction
+		%(explicitly identifying observed nodes) serioiusly.
+		%joe3: I stand by my comment: I didn't know what you were talking
+		%about and I expect most readers won't. Readers can't read your mind
+		%to know what you're thinking of here.  For the (I suspect very few)
+		%readers who do now, this will be a distraction.  
+		%oli2: However, there is probably an easy fix, and it turns out PDGs also don't get quite as much as I thought for free (though they still get more from the set semantics than BNs would); example 7 shows part of this. 
+		%		at a type level which is unnecessary in \MNs.
+		corresponds to the \emph{conditional} Bayes Net \parencite{koller2009probabilistic} for this table.
+		While a BN would require us to associate prior beliefs with $S$ and
+		$C$, a conditional BN allows us to view these nodes as
+		observations; observed nodes do not have associated beliefs.
+		In the \MN, since there is no edge leading to $S$ and $C$, we
+		do not require a cpt; we do not need a special distinction between
+		observation nodes and other nodes.
+		
+		\begin{vfull}
+			A proponent of BNs will have no trouble getting this to work by using \emph{conditional} BNs, which represent conditional distributions rather than joint ones, with two slight inconveniences: (1) they would have to commit which variables are conditioned up-front, and so adding or removing information changes the type of mathematical object represented, and (2) there is no graphical distinction between having a distribution over $\sf Size$ or not, and so we have to color certain nodes and keep track of this additional information. \MNs\ have neither of these issues, but the bigger payoff is in representing \textit{over-constrained} states.
+		\end{vfull}
+		
+		%		Now our biologist friend now reminds us that life requires water, and computes probabilities for the existence of life on a planet, with and without water. We trust this friend completely. We'd like to introduce a new node, `Water', but if we make it a parent of `Life', because we don't know how this information interacts with size, and composition; neither are we prepared to give a probability of live given a full description of the three, and this table would be much larger.
+		%joe1*: this is a distraction.  If we had the information, we should
+		%represent it, despite the increased cost. If we don't have the
+		%information, we're stuck, quite independent of size concerns. 
+		%oli: I'm not sure I agree. If you are only ever estimating L from W or (S,C), there's no reason to store it.
+		% Secondly, it's not too bad to cheaply invent a table that does marginalize out properly to all 3, if they're consistent, 
+		% thought this would be asserting something of the flavour of independence between L and S,C----this is the thing that 
+		% someone who uses BNs right now would do. Why not do it? Partly because you're asserting something about independence but
+		% people who use BNs have already made peace with this. Another reason: it's a lot bigger.
+		%				\footnote{If \textit{Size} and \textit{Composition} each had $\approx\sqrt{N}$ elements, and \textit{Water} had $\approx N$ elements, it would be $O(N^2)$ to store a full joint table, compared to $O(N)$ for the two individual ones.} %At this point the Bayesian Network is not at all a convenient way of storing the information at hand.
+		
+		%oli1: using the word astrobiologist multiple times is space consuming. by using 1st person plural, it's shorter because we can unambiguously use pronouns, and avoid gender. Is using 1st person plural (or 2nd person singular) like I did in example 1, taboo?
+		%joe2: You've got two agents.  I'm not a big fan of ``we'' as a way of
+		%avoiding gender, but in any case, since you are referring to the
+		%astrobiologist in the third person, you would have to use ``they''
+		%(which strikes me as exceeingly strange).  
+		%oli2: not a big deal but originally the astrobiologists were first
+		%person plural, which is why I asked.
+		%joe3: No; it's third person plural                  
+		Now suppose that the astrobiologist is reminded by a biologist that life
+		requires water, and is given probabilities (which she views as
+		reliable) for the existence of life on a planet, with and 
+		without water. Of course, we would now like to incorporate this
+		information in the representation.  The first step is clearly to add a
+		new node labeled $W$, for ``water''.  But if we make $W$ a parent of
+		$L$ (as clearly seems appropriate, given that life depends on water), we
+		will have a problem representing this information using a BN, since 
+		we cannot construct the cpt that we would need to associate with $L$;
+		we do not know the probability of life given all setting of the
+		variables  $S$, $C$, and $W$.
+		
+		
+		%joe1*: Oliver, this is bad.  The only difference between this picture
+		%and the one above is the hyperedge between S and C, which you barely
+		%mention in passing and don't explain at all.  We should either cut
+		%this, or explain the issue.  The key point is the issue is not the
+		%new edge from W to L; we've already explained that.  It's the fact
+		%that the two separate edges from S to C are not right.  This is also
+		%an issue in Example 3.  You could tell a story somewhat along the
+		%lines of ``The PDG given in Figure 2 is actually not the best
+		%representation of our beliefs.  The problem is that we actually have
+		%beliefs about L conditional on both S and C; the PDG above would
+		%require us to associate with the edge from S to L only the
+		%probability of L given S, and similarly from the edge from S to L.
+		%For now, the we capture the joint dependency is by using a
+		%\emph{hyperedge}, as shown in Figure 3 [put in your figure here].
+		%And keep going from there.  You could perhaps cute Eample 3
+		%altogether, since it seems that this discussion would subsume it.
+		%oli1: ah, you're right. I will fix---but I do think the rewrite made the problem worse, as before the diagram above was clearly a conditional BN, and we haven't shown what the PDG looks like yet (and there's no precedent to think they're the same because the one in example 1 looks very different from the BN counterpart).
+		%oli1: as for example3: there is one additional independence. The tables alone uniquely determine a distribution here, but there are still many in example3 because of the correlations. This example has the benefit of also showing the under-constrained representation and being smaller. I think for now I'll describe more here and dramatically reduce example3. 
+		
+		
+		%joe2: We can't ``keep'' the joint dependence; the point is that the
+		%previous graph did not capture the joint dependence.  You have to
+		%explain that carefully.  Slow down and tell a story!    You're still
+		%not doing that.   I rewrote it.
+		%oli2: We ``keep'' it in the sense that we had it in the BN before we 
+		% started trying to add things and mess with the information. As far as 
+		% the story goes, we still know about that table.
+		%oli2: I also don't know why my version doesn't count as a story. If anything,
+		% I've given intuition and pointed unambiguously to the issue without
+		% being overly  
+		% technical. The paragraph you wrote is
+		% technically very clear, but I find it hard to parse, and I start to get lost
+		% due to the repeated symbols and short words. I can
+		% see why this could be considered better but I don't understand the story
+		% analogy here at all. 
+		%oli2: My experience explaining this concept suggests that, drawing
+		%the hyper-edge alone  
+		% is enough to get people to immediately see why it is necessary and
+		% what it represents. 
+		%		Of course, we also want to keep the joint dependence
+		%                on both $S$ and $C$ together; the graph in
+		%                \Cref{fig:planet-initial} is not the right way to do
+		%                this in a \MN.
+		%joe3: Why don't you ask a friend to read both version and see what
+		%they say.
+		We can avoid these problems if we represent the situation using a
+		PDG.  Adding a node from $W$ to $L$ in a PDG does not require us to
+		give the probability of $L$ conditional on $S$, $C$, and $W$. That
+		said, the graph is Figure~\ref{fig:planet-initial} (with the node $W$
+		added) is not a correct representation of the situation as a PDG. 
+		
+		The problem is that, in a PDG, the edges from $S$ to $L$ and from $C$ to
+		$L$ would require us to give only the probability of $L$ conditional
+		on $S$ and the probability of $S$ conditional on $C$.  We want to
+		indicate that $L$ actually depends jointly on $S$ and $C$.
+		To distinguish the joint dependence on
+		%joe2: back to your story, except that I want to suggest that this is a
+		%temporary fix.
+		%$S,C$ from our separate dependence on $W$, we draw an
+		$S$ and $C$ from the separate dependence on $W$, for now, we draw an
+		edge with two tails, sometimes called a
+		%joe2
+		\emph{hyperedge}. The resulting \MN\ is shown in
+		\Cref{fig:plannet-pdg}. 
+		
+		\begin{figure}
+			\centering
+			\scalebox{0.9}{
+				\begin{tikzpicture}
+				\node[dpadded] (S) at (0.2, 1.4) {$S$};
+				\node[dpadded] (C) at (2.4, 1.4) {$C$};
+				\node[dpadded] (L) at (1.3,0) {$L$};
+				\node[dpadded] (W) at (-1,0) {$W$};
+				% \cmergearr{S}{C}{L}{1.3,0.95}
+				\draw[arr] (W) -- (L);
+				\end{tikzpicture}}	
+			\caption{the \MN\ for \Cref{ex:planet}}
+			\label{fig:plannet-pdg}
+		\end{figure}
+		
+		%joe2: The first sentence isn't saying anything new, I don't know what
+		%you mean when you talk about combining beliefs in the next sentence.
+		%oli2: I accept the cut, but this seems like an unfair criticism given that the reason it's not new is because of the new text you just wrote above it.
+		%oli2: Relatedly, perhaps one point of miscommunication is
+		%that you explain figures beforehand, and I have a habit of
+		%introducing a figure, and then explaining it in the paragraph
+		%that follows?
+		%joe3: maybe, although I think there's more to it ...                
+		% The two edges in \Cref{fig:plannet-pdg} correspond to the two
+		%conditional distributions we have on $L$: one from $S \times C$ and
+		%%the other from $W$. We can now combine our two beliefs, without also
+		%providing information about the correlations between $W$ and $S\times C$.
+		As with the previous example, there is now a possibility of being
+		inconsistent, in the sense that there exist cpts for the two edges
+		that are not compatible with any joint distribution---for instance, if
+		all estimates of $L$ from the $W$ are strictly smaller than any
+		probability estimate of $L$ from $S \times C$. 
+		%	
+	\end{example}
+
 
 
 
@@ -1745,8 +1659,9 @@ Our third approach chooses a particular distribution from the weighted set of di
 %independence assumptions.  I think that thi muddies the waters.
 %oli3: I don't see why what you wrote above would be problematic for the  bit that I have... indeed, PDGs have no assumptions.  
 	% If we think of a \MN\ as BN except without independence assumptions, then just as a BN represents a single distribution on joint settings of its variables, a \MN\ might be thought of as representing the  \emph{set of all distributions} that are compatible with the given tables, with or without the independence assumptions.
-        
-	As the data of \MN\ consists of a number of cpds, one could consider the number of  . 
+	% If we had a (quantitative) BN is of a DAG $G$ labeled by variables, and a assingment $f$ of cpts to variables, we could obtain a qualitative one by simply looking at the graph structure, which corresponds to a collection of independence assumptions. There is then a set of all distributions that have those indepies. Alternatively, we could just take the assignments $f$ at the nodes. 
+		
+	% As the data of \MN\ consists of a collection of cpts, the natural thing to do . 
 
 	\begin{defn} \label{def:set-semantics} %oli2: made words better. 
 		If $\sfM\sheq\mnvars[]$ is a \MN, let $\bbr\sfM\SD$ be
@@ -1820,9 +1735,12 @@ measures $p'$ on $\V(X) \times \V(Y)$ such that $p'(X\mid Y) =
 p(X\mid Y)$ (i.e.,  $p'(X = x \mid Y=y) = p(X=x \mid Y=y)$).
 %joe3*: A technical question which you need to address: what happens
 %if p(Y=y) = 0, so that the conditional is undefined.  This is
-%something you need to address in general.  MOving up  a level, this
+%something you need to address in general.  
+%oli3: Any distribution with p'(x) = 0 verything matches in this case. I guess I put this in the set of distributions section?
+%joe3: Moving up  a level, this
 %is not a terribly insightful example.  It might be useful to consider
 %the examples in the intro.
+%oli3: With these modifications, the example is indeed vacuous. But if you look inside the construction it's just a single quantifier alternation away from being litterally the definition of p. I don't know why you chose to modify it this way. 
 %		 since $\mu(\cdot\mid a)$ is the same for all $\mu \in S$ (and unique since it's the only commonality).
 		% With the standard tool (a conditional Bayesian Network), this is usually achieved in a less flexible manner: by explicitly separating out the ``observed'' nodes at the beginning of the construction. 
 %		
@@ -2773,8 +2691,10 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	\begin{theorem}[restate=thmbnsRpdgs]\label{thm:bns-are-pdgs}
 		If $\cal B$ is a Bayesian Network, and $\Gamma(\mathcal B)$ is the conversion to a \MN\ as described at the end of \Cref{sec:formal+syntax} (the fully formalized version is in \Cref{def:bnconvert-formal}), then $\bbr{\Gamma(\mathcal B)}\MaxEnt = \Pr_{\cal B}$.
 	\end{theorem}
+	\begin{proof}
+	Consdier
+	\end{proof}
 
-	\Cref{thm:bns-are-pdgs} asserts that a Bayesian Network, interpreted as a \MN, represents the same probability distribution.
 	
 	% d-separation? I don't have a lot to say but it the specialness of the ``colider'' or head-to-head nodes in determining connectedness  is related to the difference in interpretations I think.
 

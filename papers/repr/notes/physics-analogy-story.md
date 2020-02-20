@@ -29,7 +29,8 @@ ENERGY
 		if  M : PDG  and  Q : OtherModel both determine a distribution p,  		(M, Q ⊧ p )
 			then G_M and G_Q are the same free energies, up to a constant. ( □ )
 	
-		Proved: E ∘ P = Id + C (integrate!)			P ∘ E = Id (differentiate?)
+		Proved: E ∘ P = Id + C (integrate!)
+		P ∘ E = Id (differentiate?)
 	
 	Previous work writes average internal energy of the system as 
 		<U> = 𝔼_ν E(μ) =  ∑ ν(w) E_{ ∏ ϕ(w) } = ∑ ν(w)/β  ln ( 1 / Z μ )
@@ -49,4 +50,4 @@ ENERGY
 	WTS this is not expressible as an inconssitency of 
 
 
-Rhetorical Question: Why use conditional representations? They're not distributions. We can also get a distribution 
+Rhetorical Question: Why use conditional representations? They're not distributions. We can also get a distribution
