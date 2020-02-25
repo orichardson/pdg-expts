@@ -1,0 +1,174 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{nicefrac}
+
+\setlength{\skip\footins}{1cm}
+\setlength{\footnotesep}{0.4cm}
+
+\def\nf{\nicefrac}
+\usepackage[margin=1in]{geometry}
+\usepackage[backend=biber,
+	style=authoryear,%alphabetic
+%	citestyle=authoryear,
+%	natbib=true,
+	maxcitenames=1,
+	url=true, 
+	doi=true]{biblatex}
+	
+
+\input{../papers/model-commands.tex}
+
+\begin{document}
+	\section{Counter-Example to MaxEnt=BN}
+	
+	\begin{example}\label{ex:counterexample}
+		Consider the Bayesian network 
+		\begin{tikzcd}[cramped, sep=small]
+			A \ar[r] & C & B \ar[l]
+	 	\end{tikzcd}
+		where $A$ and $B$ are binary, and $C$ can take $2^k$ values, including $c_0$. We now give the associated tables: both $A$ and $B$ get prior unconditional probabilities of $\nf12$ apiece, and set $C$'s cpt to be
+		\[
+			\begin{idxmat}{{$a$,$b$},{$\bar a$, $b$},{$a$, $\bar b$},{$\bar a$, $\bar b$}}{$\Delta C$}
+				\mathit{Uniform} \\ \delta_{c,c_0 }\\ \delta_{c,c_0} \\ \mathit{Uniform} \\
+			\end{idxmat}
+		\]
+		where $\delta_{c,c_0}$ is the degenerate distribution that puts all mass on $c_0$. Looking at entropy, the uniform distribution on $C$ gets $k$ bits, and each of $A$ and $B$ we know each give one bit. 
+		The semantics of a BN require that $A$ and $B$ are independent, since neither is a descendent of the other and neither has parents.  However, doing so results in a distribution of entropy $H(p) = 2 + k/2$ (one for each of the independent bits, and an expected k/2 bits from getting the uniform distribution on $C$ half the time), whereas if we correlate $A$ and $B$ so that they are always equal, we get $1 + k$ bits, one total bit from $A$ and $B$, and $k$ from $C | A,B$. For any finite $k$, this is still not the maximum entropy distribution, but it is much higher entropy than the one the BN suggests.
+		
+		Therefore the maximum entropy distribution consistent with the tables does not encode the independece assumption that a BN does. 
+	\end{example}
+	
+	
+	
+	\subsection*{On my earlier ``proof''.} 
+	I can't be sure exactly what happened because I lost the original scrap of notes, but I strongly suspect that it had to do with conflating random variables under different distributions. The reason this was confusing is because the definition of conditional entropy $\H(Y \mid X)$ does not just depend on the probability table $\Pr(Y\mid X)$, but also on the probability of $X$ itself:
+	\[ \H(Y \mid X) = \E_{X}~ \H(Y \mid X \!=\! x) \] 
+	The standard notation, which uses a single letter (in this case $X$) for a random variable, masks the obvious difference between $\E_{x \sim p(X)}$ and $\E_{x \sim q(X)}$ for the same random variable. 
+	
+	The fact that the proof is so trivial if you make this substitution suggests that altering the objective so that this quantity effectively depends only on the table itself would be enough.
+	
+	\subsection*{A sense in which maxent distribution is desirable.}
+	The maximum entropy distribution, while not the one specified by the BN, is still worth thinking about: perhaps the fact that you get so much more information from $C$ should give you pause about your assumption that $A$ and $B$ are independent --- maybe the fact that when they take different values, you get so much more information about the world should suggest that maybe you shouldn't be so sure they're independent. 
+	
+	Not selecting the distribution of maximum entropy will result in a much more expensive (in terms of relative entropy) update.
+	
+	% For example, 
+	% suppose that here that $A$ and $B$ are whether or not it's raining and windy, respectively, and $C$ represents the location of a tarp. Suppose that if there's exactly one of rain or wind, you know exactly the where the tarp will end up; otherwise, it could be anywhere. As the number of places that a tarp could end up increase, one might be tempted to think that rain and wind are not independent 
+	
+	\section{When \emph{does} BN=MaxEnt work anyway?} \label{sec:cases-works}
+	It \emph{is} true that the maximum entropy distribution consistent with the proability tables of a BN in certain specific cases: 
+	
+	\begin{itemize}[itemsep=-0.1em]
+		\item[$-$] A (Markov) chain
+		\item[$-$] More generally: rooted trees, i.e., graphs without merges.
+		\item[$-$] Disconnected graphs where the claim holds for each sub-component
+		\item[$\boldsymbol\ast$] \textit{Any BN where a choice not encoded by a table does not affect the entropy of the resulting network.}
+	\end{itemize}
+	
+	Interestingly, since PDGs defined without hyper-graphs do not have ``merges'', every path composition in a PDG turns out to be achieved by the maximum entropy distribution consistent with it. Therefore, as a particular case of  
+	$(\boldsymbol\ast)$, we have:
+	
+	\begin{itemize}[nosep]
+		\item[$-$] Any BN in whose corresopnding PDG every path extends to a path from $\sf 1$.
+	\end{itemize}
+
+	To see why normal BN merges fail to work as desired, it is enough to consider the PDG for the example above, in which the new extra node does not have a path from $\sf 1$ and therefore has an extra degree of freedom:
+
+	\begin{center}
+		\scalebox{1}{
+			\begin{tikzpicture}
+				\node[dpadded] (1) at (-6.5, 0) {$\sf 1$};
+				\node[dpadded] (C) at (-1.0,0) {$C$};
+				
+				\node[dpadded,light pad] (AB) at (-2.9, 0){$\scriptsize A \times B$};
+				\node[dpadded] (B) at (-4.8, -0.6) {$B$};
+				\node[dpadded] (A) at (-4.8, 0.6) {$A$};
+				
+		%				\node[dpadded, dashed,color=violet] (X) at (6.5,0) {$X$};
+		%				\draw[arr, color=violet] (X) -- (S);
+		%				\draw[arr, color=violet] (X) -- (C);
+		%				\draw[arr, dashed, color=violet] (X) -- (SC);
+				
+				\draw[arr] (1) -- (A);
+				\draw[arr] (1) -- (B);
+				\draw[arr, ->>] (AB) -- (B);
+				\draw[arr, ->>] (AB) -- (A);
+				\draw[arr] (AB) -- (C);
+		\end{tikzpicture}}
+	\end{center}
+	\moveme{Not exactly related, but I've been meaning to point out for a while that this expansion can be viewed as the reason d-separation has a special case for paths with ``colliders'': $A \times B$ is specifically constructed to be the unique parent that never shares information between $A$ and $B$}
+		
+	\section{How to recover BN semantics without cheating.}
+	
+	\subsection{Existing Approaches}
+	\subsubsection\
+	There's a 2000 Jon Williamson paper%
+	\footnote{\url{https://blogs.kent.ac.uk/jonw/files/2015/04/foundations2000.pdf}}
+	that makes a claim to maximum entropy given some causal information; on page 105, he outlines what he calls \emph{the principle of causal irrelevance}, which is needed in addition to the tables to get entropy. Specifically, given a BN $\cal B$ with variables $\{C_i\}_i$, extending it with additional variables $\{D_j\}_j$, which depend on $C$'s but where $C$'s do not depend on $D$'s, the restriction of the total distribution to the original BN should be the same. 
+	
+	This plus the probabilistic information and maximum entropy are enough to recover BN semantics.
+	
+	\subsubsection\
+	There is also a related (but less clearly so) maximum-entropy formulation of factor graphs (which in particular includes BNs), that says that the distribution that maximizes entropy given mean paramters is exactly the one represented by the factorization. I'm not sure exactly how the mean paramters work out for BNs, and I still can't find any existing work that does this with the conditional distributions specifically in mind.
+	
+	\textbf{My Thoughts.}
+	This is pretty clearly enough to get around the problem in section 1. However, it is still a stronger extra assumption than required: all of the cases in \cref{sec:cases-works} are covered by maximum entropy alone, without this extra assumption that brings in a lot of causal information.
+
+	
+	\subsection{Information in Constraints}
+	From another perspective, the reason that maximum entropy fails to give the correct distribution is that the cpts themselves could effectively carry different amounts of information depending on the realized values of the variables. 
+	
+	% This can be seen from two perspectives:
+	% 
+	% If $X$ takes $x_0$ with probability zero, and has a child variable $Y$, then the row in $Y$ corresponding to $x_0$ is just counter-factual information.
+	% 
+	% Just as in the BN=MaxEnt counter-example, if the cpt of $Y$ given $X$ is  
+	
+	% The bullet $(\boldsymbol\ast)$ in \cref{sec:cases-works} suggests that if we 
+	% 
+	This suggests the strategy of maximizing 
+	\[ \H (p) - \E_{x \sim p} \sum_{L \in \mathcal L}  \H(\boldsymbol\mu_L \mid x)   \]
+	where $\H(\boldsymbol\mu_L \mid x) := \H(p_Y \mid X = x)$ is the conditional entropy of $Y$ for the constraints. 
+	
+	The motto then becomes, 
+	
+	\begin{quote}
+	\textit{Select the distribution with the most inforamtion in it, beyond the (actualized) information already provided in the cpts.}	
+	\end{quote}
+	
+	I think this is actually quite a convincing story of the same flavor as the original. We're still not providing any causal information, but merely correcting for the information we already have. 
+	
+	\begin{example}[continues=ex:counterexample]
+		The set of all distributions consistent with the tables in \cref{ex:counterexample} is naturally parameterized by $p$, the probability that $A = B$. In particular, it determines the joint distribution on $A,B$ to be
+		\[ \mu_{AB}^{p} = \begin{idxmat}{$a$,$\bar a$}{$b$,  ~~~$\bar b$}
+				\nf p 2 & \frac{(1-p)}{2} \\
+				\frac {(1-p)}{2} & \nf p 2\\
+			\end{idxmat}
+		\]
+		The distribution $\mu^{p}$ with this joint on $A, B$ is uniquely determined by this joint distribution and the cpt on $C$. In particular, we have 
+		
+		\[ \H(\mu^{p}) = \underbrace{\H\left(\mu^{p}_{A,B}\right)}_{\text{want this maximized}} + \underbrace{\H\left(\mu^{p}_{C }\mid A,B\right)}_{\text{independent of cost here}}
+		 	= p \log \nf1p + (1-p) \log \nf1{1-p} + pk\]
+			
+		At the same time, the information already given in the tables is:
+		\[ \E_{\mu^{p}} [ \H(\boldsymbol\mu_{C\mid A,B}) + \H(\boldsymbol\mu_{A}) + \H(\boldsymbol\mu_{B}) ]
+		 = pk + 1 + 1 \]
+		 
+		 The difference between these two quantites, is 
+		 \[ \H(\mu_{AB}^{p}) - \H(\mu^{p}_A) - \H(\mu^{p}_B) = I(\mu^p_A ; \mu^p_B) \]
+		 That is, the negative mutual information between $A$ and $B$, which is maximized when $A$ and $B$ are independent.
+	\end{example}
+	
+	In general, this quantity may not be recognizable as a mutual information.	
+	
+	\subsection{As a Free Energy}
+	Strangely enough, this is an even more obvious free energy formulation: we're litterally minimizing the difference between the average information and . The corresponding ``temperature'' controls the scaling between this formulation and the previous, broken one. I should look into this more carefully in the future, as in particular, 
+	
+	\subsection{An Algebra for Merge Fixing}
+	A totally different way to get around the problem is to design a semantics that always ``fixes'' by recursively taking the distribution of maximum entropy before any merge. This will also work, and exposes an algebra with a union and idempotent selection operator (maxmum entropy) that illustrates some facts about the diagrams in a neat way. 
+	
+	Explaining this approach requires more diagrams and I will write a separate document detailing this if you are interested in seeing more.
+	
+\end{document}
