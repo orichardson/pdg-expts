@@ -68,6 +68,7 @@
 \excludecomment{fulldefn}
 
 \pagestyle{plain}
+\specialcomment{revising}{\begingroup\color{red}}{\endgroup}
 
 %BEGIN_FOLD
 \definecolor{notationcolor}{rgb}{0.9,0.9,.9} % purple
@@ -210,8 +211,9 @@
 
 In this paper we introduce yet another graphical for modeling beliefs, \emph{Probabilistic Dependency Graphs} (PDGs). There are already many such models in the literature, notably including Bayesian networks (BNs), factor graphs, but also many others \parencite[For an overview, see][]{koller2009probabilistic}. Why does the world need one more?
 
-Our original motivation for introducing PDGs was to be able to capture inconsistency. While inconsistency is clearly not something we endorse, we wanted to be able to model the process of resolving it; to do so, we had to model the inconsistency itself. But our approach to modeling inconsistency has many other advantages.
-In particular, \MN s are significantly more modular than other directed graphical models: they can be easily restricted or combined in ways that are problematic for other models.
+Our original motivation for introducing \MNs\ was to be able capture inconsistency. While we do not endorse inconsistency, we wanted to be able to model the process of resolving it; to do so, we had to model the inconsistency itself. But our approach to modeling inconsistency has many other advantages.
+Most importantly, \MN s are significantly more modular than other directed graphical models: they can be readily restricted and combined in ways that cause problems for other representations. 
+We start with some examples to motivate \MNs\ and display some of these properties.
 %joe3*: I don't know ho	w we modify the graph without changing it's
 %informational content.  That doesn't make sense to me.  I also don't
 %now what it means to add information ``efficiently''
@@ -313,13 +315,13 @@ In particular, \MN s are significantly more modular than other directed graphica
 %        something with global structure. 
 %
 %	We start by giving some examples that motivate PDGs and display some of their advantages over Bayesian Networks in particular.
-We start with some examples to motivate \MNs\ and display some
+% We start with some examples to motivate \MNs\ and display some
 %joe3: it's OK to recap some advantages at the ed, but many of the
 %ones on your list are ones we won't get to in the paper.
 %oli3: Don't you think it's useful to list the things we're able to do that couldn't go in the paper? In any case, this section will be modified accordingly; what's there will be what we want to give them.
 %        of these advantages; those looking for a more comprehensive
         %        list can skip to \Cref{sec:list-of-benefits}.
-of these advantages.
+% of these advantages.
 %	We use the rest of the section to give some of examples focusing on the benefits of this improved modularity, motivate the design of agents that might , and highlight the failure of Bayesian Networks to capture what we have in mind (we compare to other graphical models in \Cref{sec:other-graphical-models,sec:many-relations-graphical-models}). \MNs\ have other desirable features as well; for a complete list, see \Cref{sec:list-of-benefits}.
 	
 	\begin{example}[the simplest inconsistency]
@@ -444,8 +446,8 @@ of these advantages.
 	\end{example}
 
 	%oli3:
-	A BN compactly represents distribution by assuming that every node is independent of its non-descendants given its parents. A choice not to make such assumptions can be cast in either a postive or negative light. 
-	On one hand, eliminating unfounded assumptions is important, and independences in particular are notoriously difficult to demonstrate emperically: there is always a possibility of unobserved confounders. On the other hand, conditional independences are valuable, and as \textcite{pearl2014probabilistic} has argued forcefully, omnipresent.
+	\Cref{ex:guns-and-floomps} suggests that there is something to be gained by avoiding the independence assumptions enforced by BN (that every node is independent of its non-descendants given its parents). After all, independences are notoriously difficult to demonstrate emperically and unobserved confounders cannot be eliminated.
+	Still, conditional independences are useful, and as \textcite{pearl2014probabilistic} has argued forcefully, omnipresent.
 	%: in $\chi^2$ test for instance, independence is the null hypothesis.	 
 	It seems that \MNs\ have lost this key benefit of BNs.  As we shall see, this is not the case.  
 	
@@ -650,7 +652,7 @@ of these advantages.
 		We start with (1). We should not simply add the edges $S \to C$ and $SH \to C$ that are present in $\cal B$, because, as we saw in \Cref{ex:guns-and-floomps}, this would mean supplying two \emph{separate} tables, one indicating the probability of $C$ given $S$, and the other indicating the probability of $C$ given $\mathit{SH}$. Though we could get both tables by marginalizing, doing so would lose an important correlation that is present in $\cal B$.  
 		To distinguish the joint dependence on $S$ and $\mathit{SH}$, for now, we draw an edge with two tails, sometimes called a \emph{hyperedge}, which completes the diagram in \Cref{subfig:smoking-pdg}.
 
-		We now return to the issue of independence (2). There are many distributions consistent with the conditional marginal probabilities in the cpts, and the independences presumed by $\cal B$ need not hold for them. Rather than encoding this into the diagram, we develop a maximum-entropy semantics for \MNs\ in general, which allows us to (temporarily) view the \MN\ $\Gamma(\mathcal B)$ as representing the unique distrubion that maximizes entropy, among all those consistent with the marginals. In \Cref{thm:bns-are-pdgs}, we will show that this distribution is the same as the one specified by $\cal B$.
+		We now return to the issue of independence (2). There are many distributions consistent with the conditional marginal probabilities in the cpts, and the independences presumed by $\cal B$ need not hold for them. Rather than encoding the extra probabilistic information as cpts, we develop a maximum-entropy semantics for \MNs\, which allows us to (temporarily) view the \MN\ $\Gamma(\mathcal B)$ as representing the distribution which provides the \emph{least additional information} beyond the information already contained in the cpts, among all those consistent with them. In \Cref{thm:bns-are-pdgs}, we will show that this distribution is the same as the one specified by $\cal B$.
 
 %oli1: I added the following sentence, but I'm not
                 %sure how worried people will be and the current plan
@@ -668,15 +670,15 @@ of these advantages.
 		Suppose we read a thorough empirical study which demonstrates that people who use tanning beds have a 10\% incidence of cancer, compared with 1\% in the control (call the cpt for this $\mat p$), and would like to add this information to $\cal B$. 
 		The first step is clearly to add a new node labeled $T$, for ``tanning bed use''.  But simply making $T$ a parent of $C$ (as clearly seems appropriate, given the incidence of cancer depends on tanning bed use), requires a substantial expansion of the cpt, and, in particular, requires us to guess at the interactions between tanning beds and smoking. 
 		
-		%FOR_LATER.
-		\moveme{
-			In some sense, the only reasonable guess is that . So why put it here?	 }
+		%TODO
+		% \moveme{
+		% 	In some sense, the only reasonable guess is that . So why put it here?	 }
 		
 		The corresponding \MN\, $\Gamma(\mathcal B)$, on the other hand, has no trouble:
 		We can simply add the node $T$ with an edge to $C$ that is associated with $\mat p$. 
 		
-		It is now technically possible for our knowledge to be inconsistent. For instance, if the distribution on $C$ given $S,H$ by its original cpt were always deterministically ``has cancer'' for every possible value of $S$ and $H$, but the distribution according to the new cpt from $T$ were deterministically ``no caner''. 
-		For this example, such a selection of cpts seems like an implausible edge case; we conclude that the additonal modularity we gain from a \MN\ is useful even when there is no inconsistency.
+		It is now technically possible for our knowledge to be inconsistent. For instance, if the distribution on $C$ given $S,H$ by its original cpt were always deterministically ``has cancer'' for every possible value of $S$ and $H$, but the distribution according to the new cpt from $T$ were deterministically ``no cancer''. 
+		In this particular case, such a selection of cpts seems like an implausible edge case; we conclude that the additonal modularity we gain from a \MN\ is useful even when there is no inconsistency.
 
                 %		\begin{center}
 %			\scalebox{0.9}{
@@ -722,7 +724,7 @@ of these advantages.
 		Because they make no independence assumptions, the information in this fragment is truly a subset of the information in the whole \MN. 		
 	\end{example}
 	
-	Being able to restrict your knowledge and look at a local picture may be a nice property, but a much more compelling reason to \MNs\ is the ability to combine knowledge from various parts.
+	Being able to restrict your knowledge and look at a local picture may be a nice property, but a much more compelling reason to \MNs\ is their ability to aggregate knowledge from different places on a single map.
 	
 	\begin{example}[union and implications]\label{ex:grok-union}
 		Grok dreams of becoming Supreme Leader ($\it SL$), and has come up with a plan. She has noticed that people who use tanning beds have significantly more power and than those who don't. Unfortuantely, her mom has always told her that tanning beds causes cancer: in particular, that 15\% of people who use tanning beds get it, compared to the baseline 2\%. Let $\mat q$ be the cpt associated to this beleif. 
@@ -802,8 +804,8 @@ of these advantages.
 
 
 These examples give a taste of the power of \MNs.  In the coming
-sections, we formalize \MNs and relate them to other approaches.		
-
+sections, we formalize \MNs\ and relate them to other approaches.		
+% \begin{notfocus}
 %	\begin{enumerate}[nosep]
 %		\item This representation more naturally matches what humans are aware of, encoding small locally consistent models rather than one giant probability distribution
 %		\item It is a strictly more general representation--- we can easily convert BNs to these diagrams (section \ref{sec:convert2bn})
@@ -822,10 +824,10 @@ sections, we formalize \MNs and relate them to other approaches.
 	
 	\section{FORMALISM AND SYNTAX}\label{sec:formal+syntax}
 	
-	Having seen some examples, \MNs; we now provide the formal definitions.
-	Although it is possible to formalize the hyperedges directly, we opt for a different approach here, in which they are actually a shorthand for a small widget which is only possible in MNs.
-	Before we explain the weidget, we start with the definition of a \MN.%
-		\footnote{Although we call the objects in \cref{def:model} \MNs, they are a specific case of a very similar, but more general representation for which we want to reseve the name; to reduce confusion for future readers, these are technically \emph{strict} \MNs.}
+	Having seen some examples of \MNs, we now provide the formal definitions.\footnotemark
+	Although it is possible to formalize the hyperedges directly, we opt for a different approach here, in which they are actually a shorthand for a small widget with an extra node. 
+	The following definition therefore only contains ordinary edges with a single head and tail.%
+		\footnotetext{Although we call the objects in \cref{def:model} \MNs, they are a specific case of a very similar, but more general representation for which we want to reseve the name; to reduce confusion for future readers, these are technically \emph{strict} \MNs.}
 		%this second one is only in the vfull comment.
 		\vfullfootnote{In the factor graph literature, especially with regard to loopy belief propagation \parencite{wainwright2007graphical}, it is common to call a collection of marginals that are not necessarily all compatible with a distribution \emph{pseudomarginals}, making a \MN\ in some sense a collection of `conditional' pseudomarginals. This gives an alternate, more technically precise expansion of \MN\ as ``Pseudomarginal Dependency Graph''.}
 
@@ -976,8 +978,8 @@ sections, we formalize \MNs and relate them to other approaches.
 
 		\end{itemize}
 	\end{defn}
-	If $\sfM$ is a \MN, we will reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly. When the choice of $\sfM$ is clear we may omit the subscript.
-	We will also write $\V(\sfM)$ for the set of all possible joint settings of the variables in $\sfM$. 
+	If $\sfM$ is a \MN, we reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly; when the choice of $\sfM$ is clear we may omit the subscript.
+	We write $\V(\sfM)$ for set of all possible joint settings of the variables in $\sfM$. 
 
 	While the definition above is sufficient to represent the class of all legal \MNs,
 	we often use two additional bits of syntax to represent common constraints:  
@@ -1000,7 +1002,7 @@ sections, we formalize \MNs and relate them to other approaches.
 			\end{center}
 		\end{examplex}
 		\end{vfull}
-		\item Double-headed arrows $A \doubleheadrightarrow B$ indicating the degenerate special case of a cpt corresponding to a deterministic function $f : A \to B$, the distribution assigning a point mass to $f(a)$ for each $a \in A$.
+		\item Double-headed arrows, $A \doubleheadrightarrow B$, which visually indicate the degenerate special case of a cpt that assigns all of its mass to $f(a)$ for each $a \in A$ (corresponding to a deterministic function $f : A \to B$)
 	\end{itemize}
 
 
@@ -1259,15 +1261,11 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %who said above you'd never heard of sets of probability measures as a
 %representation of uncertainty.  you can't have it both ways ...
 		\todo{}
-      %	Even if it is now intuitive how \MNs\ can be used to represent
-%beliefs, by providing them with semantics---that is, by viewing them
+      %	Even if it is now intuitive how \MNs\ can be used to represent beliefs, by providing them with semantics---that is, by viewing them in terms of standard, well-established notions of uncertainty---we will be able to better articulate the relationships between \MNs\ and other graphical models.
 %joe3*: I strongly object to this.  It's like saying that we give
 %semantics to Python so that we can compare it to C++..  That's not
 %the primary motivation!  We give semantics so that the objects we use
 %(PDGs) have a clear and unambiguous meaning (or more than one such).
-        %in terms of standard, well-established notions of uncertainty---we
-%will be able to better articulate the relationships between \MNs\ and
-%other graphical models.  
 	%oli2: I originally had adopted your phrase "There is more than one way to do this", but decided that this is misleading: for a given target (distributions, sets of distributions, etc.), we only provide one, and indeed think that our constructions are natural. 
 %joe3: I strongly disagee with the next sentence.  Does that mean that
 %if we had decided that we wanted PDGs to represent a single
@@ -1357,7 +1355,7 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %oli4: there are labels on edges again 
           That is, $p \in \bbr\sfM\SD$ iff, for all edges $(X,Y, \ell) \in
           \Ed$,  $x \in \V(X)$,  and $y \in \V(Y)$, we have that
-          $p(Y\sheq y \mid X\sheq x)$ is the $xy$ entry in the cpt given by
+          $p(Y\sheq y \mid X\sheq x)$ is the $x,y$ entry in the cpt given by
           $\bmu_{X,Y}$.
 %oli4: I don't understand how this easier to read than my definition below, and and it's way less visually distinct and intentionally typeset. But I'll keep it.    
 		\notation{Formally,		
@@ -1390,7 +1388,7 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 
         %joe3*: Sigh ... cut; soe more detailed reasons inline
         %oli3: oops, I omitted two letters which made it very wrong.
-\begin{comment}
+	\begin{revising}
 	\note{\emph{This is partly to answer your question; I am prepared to cut it from the abstract. I find it a useful illustration, and at least one of my examples later on uses this terminology.}
 
 	Note that being inconsistent is not the same things as \emph{over-constrained}: 	
@@ -1519,7 +1517,7 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 % will have a lot of intuitions about convexity. If we want to give them 
 % intuitions about what we're doing, this seems worth saying.
 	It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
-\end{comment}
+\end{revising}
 	\begin{lemma}[restate=thmsetconvex] 
 		\label{prop:convex}
 		$\bbr{\sfM}\SD$ is convex, for any \MN\ $\sfM$.

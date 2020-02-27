@@ -1,0 +1,160 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{nicefrac}
+
+\setlength{\skip\footins}{1cm}
+\setlength{\footnotesep}{0.4cm}
+
+\def\nf{\nicefrac}
+\usepackage[margin=1in]{geometry}
+\usepackage[backend=biber,
+	style=authoryear,%alphabetic
+%	citestyle=authoryear,
+%	natbib=true,
+	maxcitenames=1,
+	url=true, 
+	doi=true]{biblatex}
+
+
+
+\input{../papers/model-commands.tex}
+\definecolor{inactive}{gray}{0.8}
+
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal E}
+\newcommand{\sfM}{\mathsf M}
+\def\mnvars[#1]{(\N#1, \Ed#1, \V#1, \bmu#1)}
+\def\Pa{\mathbf{Pa}}
+\newcommand\SD{_{\text{sd}}}
+
+\def\extrainfo{extra information}
+
+\begin{document}
+We now start the process of showing that BNs can be captured by PDGs. 
+For brevity, we use the standard notation and write $p(x, y)$ instead of $p(X \!=\! x, Y \!=\! y)$, $p(x \mid y)$ instead of $p(X \!=\! x\mid Y \!=\! y)$, and so forth.%
+	\footnote{Contrary to common assertion, this is \emph{not} an abuse of notation so long as $\mathcal V(X) \cap \mathcal V(Y) = \emptyset$, which is always possible by simply tagging values with type information, by $x \mapsto (x, X)$, for instance.}   
+When we say a distribution $p$ ``satisfies the constraints given by a PDG $\sf M$'', we mean that for every edge from $X$ to $Y$ in $\sf M$, associated to the cpt $\mathbf e$, the table of conditional marginals $p(y \mid x)$ is equal to $\mathbf e$.
+	
+\begin{defn}
+	The \emph{\extrainfo}, $H^{\sfM}$, given by a distribution $p$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ is given by
+	\[ \H^{\sfM}(p) := \left(\sum_{L = (X,Y, \ell)\in \cal L} ~~\E_{x \sim p_X}  \H (\bmu_L (x)) \right) - \H(p) \] 
+	where $p_X$ is the marginal of $p$ on the variable $X$, and $\H(\bmu_L(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bmu_L$ when $X = x$. 
+\end{defn}
+% The cpts may not (in the entropy sense) 
+We can think of the \extrainfo\ as the sum of the entropies that \emph{actually} result from each table, in the context of distribution $p$, minus the total entropy of the distribution.
+Alternatively, we can think of the negation of the \extrainfo\, $-\H^\sfM(p)$ as the information in $p$, which has not already been specified by the cpts in $\sf M$.
+
+To prove our theorem, we now present a helper lemma, which will do most of the work. For context, skip to its usage in the proof of \Cref{thm:bns-are-pdgs}.
+
+\begin{lemma} \label{lem:bnmaxent-component}
+	If $p$ is a probability distribution over a set of outcomes which determine the values of random variables $X$, $Y$, and $Z$, then 
+	\[ \E_{y \sim p_{_{Y}}} \Big[ \H_p(X \mid Y \!=\!y) \Big]  - \H_p( X \mid Y, Z) \geq 0 \]
+	with equality if and only if $X$ and $Z$ are independent given $Y$.
+\end{lemma}
+\begin{proof}
+	We start by giving this quantity a name. Let's call it $\tilde H$.
+	\begin{align*}
+		\tilde H &= \E_{y \sim p_{_{Y}}}  \Big[ \H_p(X \mid Y \!=\!y)\Big] - \H_p( X \mid Y, Z)  \\
+			&=  \left[\sum_{y} p(y) \sum_x \frac{1}{p(x \mid y)} \log p(x\mid y) \right]+ \left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)}\right] \\[0.5em]
+		&= \left[\sum_{x,y} p(x,y) \log \frac{p(y)}{p(x,y)} \cdot 
+				\left( {\color{red} \vphantom{\sum_{z}}\smash{\overbracket{\color{black}{\sum_{z}}~p(z \mid x, z)}^{=1}}}\right)
+			\right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
+		%(below is optional)
+		&= \left[\sum_{x,y, z} p(x,y) p(z \mid x, z) \log \frac{p(y)}{p(x,y)} \right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
+		&= \left[\sum_{x,y, z} p(x,y ,z) \log \frac{p(x,y)}{p(y)}
+			\right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
+		&= \sum_{x,y, z} p(x,y ,z) \left[ \log \frac{p(y)}{p(x,y)} + \log \frac{p(x,y,z)}{p(y, z)} \right] \\
+		&= \sum_{x,y, z}  p(x,y ,z) \log \left[\frac{p(y)\ p(x,y,z)}{p(x,y)\ p(y,z)} \right]  \\
+	\end{align*}
+	% \intertext{
+	Define $q(x,z,y) := {p(x,y)\ p(y,z) }/{p(y)}$, wherever $p(y)\neq 0$, and $p(x,y,z) = 0$ otherwise. $q$ is in fact a distribution over the values of $X$, $Y$, and $Z$, since it 
+	is clearly non-negative, and sums to 1, as we now show:
+	\[
+	 \sum_{x,y,z} q(x,y, z) = \sum_{x,y,z} \frac{p(x,y)\ p(y,z)}{p(y)}
+		= \sum_{x,y,z} p(x \mid y) p(y,z)
+		= \sum_{y,z} \left(\sum_x p(x \mid y)\right) p(y,z)
+		= \sum_{y,z}  p(y,z)
+		= 1
+	\]	
+		With this definition, we return to our computation of $\tilde H$:
+	% }
+	\begin{align*}
+		\tilde H &= \sum_{x,y, z}  p(x,y ,z) \log \left[\frac{p(y)\ p(x,y,z)}{p(x,y)\ p(y,z)} \right]  \\ % this is a duplicate line, for readabilitz
+		&= \sum_{x,y, z}  p(x,y ,z) \log \frac{p(x,y,z)}{q(x,y,z)}  \\
+		&= \kldiv{p_{_{XYZ}}}{q}
+	\end{align*}
+	where $p_{_{XYZ}}$ is the marginal of $p$ on the settings of $XYZ$, and $\kldiv{p_{_{XYZ}}}{q}$ is the relative entropy from $p_{_{XYZ}}$ to $q$. By Gibbs' Theorem (non-negativity of relative entropy), $\tilde H$ is  (1) non-negative, and (2) equal to zero if and only if $p_{_{XYZ}} = q$, meaning that 
+	\[  p(x,y,z) =\begin{cases} \frac{p(x,y)\ p(y,z)}{p(y)} & \text{if }p(y) > 0\\ 0 & \text{otherwise} \end{cases} \qquad \implies \qquad p(x,y,z) p(y) = p(x,y) p(y, z) \] 
+	and so $\tilde H$ is equal to zero if and only if $X$ and $Z$ are independent given $Y$ according to $p$.
+\end{proof}
+
+\begin{theorem}\label{thm:bns-are-pdgs}
+	If $\cal B$ is a Bayesian network, then there is a unique probability distribution $\mu^*$ consistent with the PDG $\Gamma(\cal B)$ with minimal \extrainfo\ $\H^{\Gamma(\mathcal B)}(p)$. Furthermore, $\mu^* = \Pr_{\cal B}$. That is to say, $\mu^*$ is the same distribution as the unique one that satisfies all of the conditional independences of the $\cal B$.	
+\end{theorem}
+\begin{proof}%[Proof of Theorem~\ref{thm:bns-are-pdgs}]
+	% \label{proof:bns-are-pdgs}
+	Choose an arbitrary distribution $p$ over the variables, subject to the sole constraint of being compatible with $\Gamma(\cal B)$ (which again means that each cpt in $\cal B$ must agree with the conditional marginals of $p$), and let $X_1, \ldots, X_n$ be the variables in $\mathcal B$, such each node $X_i$ has parents $\Pa(X_i)$ with strictly smaller indices. Such an ordering is possible because the underlying graph of a BN is acyclic. 
+	
+	We prepare to decompose $\H^{\Gamma(\cal B)}$ by recalling two facts. 
+	\textbf{Fact 1:} using the chain rule for conditional entropy, we can write 
+	$ \H(p) = \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}). $
+	\textbf{Fact 2:}
+	since $\cal B$ is a BN, $\Gamma(\mathcal B)$ has at most $n$ cpts whose target distribution could could have positive entropy, corresponding to the $n$ cpts describing the conditional probability of each variable given settings of its parents.%
+	 	\footnote{Projections, of course, have zero entropy, and so this is true for both the hyper-graph and standard presentations of PDGs.}
+	% Moreover, since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i}$
+	We will also need 
+	\textbf{fact 3:} since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i} = p_{X_i}\mid \Pa(X_i)$. 
+	We now calculate:
+		
+	% Putting these two together, we expand the \extrainfo\ of $p$ with respect to $\Gamma(\cal B)$:
+		
+	\begin{align*}
+		\H^{\Gamma(\mathcal B)}(p) &= \Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L (y)) \Bigg] - \H(p) \\
+		&= {\color{inactive}\Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L (y)) \Bigg]} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}) & \text{by fact 1} \\
+		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot \H (\bmu_{\Pa(X_i), X_i} (y)) \Bigg] {\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{by fact 2} \\
+		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot  \H_p (X_i \mid \Pa(X_i) \!=\! y) \Bigg] 
+		{\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{by fact 3} \\
+		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot \H_p (X_i \mid \Pa(X_i) \!=\! y)  - \H_p(X_i \mid X_1, \ldots X_{i-1}) \Bigg]  \numberthis\label{eqn:maxentsum}\\
+	\end{align*}
+	
+	At this point, we can apply Lemma~\ref{lem:bnmaxent-component},
+	with $Y := \Pa(X_i)$, $Z := \{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)$, and $X := X_i$, to conclude\footnotemark that each individual term of the sum in \eqref{eqn:maxentsum} is non-negative, and equal to zero if and only if $X_i$ is independent of every previous $X_j$ for $j < i$, given its parents. 
+	
+	\footnotetext{To do this, we need to think of sets of variables as variables themselves. Doing so is straightforward (the joint variable takes valeues which are tuples, with probabilities given by the joint distribution on the set of variables), but those that are worried can verify that nothing in the proof of the lemma changes by recognizing this explicitly and writing $x,y,z$ as vectors. }
+	
+	As a result, we discover that $\H^{\Gamma(\mathcal B)}$, the sum of these terms, is non-negative, and equal to zero if and only if \emph{every} variable is independent of all previous variables given its parents. 
+	As conditional independence is symmetric, we conclude that $\H^{\Gamma(\mathcal B)}(\mu) = 0$ iff $\mu$ causes every variable $X$ to be independent of any other $Z$ given $\Pa(X), \Pa(Y)$, which happens iff each varaible is independent of its non-descendants given its parents. It is a basic property of BNs that these independences and the cpts of $\cal B$ together determine a unique distribution, and therefore the minizer $\mu^*$ of $\H^{\Gamma(\mathcal B)}$ with $\H^{\Gamma(\mathcal B)}(\mu^*) = 0$, which has all of the independences of $\cal B$, is unique.
+	
+	
+	\textbf{Alternative proof end starting from uniquenes.}	
+	Because relative entropy is strongly convex, $\H^{\Gamma(\mathcal B)}$ is a sum of strongly convex functions (from the final line of the proof of \Cref{lem:bnmaxent-component}), and hence strongly convex itself. Therefore, because the set of distributions that match the cpts is convex (\Cref{lem:convex}), $\H^{\Gamma(\mathcal B)}$ has a unique global minimum $\mu^*$ on this set. Because $\Pr_{\cal B}$ satisfies the independences from \Cref{lem:bnmaxent-component}, we must have $\H^{\Gamma(\mathcal B)}(\Pr_{\cal B}) = 0$, and so by uniqueness, $\Pr_{\cal B} = \mu^*$.
+\end{proof}
+
+\clearpage
+
+\begin{lemma}
+	\label{lem:convex}
+	$\bbr{\sfM}\SD$ is convex, for any PDG  $\sfM$.
+\end{lemma}%
+\begin{proof}
+	Choose any two distributions $p, q \in \bbr{M}\SD$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any edge $(A,B) \in \Ed$.
+	
+	By the definition of $\bbr{M}\SD$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+	For brevity, we will use little letters ($a$) in place of events ($A = a$).
+	Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
+	\begin{align*}
+		\Big( \alpha p + (1-\alpha) q \Big) (B = b \mid A = a) &= 
+		\frac{\Big( \alpha p + (1-\alpha) q \Big) (b \land a)}{\Big( \alpha p + (1-\alpha) q \Big) (a)} \\
+		&= \frac{ \alpha p(b \land a) + (1-\alpha) q(b \land a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+		&= \frac{ \alpha \bmu_{A,B}(a,b) p(a) + (1-\alpha) \bmu_{A,B}(a,b) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)} \\
+		&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
+		&= \bmu_{A,B}(a,b)
+	\end{align*}
+	and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}\SD$.
+\end{proof}
+
+\end{document}

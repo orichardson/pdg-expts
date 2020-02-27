@@ -1,6 +1,128 @@
-A \emph{factor graph} $(\mathcal I, \phi)$ on an indexed set of random variables $X : \Sigma_{}$, where each $X_i$ can take values $\V(X_i) =: \mathcal X_i$, consists of
-% technically, a dependent sum \mathbb X : \Sigma_{j : J} X_j
-% a set $\cal I$, where each $\alpha \in \cal I$ is a
-% technically a multi-subset of 2^J...
-a set of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, where each $\alpha$ determines a selection $\iota(\alpha) \subseteq 2^J$ of the variable indices, and the associated factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R^{\geq 0}$ assigns a non-negative score to a setting $\vec x_\alpha \in \mathcal X_\alpha := \prod_{j \in \iota(\alpha)} \mathcal X_j$ of the variables corresponding to $\iota(\alpha)$.
+\note{\emph{This is partly to answer your question; I am prepared to cut it from the abstract. I find it a useful illustration, and at least one of my examples later on uses this terminology.}
 
+Note that being inconsistent is not the same things as \emph{over-constrained}:
+\begin{defn}
+          %joe3: I couldn't understand this.  I don't have any
+          %intuition as to why this is a reasonable definition.  Isn't
+          %there always a way of assigning cpts to edges to make a
+          %graph consistent?  Why does this have anything to do with
+          %my intuition for ``over-constrained''.
+          %oli3: ooops.... I mean /inconsistent/.... changed.
+$\sfM = \mnvars[]$ is over-constrained if there exists
+          \emph{some $\bmu'$} assigning cpts to the same edges as
+          $\bmu$, such that $(\N, \Ed, \V, \bmu')$ is inconsistent
+          \notation{(i.e., $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}\SD
+%joe3: ditto
+            = \emptyset$)}, and under-constrained if there are
+          multiple distributions in $(\N, \Ed, \V, \bmu')$ for
+          \emph{every such $\bmu'$}, making this a property of the
+          qualitative \MN\ $(\N, \Ed, \V)$.
+\end{defn}
+
+We know that an under-constrained \MN\ is consistent without even looking at the tables. However if a we know that an \emph{over-constrained} \MN\ is actually consistent (when it could have easily contradicted itself), the information provides corroborating evidence, and one can take this as support in favor of the beliefs.
+}
+
+
+%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
+%joe3: ``enjoying modularity'' seems like strange wording to me.  What
+%we've said, in any case, is that PDGs are more modular than other
+%approaches.
+% We have said repeatedly that \MNs\ enjoy modularity, and seen
+%oli3:
+We have seen
+        in \cref{ex:guns-and-floomps,ex:planet,ex:smoking} cases in
+        which capturing the relevant information involves taking a
+%joe3*: as I said, you've never talked about these examples in terms of
+%union.  I think that there may be a useful discussion to be had about
+%how modularity corresponds to union, and I understand that once you
+%have union, youll want multigraphs.  This isn't going to make it to
+%the abstract, and there's no question that this is the wrong place
+%for it.  I could imagine a section where you talk about modularity
+%and union, say that PDGs make sense even if they are multigraphs adn
+%prove the theorem.
+%oli3: that's the plan now. BUt it's not that it even makes sense, so
+% much as that it _only_ makes sense with multi-graphs.
+        union of two graphs, some of which may include new
+        concepts. We wish to verify that our semantics are
+        well-behaved with respect to this composition.
+We therefore ask: what happens if we combine two \MNs\ $\sfM$
+        and $\sfM'$ together? Intuitively, the set of distributions
+        $\bbr{\sfM \cup \sfM'}\SD$ consistent with the combined
+        constraints $\sfM\cup \sfM'$ should be the intersection of the
+        distributions $\bbr{\sfM}\SD \cap \bbr{\sfM'}\SD$ consistent
+        with each \MN\ separately. This is almost correct, but $\sf M$
+        and $\sfM'$ may be over different set of variables, in which
+        case the sets of distributions are automatically disjoint, as
+        they are over different sets of possible worlds. To address
+        this, we define a more sophisticated intersection of
+        distributions that must agree on all overlapping
+        marginals. %(\cref{def:marginal-dist-intersection})
+
+\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
+If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
+%oli: remove the coment below to hide the notation.
+% \notation[$R \dcap S$~]
+{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
+is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively.
+
+This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$.
+\end{defn}
+
+
+% It is now natural to ask: how does this semantics interact with the \MN\ union (\Cref{def:model-union})?
+Now that we have the correct definition, we immediately get our desired property:
+
+\begin{prop}\label{prop:union-set-semantics}
+$\bbr{M \cup M'}\SD = \bbr{M}\SD \dcap \bbr{M'}\SD$.
+\end{prop}
+
+\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts.
+From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
+
+\begin{example}\label{ex:sd-compose-unconditional}
+Suppose we now have two \MNs\ with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
+%
+\begin{align*}
+&\bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y}\SD \\
+&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\}
+\end{align*}
+where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpt of conditional marginals on $Y$ for each setting of $X$.
+For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
+\end{example}
+
+
+% Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
+% \begin{defn}
+% Consider again the \MN\ $M = (\mathcal N, \Ed, \mathcal V, \bmu)$. Define
+% \[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}\SD \} \]
+% \end{defn}
+
+%joe1*: this may be a natural question, once you've motivated union,
+%bu you haven't provided the motivation.  In any case, this is the
+%wrong place for this discussion.  We should be focusing purely on
+%semantics.  I cut all of it.
+%oli1: This is all about semantics: I'm showing that they're not ad-hoc, by saying that the semantics is well-behaved with respect  to the one modular operation I'm using (graph unions)
+%joe2: My comment above still stands.  This should all be cut.  You
+% still haven't convinced the reader (at least, not this one) that we
+% need union at all.  This is a distraction.
+%oli2: I've already commented on this at length above, but... a distraction from what? I honestly don't know what could be more valuable than this in set-of-distributions semantics section: we're showing that this semantics is modular.
+%oli2: I've rewritten this so that the story is clearer. It may still need to be moved; I'm open to suggestion about where.
+
+
+
+
+
+
+% There is one final property of $\bbr{-}\SD$ that may be interesting on its own, and will become useful later:
+% What sets of distributions can we get in this way?
+%oli2: I don't know where to move this right now. It is about sets of distributions so I want to  keep it here.
+% One might be curious which sets of distributions can be realized by \MNs\ through this semantics.
+%joe3: This is the wrong place.  It should be be inside the proof that
+%there is a unique distribution that maximizes entropy.  Unless it's
+%also used elsewhere, in which case it shold go just before the proof
+%that there's a unique distribution that maximizes me.
+%oli3: I agree that this doesn't promote my modularity / inconsistency agenda,
+% but this a feature of the set of distributions semantics, and people at UAI
+% will have a lot of intuitions about convexity. If we want to give them
+% intuitions about what we're doing, this seems worth saying.
+It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
