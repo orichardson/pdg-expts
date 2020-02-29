@@ -60,13 +60,13 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 	We start by giving this quantity a name. Let's call it $\tilde H$.
 	\begin{align*}
 		\tilde H &= \E_{y \sim p_{_{Y}}}  \Big[ \H_p(X \mid Y \!=\!y)\Big] - \H_p( X \mid Y, Z)  \\
-			&=  \left[\sum_{y} p(y) \sum_x \frac{1}{p(x \mid y)} \log p(x\mid y) \right]+ \left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)}\right] \\[0.5em]
+			&=  \left[\sum_{y} p(y) \sum_x  p(x\mid y) \log \frac{1}{p(x \mid y)} \right]+ \left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)}\right] \\[0.5em]
 		&= \left[\sum_{x,y} p(x,y) \log \frac{p(y)}{p(x,y)} \cdot 
-				\left( {\color{red} \vphantom{\sum_{z}}\smash{\overbracket{\color{black}{\sum_{z}}~p(z \mid x, z)}^{=1}}}\right)
+				\left( {\color{red} \vphantom{\sum_{z}}\smash{\overbracket{\color{black}{\sum_{z}}~p(z \mid x, y)}^{=1}}}\right)
 			\right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
 		%(below is optional)
-		&= \left[\sum_{x,y, z} p(x,y) p(z \mid x, z) \log \frac{p(y)}{p(x,y)} \right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
-		&= \left[\sum_{x,y, z} p(x,y ,z) \log \frac{p(x,y)}{p(y)}
+		&= \left[\sum_{x,y, z} p(x,y) p(z \mid x, y) \log \frac{p(y)}{p(x,y)} \right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
+		&= \left[\sum_{x,y, z} p(x,y ,z) \log \frac{p(y)}{p(x,y)}
 			\right] + {\color{inactive}\left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)} \right]} \\
 		&= \sum_{x,y, z} p(x,y ,z) \left[ \log \frac{p(y)}{p(x,y)} + \log \frac{p(x,y,z)}{p(y, z)} \right] \\
 		&= \sum_{x,y, z}  p(x,y ,z) \log \left[\frac{p(y)\ p(x,y,z)}{p(x,y)\ p(y,z)} \right]  \\
@@ -104,11 +104,11 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 	\textbf{Fact 1:} using the chain rule for conditional entropy, we can write 
 	$ \H(p) = \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}). $
 	\textbf{Fact 2:}
-	since $\cal B$ is a BN, $\Gamma(\mathcal B)$ has at most $n$ cpts whose target distribution could could have positive entropy, corresponding to the $n$ cpts describing the conditional probability of each variable given settings of its parents.%
+	since $\cal B$ is a BN, $\Gamma(\mathcal B)$ has $n$ cpts\footnote{exactly $n$ if no cpt is deterministic, otherwise at most $n$} whose target distributions (that is, the distribution that they give for $X_i$) could could have positive entropy, corresponding to the $n$ cpts describing the conditional probability of each variable given settings of its parents.%
 	 	\footnote{Projections, of course, have zero entropy, and so this is true for both the hyper-graph and standard presentations of PDGs.}
 	% Moreover, since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i}$
 	We will also need 
-	\textbf{fact 3:} since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i} = p_{X_i}\mid \Pa(X_i)$. 
+	\textbf{fact 3:} since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i} = p(X_i \mid \Pa(X_i))$. 
 	We now calculate:
 		
 	% Putting these two together, we expand the \extrainfo\ of $p$ with respect to $\Gamma(\cal B)$:
@@ -128,7 +128,18 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 	\footnotetext{To do this, we need to think of sets of variables as variables themselves. Doing so is straightforward (the joint variable takes valeues which are tuples, with probabilities given by the joint distribution on the set of variables), but those that are worried can verify that nothing in the proof of the lemma changes by recognizing this explicitly and writing $x,y,z$ as vectors. }
 	
 	As a result, we discover that $\H^{\Gamma(\mathcal B)}$, the sum of these terms, is non-negative, and equal to zero if and only if \emph{every} variable is independent of all previous variables given its parents. 
-	As conditional independence is symmetric, we conclude that $\H^{\Gamma(\mathcal B)}(\mu) = 0$ iff $\mu$ causes every variable $X$ to be independent of any other $Z$ given $\Pa(X), \Pa(Y)$, which happens iff each varaible is independent of its non-descendants given its parents. It is a basic property of BNs that these independences and the cpts of $\cal B$ together determine a unique distribution, and therefore the minizer $\mu^*$ of $\H^{\Gamma(\mathcal B)}$ with $\H^{\Gamma(\mathcal B)}(\mu^*) = 0$, which has all of the independences of $\cal B$, is unique.
+	
+	\textbf{Claim.}
+		If each $X_i$ is independent of all previous variables $X_j$ for $j<i$ given the parents of $X_i$, then every variable is conditionally independent of its non-descendents given its parents, independent of the ordering.
+	\textit{Proof of claim.}
+		Suppose, for arbitrary $i,j$, that $X_j$ is non-descendent of $X_i$. If $j < i$, then by assumption, $X_j \CI X_i \mid \Pa(X_i)$, as desired. On the other hand, if $i < j$, then we can conclude that $X_i \CI X_j \mid \Pa(X_j)$. Because $X_j$ is a non-descendent of $X_i$, no ancestor of $X_j$ is a decendent of $X_i$. 
+		
+		
+		% As conditional independence is symmetric, we conclude that $\H^{\Gamma(\mathcal B)}(\mu) = 0$ iff $\mu$ causes every variable $X$ to be independent of any other $Z$ given $\Pa(X), \Pa(Y)$, which happens iff each varaible is independent of its non-descendants given its parents.
+	
+	
+	
+	 It is a basic property of BNs that these independences and the cpts of $\cal B$ together determine a unique distribution, and therefore the minizer $\mu^*$ of $\H^{\Gamma(\mathcal B)}$ with $\H^{\Gamma(\mathcal B)}(\mu^*) = 0$, which has all of the independences of $\cal B$, is unique.
 	
 	
 	\textbf{Alternative proof end starting from uniquenes.}	
