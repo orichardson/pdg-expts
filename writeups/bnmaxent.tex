@@ -53,13 +53,13 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 
 \begin{lemma} \label{lem:bnmaxent-component}
 	If $p$ is a probability distribution over a set of outcomes which determine the values of random variables $X$, $Y$, and $Z$, then 
-	\[ \E_{y \sim p_{_{Y}}} \Big[ \H_p(X \mid Y \!=\!y) \Big]  - \H_p( X \mid Y, Z) \geq 0 \]
-	with equality if and only if $X$ and $Z$ are independent given $Y$.
+	\[ \tilde H_p(X \mid Y; Z) := \E_{y \sim p_{_{Y}}} \Big[ \H_p(X \mid Y \!=\!y) \Big]  - \H_p( X \mid Y, Z)\]
+	is (a) strongly convex, (b) non-negative, and (c) equal to zero if and only if $X$ and $Z$ are indep. given $Y$.
 \end{lemma}
 \begin{proof}
-	We start by giving this quantity a name. Let's call it $\tilde H$.
+	% We start by giving this quantity a name. Let's call it $\tilde H$.
 	\begin{align*}
-		\tilde H &= \E_{y \sim p_{_{Y}}}  \Big[ \H_p(X \mid Y \!=\!y)\Big] - \H_p( X \mid Y, Z)  \\
+		\tilde H_p(X \mid Y; Z) &= \E_{y \sim p_{_{Y}}}  \Big[ \H_p(X \mid Y \!=\!y)\Big] - \H_p( X \mid Y, Z)  \\
 			&=  \left[\sum_{y} p(y) \sum_x  p(x\mid y) \log \frac{1}{p(x \mid y)} \right]+ \left[\sum_{x,y, z} p(x, y, z) \log \frac{p(x,y,z)}{p(y, z)}\right] \\[0.5em]
 		&= \left[\sum_{x,y} p(x,y) \log \frac{p(y)}{p(x,y)} \cdot 
 				\left( {\color{red} \vphantom{\sum_{z}}\smash{\overbracket{\color{black}{\sum_{z}}~p(z \mid x, y)}^{=1}}}\right)
@@ -81,16 +81,16 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 		= \sum_{y,z}  p(y,z)
 		= 1
 	\]	
-		With this definition, we return to our computation of $\tilde H$:
+		With this definition, we return to our computation of $\tilde H_p(X \mid Y; Z)$:
 	% }
 	\begin{align*}
-		\tilde H &= \sum_{x,y, z}  p(x,y ,z) \log \left[\frac{p(y)\ p(x,y,z)}{p(x,y)\ p(y,z)} \right]  \\ % this is a duplicate line, for readabilitz
+		\tilde H_p(X \mid Y; Z) &= \sum_{x,y, z}  p(x,y ,z) \log \left[\frac{p(y)\ p(x,y,z)}{p(x,y)\ p(y,z)} \right]  \\ % this is a duplicate line, for readabilitz
 		&= \sum_{x,y, z}  p(x,y ,z) \log \frac{p(x,y,z)}{q(x,y,z)}  \\
 		&= \kldiv{p_{_{XYZ}}}{q}
 	\end{align*}
 	where $p_{_{XYZ}}$ is the marginal of $p$ on the settings of $XYZ$, and $\kldiv{p_{_{XYZ}}}{q}$ is the relative entropy from $p_{_{XYZ}}$ to $q$. By Gibbs' Theorem (non-negativity of relative entropy), $\tilde H$ is  (1) non-negative, and (2) equal to zero if and only if $p_{_{XYZ}} = q$, meaning that 
 	\[  p(x,y,z) =\begin{cases} \frac{p(x,y)\ p(y,z)}{p(y)} & \text{if }p(y) > 0\\ 0 & \text{otherwise} \end{cases} \qquad \implies \qquad p(x,y,z) p(y) = p(x,y) p(y, z) \] 
-	and so $\tilde H$ is equal to zero if and only if $X$ and $Z$ are independent given $Y$ according to $p$.
+	and so $\tilde H_p(X \mid Y; Z)$ is (1) non-negative, and (2) strongly convex, and (3) equal to zero if and only if $X$ and $Z$ are independent given $Y$ according to $p$.
 \end{proof}
 
 \begin{theorem}\label{thm:bns-are-pdgs}
@@ -98,48 +98,71 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 \end{theorem}
 \begin{proof}%[Proof of Theorem~\ref{thm:bns-are-pdgs}]
 	% \label{proof:bns-are-pdgs}
-	Choose an arbitrary distribution $p$ over the variables, subject to the sole constraint of being compatible with $\Gamma(\cal B)$ (which again means that each cpt in $\cal B$ must agree with the conditional marginals of $p$), and let $X_1, \ldots, X_n$ be the variables in $\mathcal B$, such each node $X_i$ has parents $\Pa(X_i)$ with strictly smaller indices. Such an ordering is possible because the underlying graph of a BN is acyclic. 
+	Choose an arbitrary distribution $p$ over the variables, subject to the sole constraint of being compatible with $\Gamma(\cal B)$ (which again means that each cpt in $\cal B$ must agree with the conditional marginals of $p$), and let $X_1, \ldots, X_n$ be any ordering of the variables in $\mathcal B$, such each node $X_i$ has parents $\Pa(X_i)$ with strictly smaller indices (we call such an ordering $\cal B$-topological). At least one $\cal B$-topological ordering is possible because the underlying graph of $\cal B$ is acyclic. 
 	
-	We prepare to decompose $\H^{\Gamma(\cal B)}$ by recalling two facts. 
-	\textbf{Fact 1:} using the chain rule for conditional entropy, we can write 
-	$ \H(p) = \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}). $
+	% We prepare to decompose $\H^{\Gamma(\cal B)}$ by recalling two facts. 
+	We now put the following facts in equational form for ease of use:
+	\begin{description}
+	\item[Entropy Chain Rule:] using the chain rule for conditional entropy, we can write 
+	\[ \H(p) = \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}). \]
 	%
-	\textbf{Fact 2:}
-	In $\Gamma(\cal B)$ is exactly one hyperedge $E$ for each node $X_i$, from the set $\Pa(X_i)$ to $X_i$
+	\item[Only $\cal B$ cpts have entropy:]
+	In $\cal B$, there is exactly one cpt for each node. $\Gamma(\cal B)$ contains all of these cpts, and possibly also degenerate cpts $\pi_{i,j}$, which, for a setting $(y_1, y_2, \ldots, y_m)$ of the new joint variable $\Pa(X_i)$, determines a (degenerate) distribution over a particular parent $Y_j \in \Pa(X_i)$, by putting all mass on $y_j$. Since these projections always put all mass on a single point, they satisfy $H(\pi_{i,j}(y)) = 0$ for any value of $y \in \V(\Pa(X_i))$. Therefore, the sum of expected entropies in $\Gamma(\cal B)$ for all links can be expressed as
+	\[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L ( y)) = \sum_{i=1}^n\E_{\vec y \sim p_{\Pa(X_i)}}  \H (\bmu_{(\Pa(X_i),X_i)} (\vec y))\]
 	
 	% since $\cal B$ is a BN, $\Gamma(\mathcal B)$ has $n$ cpts\footnote{exactly $n$ if no cpt is deterministic, otherwise at most $n$} whose target distributions (that is, the distribution that they give for $X_i$) could could have positive entropy, corresponding to the $n$ cpts describing the conditional probability of each variable given settings of its parents.% 
 	%  	\footnote{Projections, of course, have zero entropy, and so this is true for both the hyper-graph and standard presentations of PDGs.}
 	% Moreover, since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i}$
-	We will also need 
-	\textbf{fact 3:} since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i} = p(X_i \mid \Pa(X_i))$. 
-	We now calculate:
+	\item[Compatibility.] Since $p$ is compatible with every cpt, $\bmu_{\Pa(X_i),X_i} = p(X_i \mid \Pa(X_i))$. Therefore, $\H_p(X_i \mid \Pa(X_i) = \vec y) $, which depends on only on the probability of $X_i$ given $\Pa(X_i)$, is equal to $\H(\bmu_{\Pa(X_i),X_i}(\vec y))$. 
+	\end{description}
+	We can now calculate $\H^{\Gamma(\cal B)}$ directly.
 		
 	% Putting these two together, we expand the \extrainfo\ of $p$ with respect to $\Gamma(\cal B)$:
 		
 	\begin{align*}
 		\H^{\Gamma(\mathcal B)}(p) &= \Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L (y)) \Bigg] - \H(p) \\
-		&= {\color{inactive}\Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L (y)) \Bigg]} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}) & \text{by fact 1} \\
-		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot \H (\bmu_{\Pa(X_i), X_i} (y)) \Bigg] {\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{by fact 2} \\
-		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot  \H_p (X_i \mid \Pa(X_i) \!=\! y) \Bigg] 
-		{\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{by fact 3} \\
-		&= \sum_{i = 1}^n  \Bigg[ \sum_{y \in \V(\Pa_i)} p(y) \cdot \H_p (X_i \mid \Pa(X_i) \!=\! y)  - \H_p(X_i \mid X_1, \ldots X_{i-1}) \Bigg]  \numberthis\label{eqn:maxentsum}\\
-	\end{align*}
-	
-	At this point, we can apply Lemma~\ref{lem:bnmaxent-component},
-	with $Y := \Pa(X_i)$, $Z := \{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)$, and $X := X_i$, to conclude\footnotemark\ that each individual term of the sum in \eqref{eqn:maxentsum} is non-negative, and equal to zero if and only if $X_i$ is independent of every previous $X_j$ for $j < i$, given its parents. 
-	
-	\footnotetext{To do this, we need to think of sets of variables as variables themselves. Doing so is straightforward (the joint variable takes valeues which are tuples, with probabilities given by the joint distribution on the set of variables), but those that are worried can verify that nothing in the proof of the lemma changes by recognizing this explicitly and writing $x,y,z$ as vectors. }
-	
-	As a result, we discover that $\H^{\Gamma(\mathcal B)}(p)$, the sum of these terms, is non-negative, and equal to zero if and only if \emph{every} variable is independent of all previous variables given its parents, according to $p$. 
+		&= {\color{inactive}\Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bmu_L (y)) \Bigg]} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1}) & \text{entropy chain rule} \\
+		&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim p_{\Pa(X_i)}} \H (\bmu_{\Pa(X_i), X_i} (\vec y)) \Bigg] {\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{only $\cal B$ cpts have entropy} \\
+		&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim p_{\Pa(X_i)}}  \H_p (X_i \mid \Pa(X_i) \!=\! \vec y) \Bigg] 
+		{\color{inactive} - \sum_{i = 1}^n \H_p(X_i \mid X_1, \ldots X_{i-1})} & \text{compatibility} \\
+		&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim p_{\Pa(X_i)}} \H_p (X_i \mid \Pa(X_i) \!=\! \vec y)  - \H_p(X_i \mid X_1, \ldots X_{i-1}) \Bigg]  \\
+	\intertext{Applying the definition in Lemma~\ref{lem:bnmaxent-component},
+	with $Y := \Pa(X_i)$,\footnotemark~$Z := \{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)$, and $X := X_i$}
+		&= \sum_{i = 1}^n  \Bigg[ \tilde H\Big(X_i ~\Big|~\Pa(X_i);~~\{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)\Big) \Bigg]   \numberthis\label{eqn:maxentsum}
+	\end{align*}%
+		\footnotetext{To do this, we need to think of sets of variables as variables themselves. Doing so is straightforward (the joint variable takes valeues which are tuples, with probabilities given by the joint distribution on the set of variables), but those that are worried can verify that nothing in the proof of the lemma changes by recognizing this explicitly and writing $x,y,z$ as vectors.}%
+	Lemma~\ref{lem:bnmaxent-component} (b) and (c) tell us that each individual term of the sum in \eqref{eqn:maxentsum} is non-negative, and equal to zero if and obecause the underlying graph of a BN is acyclic. 
+	nly if $X_i$ is independent of every previous non-parent $X_j$ for $j < i$, given its parents. 	
+	Therefore $\H^{\Gamma(\mathcal B)}(p)$, is non-negative, and equal to zero if and only if \emph{every} variable is independent of all previous variables given its parents, according to $p$. 
 	% As conditional independence is symmetric, we conclude that $\H^{\Gamma(\mathcal B)}(\mu) = 0$ iff $\mu$ causes every variable $X$ to be independent of any other $Z$ given $\Pa(X), \Pa(Y)$, which happens iff each varaible is independent of its non-descendants given its parents.
-	Here are two alternate ways of using this to conclude that if $\H^{\Gamma(\mathcal B)}(p) = 0$, then $p = \Pr_{\cal B}$. 
+	Here are two alternate ways of using this to conclude that if $\H^{\Gamma(\mathcal B)}(p) = 0$, then $p = \Pr_{\cal B}$.
 	
 	\textbf{v1. All independences, via new ordering.}
-	If $X$ is a non-descendant of $Y$, then there is a topological ordering of the nodes in $\cal B$ such that the index of $X$ is less than the index of $Y$, and repeating this argument shows that $X$ is independent of $Y$ given its parents. It is a well-known property of BNs that these independences and the cpts of $\cal B$ together determine a unique distribution, and therefore the minizer $\mu^*$ of $\H^{\Gamma(\mathcal B)}$ with $\H^{\Gamma(\mathcal B)}(\mu^*) = 0$, which has all of the independences of $\cal B$, is unique.
+	% We claim that the following are equivalent:
+	% \begin{enumerate}[label=(\alph*)]
+	% 	\item $\H^{\Gamma(\cal B)} = 0$ \label{item:noextrainfo}
+	% 	\item $X_i \CI X_j \mid \Pa(X_i)$  if $j  < i$ for some $\cal B$-topological ordering of the variables.\label{item:someorder}
+	% 	\item $X_i \CI X_j \mid \Pa(X_i)$  if $j  < i$ for every $\cal B$-topological ordering of the variables.\label{item:allorders}
+	% \end{enumerate}
+	% We have just shown the equivalence of (\ref{item:noextrainfo}) and (\ref{item:someorder}). Now suppose 
+	
+	% The equivalence of \ref{item:noextrainfo} and \ref{item:someorder}
+	%   easily follows, since if there were some topological sort for which the independence didn't hold, then your proof shows that $\H^{\Gamma(\cal B)}(p) \ne 0$.
+	% 
+	We have shown that, for any topological ordering on the variables of $\cal B$, $\H^{\Gamma(\cal B)}(p) = 0$ if and only if, according to $p$,  each $X_i \CI X_j \mid \Pa(X_i)$ for $j  < i$. 
+	
+	Now, suppose $X_j$ were a non-descendent of $X_i$, with $j > i$. Because $X_j$ is not a descendent of $X_i$, we can construct a second toplogoical sort of the variables in $\cal B$, in which $\#(X_j) < \#(X_i)$, where $\#(X)$ is the index of $X$ in the new ordering. 
+	We can obtain $\#$, for instance, by topologically sorting $X_j$ and its ancestors, and then adding the rest of the variables (which we call $\bf R$) in their original order. The concatination of these two is a valid topological sort because the ancestors of $X_j$ are topologicaly ordered, and the parents of each $X \in \bf R$ occur no later than before.
 	
 	
-	\textbf{v2. Uniqueness first, via convexity.}	
-	Because relative entropy is strongly convex, $\H^{\Gamma(\mathcal B)}$ is a sum of strongly convex functions (from the final line of the proof of Lemma~\ref{lem:bnmaxent-component}), and hence strongly convex itself. Therefore, because the set of distributions that match the cpts is convex (Lemma~\ref{lem:convex}), $\H^{\Gamma(\mathcal B)}$ has a unique global minimum $\mu^*$ on this set. Because $\Pr_{\cal B}$ satisfies the independences from Lemma~\ref{lem:bnmaxent-component}, we must have $\H^{\Gamma(\mathcal B)}(\Pr_{\cal B}) = 0$, and so by uniqueness, $\Pr_{\cal B} = \mu^*$.
+	In this order, $\#(X_j) < \#(X_i)$, and so our earlier result ensures that  $\H^{\Gamma(\cal B)}(p) = 0$ iff $X_i \CI X_j \mid \Pa(X_i)$ according to $p$. Therefore, $p$ makes every variable $X_i$ independent of its non-descendents $X_j$, given its parents $\Pa(X_i)$ if and only if $\H^{\Gamma(\cal B)}(p) = 0$. 
+	Because $\Pr_{\cal B}$ is the unique distribution that satisfies these independences, we conclude that $\H^{\Gamma(\cal B)}(p) = 0$ if and only if $p = \Pr_{\cal B}$. 	
+	As $\H^{\Gamma(\cal B)}(p)$ is non-negative, $\Pr_{\cal B}$ is its unique minimizer. 
+
+	% If $X$ is a non-descendant of $Y$, then there is a topological ordering of the nodes in $\cal B$ such that the index of $X$ is less than the index of $Y$, and repeating this argument shows that $X$ is independent of $Y$ given its parents. It is a well-known property of BNs that these independences and the cpts of $\cal B$ together determine a unique distribution, and therefore the minizer $\mu^*$ of $\H^{\Gamma(\mathcal B)}$ with $\H^{\Gamma(\mathcal B)}(\mu^*) = 0$, which has all of the independences of $\cal B$, is unique.
+	
+	\textbf{v2. Uniqueness by strong convexity.}
+	Part (a) of Lemma~\ref{lem:bnmaxent-component} tells us that $\H^{\Gamma(\mathcal B)}$ is a sum of strongly convex functions, and hence strongly convex itself. Because the set of distributions that are compatible with $\Gamma(\cal B)$ is convex (Lemma~\ref{lem:convex}), $\H^{\Gamma(\mathcal B)}$ has a unique minimum $\mu^*$ on this set. At the same time, the distribution $\Pr_{\cal B}$ described by $\cal B$ satisfies the independences from Lemma~\ref{lem:bnmaxent-component}, so we must have $\H^{\Gamma(\mathcal B)}(\Pr_{\cal B}) = 0$, and since $\H^{\Gamma(\cal B)} \geq 0$ and  has a unique minimizer, $\Pr_{\cal B} = \mu^*$.
 \end{proof}
 
 \clearpage
