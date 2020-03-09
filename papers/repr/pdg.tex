@@ -13,11 +13,6 @@
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{microtype}      % microtypography
 
-
-%joe3: I don't have this package; it's probably a bad idea to use it	
-%oli3: You're referring to Biblatex? It's the standard now, widely acknowledged
-% to be better than plain BibTex.
-% https://tex.stackexchange.com/tags/biblatex/info
 \usepackage[backend=biber,
 	style=alphabetic, %authoryear
 %	citestyle=authoryear,
@@ -63,7 +58,8 @@
 
 \excludecomment{notfocus}
 
-\specialcomment{vfull}{\begingroup\color{gray}}{\endgroup}
+\definecolor{vfullcolor}{gray}{0.85}
+\specialcomment{vfull}{\begingroup\color{vfullcolor}}{\endgroup}
 % \excludecomment{vfull} %\includecomment{vfull}
 \excludecomment{vcat} %\includecomment{vcat}
 \excludecomment{vnotation} %\includecomment{vnotation}
@@ -141,6 +137,7 @@
 \newcommand\bb[1]{\mathbbm{#1}}
 
 \newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bp}[1][L]{\mat{p}_{\!_#1\!}}
 \newcommand{\V}{\mathcal V}
 \newcommand{\N}{\mathcal N}
 \newcommand{\Ed}{\mathcal E}
@@ -344,12 +341,12 @@ We start with some examples to motivate \MNs\ and display some of these properti
 				\node[dpadded, circle] (gun) at (1.2,0) {$G$};
 	
 				\matrix [table with head, column 1/.style={leftrule},
-					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at (-3.5,0)	{
+					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at (-3.5,0) {
 					\vphantom{$\overline f$} $f$ \& $\overline f$\\
 					.9 \& .1\\
 				};
 				\matrix [table with head, column 1/.style={leftrule},
-					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at(3.5,0)	{
+					 column 2/.style={rightrule}, row 2/.style={bottomrule}] at (3.5,0) {
 					 \vphantom{$\overline g$}$g$ \& $\overline g$\\
 					 .05 \& .95\\
 				};
@@ -372,8 +369,7 @@ We start with some examples to motivate \MNs\ and display some of these properti
 		However, it may be better not to sort this out right away. How to resolve it may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully.
 
 		By way of contrast, consider the corresponding \MN.
-		In a \MN, the cpts are attached to edges, rather than nodes of the graph. The cpt associated with an edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$ at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid X \!\!=\!\! x)$; such a matrix where each row sums to 1, is called a stochastic matrix, In order to represent unconditional probabilities, we introduce a \emph{unit variable} $\mathsf 1$ which takes on only one possible value,	which we denote $\star$.
-		Thus, we have the \MN\ depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are associated with the unconditional probabilities of $F$ and $G$, and the edge from $F$ to $G$ is associated with the cpt $\mat r$.
+		In a \MN, the cpts are attached to edges, rather than nodes of the graph. The cpt associated with an edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$ at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid X \!\!=\!\! x)$. In order to represent unconditional probabilities, we introduce a \emph{unit variable} $\mathsf 1$ which takes on only one possible value,	which we denote $\star$. Thus, we have the \MN\ depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are associated with the unconditional probabilities of $F$ and $G$, and the edge from $F$ to $G$ is associated with the cpt $\mat r$.
 		\begin{figure}[h]
 			\centering
 			\scalebox{0.9}{
@@ -413,28 +409,6 @@ We start with some examples to motivate \MNs\ and display some of these properti
 
 		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like Bayes Net that we considered above, except we no longer assume $F$ and $G$ to be independent; we merely record the constraints imposed by the given probabilities.
 	
-		\begin{vfull}
-		\note{\emph{(This is from our discussion but parts of it seem out of the way so I haven't integrated it yet. It probably needs to be moved.)}
-			
-			A proponent of Bayes Nets might argue: sure, we've assumed independence, but that was on purpose! We get a lot of mileage out of independence assumptions, and they're expensive to encode explicitly.
-			
-			Sure enough, if we wanted to explicitly encode such an independence assumption without making it part of the the background machinery for all diagrams, one would need to either give a edge $F \to G$ (or vice versa) whose table has an identical distribution over $G$ every row, or specify the joint distribution directly, as below...
-			
-			\centerline{\scalebox{0.8}{
-			\begin{tikzpicture}
-				\node[dpadded] (true)  at (0,1.7) {$\mathsf 1$};
-				\node[dpadded] (floomp) at (-1.5,0) {$F$};
-				\node[dpadded] (gun) at (1.5,0) {$G$};
-				\unmergearr{true}{floomp}{gun}
-			\end{tikzpicture}
-			}}
-		
-			These tactics save no representational space, making them useless for compressing distributions, may not even then may not display the dependency structure we had in mind. 
-			
-			Fortunately, the multiple semantics of \MNs\ allow us to eat our cake and have it too: by recording only the constraints, we avoid leaning too hard on independence assumptions, but can still reap the benefits through maximum-entropy semantics: the maximum entropy distribution associated with the constraints is the one prescribed by the Bayesian Network.
-		}
-		\end{vfull}
-	
 		The key point is that we can incorporate the new information into
 		our original representation (the graph in \Cref{fig:gun-floomp-diagram}
 		without the edge from $F$ to $G$) simply  by adding the edge from $F$
@@ -448,131 +422,11 @@ We start with some examples to motivate \MNs\ and display some of these properti
 
 	%oli3:
 	\Cref{ex:guns-and-floomps} suggests that there is something to be gained by avoiding the independence assumptions enforced by BN (that every node is independent of its non-descendants given its parents). After all, independences are notoriously difficult to demonstrate emperically and unobserved confounders cannot be eliminated.
-	Still, conditional independences are useful, and as \textcite{pearl2014probabilistic}\todo{I'm not sure what reference is appropriate; this is a summary paper} has argued forcefully, omnipresent.
+	Still, conditional independences are useful, and as Pearl \parencite{pearl1989conditional} has argued forcefully, omnipresent.
 	%: in $\chi^2$ test for instance, independence is the null hypothesis.	 
 	It seems that \MNs\ have lost this key benefit of BNs.  As we shall see, this is not the case.  
 	
 
-	%joe1: 	shortened.  Please don't talk about coloring out of the blue.
-	%oli: I've modified but not used your replacement paragaph.
-%joe2: we should be consistent about single quote vs. double quotes.
-%You later use double quotes.  Moving up a level, whats the difference
-%between ``over-constrained'' and inconsistent?  Why distinguish
-%them.  
-%oli2: see my new note after definition 3.2
-%joe3: I'm afraid that didn't help at all.  See below.
-%joe2: Moreover, it's notthe ability to represent
-%inconsistency/over-constrained states that's useful when there's no
-%inconsistency, but the modularity.  Reverting back.  
-%oli2: It's both. The over-constrainedness is helpful for slightly different
-% reasons though: like I wrote earlier in the intro at some point,
-% there's a benefit in corroborating evidence, and agreement is more meaningful
-% if there could have been non-agreement.
-%joe3: It might be OK to say this if you then gave an example.  
-%In general, 
-%	The ability to represent these ``over-constrained'' states of
-%        belief, in which inconsistency is possible, can also be
-%joe2
-%   valuable even when there isn't any.
-%joe3
-%The modularity of PDGs is useful even when there is no
-%inconsistency, as the following example shows. 
-%joe2: Cut; what do ``observed nodes'' have to do with
-%under-constrained beliefs.  What makes a conditional belief
-%underconstrained?   There's a simple clean story here, and you're
-%bringing in all bunch of issues and spraying the reader with them,
-%without explaining them in context. I cut this again.
-%	Unlike standard conditional models, which require a special
-%        selection of `observed' nodes, \MNs\ also cleanly represent
-%        `un[b]{0.3\textwidth}der-constrained' beliefs, such as conditional ones,   without
-%              selection of `observed' nodes, \MNs\ also cleanly represent
-%        `under-constrained' beliefs, such as conditional ones, without
-%        modification. 
-%	Our next example illustrates both, and highlights one more way
-%in which BNs fail to be as modular as we might hope. 
-%oli1: what we lose in this shortening:
-% 1. beginning to introduce `over-constrained' and `under-constrained'
-% terminology. I think this is useful for understanding why the set
-% semantics are not enough, and drawing a parallel to
-%joe2: we've alrady introduced over-constrainedness.  You're not
-%introducing under-constrainedness; you're just using a word without
-%explaining it.
-% 2. no segue into conditional models, or acknowledgement that they
-% are the standard solution to under-constrainedness
-%joe2: I strongly disagree that the conditional models are the
-%standard representation of unconstrainedness.  If by ``conditional
-%models'' you just mean ``leaving out cpts at some nodes'', then say
-%that.  But, at best, it's only one of many ways to represent sets of
-%probability measures.  And if taht's what you want to talk about, say so.
-% 3. no signposting on the difficulty of adding parents in BNs
-%joe2: It's hard to ``signpost'' without explaining the issue to the
-%reader first.  
-% Your original replacement is below.
-%joe2: And i reveerted back to it.  I feel quite strongly that
-%less is more here.
-	%	\MNs\ are strictly more expressive than BNs, and there is a straightforward conversion from a BN to a \MN\ (\Cref{sec:bn-convert}). 
-%joe2: We aren't introducing a new semantics, since we haven't
-%introduced a semantics so far.  This is the wrong story for this example.
-%What I think is the ``right'' story was already in the text of the
-%example (at least to some extent)
-%	We have seen two major differences between the interpretations
-%        of BNs and \MNs: the way they view colliding arrows, and the
-%        independence assumptions they make. We now put the two
-%        together and introduce a new \MN\ semantics, to illustrate how
-%        \MNs\ naturally simulate BNs, a process we formalize in
-%        \Cref{sec:bn-convert}.  %\Cref{ex:smoking}.	 
-	%oli3: This is too much text, and it overlaps with the above. Rewriting.
-% The BN achieves a compact representation of a joint distribution by  assuming a number of (conditional) independencies (specifically, that every node is independent of its non-descendants given its parents). Typically, when using a BN, we do not know for certain that these independencies hold.  Rather, we believe that we get a reasonable approximation of reality  by assuming them.  In PDG's, we can, in a sense, both make the assumption and allow for the possibility that it does not hold.
-
-
-	%oli2*: We need to address the following complaint: sure, we
-        %could also use sets of distributions for BNs and not assume
-        %anything about indpendence as well; it's even a thing that
-        %people do regularly, in the context of moment matching. It's
-        %even standard to then pick out the maximum entropy one. But
-        %the set of distributions is kind of useless, and so people
-        %just haven't thought about BNs this way for a while. What
-        %does this have to do with PDGs?
-%joe3*: I don't know what they do in the moment matching literature
-%(this is the first that I've heard about it), but in the standard way of
-%thinking about BN's qualitatively, without specifying the
-%cpts, you still make all the independence assumptions.  That is, you
-%consider all the distributions that satisfy the independence
-%assumptions; you just leave the exact conditional probabilities
-%unconstrained.   If someone has viewed a BN as just the set of distributions
-%the set of distributions whose marginals satisfy the cpts, then this
-%is very close to what we're doing and we absolutely have to give a
-%reference to it.  And if someone has applied max entropy to that set
-%of distributions and recovered the BN, then we have to reference that
-%too, and tone down the hype in our paper.   In any case, I wouldn't
-%say that this set of distibutions is at all useless.  It's the set
-%that's consistent with our beliefs.  If you want to work with a
-%particular distribution in this set, you need to explain why you're
-%picking that one and not any other.
-	%oli2: my personal feeling is the following: we don't actually
-	%need the set of distributions semantics.
-%joe3:In what sense don't we need it?  It seems to me extremely natural.
-        %I really just
-	%introduced it to tie this to sets of distributions, but it
-	%can be recovered as a special case of the weighted
-	%distributions anyway, and I'm not convinced it's at all useful.
-%joe3: I think it's worth understanding what your constraints are
-%telling you, without making further assumptions.  The weights seems
-%awfully ad hoc to me.
-        %The weighted distributions, on the other hand, are:
-	%they're secretly a way of customizing free energy landscapes
-	%over distributions, and when viewed as such offer a lot more
-	%levers to do this than other graphical models
-%joe3: I guess I'm not at all convinced that free energy landscapes
-%solve all of our problems ...       
-	
-	%oli2: [Referring to the paragraph above] I moved the commented-out original here. Here's why I like it better:
-	%oli2: (1) It frames links as having a level of `importance',
-	%which is going to be useful for the weighted semantics.
-%joe3: If we're going to talk about that, then we have to introduce
-%and motivate the issue, and not sneak into the middle of someting else.       
-%joe3: might want to believe what?
-	%oli2: (2) Pointing out that you might want to actually beleive
 	%	Most of the time, we do not make the independence
 	%assumption in a BN because we know for certain that the
 	%variables are independent; rather, we just suspect that the
@@ -620,7 +474,7 @@ We start with some examples to motivate \MNs\ and display some of these properti
 				\node[dpadded, fill=black!.16, fill opacity=0.35, dashed] (T) at (6.5,0) {$T$};
 				\draw[arr,dashed] (T) -- (C);	
 
-				\draw[very thick, |-|, color=orange!50!black] (2.7, 1.35) --node[above=0.5em]{Restricted \MN\ in examples~\ref{ex:grok-ablate},\ref{ex:grok-union}} (7.1,1.35);
+				\draw[very thick, |-|, color=orange!50!black] (2.7, 1.35) --node[above=0.5em]{Restricted \MN\ in Examples~\ref{ex:grok-ablate}~and~\ref{ex:grok-union}} (7.1,1.35);
 				
 				\end{tikzpicture}}
 				\caption{Corresponding \MN, $\Gamma(\mathcal B)$, and restriction}
@@ -654,7 +508,7 @@ We start with some examples to motivate \MNs\ and display some of these properti
 		To distinguish the joint dependence on $S$ and $\mathit{SH}$, for now, we draw an edge with two tails, sometimes called a \emph{hyperedge}, which completes the diagram in \Cref{subfig:smoking-pdg}.
 	\end{example}
 
-	We now return to the issue of independence (2). There are many distributions consistent with the conditional marginal probabilities in the cpts, and the independences presumed by $\cal B$ need not hold for them. Rather than encoding the extra probabilistic information as cpts, we develop a maximum-entropy semantics for \MNs\, which allows us to (temporarily) view the \MN\ $\Gamma(\mathcal B)$ as representing the distribution which provides the \emph{least additional information} beyond the information already contained in the cpts, among all those consistent with them. In \Cref{thm:bns-are-pdgs}, we will show that this distribution is the same as the one specified by $\cal B$.
+	We now return to the issue of independence (2). There are many distributions consistent with the conditional marginal probabilities in the cpts, and the independences presumed by $\cal B$ need not hold for them. Rather than encoding the extra probabilistic information as cpts, we develop a maximum-entropy semantics for \MNs\, which allows us to (temporarily) view  $\Gamma(\mathcal B)$ as representing the distribution which provides the \emph{least additional information} beyond the information already contained in the cpts, among all those consistent with them. In \Cref{thm:bns-are-pdgs}, we will show that this distribution is the same as the one specified by $\cal B$.
 %oli1: I added the following sentence, but I'm not
                 %sure how worried people will be and the current plan
 %is not to talk about sampling in the abstract.
@@ -679,9 +533,10 @@ We start with some examples to motivate \MNs\ and display some of these properti
 		We can simply add the node $T$ with an edge to $C$ that is associated with $\mat p$. 
 		
 		It is now technically possible for our knowledge to be inconsistent. For instance, if the distribution on $C$ given $S,H$ by its original cpt were always deterministically ``has cancer'' for every possible value of $S$ and $H$, but the distribution according to the new cpt from $T$ were deterministically ``no cancer''. 
-		In this particular case, such a selection of cpts seems like an implausible edge case; we conclude that the additonal modularity we gain from a \MN\ is useful even when there is no inconsistency.
+		% In this particular case, such a selection of cpts seems like an implausible edge case; we conclude that the additonal modularity we gain from a \MN\ is useful even when there is no inconsistency.
+		
 
-                %		\begin{center}
+%		\begin{center}
 %			\scalebox{0.9}{
 %			\begin{tikzpicture}
 %			\node[dpadded] (1) at (0,0) {$\mathsf 1$};
@@ -718,10 +573,10 @@ We start with some examples to motivate \MNs\ and display some of these properti
 		\begin{tikzcd}[dpad={light pad}, column sep = 1.3em, AmpRep]
 			A \ar[r] \& B \ar[r] \& C
 		\end{tikzcd}},
-		one concludes that $A$ and $C$ are independent, an conclusion likely incompatible with the original diagram containing all three nodes.  
+		one concludes that $A$ and $C$ are independent, an conclusion incompatible with the original diagram containing all three nodes.  
+		% note: it's incompatible with the structure, but not the rest.
 		
-		
-		\MNs\ are better in both respects. Consider the \MN\ fragment analogous to the CBN we first examined, in which $\mathit{PS}$ and the arrows out of it have been deleted (see the box in \Cref{subfig:smoking-pdg}). In this case, one can see that there are no edges leading to $S$ or $\mathit{SH}$, and hence no distributions specified on them; no special modeling distinction between observation nodes and other nodes are required. 
+		\MNs\ are more modular in both respects. Consider the \MN\ fragment analogous to the CBN we first examined, in which $\mathit{PS}$ and the arrows out of it have been deleted (see the box in \Cref{subfig:smoking-pdg}). In this case, one can see that there are no edges leading to $S$ or $\mathit{SH}$, and hence no distributions specified on them; no special modeling distinction between observation nodes and other nodes are required. 
 		Because they make no independence assumptions, the information in this fragment is truly a subset of the information in the whole \MN. 		
 	\end{example}
 	
@@ -729,7 +584,7 @@ We start with some examples to motivate \MNs\ and display some of these properti
 	
 	\begin{example}\label{ex:grok-union}
 		Grok dreams of becoming Supreme Leader ($\it SL$), and has come up with a plan. She has noticed that people who use tanning beds have significantly more power and than those who don't. Unfortuantely, her mom has always told her that tanning beds causes cancer: in particular, that 15\% of people who use tanning beds get it, compared to the baseline 2\%. Let $\mat q$ be the cpt associated to this beleif. 
-		Grok believes people will make fun of her if she uses a tanning bed and gets cancer, making becoming $\it SL$ impossible. This epistemic state is shown on the left of \Cref{fig:grok-combine}.
+		Grok believes people will make fun of her if she uses a tanning bed and gets cancer, making becoming $\it SL$ impossible. This mental state is depicted as a PDG on the left of \Cref{fig:grok-combine}.
 		
 		\begin{figure}
 			\colorlet{colororiginal}{blue!50!black}
@@ -779,34 +634,29 @@ We start with some examples to motivate \MNs\ and display some of these properti
 			\label{fig:grok-combine}
 		\end{figure}
 		
-		Grok is reading about graphical models because she vaguely remembers that the variables in \Cref{ex:smoking}, match the ones she already knows about. When she finishes reading the statistics on smoking and the original study on tanning beds (associated to a cpt $\mat p$ in \Cref{ex:smoking}), but before she has time to reflect, her epistemic state contains the union of the two graphs (call this $\sfM$), depicted graphically on the right of \Cref{fig:grok-combine}.  
+		Grok is reading about graphical models because she vaguely remembers that the variables in \Cref{ex:smoking}, match the ones she already knows about. When she finishes reading the statistics on smoking and the original study on tanning beds (associated to a cpt $\mat p$ in \Cref{ex:smoking}), but before she has time to reflect, we can represent her (conflicted) knowledge state as the union of the two graphs, depicted graphically on the right of \Cref{fig:grok-combine}. 
+	 
+		The union of the two \MNs, even with overlapping nodes and is still a \MN. This would not have been possible in general with a BN. In order to represent the two different sources of information (the mother's wisdom and study) regarding the distribution on $T$ given $C$,  we needed to give $\sf M$ two parallel edges. Had we not done this, we would have needed to chose between the two or decide on a middle ground immediately. As we are already allowing inconsistency, merely recording both is much more in keeping with the way we have handled other types of uncertainty.
 		%
-		Several features here are noteworthy. 
-		\begin{enumerate}[itemsep=0.2em, leftmargin=7pt] % label=\textbf{F\arabic*.},
-			\item The union of the two \MNs, even with overlapping nodes and is still a \MN. This would not have been possible in general with a BN, and may have required similar arbitrary guesses about tables. 
-				\label{feat:overlap-nodes}
-			% \item %TODO Why was this important???
-			\item In order to represent the two different sources of information (the mother's wisdom and study) regarding the distribution on $T$ given $C$,  we needed to give $\sf M$ two parallel edges. Had we not done this, we would have needed to chose between the two or decide on a middle ground immediately, without time to reflect. As we are already allowing inconsistency, saving both is much more in keeping with the way we have handled other types of uncertainty.
-				\label{feat:overlap-edges}
-			\item $\sfM$ is clearly inconsistent, but even knowing this, it's not clear that there is a better representation of this information. If we were to simply multiply the distributions together pointwise and renormalize, we have effectively assigned the same weight to the two sources of information that have different qualities. We will come back to this point when we discuss factor graphs in \Cref{sec:factor-graphs}. 
-				\label{feat:no-magic-please}
-			\item Even though the cpts $\mat p$ and $\mat q$ are different, they are quite close---not all inconsistencies are equally bad.  Moreover, if Grok were to later discover that her mother had been faithfully transmitting the results of an unrelated high-quality study, she would be justified in increasing her certainty that a cpt roughly like $\mat p$ and $\mat q$ were correct. 
-			This suggests a result that is perhaps obvious in retrospect: the mere \emph{possibility} of inconisistency increases the value of consistency. For an agent that is guaranteed to be consistent by design, corroborating evidence has no value. 
-				\label{feat:corrob}
-		\end{enumerate}
-		As a final remark, while a \MN\ is in some sense merely a set of constraints (the cpts), these constraints themselves have a useful computational meaning. As we have said, a cpt is a stochastic matrix, we can get cpts corresponding to paths by multiply them; equivalently, thought of as probabilistic functions, we can compose them.
-		For instance, if we were to give Grok unconditional probabilities in the form of vectors $(\vec s, \vec h, \vec t)$ over the possible values of $\mathit{S, SH}$ and $\mathit T$ respectively, she could compute three distinct estimates for $\mathit{SL}$. This is perhaps clearest visually, but for cliarity, if $\mat S$ is the cpt for the orange hyperedge that computes $C$ from $\mathit{S, SH}$, and $\mat L$ is the cpt for the blue hyper edge, which computes $\mathit{SL}$ from $\mathit{C, T}$, and $[\vec a; \vec b]$ is a vertical stacking of the vectors $\vec a$ and $\vec b$, then
-		\[ \mat L \Big[\mat p \vec t; \vec t\ \Big],
-		 	\qquad \mat L \Big[\mat q \vec t; \vec t\ \Big], \quad\text{and}
-			\quad \mat L \Big[\mat S \big[\vec s; \vec h\big], \vec t\ \Big]  \]
-		will all be probabilistic estimates of $\mathit{SL}$, which can be used in different circumstances: the first two are applicable even if given only $\vec t$, and the last requires all three values.
-		%
-		This will important intuition for understanding why \MNs\ are different from other sets of constraints, though we leave its formal treatment and implications to a forthcoming paper.
+		%TODO: I should not say this yet. This is a related story that I haven't told yet. 
+		%Moreover, if Grok were to later discover that her mother had been faithfully transmitting the results of an unrelated study, she would be justified in increasing her certainty that a cpt roughly like $\mat p$ and $\mat q$ were correct.
+		% This suggests a result that is perhaps obvious in retrospect: the mere \emph{possibility} of inconisistency increases the value of consistency. For an agent that is guaranteed to be consistent by design, corroborating evidence has no value. 
 	\end{example}
+	Modeling inconsistency does not mean giving up on coherence: even though the cpts $\mat p$ and $\mat q$ are different, they are numerically close---not all inconsistencies are equally bad. Quantifying this will be the focus of \Cref{sec:weighted-semantics}. 
+	
+	
+	While a \MN\ is in some sense merely a set of constraints (the cpts), these constraints themselves have a useful computational meaning. Regarding cpts as stochastic matrices, we can get cpts corresponding to paths by multiplying them; equivalently, thought of as probabilistic functions, we can compose them.
+	For instance, in \Cref{ex:grok-union}, if we were to give Grok unconditional probabilities in the form of vectors $\smash{(\vec s, \vec h, \vec t)}$ over the possible values of $\mathit{S, SH}$ and $\mathit T$ respectively, she could compute three distinct estimates for $\mathit{SL}$. This is perhaps clearest visually, but for cliarity, if $\mat S$ is the cpt for the orange hyperedge that computes $C$ from $\mathit{S, SH}$, and $\mat L$ is the cpt for the blue hyper edge, which computes $\mathit{SL}$ from $\mathit{C, T}$, and $[\vec a; \vec b]$ is a vertical stacking of the vectors $\vec a$ and $\vec b$, then
+	\[ \mat L \Big[\mat p \vec t; \vec t\ \Big],
+		\qquad \mat L \Big[\mat q \vec t; \vec t\ \Big], \quad\text{and}
+		\quad \mat L \Big[\mat S \big[\vec s; \vec h\big], \vec t\ \Big]  \]
+	will all be probabilistic estimates of $\mathit{SL}$, which can be used in different circumstances: the first two are applicable even if given only $\vec t$, and the last requires all three values.
+	This property gives PDGs more useful structure than most collections of constraints. 
+	
+	%
+	% This will important intuition for understanding why \MNs\ are different from other sets of constraints, though we leave its formal treatment and implications to a forthcoming paper.
 
-
-These examples give a taste of the power of \MNs.  In the coming
-sections, we formalize \MNs\ and relate them to other approaches.		
+	These examples give a taste of the power of \MNs.  In the coming sections, we formalize \MNs\ and relate them to other approaches.		
 % \begin{notfocus}
 %	\begin{enumerate}[nosep]
 %		\item This representation more naturally matches what humans are aware of, encoding small locally consistent models rather than one giant probability distribution
@@ -958,7 +808,7 @@ sections, we formalize \MNs\ and relate them to other approaches.
 %matrices and probability if possible.
 %Joe3: I certainly don't think of \mu for matrix, and later you also
 %use \mu for probability (I'll point out where), which is a bad idea.      
-			\item[$\bmu$] $\notation{\colon \big(\!({A,B,\ell})\colon \! \Ed \big) \to \V(A) \to \Delta\V(B)}$
+			\item[$\mat p$] $\notation{\colon \big(\!({A,B,\ell})\colon \! \Ed \big) \to \V(A) \to \Delta\V(B)}$
 			% HYPERGRAPH \bmu TYPE: $\colon\!\big(\!({\bf A,B})\colon \! \Ed \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
 	%joe2: edges don't have labels
 	%oli2: ... I deleted the \ell for now, but I strongly disagree
@@ -968,17 +818,18 @@ sections, we formalize \MNs\ and relate them to other approaches.
 %			  associates, for each edge $(X,Y, \ell) \in
 %oli3: It does not matter if we end up showing examples using the labels, because it's the right thing to do and makes constructions and proofs easier. I am planning to motivate graph unions better at the very least.
 % and put the graph union into the paper. (by the way, I was told that the graph union seemes important and natural, but was just in the wrong place)
-			  associates, for each edge $(X,Y) \in
-                          \Ed$ and $x \in \V(X)$ a distribution on $Y$. 
+			  associates, for each edge $L = (X,Y, \ell) \in
+                          \Ed$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$. 
 %oli1: the above now might be confusing without the type of \Ed, because an edge is not just a pair (X,Y) but also has an identity \ell, which I now need to write down or else I'm lying and people will get confused later. I'm honestly just not sure how to resolve this.
 %[deleted comment on wanting to keep notation]
 %joe1*: I strongly disagree.  Compare the simplicity and ease of
 %comprehensibility of what I wrote (which I claim is completely
 %precise -- there are no questions to be answered) with what you wrote
-%oli1: it requires natural language to parse. Also, is there a difference between associating to each element of x a distribution on B and associatinga  distribution on B with each element x?. I also cant express my preferred currying: I immediately see that \mu_L is a distribution on B --- and I now need more text to explain what I mean by \bmu_L(a). 
+%oli1: it requires natural language to parse. Also, is there a difference between associating to each element of x a distribution on B and associatinga  distribution on B with each element x?. I also cant express my preferred currying: I immediately see that \mu_L is a distribution on B --- and I now need more text to explain what I mean by \bp(a). 
 % You've addressed my more general concerns in the email.
 
-		\end{description}
+		\end{description}%oli3: what do you mean by friendlier?
+
 	\end{defn}
 	If $\sfM$ is a \MN, we reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly; when the choice of $\sfM$ is clear we may omit the subscript.
 	We write $\V(\sfM)$ for set of all possible joint settings of the variables in $\sfM$. 
@@ -1185,44 +1036,6 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %	out in more detail, see \Cref{sec:hyper-convert}.
 
 
-	\subsection{GRAPH OPERATIONS}
-	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpt $\mat r$, as a union of the original \MN\ with the single-cpt \MN\ $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
-	
-	Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two \MNs\ share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}, and mention in \cref{feat:overlap-edges,feat:no-magic-please}. 
-	We now define the graph union formally. 
-
-	\begin{defn}[union] \label{def:model-union}
-		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a \MN\ with the ordinary union of their nodes (necessary to align and glue \MNs\ together), and \emph{disjoint union} of their edges. \notation{Explicitly,
-		\begin{align*}
-			\N^{\sfM \cup \sfM'} &= \N^\sfM \cup \N^{\sfM'},  \\
-			\Ed^{\sfM \cup \sfM'} \!=& \Ed^\sfM \sqcup \Ed^{\sfM'}\!
-				=  \{ (A, B, \text{inl}(\ell)P) : (A,B,\ell)\in \Ed^\sfM \}  \\
-					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell)) : (A,B,\ell)\in \Ed^{\sfM'} \} \\ 
-			\V^{\sfM \cup \sfM'} (N) &= \begin{cases}
-					\V^{\sfM}(N) & \text{if }N \in \N^\sfM \\
-					\V^{\sfM'}(N) &\text{if }N \in \N^{\sfM'} 
-				\end{cases}\\
-			\bmu^{\sfM \cup \sfM'}_L &= \begin{cases}
-				\bmu^{\sfM}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
-				\bmu^{\sfM'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
-			\end{cases}
-		\end{align*}}
-	\end{defn}
-	The condition that $\V^\sfM$ and $\V^{\sfM'}$ agree on the shared variables is necessary for $\V^{\sfM\cup \sfM'}$ or $\bmu^{\sfM \cup \sfM'}$ to be well-defined.%
-		%oli4: this is commented out, don't worry.
-		\vfullfootnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts}
-	The restriction from \Cref{ex:grok-ablate} is more straightforward.%
-	%oli4: how much story, vs terseness?
-	%, but we provide it for completeness.
-	
-	\begin{defn}[restriction]\label{def:restriction}
-		The \emph{restriction} of $\sfM = \mnvars[]$ to a subgraph $(\N' \subseteq \N, \Ed' \subseteq \Ed)$ of $(\N, \Ed)$, is the \MN\, $\sfM|_{\N', \Ed'} = (\N', \Ed', \V |_{\N'}, \bmu|_\Ed')$, where 
-		$\V|_{\N'}$ and $\bmu|_\Ed'$ are the same functions on the their respectively smaller domains $\N$ and $\Ed$. 
-	\end{defn}
-	
-	We now have all of the basic tools we need to use and reason about \MNs; we now turn to the much more interesting question of what they mean.
-
-
 	\section{SEMANTICS}\label{sec:semantics}
 %joe1: Much too wordy, and hides the key points
 	% We view of \modelnames\ as being a representation of beliefs in and of themselves, rather than a compression of something more fundamental such as a probability distribution. That said, it is still incredibly important to interpret them in various ways, as this will give us ways of comparing them to other graphical models, prove things about \MNs, and give a lot more intuition about how they work.
@@ -1232,7 +1045,8 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
         %are just views of the distribuiton.
 	There is more than one way of giving semantics to a \MN.  We discuss three approaches below.
 	The first is perhaps the most simplest: associating with a \MN\ a set of distributions, intuitively, the ones that are consistent with it.	This set will be empty if the \MN\ is inconsistent.
-	The second approach also associates with a \MN\ a set of distributions, but associates with each one a \emph{weight} \parencite[cf.][]{halpern2015weighted}.  For an inconsistent \MN, some distributions may still be better than others.
+	%
+	The second approach associates a \MN\ with a scoring function, indicating the fit of an arbitray distribution $p$, and can be thought of as a \emph{weighted} set of distributions \parencite[cf.][]{halpern2015weighted}.  For an inconsistent \MN, some distributions may still be better than others.
   %joe3*: Added some sentences here, which incorporates some of your
   %material below.  We need to make that we're using the same notation
   %for a distribution throughout.  We'll probably want to move the
@@ -1246,23 +1060,11 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 	% there's a section later on comparing to existing graphical models. Why are we focusing on BNs so much? 
 %joe3: we are focusing on BNs because they're still by far the most
 %popular approach in practice.    It's still what's taught in
-%introductory AI courses, with good reason.
+%introductory AI courses, with good reason.%oli3: what do you mean by friendlier?
+
   %  \commentout{
 	Our third approach chooses a particular distribution from the weighted set of distributions defined by the second 	approach, thus associating with a PDG a unique distribution. As we shall show, it is this third approach that allows us to recover BNs from PDGs. 
 
-	%oli2: Here's my new version, informed by what you wrote, and your comments on my original attempt.
-	%oli2.motiv: New additional aim: motivate the word
-	%semantics. I was talking to an ML person appplying to UAI who
-	%didn't know the technical meaning. I'm slowing down a lot
-	%here now.
-%joe3: Yet again, I wish you hadn't spent time on this.  You had many
-        %more important things to do.  I've put in detailed comments,
-        %so you'll know why I reacted so strongly against it.
-%joe3: I don't have any intuition for it (and I find the way that
-%you're assigning weights not at all intuitive).  And you were the one
-%who said above you'd never heard of sets of probability measures as a
-%representation of uncertainty.  you can't have it both ways ...
-		\todo{}
       %	Even if it is now intuitive how \MNs\ can be used to represent beliefs, by providing them with semantics---that is, by viewing them in terms of standard, well-established notions of uncertainty---we will be able to better articulate the relationships between \MNs\ and other graphical models.
 %joe3*: I strongly object to this.  It's like saying that we give
 %semantics to Python so that we can compare it to C++..  That's not
@@ -1290,7 +1092,8 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %        modularity we wanted to model.  
 	%
 	%oli2: I want to replace the name "weighted (set of)
-	%distribution(s)"; the current term emphasizes the SET of
+	%distribution(s)"; the current term emphasizes the SET of%oli3: what do you mean by friendlier?
+
 	%distributions invovled, each with a weight (though in fact,
 	%we have a weight for ANY distribution, and we're suggesting
 	%somethign closer to computing a goodness of fit than looking
@@ -1312,24 +1115,7 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %        distribution semantics is closely related to a configuration
 %        energy, which in \Cref{sec:thermo} we compare with the already
 %        well-developed theory of free energies in factor graphs.  
-	%oli2: I know that "features we're looking for is unhelpful". I want to say some of the following, but I'm not sure how to motivate them, and which I should include here vs elsewhere. I want to just move on to the set semantics already, and talk about this when it comes up---but I also want to tell the story of why we ultimately use this semantics. 
-	% (1) The weighted distribution semantics have a a natural interpretation as a configuration energy, which we compare with the already well-developed theory of free energies in factor graphs (\Cref{sec:thermo}). 
-	% (2) 
-	%
-%	To motivate this, our story starts with yet another, simpler
-%semantics. Viewing a \MN\ as a set of constraints on distributions,
-%consider the set of all distributions consistent with these
-%constraints. 
-	
-	%joe1*: Oliver, please completely rewrite this section so that it's
-	%largely notation free, and uses only distributions.  I don't want to
-	%see subscripts saying Set.  It shouldn't be hard to write a few
-	%sentences that explain that a distribution $\Pr$ is consistent with a PDG,
-	%if for every edge, the marginal of \Pr on the relevant variables
-	%agrees with the cpt asociated with that edge.  Even if you don't
-	%agree that this is how we should do it, view it as an exercise.  
-%joe3: Does the UAI style want caps for subsections?
-%oli3: yes.
+
 \subsection{\MN S AS SETS OF DISTRIBUTIONS}\label{sec:set-of-distribution-semantics} 
 	%oli2: removed waffling.
 %joe3: I really don't like this.  That's not how I think of a PDG. I
@@ -1355,10 +1141,10 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
                 those given by $\boldsymbol\mu$.
 %joe3: added a bit of formality
 %oli4: there are labels on edges again 
-          That is, $p \in \bbr\sfM\SD$ iff, for all edges $(X,Y, \ell) \in
+          That is, $p \in \bbr\sfM\SD$ iff, for all edges $L = (X,Y, \ell) \in
           \Ed$,  $x \in \V(X)$,  and $y \in \V(Y)$, we have that
           $p(Y\sheq y \mid X\sheq x)$ is the $x,y$ entry in the cpt given by
-          $\bmu_{X,Y}$.
+          $\bp$.
 %oli4: I don't understand how this easier to read than my definition below, and and it's way less visually distinct and intentionally typeset. But I'll keep it.    
 		\notation{Formally,		
 		\[ \Big\llbracket \sfM \Big\rrbracket\SD \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
@@ -1370,215 +1156,36 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 
 	As we said earlier, we say that the PDG $\sfM$ is \emph{consistent} if
 	$\bbr\sfM\SD \ne \emptyset$, and consistent otherwise.
-
-%the examples from the intro?
-        
-%joe3: I don't know what sense you're talking about here
-%	In this sense, adding a CPT to \MN\ is a special case of a graph union.
-%	With \Cref{def:set-semantics} we can also now finally give a
-%formal definition of consistency. 
-%	\begin{defn} \label{def:weak-consistent}
-%		$\sfM$ is consistent iff $\bbr{\sfM}\SD$
-%joe3: why ``inhabited''?  Why not just say non-empty.  Why use a
-%nonstandard word when there's already a good standard word.
-        %inhabited. %oli2: could also say non-empty or $\neq \emtpyset$ 
-		%I know non-empty is more common but the double negative is unnecessary and makes things non constructive for no reason, and I want to push for this terminology in general.
-		%oli2: is the following helpful? I don't know. I'm adding it because you sometimes ask for additional motivation
-		% and explanation of symbols, but it's commented out because sometimes you say things are overkill and redundant, and this feels counter-productive to me.
-		% ---that is, if there exists some distribution $\mu \in \Delta\V(\sfM)$ consistent with every marginal. 
-        %	\end{defn}
-
-        %joe3*: Sigh ... cut; soe more detailed reasons inline
-        %oli3: oops, I omitted two letters which made it very wrong.
-	\begin{revising}
-	\note{\emph{This is partly to answer your question; I am prepared to cut it from the abstract. I find it a useful illustration, and at least one of my examples later on uses this terminology.}
-
-	Note that being inconsistent is not the same things as \emph{over-constrained}: 	
-	\begin{defn}
-          %joe3: I couldn't understand this.  I don't have any
-          %intuition as to why this is a reasonable definition.  Isn't
-          %there always a way of assigning cpts to edges to make a
-          %graph consistent?  Why does this have anything to do with
-          %my intuition for ``over-constrained''. 
-          %oli3: ooops.... I mean /inconsistent/.... changed. 
-		$\sfM = \mnvars[]$ is over-constrained if there exists
-          \emph{some $\bmu'$} assigning cpts to the same edges as
-          $\bmu$, such that $(\N, \Ed, \V, \bmu')$ is inconsistent
-          \notation{(i.e., $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}\SD
-%joe3: ditto
-            = \emptyset$)}, and under-constrained if there are
-          multiple distributions in $(\N, \Ed, \V, \bmu')$ for
-          \emph{every such $\bmu'$}, making this a property of the
-          qualitative \MN\ $(\N, \Ed, \V)$.  
-	\end{defn}
-
-	We know that an under-constrained \MN\ is consistent without even looking at the tables. However if a we know that an \emph{over-constrained} \MN\ is actually consistent (when it could have easily contradicted itself), the information provides corroborating evidence, and one can take this as support in favor of the beliefs. 
-	}
-
-
-	%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
-%joe3: ``enjoying modularity'' seems like strange wording to me.  What
-%we've said, in any case, is that PDGs are more modular than other
-%approaches. 
-%	We have said repeatedly that \MNs\ enjoy modularity, and seen
-%oli3:
-	We have seen
-        in \cref{ex:guns-and-floomps,ex:planet,ex:smoking} cases in
-        which capturing the relevant information involves taking a
-%joe3*: as I said, you've never talked about these examples in terms of
-%union.  I think that there may be a useful discussion to be had about
-%how modularity corresponds to union, and I understand that once you
-%have union, youll want multigraphs.  This isn't going to make it to
-%the abstract, and there's no question that this is the wrong place
-%for it.  I could imagine a section where you talk about modularity
-%and union, say that PDGs make sense even if they are multigraphs adn
-%prove the theorem.
-%oli3: that's the plan now. BUt it's not that it even makes sense, so
-% much as that it _only_ makes sense with multi-graphs.
-        union of two graphs, some of which may include new
-        concepts. We wish to verify that our semantics are
-        well-behaved with respect to this composition.	  
-	We therefore ask: what happens if we combine two \MNs\ $\sfM$
-        and $\sfM'$ together? Intuitively, the set of distributions
-        $\bbr{\sfM \cup \sfM'}\SD$ consistent with the combined
-        constraints $\sfM\cup \sfM'$ should be the intersection of the
-        distributions $\bbr{\sfM}\SD \cap \bbr{\sfM'}\SD$ consistent
-        with each \MN\ separately. This is almost correct, but $\sf M$
-        and $\sfM'$ may be over different set of variables, in which
-        case the sets of distributions are automatically disjoint, as
-        they are over different sets of possible worlds. To address
-        this, we define a more sophisticated intersection of
-        distributions that must agree on all overlapping
-        marginals. %(\cref{def:marginal-dist-intersection}) 
-	
-	\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
-		If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
-%oli: remove the coment below to hide the notation.
-%		\notation[$R \dcap S$~]
-			{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
-		is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
-		
-		This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
-	\end{defn}
 	
 	
-%	It is now natural to ask: how does this semantics interact with the \MN\ union (\Cref{def:model-union})? 	
-	Now that we have the correct definition, we immediately get our desired property:
-	
-	\begin{prop}\label{prop:union-set-semantics}
-		$\bbr{M \cup M'}\SD = \bbr{M}\SD \dcap \bbr{M'}\SD$.
-	\end{prop}
-
-	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
-	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
-	
-	\begin{example}\label{ex:sd-compose-unconditional}
-		Suppose we now have two \MNs\ with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
-		%
-		\begin{align*}
-			&\bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y}\SD \\
-				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
-		\end{align*}
-		where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpt of conditional marginals on $Y$ for each setting of $X$.
-		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
-	\end{example}
-
-
-%	Sometimes, not all of the a-priori worlds will actually be possible: some may be in logical contradiction with one another, such as if $A \times B$ takes the value $(a,b)$ and $A$ takes $a' \neq a$.
-%	\begin{defn}
-%		Consider again the \MN\ $M = (\mathcal N, \Ed, \mathcal V, \bmu)$. Define 
-%		\[ W_M := \{ w \in W_{\cal V} : \mu(w) > 0 \text{ for some } \mu \in \bbr{M}\SD \} \]
-%	\end{defn}
-
-%joe1*: this may be a natural question, once you've motivated union,
-%bu you haven't provided the motivation.  In any case, this is the
-%wrong place for this discussion.  We should be focusing purely on
-%semantics.  I cut all of it.
-%oli1: This is all about semantics: I'm showing that they're not ad-hoc, by saying that the semantics is well-behaved with respect  to the one modular operation I'm using (graph unions)
-%joe2: My comment above still stands.  This should all be cut.  You
-% still haven't convinced the reader (at least, not this one) that we
-% need union at all.  This is a distraction.
-%oli2: I've already commented on this at length above, but... a distraction from what? I honestly don't know what could be more valuable than this in set-of-distributions semantics section: we're showing that this semantics is modular. 
-%oli2: I've rewritten this so that the story is clearer. It may still need to be moved; I'm open to suggestion about where.
-
-
-
-
-	
-	
-%	There is one final property of $\bbr{-}\SD$ that may be interesting on its own, and will become useful later:
-%	What sets of distributions can we get in this way? 
-%oli2: I don't know where to move this right now. It is about sets of distributions so I want to  keep it here.
-%	One might be curious which sets of distributions can be realized by \MNs\ through this semantics. 
-%joe3: This is the wrong place.  It should be be inside the proof that
-%there is a unique distribution that maximizes entropy.  Unless it's
-%also used elsewhere, in which case it shold go just before the proof
-%that there's a unique distribution that maximizes me.
-%oli3: I agree that this doesn't promote my modularity / inconsistency agenda,
-% but this a feature of the set of distributions semantics, and people at UAI
-% will have a lot of intuitions about convexity. If we want to give them 
-% intuitions about what we're doing, this seems worth saying.
-	It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
-\end{revising}
-	\begin{lemma}[restate=thmsetconvex] 
-		\label{prop:convex}
-		$\bbr{\sfM}\SD$ is convex, for any \MN\ $\sfM$.
-	\end{lemma}%
-
-	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
 	\begin{vfull}
-	If the intersection of two sets is convex, then 
-	\begin{conj}\label{prop:intersect-set-semantics}
-		$$\bbr{M \cap M'}\SD = \text{ConvHull}(\bbr{M}\SD \mathop{\dot\cup} \bbr{M'}\SD).$$
-	\end{conj}
+		Note that being inconsistent is not the same things as \emph{over-constrained}: 	
+		\begin{defn}
+
+			$\sfM = \mnvars[]$ is over-constrained if there exists
+			  \emph{some $\bmu'$} assigning cpts to the same edges as
+			  $\bmu$, such that $(\N, \Ed, \V, \bmu')$ is inconsistent
+			  \notation{(i.e., $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \bmu}\SD
+				= \emptyset$)}, and under-constrained if there are
+			  multiple distributions in $(\N, \Ed, \V, \bmu')$ for
+			  \emph{every such $\bmu'$}, making this a property of the
+			  qualitative \MN\ $(\N, \Ed, \V)$.  
+		\end{defn}
+
+		We know that an under-constrained \MN\ is consistent without even looking at the tables. However if a we know that an \emph{over-constrained} \MN\ is actually consistent (when it could have easily contradicted itself), the information provides corroborating evidence, and one can take this as support in favor of the beliefs. 
 	\end{vfull}
-	
-
-
-%	\begin{conj}
-%		If $\mathcal P$ is a closed, recursive, convex set of probability measures, then there is a \MN\ $M$ such that $\bbr{M}\SD = \mathcal P$ 
-%	\end{conj}
-
-
-%joe1*: This also needs to be rewritten.  All the technical material
-%that you need to get the Theorem 3.5 should be pulled here; you
-%should cut Theorem 3.6
-%oli2: I cut the theorem, which I now regret. I think that was more
-%important important; it's now much harder to justify composition, and
-        %it feels less coherent.
-%joe2: It's a distraction here.  The story here is about semantics,
-%not about a technical construction.  
-%oli2: Also the only technical material is about [[M]]_Set. I don't even need to mention it here if I'm not proving it inline. It's useful in the set semantics section because it gives people a feeling for what the shape of the set semantics are, but it's not useful in this section. Therefore I have moved it back. However, I still don't know how to motivate it. What am I supposed to say to get people to care about convexity? If I need to reference this theorem, why even mention the lemma? I can prove it directly or hide it in the appendix.
-
-%joe3*: the flow is bad: (1) sets of distributions, (2) single
-        %distribution, (3) weighted distributions, (4) back to single
-        %distributions. 
-%I'm reverting back to the original flow, which had weighted
-%distributions second.        
 
 %joe3        
         %	\subsection{\MN S AS WEIGHTED
-       	\subsection{\MN S AS DISTRIBUTION SCORINGS} \label{sec:weighted-semantics} 
+       	\subsection{PDGS AS DISTRIBUTION SCORINGS} \label{sec:weighted-semantics} 
 %oli3: It's still not a set of distributions with a weight. 
 %	If a probability distribution is a soft constraint on the set
 %of possible worlds, then a \MN\ is a soft constraint on the set of
 %probability distributions. 
-%Our first appraoch treats all inconsistent \MNs\ as equivalent,
-        %which is unsatisfying.
-%joe3: this doesn't parse; reverting back to what I had        
+
         
-        The semantics in \Cref{def:set-semantics} treats all inconsistent \MNs\ as equivalent, which is unsatisfying. 
-		For instance, recall \cref{feat:corrob} in \Cref{ex:grok-union}, 
-		
-		%joe3: there may be a difference, but you haven't related the
-%difference to PDGs, and you have to
-%oli3: I don't buy this, it gives intuititon either way, and it's obviously also
-% a PDG, because it's just a single binary variable... 
-%%	For instance, there's a difference between thinking a 60\%
-%        head-biased coin will land heads 63\% of the time, as opposed
- %       to 0\% of the time. %and estimates of distributions from
-%                            %samples are necessarily going to be a
-%                            %little off. 
+        The semantics of \Cref{def:set-semantics} treats all inconsistent \MNs\ as equivalent, which is unsatisfying. 
+		For instance, in \Cref{ex:grok-union}, the two cpts $\bf p$ and $\bf q$ were close but did not quite agree.
  		To address this, we generalize the semantics presented in \Cref{sec:set-of-distribution-semantics}. For a candidate distribution $p$,
  	%joe1: it's a bad idea to use \nu for a distribution if you're using
  	%\mu for the label.  I would suggest using \mu or \Pr for a
@@ -1641,14 +1248,14 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 particular approach that has interesting connections to other
 representations  of uncertainty.  The idea is to measure the distance
 between two distributions using maximum entropy.  Specifically, we
-compare two PDGs $\sfM_1 = (\N, \Ed, \V, \bmu_1)$ and $\sfM_1 = (\N,
-\Ed, \V, \bmu_2)$ 
+compare two PDGs $\sfM_1 = (\N, \Ed, \V, \mat p)$ and $\sfM_1 = (\N,
+\Ed, \V, \mat p')$ 
 that have the same set of nodes, ranges of the nodes,
 and edges, but may differ in the function associating cpts with
-edges.  For each edge $(X,Y) \in \Ed$ and each value $x \in \N(X)$, we
-compute the entropy of $(\bmu_2)_{X,Y}(x)$ relative to
-$(\bmu_2)_{X,Y}(x)$; then we sum over all $x \in \N(X)$ and all edges
-$(X,Y)$. 
+edges.  For each edge $L \in \Ed$ and each value $x \in \V(X)$, we
+compute the entropy of $\bp(x)$ relative to
+$\bp'(x)$; then we sum over all $x \in \V(X)$ and all edges
+$L$. 
 %oli3: This is wrong. We just compare one PDG to a distribution.
 
 	\begin{defn}\label{def:zeta-score}
@@ -1663,7 +1270,7 @@ $(X,Y)$.
 
 %oli2: I suppose I also need to define relative entropy?
 %joe3: yes
-		where $D_{\mathrm{KL}}$ is the relative entropy.
+		where $\thickD$ is the relative entropy.
 %oli2: I cut this description, as I did a lot of explaining above.
 %		taken between the two distributions over $B$: one given by the edge from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
                 %joe3: moved back from below; this is where it belongs:
@@ -2157,6 +1764,8 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 % and a
 
 	\end{vfull}
+	
+	
 
 
 %\begin{notfocus}
@@ -2299,8 +1908,8 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 
 	\begin{defn}
 		The \emph{extra information}, $H^{\sfM}$, given by a distribution $p$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ is given by
-		\[ \H^{\sfM}(p) := \left(\sum_{L = (X,Y, \ell)\in \cal L} ~~\E_{x \sim p_X}  \H (\bmu_L (x)) \right) - \H(p) \] 
-		where $p_X$ is the marginal of $p$ on the variable $X$, and $\H(\bmu_L(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bmu_L$ when $X = x$. 
+		\[ \H^{\sfM}(p) := \left(\sum_{L = (X,Y, \ell)\in \cal L} ~~\E_{x \sim p_X}  \H (\bp (x)) \right) - \H(p) \] 
+		where $p_X$ is the marginal of $p$ on the variable $X$, and $\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bp$ when $X = x$. 
 	\end{defn}
 	% The cpts may not (in the entropy sense) 
 	We can think of the extra information as the sum of the entropies that \emph{actually} result from each table, in the context of distribution $p$, minus the total entropy of the distribution.
@@ -2614,6 +2223,125 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	\end{example}
 
 	
+	\section{Operations on PDGs}
+	\subsection{GRAPH OPERATIONS}
+	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpt $\mat r$, as a union of the original \MN\ with the single-cpt \MN\ $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
+	
+	Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two \MNs\ share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}. 
+	We now define the graph union formally. 
+
+	\begin{defn}[union] \label{def:model-union}
+		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a \MN\ with the ordinary union of their nodes (necessary to align and glue \MNs\ together), and \emph{disjoint union} of their edges. \notation{Explicitly,
+		\begin{align*}
+			\N^{\sfM \cup \sfM'} &= \N^\sfM \cup \N^{\sfM'},  \\
+			\Ed^{\sfM \cup \sfM'} \!=& \Ed^\sfM \sqcup \Ed^{\sfM'}\!
+				=  \{ (A, B, \text{inl}(\ell)P) : (A,B,\ell)\in \Ed^\sfM \}  \\
+					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell)) : (A,B,\ell)\in \Ed^{\sfM'} \} \\ 
+			\V^{\sfM \cup \sfM'} (N) &= \begin{cases}
+					\V^{\sfM}(N) & \text{if }N \in \N^\sfM \\
+					\V^{\sfM'}(N) &\text{if }N \in \N^{\sfM'} 
+				\end{cases}\\
+			\bmu^{\sfM \cup \sfM'}_L &= \begin{cases}
+				\bmu^{\sfM}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
+				\bmu^{\sfM'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
+			\end{cases}
+		\end{align*}}
+	\end{defn}
+	The condition that $\V^\sfM$ and $\V^{\sfM'}$ agree on the shared variables is necessary for $\V^{\sfM\cup \sfM'}$ or $\bmu^{\sfM \cup \sfM'}$ to be well-defined.%
+		%oli4: this is commented out, don't worry.
+		\vfullfootnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts}
+	The restriction from \Cref{ex:grok-ablate} is more straightforward.%
+	%oli4: how much story, vs terseness?
+	%, but we provide it for completeness.
+	
+	\begin{defn}[restriction]\label{def:restriction}
+		The \emph{restriction} of $\sfM = \mnvars[]$ to a subgraph $(\N' \subseteq \N, \Ed' \subseteq \Ed)$ of $(\N, \Ed)$, is the \MN\, $\sfM|_{\N', \Ed'} = (\N', \Ed', \V |_{\N'}, \bmu|_\Ed')$, where 
+		$\V|_{\N'}$ and $\bmu|_\Ed'$ are the same functions on the their respectively smaller domains $\N$ and $\Ed$. 
+	\end{defn}
+	
+
+
+	%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
+%joe3: ``enjoying modularity'' seems like strange wording to me.  What
+%we've said, in any case, is that PDGs are more modular than other
+%approaches. 
+%	We have said repeatedly that \MNs\ enjoy modularity, and seen
+%oli3:
+	We have seen
+        in \cref{ex:guns-and-floomps,ex:planet,ex:smoking} cases in
+        which capturing the relevant information involves taking a
+%joe3*: as I said, you've never talked about these examples in terms of
+%union.  I think that there may be a useful discussion to be had about
+%how modularity corresponds to union, and I understand that once you
+%have union, youll want multigraphs.  This isn't going to make it to
+%the abstract, and there's no question that this is the wrong place
+%for it.  I could imagine a section where you talk about modularity
+%and union, say that PDGs make sense even if they are multigraphs adn
+%prove the theorem.
+%oli3: that's the plan now. BUt it's not that it even makes sense, so
+% much as that it _only_ makes sense with multi-graphs.
+        union of two graphs, some of which may include new
+        concepts. We wish to verify that our semantics are
+        well-behaved with respect to this composition.	  
+	We therefore ask: what happens if we combine two \MNs\ $\sfM$
+        and $\sfM'$ together? Intuitively, the set of distributions
+        $\bbr{\sfM \cup \sfM'}\SD$ consistent with the combined
+        constraints $\sfM\cup \sfM'$ should be the intersection of the
+        distributions $\bbr{\sfM}\SD \cap \bbr{\sfM'}\SD$ consistent
+        with each \MN\ separately. This is almost correct, but $\sf M$
+        and $\sfM'$ may be over different set of variables, in which
+        case the sets of distributions are automatically disjoint, as
+        they are over different sets of possible worlds. To address
+        this, we define a more sophisticated intersection of
+        distributions that must agree on all overlapping
+        marginals. %(\cref{def:marginal-dist-intersection}) 
+	
+	\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
+		If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
+%oli: remove the coment below to hide the notation.
+%		\notation[$R \dcap S$~]
+			{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
+		is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
+		
+		This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
+	\end{defn}
+	
+	
+%	It is now natural to ask: how does this semantics interact with the \MN\ union (\Cref{def:model-union})? 	
+	Now that we have the correct definition, we immediately get our desired property:
+	
+	\begin{prop}\label{prop:union-set-semantics}
+		$\bbr{M \cup M'}\SD = \bbr{M}\SD \dcap \bbr{M'}\SD$.
+	\end{prop}
+
+	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
+	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
+	
+	\begin{example}\label{ex:sd-compose-unconditional}
+		Suppose we now have two \MNs\ with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
+		%
+		\begin{align*}
+			&\bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y}\SD \\
+				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
+		\end{align*}
+		where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpt of conditional marginals on $Y$ for each setting of $X$.
+		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
+	\end{example}
+
+	It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
+	\begin{lemma}[restate=thmsetconvex] 
+		\label{prop:convex}
+		$\bbr{\sfM}\SD$ is convex, for any \MN\ $\sfM$.
+	\end{lemma}%
+
+	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
+	\begin{vfull}
+	If the intersection of two sets is convex, then 
+	\begin{conj}\label{prop:intersect-set-semantics}
+		$$\bbr{M \cap M'}\SD = \text{ConvHull}(\bbr{M}\SD \mathop{\dot\cup} \bbr{M'}\SD).$$
+	\end{conj}
+	\end{vfull}
+	
 	\section{THERMODYNAMICS OF PDGS}\label{sec:thermo}
 	\begin{figure}[t]
 		\centering
@@ -2900,6 +2628,9 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 
 
 	\section{DISCUSSION}
+	
+	\subsection{Constraints and composition}
+	
 	\todo{There are many things I could write. Have to decide what I actually want to say.}
 	
 	
@@ -3010,12 +2741,12 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		It is well-known that $D_{KL}$ is convex, in the sense that 
 		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
 		Choose any edge $L \in \Ed$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
-		Setting $q_1 = q_2 = \bmu_L(a)$, we get
-		\[ D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \]
+		Setting $q_1 = q_2 = \bp(a)$, we get
+		\[ D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \]
 		Since this is true for every $a$ and edge, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
 		\begin{align*}
-			\E_{a\sim p(A=a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
-			\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bmu_L(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bmu_L(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bmu_L(a)\ ||\ p_2) \\
+			\E_{a\sim p(A=a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
+			\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
 			\zeta(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \zeta(M;p_1) + (1-\lambda) \zeta(M;p_2)
 		\end{align*}
 	\end{proof}
@@ -3182,7 +2913,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	The choice to formalize \MNs\ this way is a design consideration that makes some things cleaner, but we can just as well formalize multi-tailed edges directly, as follows:
 	
 	\begin{defn}[\MNH]\label{def:modelhyper}
-		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Ed, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Ed \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyperedges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Ed$, we have a table of distributions $\bmu_L$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
+		A \textit{\modelnamehyper} (\MNH) is tuple $(\N, \boldsymbol\Ed, \V, \bmu)$ where $\N$ and $\V$ are as before, $\boldsymbol\Ed \subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyperedges', i.e., edges whose source and target are sets of nodes, and for each edge $L = ({\bf A, B}, \ell) \in \boldsymbol\Ed$, we have a table of distributions $\bp$ on \emph{joint settings} of the variables in the set $\bf B$ for each joint setting of the variables in $\bf A$.
 	\end{defn}
 	
 	\Cref{thm:hyperequiv} shows \MNs\ and \MNH s to be equivalent, though in different cases one may seem more natural than the other, as illustrated in the following theorem.
