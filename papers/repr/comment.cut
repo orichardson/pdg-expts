@@ -1,15 +1,66 @@
-\subsection{Inconsistency} \label{sec:consistency-ethos}
+\subsection{As Probabilisitic Programs}\label{sec:prog-semantics}
 
-Believing a logically inconsistent formula can lead you to arbitrarily bad conclusions, having an infeasible set of constraints makes all answers you could give wrong, and having inconsistent preferences can lose you infinite money. We don't want to build inconsistent systems or agents with incoherent views of the world, and so, where possible, we design them so they cannot possibly be broken in this way. Suppose, for example, that we are trying to represent some quantity that must be a point on the unit circle. We could do it with an $x$ and $y$ coordinate, but this could be problematic because $x^2+ y^2$ might not be 1 --- it would be safer and harder to go awry if we parameterize it by an angle $\theta \in [0, 2\pi)$ instead. In the absence of performance benefits (like needing to regularly use the $y$-coordinate and not wanting to compute a sine), why would we take the first approach, introducing a potentially complex data-invariant, when we could avoid it?
+One final way of viewing PDGs is as a set of probabilistic programs, corresponding to the edges.
+Conditional distributions can be thought of as probabilistic programs. As a result, we can compose and run them: paths from $A$ to $B$ correspond to noisy estimates of $B$ from $A$.
 
-This line of thought, though common and defensible, is flawed if we are not perfectly confident in the design of both our system and the ways it can interact with the outside world. Using similar logic, we might ask ourselves: Why ask programmers for type annotations when all instructions are operationally well-defined at run-time?  Why use extra training data if there's already enough there to specify a function? Why estimate a quantity in two ways when they will yield different answers? Why repeat and rephrase your ideas when this could make you contradict yourself? Why write test cases when they could fail and make the project inconsistent? Why conduct an experiment if it could just end up contradicting your current knowledge?
+Specifically, if $f(b \mid a) : \mathcal V_A \to \Delta \mathcal V_B$ and $g(c \mid b) : \mathcal V_B \to \Delta \mathcal V_C$ are conditional distributions, then the probabilistic composition $g\circ f : \mathcal V_A \to \Delta\mathcal V_C$ is
+\begin{align*}
+(g\circ  f) (c \mid a) :=  \sum_{b \in \mathcal V B}\!\! f (b \mid a)\ g(c \mid b)
+\end{align*}
 
-These questions may seem silly, but there is a satisfying information theoretic answer to all of them: redundancy, though costly, is the primary tool that we use to combat the possibility of being wrong. Maintaining data invariants can be expensive but provides diagnostic information; in the example above, settings of $x$ and $y$ that don't lie on the unit circle provide diagnostic information that something has gone wrong.
-In many cases, it is also possible to paper over problems by forcibly re-instating local data invariants: for instance, we could re-normalize any values of $x$ and $y$ (so long as $xy \neq 0$; we can chose an arbitrary point otherwise) at every step. While this would reduce inconsistency, it also hides red flags.
+This can be recognized as a matrix multiplication $f$ and $g$ regarded as sub-stochastic matrices.
+Thinking about graphical models this way makes thinking about chains of reasoning simpler, gives us a way out of storing probability tables, and suggests additional applications.
 
-Using a Bayesian Network to represent a probability distribution is like representing a circle with $\theta \in [0, 2\pi)$.
-By construction, the result must be a distribution, and nothing can possibly go wrong so long as we can always decide on exactly one distribution which is sufficient for our purposes.
-% By construction, the result must be a point on the circle, and nothing can possibly go wrong so long as we're sure that we will always have exactly enough information to determine such a point (for instance, we could never be totally clueless about the point, or just know its $x$ coordinate).
+More formally, we can define
+\[ \bbr{M}_\lambda = \left\{
+\begin{aligned}
+ \text{paths } p = N_0 \xrightarrow{p^1} N_1 \xrightarrow{p^2}\cdots\xrightarrow{p^n}N_n \\
+ \text{such that } (N_{i-1}, N_i, p^i) \in \Ed^\sfM
+\end{aligned}
+\right\} \]
+
+\begin{example}
+Composition of arrows in a tables in chain is simply an easy case of varaible elimination.
+
+\[
+\scalebox{0.8}{
+\begin{tikzcd}[dpad, ampersand replacement=\&]
+A \ar[r]\& C
+\end{tikzcd}\hspace{3em}
+\begin{tikzcd}[dpad, ampersand replacement=\&]
+A \ar[r]\& B \ar[r] \& C
+\end{tikzcd}}
+\] 
+
+Conversely, factorization of a table $A \to C$ into tables $A \to B$ and $B \to C$ (i.e., a stochastic matrix factorization) corresponds to splitting a program into two steps, and the data necessary to describe it will be smaller if $|B|$ is small.
+\end{example} 
+
+% It also has not escaped us that PDGs have a particularly nice description in categorical terms, which we do not pursue further here.
+
+Furthermore, thinking about the mental state of an agent as a collection of programs you could run from any concept gives our first natural interpretation of a sub-distribution (more in \Cref{sec:full-model}): probability mass assigned to $\none$ by a edge $p$ has not terminated yet (if at all).
+Even given infinite time, some paths in $\bbr{\sfM}_\lambda$ may be infinite.
+
+\begin{defn}
+A PDG $\sfM$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that
+$$\bigcap_{p \in P}\ \bbr*{\vphantom{\Big|}p^0\circ \cdots\circ p^k}\SD \neq \varnothing$$
+\end{defn}
+
+\begin{example}
+Bayesian Networks and conditional Bayesian Networks are strongly consistent.
+\end{example}
+
+\begin{prop}
+% $ \text{strongly consistent}  \subsetneq \quad
+% \text{strictly consistent}  \subsetneq  \text{consistent} $
+Any PDG $M$ that is strongly consistent is also consistent, but some strongly consistent PDGs are not strictly consistent.
+\end{prop}
+
+% \begin{example}
+% The trace graph of a
+% \end{example}
 
 
-The process of mechanistically forcing invariants is homologous to the standard practice for factor graphs: practitioners will often just assume that the density it defines is normalizable, and either forcibly re-normalize or cleverly avoid computing the normalization constant while still assuming that one exists; behavior is usually left unspecified in the unlikely event that it is not defined or zero.
+% This means we can sample them
+% Also, compose them
+% and a
+
