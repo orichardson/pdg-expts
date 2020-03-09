@@ -33,6 +33,7 @@
 
 \input{../model-commands.tex}
 % \input{model-commands.tex}
+\usepackage{nicefrac}
 
 \usepackage[noabbrev,nameinlink]{cleveref}
 %\crefname{lemma}{lemma}{lemmas}
@@ -832,34 +833,25 @@ similarly, the cpt for the edge from $ C \times T$ to $T$ gives probability 1 to
 
 This trick will not work for a BN. We need cpts to be associated with edges, so that the projections do not get in the way of the other information we would like to encode. In this case, we would like to give some probabilistic information on the edge from $T$ to $C$, but if we think of this picture as representing a BN, then $C$ would require a table for joint settings of $(C \times T, T)$. The only reasonable way to provide this cpt is to ignore the second component, and use the value of $c$ determined by $C \times T$---which clearly has no more information than the projection itself.    
 
-%	given an input $(s,-) \in S \times C$, and symmetrically for
-%the other edge.  
-%joe2*: cut.  Why introduce hypergraphs only to show that you didn't
-%need to?  It's only worth doing if you actually make good use of
-%them.  This is a distraction.
-%oli2*: I still disagreee. There is a very substantive claim here:
-%that the intuition that comes from visually modeling it as a hyper
-%graph is the same as this construction with bizarre projections (in
-%the opposite direction as would be intuitive). Why should the two be
-%even remotely the same? I feel like it is our duty to defend
-%this. Doing so in the text would take up a lot of space but otherwise
-%why do it this way? Why draw it the other way? How is this the same
-%thing? The alternate construction and theorem would be much more
-%convincing than any specific case.
-%joe3: I don't I understand what you're saying, and I'm not sure is to
-%defend.  The cross-product + projection approach seems to me very
-%natural.   We are saying that, by definition, it is what we mean.
-%Now we could define a new construct (a hyperedge), give it semantics,
-%and then prove that it's equivalent to what we had originally, but I
-%don't see in what way you would be defending anything.  (I'm not even
-%sure what it would be mean to defend a visual intuition.)  So from my
-%perspective, you would be adding a lot of overhead (a lot of new
-%definitions) for no gain (sice you'll prove that it's equivalent to
-%what we already had).
-%oli3: As you know, it's easy to just define a thing and having multiple natural-seeming definitions line up is one of the strongest points in its favor. You also gain the ability to view things as hyper-graphs when this makes things easier. For instance: for visualization, and conversion between formats. 
-%It is also possible to have done this with hyper-graphs directly; to
-%see how both approaches work 
-%	out in more detail, see \Cref{sec:hyper-convert}.
+\subsection{Weighted PDGs}
+
+We may also consider the edges as having different certainties: if we associate a different coefficient $\beta_L$ to each edge $L$, we can define
+
+\begin{defn}
+	A weighted PDG $(\sfM, \beta)$ is a PDG $\sfM$ together with a \emph{certainty} $\beta_L \in \mathbb R^{\geq 0} \cup \{\infty\}$ for each edge $L \in \Ed^\sfM$.
+\end{defn}
+
+We an always take a PDG $\sfM$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM{[\beta:=\beta_0]}$.
+
+%TODO: say this elsewhere.
+% As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
+
+
+\subsection{Operations on PDGs}
+As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntactically combine and restrict PDGs in constant time without additional assumptions. We leave the formal details to \Cref{sec:pdg-operations}.
+
+
+
 
 
 	\section{SEMANTICS}\label{sec:semantics}
@@ -1009,6 +1001,7 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %of possible worlds, then a PDG is a soft constraint on the set of
 %probability distributions. 
 
+	\subsubsection{Continuous Inconsistency}
         
     The semantics of \Cref{def:set-semantics} treats all inconsistent PDGs as equivalent, which is unsatisfying. For instance, in \Cref{ex:grok-union}, the two cpts $\bf p$ and $\bf q$ were close but did not quite agree. To address this, we generalize the semantics presented in \Cref{sec:set-of-distribution-semantics}. For a candidate distribution $\mu$, rather than assigning it an all-or-nothing score of whether or not it is consistent, we give it a continuous one, encoding how far we have to nudge our tables to make our PDG consistent. Intuitively, distributions that would be consistent with only small perturbations of the cpts $\mat p$ are better those that would require larger ones.  
  	%joe1*: I don't understand this.  I don't know what it means
@@ -1097,14 +1090,31 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 	Conversely, if $\sfM$ is consistent, then any distribution $\mu \in \bbr{\sfM}\SD$ will have $\zeta(\sfM; \mu) = 0$. 
 
 	
-	\subsubsection*{}
-	While $\bbr{-}\SD$ and $\zeta$ distinguish only between distributions based on their inconsistency, principle of maximum entropy, or minimum free energy. 
+	\subsubsection{Extra Information}
+	While $\bbr{\sfM}\SD$ and $\zeta(\sfM;-)$ distinguish only between distributions based on their compatibility with $\sfM$, but even among distributions consistent with a set of constraints, some seem more natural than others. In particular, there is already a rich literature of chosing distributions with maximum entropy \parencite{jaynes1957information, wainwright2008graphical} consistent with constraints, in part because they intuitively they intuitively ``have the least additional information'' beyond those given in the constraints. 
 	
-	We take a similar approach here, and 
+	One might hope that this distribution would be the one described by a Bayseian Net. Unfortunately, the maximum entropy distribution associated with the cpts of a BN does not have the right conditional independences, which has resulted in a great deal of work \cite{williamson2001foundations}\cite{holmes2001independence} in modeling BNs as maximum entropy solutions to an expanded set of constraints, which include additional causal information.
 	
-	\begin{example}
-		\todo{Example with 11 $\epsilon$}
-	\end{example}
+	We have discovered that there is an alternate way to recover the distribution corresponding to a BN, which is more in the spirit of minimizing the amount of additional information, and does not requrire any additional assumptions about independences. 
+	The key insight is that the information in a cpt itself might not be fixed, which entropy maximization alone will exploit, which we have to control for.
+	%
+	In more detail, cpts contain counterfactual information: a cpt of $Y$ given $X$ not only tells you the distribution of $Y$ for the distribution on $X$ that is actualized, but also for arbitrary distributions on $X$. As a result, one can maximize entropy not only by selecting a distribution which makes things as independent as possible, but also by simply putting extra mass on rows of the cpt which already prescribe more uncertainty. We therefore define the extra information below.
+	
+	\begin{defn}
+		The \emph{extra information}, $\H^{\sfM}$, given by a distribution $p$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ is given by
+		\[ \H^{\sfM}(p) := \sum\alle \Big[ \E_{x \sim p_X}  \H (\bp (x))  \Big] - \H(p) \] 
+		where $p_X$ is the marginal of $p$ on the variable $X$, and $\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bp$ when $X = x$. 
+	\end{defn}
+	% The cpts may not (in the entropy sense) 
+	We can think of the extra information as the sum of the entropies that \emph{actually} result from each table, in the context of distribution $p$, minus the total entropy of the distribution. Alternatively, we can think of the negation of the extra information, $-\H^\sfM(p)$ as the information in $p$, which has not already been specified by the cpts in $\sf M$. We will show in \Cref{sec:bn-convert} the distribution with minimal extra information with respect to the cpts of a BN $\cal B$ is the unique one specified by $\cal B$.
+	\begin{vfull}
+		One might also recognize the extra information as having the form of a free energy; we explore this connection in \Cref{sec:thermo}. 
+	\end{vfull}
+
+	
+	
+	
+
 
 
 %We might want to go even further, and distinguish among distributions
@@ -1134,17 +1144,16 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 %oli3: because mixing up the levels is problematic. Maybe it doesn't need to be said.
 %joe3: why does this mean someting is wrong?
 %oli3: rewording and uncommenting.
-$\zeta$ provides us with a meaningful continuous score, but as
-a semantics for PDGs, there's still something missing: $\zeta$ can
-only distinguish between those distributions $p$ that are
-        \emph{inconsistent} with $\sfM$.
-    
-    
-%oli3*: this is no longer an earlier predicament. This is why I had a screwed up flow...
-	Recall that this is the exact opposite of our earlier
-        predicament in \Cref{sec:maxent-semantics}, in which could
-        only distinguish between distributions that were
-        \emph{consistent} with $\sfM$. We therefore combine the
+% $\zeta$ provides us with a meaningful continuous score, but as
+% a semantics for PDGs, there's still something missing: $\zeta$ can
+% only distinguish between those distributions $p$ that are
+%         \emph{inconsistent} with $\sfM$.
+% 
+
+    \subsection{Putting The Scores Together}
+	Both the extra information $\H^\sfM$ and 
+	
+	We therefore combine the
         two. Since we want to minimize inconsistency and maximize
         entropy, we subtract one from the other.  We also multiply the
         entropy by a weight $\alpha \ge 0$, to indicate how important
@@ -1154,8 +1163,7 @@ only distinguish between those distributions $p$ that are
 	\begin{equation}
 		\mathcal U_\alpha(\sfM; p) := \zeta(\sfM;p) - \alpha H(p) \label{eq:freeenergy-weighted}
 	\end{equation}
-Note that with this scoring function, a smaller score for a
-distribution means that is better.
+	Note that with this scoring function, a smaller score for a distribution means that is better.
 
 %joe3: I don't understand what ``ambient background uncertainty''
 %means, or why more background uncertainty should mean that we weight
@@ -1989,7 +1997,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	\end{example}
 
 	
-	\section{Operations on PDGs}
+	\section{Operations on PDGs}\label{sec:pdg-operations}
 	\subsection{GRAPH OPERATIONS}
 	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpt $\mat r$, as a union of the original PDG with the single-cpt PDG $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
 	
@@ -2204,7 +2212,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	
 
 		
-	\section{WEIGHTED MNS}
+	\section{WEIGHTED PDGs}
 	
 	We may also consider the edges as having different strengths: if we associate a different coefficient $\beta_L$ to each edge $L$, we can define
 	
@@ -2851,6 +2859,23 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	
 	\begin{example}
 		\label{ex:corrob}
+	\end{example}
+	
+	\begin{example}[Maximum Entropy with cpts is not the BN distribution]\label{ex:counterexample}
+		Consider the Bayesian network 
+		\begin{tikzcd}[cramped, sep=small]
+			A \ar[r] & C & B \ar[l]
+	 	\end{tikzcd}
+		where $A$ and $B$ are binary, and $C$ can take $2^k$ values, including $c_0$. We now give the associated tables: both $A$ and $B$ get prior unconditional probabilities of $\nicefrac12$ apiece, and set $C$'s cpt to be
+		\[
+			\begin{idxmat}{{$a$,$b$},{$\bar a$, $b$},{$a$, $\bar b$},{$\bar a$, $\bar b$}}{$\Delta C$}
+				\mathit{Uniform} \\ \delta_{c,c_0 }\\ \delta_{c,c_0} \\ \mathit{Uniform} \\
+			\end{idxmat}
+		\]
+		where $\delta_{c,c_0}$ is the degenerate distribution that puts all mass on $c_0$. Looking at entropy, the uniform distribution on $C$ gets $k$ bits, and each of $A$ and $B$ we know each give one bit. 
+		The semantics of a BN require that $A$ and $B$ are independent, since neither is a descendent of the other and neither has parents.  However, doing so results in a distribution of entropy $H(p) = 2 + k/2$ (one for each of the independent bits, and an expected k/2 bits from getting the uniform distribution on $C$ half the time), whereas if we correlate $A$ and $B$ so that they are always equal, we get $1 + k$ bits, one total bit from $A$ and $B$, and $k$ from $C | A,B$. For any finite $k$, this is still not the maximum entropy distribution, but it is much higher entropy than the one the BN suggests.
+		
+		Therefore the maximum entropy distribution consistent with the tables does not encode the independece assumption that a BN does. 
 	\end{example}
 	
 	\begin{example}\label{ex:randomvars}
