@@ -54,4 +54,4 @@ Why are PDG's uniquely posed to take advantage of it?
 	- Eigenanalysis of
 	- Information chanel analysis?
 
- * Note: information flowing through a BN is equivalent to the trace of an execution of a stochastic program.
+ * Note: information flowing through a BN is equivalent to the trace of an execution of a stochastic program. (Here: state space = Environment = [name => varaible], we're modeling joint distribution)
