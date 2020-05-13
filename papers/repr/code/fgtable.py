@@ -12,3 +12,9 @@ f = phi1*phi2*phi3*phi4
 Z = np.sum(f, axis=None)
 
 pr = f / Z
+
+
+pr[:,:,:,0]*2
+
+#import pandas as pd
+pr[:,1,:,1]*2
