@@ -1,0 +1,266 @@
+\documentclass{article}
+
+
+%\input{../papers/model-commands.tex}
+
+\usepackage{amsmath,amssymb}
+\usepackage{mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{bbm}
+\usepackage{enumitem}
+
+\renewcommand{\H}{\mathop{\mathrm H}}
+\newcommand{\E}{\mathop{\mathbb E}}
+\newcommand{\bp}[1][L]{\mathbf{p}_{\!_#1\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ar}{\mathcal A}
+
+\newcommand{\dg}[1]{\mathsf #1}
+%\def\mnvars[#1]{(\N#1, \Ar#1, \V#1, \bp#1)}
+\newcommand\Pa{\mathbf{Pa}}
+\newcommand\mat[1]{\mathbf #1}
+%\newcommand\SD{_{\text{sd}}}
+
+\usepackage{amsthm,thmtools}
+\begingroup
+\makeatletter
+\@for\theoremstyle:=definition,remark,plain\do{%
+	\expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
+		\addtolength\thm@preskip\parskip
+	}%
+}
+\endgroup
+\makeatother
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{coro}{Corollary}[theorem]
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conj}[theorem]{Conjecture}
+\newtheorem{constr}[theorem]{Construction}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem*{defn*}{Definition}
+\newtheorem{examplex}{Example}
+\newenvironment{example}
+	{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangle$}\examplex}
+	{\popQED\endexamplex%\vspace{-1.6em}\rule{2cm}{0.7pt}\vspace{0.5em}}
+}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\alle}[1][L]{_{ X \xrightarrow{\!\!#1} Y }}
+\newcommand{\cdo}{\mathop{\mathrm{do}}}
+\newcommand{\evt}[2]{#1\!\!=\!#2}
+
+\begin{document}
+
+
+\section{Preliminaries}
+\subsection{Causal Models}
+
+Throughout this document, when I say ``probabilistic causal model'', I am referring to a probabilistic model that can answer queries about interventions and conditioning. Causal BNs are the prototypical example. I will also refer extensively to Structural Equation Models (SEMs) in this analysis. The relation between them will be useful in understanding $\alpha$.
+% when I say ``causal model'', I am generally referring to a model such as a variant of a SEM, which a structural equation for each variable. 
+
+First, observe that these two notions are related:
+\begin{enumerate}
+\item A structural equation model (SEM) $\mathcal M = (\mathcal U, \mathcal V, \mathcal R, \mathcal I), \mathcal F$, together with a distribution $\mu$ over the exogenous variables, is effectively a probabilistic causal model on the endogenous variables, where if $Y$ is dependent on the set of variables $\mathbf X$
+\[ Pr(Y = y \mid \mathbf X = \vec x) := \sum_{\vec u \in \mathcal R(\mathcal U)} \mu(\vec u) f_Y(\vec x, \vec u) \]
+are the tables that ``hold causally'', and more generally we answer queries by the conditional expectation
+\[ \Pr(Y\!=\!y \mid \cdo(X\!=\!x), Z\!=\!z) = \E_{\vec u \sim \mu}\bigg[ \mathbbm1\Big[ \mathcal M_{A \gets a}, \vec u\models (B\!=\!b) \Big]~\bigg|~Z\!=\!z\bigg] \]
+\item Conversely, a causal Bayesian Network $\mathcal B$, over the variables $\mathcal X$ is effectively an SEM where $\mathcal X$ are the exogenous variables, and there is an endogenous variable $U_Y$ which determines the randomness for each variable $Y$ --- together with a distribution on each $U$. For instance, if we cheat a little by letting $U$ take values in the interval $[0,1]$, the structural equations could then given by 
+\[ f_Y(\Pa(Y) = \mathbf x, U_Y = u) = \begin{cases}
+	y_1 & \text{if }0 \leq u < \Pr(y_1\mid \mathbf x) \\
+	&\vdots \\
+	y_i & \text{if }\sum_{j < i} \Pr(y_j\mid \mathbf x) \leq u < \sum_{j \leq i} \Pr (y_j\mid \mathbf x)\\
+	&\vdots
+\end{cases} 
+\]
+where $\mu$ independently distributes each $U_Y$ uniformly.
+This is the prototypical example of what we will call a local structural equation model, or LSEM.
+\end{enumerate}
+
+\begin{claim}
+	The two conversions above result in equivalent causal models, in that after the conversion, they give the same answers to any query that makes sense models.
+\end{claim}
+
+
+\begin{defn}
+	A SEM $\mathcal M = ((\mathcal U, \mathcal V, \mathcal R, \mathcal I), \mathcal F)$, together with a 	distribution $\mu$ over $\mathcal U$, which is a local structural equation model, or LSEM, if for any two distinct endogenous variables $X \neq Y \in \mathcal V$, the sets of variables $\mathcal U_X$ and $\mathcal U_Y$, that $f_X$ and $f_Y$ are respectively dependent upon, are distributed independently according to $\mu$.
+	% claim: equivalent to a PDG.
+\end{defn}
+\begin{remark}
+	By the procedure in item 1 above, a LSEM is also a probabilistic causal model.
+\end{remark}
+
+\begin{remark}
+	LSEMs, are clearly a strict subclass of $\{$SEMs + distributions on $\mathcal U\}$, as they assume no confounding / shared information between endogenous variables (i.e., that each $U_i$ is independent). 
+	We will see later that in $\alpha < 1$ can be thought of a relaxation of this requirement, so that confounding is possible, while $\alpha > 1$ can be thought of a strengthening of it, so that the value of $Y$ does not even depend on an implicit noisy variable $U_Y$.
+\end{remark}
+
+\begin{conj}
+	Bayesian Networks, Conditional Bayesian Networks, Dependency Networks, MRFs with interventions, and pure probabilistic programs, can all be viewed as LSEMs by construction 2 above; in doing so, any probabilistic causal structure is unchanged.
+\end{conj}
+A strict PDG can be thought of as a mechanism for simultaneously (1) factoring a distribution over possible LSEMs into the same local components as used to factor the distribution itself, (2) allowing a user to express uncertanity by backing off of the locality observation, and 
+
+
+\subsection{PDGs}
+	\def\mnvars[#1]{(\N#1, \Ar#1, \V#1, \mat p#1, \alpha#1,\beta#1)}
+	\begin{defn}[PDG]\label{def:model}
+	A strict PDG is a tuple $\mnvars[]$ where
+	\begin{description}[nosep]
+		\item[$\N$]~is a finite collection of nodes, corresponding to variables
+		\item[$\Ar$]~is a collection of directed edges (arrows), each with a source, target, and a (possibly empty) label.
+		\item[$\V$]~associates each node $N \in \N$ with a set $\V(N)$,
+		representing the values that the variable $N$ can take. 
+		\item[$\mathbf p$] associates, for each edge $L = (X,Y, \ell) \in \Ar$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$, whenever $\beta_L > 0$.
+		\item[$\beta$]~associates to each edge $L$, a number in $[0,\infty]$, indicating certainty in the conditional distribution $\bp(Y \mid X)$ 
+		\item[$\alpha$]~associates to each edge $L$, a number in $[0,1]$, indicating degree of belief that $L$ holds causally.
+\end{description}
+\end{defn}
+
+The definition of a general PDG is the same, except $\mathcal V(X)$ may include a special ``\texttt{null}'' value, on which a cpd $\bp$ for an edge $L$ whose source is $X$ does not need to give a distribution (i.e., $\bp(\texttt{null})$ may be undefined). Non-strict PDGs are strictly more expressive in several important ways, but from this point forward we consider only strict PDGs, and drop the word `strict'.
+
+
+\begin{defn}
+	We define the following additional subclasses of PDGs, based on their parameters $\alpha, \beta$. A PDG $\dg M$ is:
+	\begin{itemize}[nosep]
+		\item \emph{qualitative}, if every $\beta_L = 0$, and $\alpha_L > 0$. Such PDGs consist effectively of only the data $(\N, \Ar, \alpha)$, and we may refer to them QDGs.
+		\item \emph{exact} if every $\alpha_L$ is either $0$ or $1$.
+		\item \emph{over-constrained} (resp. under-constrained, perfectly constrained) at a node $Y$ if the sum $\sum_{\overset{L}{\to}Y} \alpha_L > 1$ (resp. $\sum_{\overset{L}{\to}Y} \alpha_L < 1$, $\sum_{\overset{L}{\to}Y} \alpha_L =1$), and globally so if this is true for every variable $Y$.
+	\end{itemize}
+\end{defn}
+
+
+Many models, both primarily probabilistic and primarily causal including BNs, DNs, and SEMs, are PDGs.%
+	\footnote{which might suggest that the term `PDG' emphasizes the probabilistic bit too strongly; we might want another name}
+Specifically in each case, we can encode every cpd or structural equation for a variable $Y$ in the new PDG as the data associated to a new edge $L_Y$, from joint settings of all variables%
+		\footnote{Recall that we also have to expand joint settings as variables themselves and add projections, so that PDGs can be formalized this way; the function $\Gamma$, introduced for BNs, will still work more generally even when there are cycles.}
+that the structural equation / cpd depends on, to $Y$, and associating uniform high weights $\beta \simeq \infty$ and $\alpha = 1$.%
+
+Every PDG produced this way is exact.
+
+From the perspective of PDGs, the difference between the two ways of embedding a causal model (as a BN, or SEM) comes down to whether exogenous variables are explicitly identified with the appropriate connections, with every arrow deterministic, or implicit and independent. Making use of the latter allows for a a better separation between implicit noise, and a known conditional dependence, with the qualitative structure alone.
+
+
+\begin{figure}.
+	[PDG modeling like an SEM] [PDG modeling like a BN] 
+	\caption{TODO: figure}
+\end{figure}
+
+%A member of the more general class of \emph{exact} (but possibly not perfectly constrained) PDGs, $\dg Q = (\N, \Ar)$ should be thought of as a collection $\Ar$ of causal equations with targets in $\N$, that may contain multiple equations that have the same target.
+%\begin{claim}
+%%	If $\Pr_1$ and $\Pr_2$ are causal models for a set of variables $\mathcal X$, then 
+%	If $\dg Q$ is a QDG, that has edges $X_1 \to Y$ and $X_2 \to Y$, then $G$ must have 
+%\end{claim}
+%
+
+
+\section{Alpha}
+
+
+
+Let $L$ be an edge $X \to Y$. 
+
+$\alpha_L$ can be thought of as an agent's subjective degree of belief in the proposition that the arrow $L$ could be associated with a cpd that holds causally.
+
+% (1) intervening on $X$ causes a change in $Y$, and also (2) having fixed $X$, further interventions $\cdo(Z=z)$ on nearby variables do not affect the value of $Y$. 
+
+%More precisely, 
+%there exists some cpd $p(Y|X)$ such that the value of Y cannot be distinguished from $\hat Y$ with any interventions.
+
+\begin{defn}
+	A cpd $p(Y \mid X)$ holds $\epsilon$-causally in a probabilistic causal model $\Pr$, iff there exists some $x \in X$ such that 
+	$p(Y \mid X=x) \neq \Pr(Y)$, and for every $x$,  $p(Y \mid X=x) = \Pr(Y \mid \cdo(X=x,Z=z))$
+	for any intervention $Z=z$ with $\Pr(Z = z) > \epsilon$. 
+	%
+	To say that a cpd holds causally is to say that it holds $0$-causally.	
+\end{defn} 
+
+
+
+%\begin{defn}
+%	A cpd $p(Y \mid X)$ holds $\epsilon$-causally in an LSEM $(\mathcal M, \mu)$ iff there exists some 
+%	 $x \in X$ such that $p(Y \mid X=x) \neq \Pr(Y)$ and for every $x$ $\Pr(Y \mid \cdo(X=x,Z=z)) = p(Y \mid X)$
+%		for any intervention $Z=z$ with $\Pr(Z = z) > \epsilon$. 
+%\end{defn}
+
+
+%\begin{defn}
+%	A \emph{causal graph} for a causal model $\Pr$ is a directed (multi-)graph whose nodes correspond to random variables, and whose edges hold causally.
+%\end{defn}
+
+%\begin{defn}
+%	% Equality of two random things. 
+%	An exact QDG $\dg Q$ is \emph{causally consistent} with an SEM $\mathcal M$ containing the same variables, and distribution $\mu$ over the exogenous variables of $\mathcal M$, if there exists an assignment $\mat p$ of cpds to every edge in $\dg Q$, such that  $\bp$ holds causally in $\Pr_{\mathcal M, \mu}$ for each $L \in \Ar_M$.
+%	$\dg Q$ is \emph{causally consistent} if there exists such an SEM $\mathcal M$ and distribution $\mu$.
+%\end{defn}
+\begin{defn}
+	% Equality of two random things. 
+	An exact QDG $\dg Q = (\N,\Ar,\alpha)$ is \emph{causally consistent} with an SEM $\mathcal M = (\mathcal U, \N, \mathcal R, \mathcal I), \mathcal F$,% and distribution $\mu$ over $\mathcal U$
+	if for every $X \overset{L}{\to}Y \in \Ar$, 
+	% Want to say: distribution doesn't change given any interventions
+	% and moreover that each link always gives same information
+	% More simply: anything true in SEM
+	\[ f_Y(x, \vec u) \]
+	%
+	% for any $\vec u \in \mathcal U$, we have $f$ 
+	%
+	$\dg Q$ is \emph{causally consistent} if there exists such an SEM $\mathcal M$.% and distribution $\mu$.
+\end{defn}
+
+
+
+\begin{claim}
+	If an exact PDG $\dg Q$ is causally consistent with an LSEM $(\mathcal M, \mu)$, and contains two edges $X_1 \overset{L_1}\longrightarrow Y$ and $X_1 \overset{L_2}\longrightarrow Y$, then $\Pr_{\mathcal M, \mu}(Y \mid X_1, X_2)$ is deterministic.
+\end{claim}
+\begin{proof}
+	
+\end{proof}
+
+
+\begin{claim}
+%	If $Y$ is some variable, and an agent consistently writes $\alpha$ to denote their subjective degree of belief that the associated arrow $\sum_{X \overset{L}{\to}Y} > 1$, then any causal model $\Pr$ they consider possible must have strictly positive probability 
+	
+\end{claim}
+
+
+
+
+\section*{Scratch}
+
+%\begin{claim}
+%	Any deterministic edge must hold causally.
+%\end{claim}
+	\[ \E_{z \sim \Pr(Z)}\Pr(Y \mid \cdo(X=x,Z=z)) = \Pr(Y \mid X) \]
+
+
+%$\hat Y_L$ from $p(x)$, with probability $\alpha_L$, such that 
+%
+%$\Pr(Y | \cdo{\evt Xx,\evt Zz})
+%
+%"may as well have been drawn from $p(x)$", independent of the context. 
+
+
+For each edge $L_i : X_i \to Y$ coming into $Y$, draw $x_i \sim X_i$ and $\hat y_i \sim p(Y|x_i)$. 
+If there exists distribution $q$ on $Y$, such that $q(Y=\hat y_i \mid x_i) \geq \alpha_i$, and $q(Y | x_i) = \Pr(Y | \cdo(\evt{X_i}{x_i}, \evt Zz) $
+%The vector $\vec \alpha_{\shortto Y}$ consisting of $\alpha_L$ for each edge into $L$ is an agent's subjective belief that each of the 0
+%\[ p(\evt Yy \mid \evt Xx) = \Pr(Y \]
+
+
+\[  \alpha_L :=  \frac{\Pr_{ z \sim Z} \Big[ p( Y | X=x) = \Pr(Y | \cdo(Z\!=\!z,X\!=\!x)) \Big]}{\Pr_{ z \sim Z} \Big[ p( Y | X=x) = \Pr(Y | \cdo(Z\!=\!z)) \Big]} \] 
+
+
+The primary example we want to have in mind is the following:
+
+
+%Why is it not reasonable to think $\alpha$ is a primitive quantity?
+
+\end{document}0
