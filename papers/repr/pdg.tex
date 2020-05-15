@@ -4,11 +4,14 @@
 %%%%%%%%%%%% FORMATTING INCOMPATIBLE WITH NEURIPS TEMPLATE %%%%%%%%%
 %\usepackage[margin=1in]{geometry}
 %\usepackage{parskip}
-
+%\usepackage{lmodern}
 %\setlength{\skip\footins}{1cm}
 %\setlength{\footnotesep}{0.4cm}
 
 \usepackage[nonatbib, preprint]{neurips_2020}
+
+
+
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{microtype}      % microtypography
@@ -59,7 +62,7 @@
 
 \excludecomment{notfocus}
 
-\definecolor{vfullcolor}{gray}{0.85}
+\definecolor{vfullcolor}{gray}{0.7}
 \specialcomment{vfull}{\begingroup\color{vfullcolor}}{\endgroup}
 % \excludecomment{vfull} %\includecomment{vfull}
 \excludecomment{vcat} %\includecomment{vcat}
@@ -117,8 +120,11 @@
 \newcommand\MeasSet{\textbf{MeasSet}}
 
 % Semantics
-%\newcommand\SD{_{\text{SD}}}
-\newcommand\SD{_{\text{sd}}}
+% use sd for... Set of Distributions / Score of Distributions / Single Distribution?
+%\DeclarePairedDelimiter{\SD}{\lBrace}{\rBrace}
+\DeclarePairedDelimiter{\SD}{\llbracket}{\rrbracket_{\text{sd}}}
+\DeclarePairedDelimiter{\WD}{\llbracket}{\rrbracket}
+\DeclarePairedDelimiter{\UD}{\llbracket}{\rrbracket^*}
 %\newcommand\Weighted{_{\text{WD}}
 		
 %\newcommand\MaxEnt{{\substack{\mathbf{Max}\\\mathbf{Ent}}}}
@@ -144,6 +150,9 @@
 \newcommand{\Ed}{\mathcal E}
 \newcommand{\sfM}{\mathsf M}
 
+\newcommand\Pa{\mathbf{Pa}}
+\newcommand\inconsist{\oslash}
+
 \newcommand{\alle}[1][L]{_{ X \xrightarrow{\!\!#1} Y }}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -160,7 +169,7 @@
 
 \numberwithin{equation}{section}
 
-\title{\ModelName s}
+\title{Probabilistic Dependency Graphs}
 
 \author{} % LEAVE BLANK FOR ORIGINAL SUBMISSION.
 
@@ -186,14 +195,17 @@
 	\maketitle
 	
 	\begin{abstract}
-		We introduce a new graphical model, a Probabilistic Dependency Graph (PDG). PDGs can capture inconsistent beliefs in a natural way and are, in a precise sense, more modular than standard approaches such as Bayesian networks (BNs), in that they make it easier for a modeler to incorporate new information and restructure the representation, without having to commit to a particular distribution. As we show, a BN, when viewed as a PDG, may represent many distributions, but we can recover the distribution given by the semantics of BNs as the one that minimizes the uncertainty in the distribution beyond that actualized in the tables, among all the distributions consistent with the conditional probability tables in the BN. We relate PDGs to other graphical models, and show by example how PDGs are an especially natural modeling tool.
+		We introduce a new graphical model, the Probabilistic Dependency Graph (PDG). PDGs can capture inconsistent beliefs in a natural way and are more modular than standard approaches such as Bayesian networks (BNs), in that they make it easier for a modeler to incorporate new information and restructure the representation, without committing to unnecessary assumptions.
+		We give PDGs a semantics motivated by thermodynamic free energy, which we show naturally extends the standard semantics for BNs, and explain how a small modification of a very different flavor results in the free energy landscape of the associated factor graph, viewed as a Markov Network.
+%		As we show, a BN, when viewed as a PDG, may represent many distributions, but we can recover the distribution given by the semantics of BNs as the one that minimizes the uncertainty in the distribution beyond that actualized in the tables, among all the distributions consistent with the conditional probability tables in the BN. 
+		We show by example how PDGs are an especially natural modeling tool.
 	\end{abstract}
 
 %	\tableofcontents
 
-	\section{INTRODUCTION}
+	\section{Introduction}
 
-	\commentout{We introduce the \ModelName\ (\MN), a directed graphical model for specifying local beliefs. They are strictly more expressive and modular than existing directed graphical models, and in particular this allows them represent inconsistent belief states.
+	\commentout{We introduce the Probabilistic Dependency Graph (PDG), a directed graphical model for specifying local beliefs. They are strictly more expressive and modular than existing directed graphical models, and in particular this allows them represent inconsistent belief states.
 	
 	
 	To be clear, inconsistencies are bad. Still, constantly examining every possible interaction between beliefs is taxing and restrictive, making them difficult to avoid: reasonable people are often simultaneously unaware of any inconsistencies in their beliefs, and yet still think it probable that they are not entirely consistent.%
@@ -213,7 +225,7 @@
 In this paper we introduce yet another graphical for modeling beliefs, \emph{Probabilistic Dependency Graphs} (PDGs). There are already many such models in the literature, notably including Bayesian networks (BNs), factor graphs, but also many others \parencite[For an overview, see][]{koller2009probabilistic}. Why does the world need one more?
 
 Our original motivation for introducing PDGs was to be able capture inconsistency. While we do not endorse inconsistency, we wanted to be able to model the process of resolving it; to do so, we had to model the inconsistency itself. But our approach to modeling inconsistency has many other advantages.
-Most importantly, \MN s are significantly more modular than other directed graphical models: they can be readily restricted and combined in ways that cause problems for other representations. 
+In particular, PDGs are significantly more modular than other directed graphical models: they can be readily restricted and combined in ways that cause problems for other representations. 
 We start with some examples to motivate PDGs and display some of these properties.
 %joe3*: I don't know ho	w we modify the graph without changing it's
 %informational content.  That doesn't make sense to me.  I also don't
@@ -563,7 +575,7 @@ We start with some examples to motivate PDGs and display some of these propertie
 
 % Goal here: introduce a graph with more stuff:
 %  - Graph union.
-	We have seen that we can easily add information to \MNs; we now show that they can also also do the reverse.  
+	We have seen that we can easily add information to \MNs; forgetting information is equally painless.  
 
 	\begin{example}[restriction]\label{ex:grok-ablate}
 		After the communist uprising, children were raised communally, and so parents' smoking habits no longer had any impact on them. Grok is reading her favorite book on graphical models, and she realizes that while the node $\mathit{PS}$ in \Cref{subfig:smoking-bn} has lost its usefulness, and nodes $S$ and $\mathit{SH}$ no longer ought to have $\mathit{PS}$ as a parent, the other half of the diagram---that is, the node $C$ and its dependence on $S$ and $\mathit{SH}$---should apply as before.
@@ -677,7 +689,7 @@ We start with some examples to motivate PDGs and display some of these propertie
 	% preference updating
 	
 	
-	\section{FORMALISM AND SYNTAX}\label{sec:formal+syntax}
+	\section{Formalism And Syntax}\label{sec:formal+syntax}
 	
 	Having seen some examples of \MNs, we now provide the formal definitions.\footnotemark
 	Although it is possible to formalize the hyperedges directly, we opt for a different approach here, in which they are actually a shorthand for a small widget with an extra node. 
@@ -744,8 +756,14 @@ We start with some examples to motivate PDGs and display some of these propertie
                           \Ed$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$. 
 		\end{description}
 	\end{defn}
-	If $\sfM$ is a \MN, we reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly; when the choice of $\sfM$ is clear we may omit the subscript.
+	\begin{remark}
+		We can think of $(\N, \V)$ as a set of random variables, and $(\Ed,\mat p)$ as a set of cpts.
+	\end{remark}
+
+	If $\sfM$ is a \MN, we reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly.
+	%; when the choice of $\sfM$ is clear we may omit the subscript.
 	We write $\V(\sfM)$ for set of all possible joint settings of the variables in $\sfM$. 
+	
 
 	While the definition above is sufficient to represent the class of all legal \MNs,
 	we often use two additional bits of syntax to represent common constraints:  
@@ -772,7 +790,7 @@ We start with some examples to motivate PDGs and display some of these propertie
 	\end{itemize}
 
 
-We can now explain how we capture the multi-tailed edges that were used in \Crefrange{ex:smoking}{ex:grok-union}.
+We can now explain how we capture tIn addition to the cpts themselveshe multi-tailed edges that were used in \Crefrange{ex:smoking}{ex:grok-union}.
 That notation can be viewed as shorthand for the graph that results by adding a new node at the junction representing the joint value of the nodes at the tails, with projections going back.  For instance,
 % the diagram of the PDG in the shaded box of \Cref{subfig:smoking-pdg}
 the diagram displaying Grok's prior knowledge in \Cref{ex:grok-union}, on the left of \Cref{fig:grok-combine}
@@ -835,52 +853,46 @@ This trick will not work for a BN. We need cpts to be associated with edges, so 
 
 \subsection{Weighted PDGs}
 
-We may also consider the edges as having different certainties: if we associate a different coefficient $\beta_L$ to each edge $L$, we can define
+Not all beliefs are the same, and as we give PDGS semantics, it will prove useful to also keep additional metadata about the cpts. 
+%In particular, for each edge $L \in \Ed$, we associate two real parameters $\beta_L, \alpha_L$ indicating the certainty in a belief, its degree of causality, respectively. 
 
 \begin{defn}
-	A weighted PDG $(\sfM, \beta)$ is a PDG $\sfM$ together with a \emph{certainty} $\beta_L \in \mathbb R^{\geq 0} \cup \{\infty\}$ for each edge $L \in \Ed^\sfM$.
+	A weighted PDG $(\sfM, \vec \beta, \vec \alpha)$ is a PDG $\sfM$ together with a \emph{certainty} $\beta_L \in \mathbb R^{\geq 0}$ and \emph{degree of causality} $\alpha_L \in [0,1]$ for each edge $L \in \Ed^\sfM$.
 \end{defn}
 
-We an always take a PDG $\sfM$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM{[\beta:=\beta_0]}$.
+In the next section, we will give semantics to PDGs which make use of these parameters, and justify their names.
+For an un-weighted PDG, we use $\alpha_L = \beta_L = 1$ for each link.
+
+%We an always take a PDG $\sfM$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM{[\beta:=\beta_0]}$.
 
 %TODO: say this elsewhere.
 % As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
 
-
-\subsection{Operations on PDGs}
-As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntactically combine and restrict PDGs in constant time without additional assumptions. We leave the formal details to \Cref{sec:pdg-operations}.
-
+%\subsection{Operations on PDGs}
+%As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntactically combine and restrict PDGs in constant time without additional assumptions. We leave the formal details to \Cref{sec:pdg-operations}.
 
 
 
 
-	\section{SEMANTICS}\label{sec:semantics}
+	\section{Semantics}\label{sec:semantics}
 %joe1: Much too wordy, and hides the key points
 	% We view of \modelnames\ as being a representation of beliefs in and of themselves, rather than a compression of something more fundamental such as a probability distribution. That said, it is still incredibly important to interpret them in various ways, as this will give us ways of comparing them to other graphical models, prove things about \MNs, and give a lot more intuition about how they work.
 %oli2: Your changes are better written, but it does not mention the
 %point that I was trying to make: that the constraints themselves,
 %rather than the distsributions, should be manipulated. The semantics
         %are just views of the distribuiton.
-	There is more than one way of giving semantics to a \MN.  We discuss three approaches below.
-	The first is perhaps the most simplest: associating with a PDG a set of distributions, intuitively, the ones that are consistent with it.	This set will be empty if the PDG is inconsistent.
+	There is more than one way of giving semantics to a \MN.  We discuss three related approaches.
+	The first is the simplest: we associate with a PDG the set of distributions that are consistent with it. This set will be empty if the PDG is inconsistent.
 	%
-	The second approach associates a PDG with a scoring function, indicating the fit of an arbitray distribution $p$, and can be thought of as a \emph{weighted} set of distributions \parencite[cf.][]{halpern2015weighted}.  For an inconsistent \MN, some distributions may still be better than others.
+	The second approach associates a PDG with a scoring function, indicating the fit of an arbitrary distribution $\mu$, and can be thought of as a \emph{weighted} set of distributions \parencite[cf.][]{halpern2015weighted}.  For an inconsistent \MN, some distributions may still be better than others.
   %joe3*: Added some sentences here, which incorporates some of your
   %material below.  We need to make that we're using the same notation
   %for a distribution throughout.  We'll probably want to move the
   %discussion of free energies in factor graphs to the factor graph
   %section (since that's where the paper will probably end).  
-	Roughly speaking, the larger the changes required to the cpts in a PDG before a distribution $p$ becomes consistent with the PDG, the lower the weight associated with $p$.  There are a number of ways of associating a weight with a distribution that implement this intuition.  We take one approach that turns out to be closely related to the theory of free energies in factor graphs (see \Cref{sec:thermo} for more discussion).
-	%oli2: I like this sentence, but I've moved it into the section on weighted distributions.
-	%Intuitively, distributions that are consistent with small perturbations of a PDG are better than ones that are consistently only with a large perturbation. 
-	%oli2: we've litterally already said this twice already in the introduction. Also this section is also going to be like 1 sentence long because I'm going to define it without symbols, 
-	% in any case, this is not the place for comparing to BNs. We've done so much of this already, in the introduction, etc.
-	% there's a section later on comparing to existing graphical models. Why are we focusing on BNs so much? 
-%joe3: we are focusing on BNs because they're still by far the most
-%popular approach in practice.    It's still what's taught in
-%introductory AI courses, with good reason.%oli3: what do you mean by friendlier?
-
-  %  \commentout{
+	Roughly speaking, the larger the changes required to the cpts in a PDG before a distribution $\mu$ becomes consistent with the PDG, the lower the weight associated with $\mu$. 
+%	There are multiple ways to capture this intuition; we take an approach that closely related to the theory of free energies in factor graphs (see \Cref{sec:thermo} for more discussion).
+	%
 	Our third approach chooses a particular distribution from the weighted set of distributions defined by the second 	approach, thus associating with a PDG a unique distribution. As we shall show, it is this third approach that allows us to recover BNs from PDGs. 
 
       %	Even if it is now intuitive how PDGs can be used to represent beliefs, by providing them with semantics---that is, by viewing them in terms of standard, well-established notions of uncertainty---we will be able to better articulate the relationships between PDGs and other graphical models.
@@ -895,37 +907,6 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %PDGs would be in appropriate?   There's nothing intrinsic about a BN
 %or a PDG that says its semantics has to be a unique probablity (or  a
 %set ofprobabilities)
-%	Because a BN or Factor Graph is designed to specify a joint
-%        distribution, its unique semantics as a distribution is
-%        appropriate. The same is not true of \MNs.  
-%joe3: this is not the least bit analogous to the approach taken by
-%BNs  It is a way of getting a unique distribution that's very
-%different in spirit from the way the BNs lead to a unique
-%distribution.  It's quite surprising (at least to me) that they're
-%equivalent.  
-        %	We provide an analogous interpretation
-%        (\Cref{sec:maxent-semantics}), allowing us to view PDGs as
-%        distributions (recovering BN semantics as promised), but this
-%        approach does not adequately capture the inconsistency or
-%        modularity we wanted to model.  
-	%
-	%oli2: I want to replace the name "weighted (set of)
-	%distribution(s)"; the current term emphasizes the SET of%oli3: what do you mean by friendlier?
-
-	%distributions invovled, each with a weight (though in fact,
-	%we have a weight for ANY distribution, and we're suggesting
-	%somethign closer to computing a goodness of fit than looking
-	%up a weight). While equivalent and we should still make the
-	%connection, we might be better off using something like
-	%"distribution scoring", though that is not perfect
-	%either. Adopting the shorter verison of the original
-	%"Weighted distribution" might be ok as well. Do you have
-	%thoughts?
-%joe3: Well, for better or for worse, you can't change history.  We've
-%already given it a name.  I'm perfecty happy with the notion of a
-%weighed distibution, but the semantics doesn't consider a single
-%weighted distribution, but a set of them.  
-%joe3: your comment below captures my problem with this exactly.
 %	Ultimately, we find (\Cref{sec:weighted-semantics}) that a
 %        \emph{weighted distribution}
 %        \parencite[cf.][]{halpern2015weighted} much better captures
@@ -934,8 +915,7 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %        energy, which in \Cref{sec:thermo} we compare with the already
 %        well-developed theory of free energies in factor graphs.  
 
-\subsection{\MN S AS SETS OF DISTRIBUTIONS}\label{sec:set-of-distribution-semantics} 
-	%oli2: removed waffling.
+\subsection{PDGs As Sets Of Distributions}\label{sec:set-of-distribution-semantics} 
 %joe3: I really don't like this.  That's not how I think of a PDG. I
 %don't thinking that bringing in BNs is helpful.  A PDG hs no
 %independence assumptions.  I think that thi muddies the waters.
@@ -948,7 +928,7 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 		% As the data of PDG consists of a collection of cpts, the natural thing to do . 
 
 	\begin{defn} \label{def:set-semantics} %oli2: made words better. 
-		If $\sfM\sheq\mnvars[]$ is a \MN, let $\bbr\sfM\SD$ be
+		If $\sfM\sheq\mnvars[]$ is a \MN, let $\SD{\sfM}$ be
 %joe3
 %                the set of distributions over the variables in $\sfM$
                 the \emph{s}et of \emph{d}istributions over the
@@ -959,21 +939,21 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
                 those given by $\boldsymbol\mu$.
 %joe3: added a bit of formality
 %oli4: there are labels on edges again 
-          That is, $p \in \bbr\sfM\SD$ iff, for all edges $L = (X,Y, \ell) \in
+          That is, $p \in \SD\sfM$ iff, for all edges $L = (X,Y, \ell) \in
           \Ed$,  $x \in \V(X)$,  and $y \in \V(Y)$, we have that
           $p(Y\sheq y \mid X\sheq x)$ is the $x,y$ entry in the cpt given by
           $\bp$.
 %oli4: I don't understand how this easier to read than my definition below, and and it's way less visually distinct and intentionally typeset. But I'll keep it.    
 		\notation{Formally,		
-		\[ \Big\llbracket \sfM \Big\rrbracket\SD \hspace{-2ex} := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
+		\[ \SD[\Big]\sfM := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
 		~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
 		}
 	\end{defn}
 
-	As we said earlier, we say that the PDG $\sfM$ is \emph{consistent} if
-	$\bbr\sfM\SD \ne \emptyset$, and consistent otherwise.
+	As mentioned earlier, we say that the PDG $\sfM$ is \emph{consistent} if
+	$\SD\sfM \ne \emptyset$, and consistent otherwise.
 	
 	
 	\begin{vfull}
@@ -983,7 +963,7 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 			$\sfM = \mnvars[]$ is over-constrained if there exists
 			  \emph{some $\mat p'$} assigning cpts to the same edges as
 			  $\mat p$, such that $(\N, \Ed, \V, \mat p')$ is inconsistent
-			  \notation{(i.e., $\bbr{\N^\sfM, \Ed^\sfM, \V^\sfM, \mat p}\SD
+			  \notation{(i.e., $\SD{\N^\sfM, \Ed^\sfM, \V^\sfM, \mat p}
 				= \emptyset$)}, and under-constrained if there are
 			  multiple distributions in $(\N, \Ed, \V, \mat p')$ for
 			  \emph{every such $\mat p'$}, making this a property of the
@@ -995,11 +975,13 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 
 %joe3        
         %	\subsection{\MN S AS WEIGHTED
-       	\subsection{PDGS AS DISTRIBUTION SCORINGS} \label{sec:weighted-semantics} 
+	\subsection{PDGs As Distribution Scorings} \label{sec:weighted-semantics} 
 %oli3: It's still not a set of distributions with a weight. 
 %	If a probability distribution is a soft constraint on the set
 %of possible worlds, then a PDG is a soft constraint on the set of
 %probability distributions. 
+	We now generalize the previous semantics by viewing a PDG as an energy landscape on distributions, assigning high energies to distributions which do not fit the PDG well. 
+
 
 	\subsubsection{Continuous Inconsistency}
         
@@ -1021,9 +1003,9 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %xamles from the intro would work, with variants of the cpt making it
 %more or less consistent.
 
-	We measure the magnitude of this perturbation with relative entropy, which results in interesting connections to other measures of uncertinty. In particular, for each link $L = (X,Y, \ell)$, and each $x \in \V(X)$, we measure the divergence from $\bp$ to $\mu_Y \mid X=x$ (the marginal $\mu_Y$ of $\mu$, conditioned on $X=x$),
+	We measure the magnitude of this perturbation with relative entropy, which results in interesting connections to other measures of uncertinty. In particular, for each link $L = (X,Y, \ell)$, and each $x \in \V(X)$, we measure the divergence from $\bp$ to $\mu_{Y \mid x}$ ($\mu$ conditioned on $X=x$, and then marginalized to $Y$),
 	 % which is intuitively the expected number of extra bits required to transmit a code optimized for $\mu$ if using the cpt $\bp$ instead. 
-	We weight these costs by the probabilities $\mu(X=x)$, and sum across all links to get following definition:
+	We weight these costs by the probabilities $\mu(X=x)$ that $\mu$ prescribes, and sum across all links to get following definition:
         
 %joe3 	
 	% 	We are missing two important details we need to make this work. 
@@ -1052,13 +1034,13 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
           %	  The inconsistency, $\zeta$, of a PDG $\sfM =
        	  The \emph{inconsistency} of a PDG $\sfM = \mnvars[]$ with respect to a distribution $\mu \in \Delta[\V(\sfM)]$ is 
 		\[
-			\zeta(M ; \mu) := %\inf_{p \in \Delta(W^{\mathcal V})}~
-			\!\!\!\!\!\sum_{X \xrightarrow{\!\!L} Y}\!\! \mathop{\mathbb E}_{x \sim \mu_{_X}} \left[\kldiv[\Big]{ \mu_Y(\cdot | X \sheq x) }{\bp(x) } \right]
+			\inconsist(\sfM ; \mu) := %\inf_{p \in \Delta(W^{\mathcal V})}~
+			\!\!\!\!\!\sum_{X \xrightarrow{\!\!L} Y}\!\! \mathop{\mathbb E}_{x \sim \mu_{_X}} \left[\kldiv[\Big]{ \mu(Y\!= \cdot\ | X \sheq x) }{\bp(x) } \right]
 		\]
 
 %oli2: I suppose I also need to define relative entropy?
 %joe3: yes
-		where $\thickD$ is the relative entropy.
+		where $\kldiv{\mu}{\nu} = \sum_{w \in \text{Supp($\mu$)}} \mu(w) \log\frac{\mu(w)}{\nu(w)}$ is the entropy from $\nu$ to $\mu$.
 %oli2: I cut this description, as I did a lot of explaining above.
 %		taken between the two distributions over $B$: one given by the edge from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
                 %joe3: moved back from below; this is where it belongs:
@@ -1067,27 +1049,25 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %consistent.  
         The \emph{inconsistency of PDG $\sfM = \mnvars[]$} is the minimum over all distributions $p$ of the inconsistency of $\sfM$ with respect to $p$:
 %joe3: you're switching between \mu and p again
-%		\[ \zeta(M) = \inf_{ \mu \in \Delta [W_{\cal V}]}
-%\zeta (M; \mu) . 
-		\[ \zeta(M) = \inf_{\mu \in \Delta [\V(\sfM)]} \zeta (M; \mu) . \]
+%		\[ \inconsist(M) = \inf_{ \mu \in \Delta [W_{\cal V}]}
+%\inconsist (M; \mu) . 
+		\[ \inconsist(\sfM) = \max_{\mu \in \Delta [\V(\sfM)]} \inconsist (M; \mu) . \]
         \end{defn}
 
-%joe3: Sorry; I can't follow this intuition at all.  More comments below
- 	We want to minimize the total number of bits required to
-        encode all of the relevant conditional marginals of some
-        distribution $\mu$.  
+
+ 	We want to choose a distribution $\mu$ that minimizes the total number of bits required to encode all of the relevant conditional marginals.
  	More precisely, fix a distribution $\mu$. For each edge $L = (X, Y,
 %joe3: Where is the optimal code that we are supposedly given?
-        \ell) \in \Ed$ and $x \in \V(X)$ we are given an optimal code
-        for $Y$ drawn the distribution $\bmu_{X,Y,\ell}(x)$, and asked to transmit
-        data from $p_Y( \cdot \mid x)$.
+        \ell) \in \Ed$ and $x \in \V(X)$ we are given a code
+        for $Y$ optimized for the distribution $\bp(x)$, and asked to transmit
+        data from $\mu(Y\mid x)$; we incur a cost for each bit required beyond what we would have used had we used a code optimized for the actual distribution $\mu(Y\mid x)$. 
 %joe3: I don't understand the following sentence at all
 %oli4: modified.
-       To obtain the total cost for $L$, we take a weighted average of these costs, where the weight for the value $x$ is the probability $\mu_X(x)$.
+       To obtain the cost for $L$, we take a weighted average of these costs, where the weight for the value $x$ is the probability $\mu_X(x)$. We do this for every edge $L \in \Ed$, summing the cost.
  		
-	For even more intuition, imagine two agents with identical beliefs $\sfM$, about a set of variables that are in fact distributed according to $\mu$. For each edge $L = (X,Y, \ell) \in \Ed^\sfM$, values $x,y \in \V(X)$ is chosen according to $\mu_{_{XY}}$ and $x$ given to both agents. $\zeta(\sfM;\mu)$ is the total number of expected bits required to communicate $y$ with a code optimized for $\bp$ instead of the true conditional distribution $\mu_Y|(X=x)$.
+	For even more intuition, imagine two agents with identical beliefs $\sfM$, about a set of variables that are in fact distributed according to $\mu$. For each edge $L = (X,Y, \ell) \in \Ed^\sfM$, values $x,y \in \V(X)$ is chosen according to $\mu_{_{XY}}$ and $x$ given to both agents. $\inconsist(\sfM;\mu)$ is the total number of expected bits required to communicate $y$ with a code optimized for $\bp$ instead of the true conditional distribution $\mu_Y|(X=x)$.
 	If $\sfM$ is inconsistent, then there will be a cost no matter which distribution $\mu$ is used to generate the data.
-	Conversely, if $\sfM$ is consistent, then any distribution $\mu \in \bbr{\sfM}\SD$ will have $\zeta(\sfM; \mu) = 0$. 
+	Conversely, if $\sfM$ is consistent, then any distribution $\mu \in \SD{\sfM}$ will have $\inconsist(\sfM; \mu) = 0$. 
 	
 	\begin{example}[continues=ex:worldsonly]
 		Recall our simplest example, which directly encodes an entire distribution $p$ over the set $W$. 
@@ -1095,7 +1075,7 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 				is over a single element, and the marginal on $W$ is
 %joe3: now you're using both \mu and p to represent distribution.
 %This is really bad notation.  Pick one and stick with it (and its variants)
-				the entire distribution. Therefore, $\zeta(\sfM; \mu) =
+				the entire distribution. Therefore, $\inconsist(\sfM; \mu) =
 %joe3: sorry; I don't understand the intuition of the information
 %required to turn on distribution into another.  I don't understand
 %how information can affect distributions.
@@ -1103,9 +1083,9 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %                \kldiv{\mu}{p}$, and so the inconsistency is just the
 %               information required to turn $\mu$ into $p$, minimized at
 %                $p^* = \mu$. Furthermore, for $\alpha > 0$,
-				\kldiv{\mu}{\mu}$, so the inconsistency is just the information $\mu$ and $p$, so is minimized when $\mu$ is $p$,
+				\kldiv{\mu}{\mu}$, so the inconsistency is just the information $\mu$ and $p$, so is minimized uniquely when $\mu$ is $p$,
 				\begin{vfull}
-					and corresponds quite litterally to the distribution of minimum Gibbs free energy for the the log liklihood defined by $\sfM$ (see \Cref{sec:thermo}).
+					and corresponds exactly to the distribution of minimum Gibbs free energy for the the log liklihood defined by $\sfM$ (see \Cref{sec:thermo}).
 				\end{vfull}
 %joe3: I couldn't parse this; to the extent that I could parse it, I
 %couldn't understand it.  I cut it.  If you want to reinstate it, you
@@ -1119,26 +1099,33 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 	\end{example}
 
 	
-	\subsubsection{Extra Information}
-	While $\bbr{\sfM}\SD$ and $\zeta(\sfM;-)$ distinguish only between distributions based on their compatibility with $\sfM$, but even among distributions consistent with a set of constraints, some seem more natural than others. In particular, there is already a rich literature of chosing distributions with maximum entropy \parencite{jaynes1957information, wainwright2008graphical} consistent with constraints, in part because they intuitively they intuitively ``have the least additional information'' beyond those given in the constraints. 
+	\subsubsection{Extra Information}\label{sec:extra}
+	While $\SD{\sfM}$ and $\inconsist(\sfM;-)$ distinguish only between distributions based on their compatibility with $\sfM$, but even among distributions consistent with a set of constraints, some seem more natural than others. In particular, there is already a rich literature of chosing distributions with maximum entropy
+	$\H(p) = -\sum_{w \in \text{Supp($\mu$)}} \mu(w) \log \mu(w)$
+	consistent with constraints \parencite{jaynes1957information, wainwright2008graphical}, in part because they intuitively they intuitively ``have the least additional information'' beyond those given in the constraints. 
 	
-	One might hope that this distribution would be the one described by a Bayseian Net. Unfortunately, the maximum entropy distribution associated with the cpts of a BN does not have the right conditional independences, which has resulted in a great deal of work \cite{williamson2001foundations}\cite{holmes2001independence} in modeling BNs as maximum entropy solutions to an expanded set of constraints, which include additional causal information.
+	One might hope that this distribution would be the one described by a Bayseian Net. Unfortunately, the maximum entropy distribution associated with the cpts of a BN does not have the right conditional independences, which has resulted in a great deal of work \cite{williamson2001foundations}\cite{holmes2001independence} in modeling BNs as maximum entropy solutions to an expanded set of constraints, which include additional information of a causal flavor. 
 	
 	We have discovered that there is an alternate way to recover the distribution corresponding to a BN, which is more in the spirit of minimizing the amount of additional information, and does not requrire any additional assumptions about independences. 
-	The key insight is that the information in a cpt itself might not be fixed, which entropy maximization alone will exploit, which we have to control for.
-	%
-	In more detail, cpts contain counterfactual information: a cpt of $Y$ given $X$ not only tells you the distribution of $Y$ for the distribution on $X$ that is actualized, but also for arbitrary distributions on $X$. As a result, one can maximize entropy not only by selecting a distribution which makes things as independent as possible, but also by simply putting extra mass on rows of the cpt which already prescribe more uncertainty. We therefore define the extra information below.
+	The key insight is that the information in a cpt may not be fixed, which we have to control for. 
+
+	Cpts contain counterfactual information: 
+	a cpt $Y$ given $X$ not only tells you the distribution of $Y$ for the distribution on $X$ that is actualized, but also for arbitrary distributions on $X$. As a result, one can maximize entropy not only by selecting a distribution which makes things as independent as possible, but also by simply putting extra mass on rows of the cpt which already prescribe more uncertainty. We therefore define the extra information below.
 	
-	\begin{defn}
-		The \emph{extra information}, $\H^{\sfM}$, given by a distribution $\mu$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ is given by
-		\[ \H^{\sfM}(\mu) := \sum\alle \Big[ \E_{x \sim \mu_X}  \H (\bp (x))  \Big] - \H(\mu) \] 
-		where $\mu_X$ is the marginal of $\mu$ on the variable $X$, and $\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bp$ when $X = x$. 
+	\begin{defn}\label{def:extra}
+		The \emph{extra information}, $\H^{\sfM}$, given by a distribution $\mu$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ with causal weights $\vec \alpha$ is given by
+		\[ \H^{\sfM}(\mu) := \sum\alle \alpha_L \Big[ \E_{x \sim \mu_X}  \H (\bp (x))  \Big] - \H(\mu) \] 
+		where $\mu_X$ is the marginal of $\mu$ on the variable $X$, and $\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bp$ when $X = x$. The extra information of an unweighted PDG is given by assuming $\alpha_L = 1$ for each $L \in \Ed^\sfM$.
 	\end{defn}
 	% The cpts may not (in the entropy sense) 
-	We can think of the extra information as the sum of the entropies that \emph{actually} result from each table, in the context of distribution $\mu$, minus the total entropy of the distribution. Alternatively, we can think of the negation of the extra information, $-\H^\sfM(\mu)$ as the information in $\mu$, which has not already been specified by the cpts in $\sf M$. We will show in \Cref{sec:bn-convert} the distribution with minimal extra information with respect to the cpts of a BN $\cal B$ is the unique one specified by $\cal B$.
+	The extra information is the sum of the entropies that \emph{actually} result from each table, in the context of distribution $\mu$, minus the total entropy of the distribution.
+	Alternatively, we can think of the negation of the extra information, $-\H^\sfM(\mu)$ as the uncertainty in $\mu$, which has not already been specified by the cpts in $\sf M$. 
+	We will show in \Cref{sec:bn-convert} the distribution with minimal extra information with respect to the cpts of a BN $\cal B$ is the unique one specified by $\cal B$.
 	\begin{vfull}
 		One might also recognize the extra information as having the form of a free energy; we explore this connection in \Cref{sec:thermo}. 
 	\end{vfull}
+
+	Note that when every $\alpha_L = 0$, minimizing the extra information corresponds to maximizing entropy subject to constraints, which is arguably the right thing to do if we take the constraints at face value, rather than causally (see \Cref{ex:counterexample}), justifying their naming.
 
 %%joe3*: Can you give some intuition for why this is reasonable?
 %%oli3: yeah. Here are several arguments:
@@ -1151,7 +1138,7 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %subtract one from the other (with relative weighting $\alpha$), to get
 %a score $\mathcal U_\alpha(\sfM; p)$:
 %	\begin{equation}
-%		\mathcal U_\alpha(\sfM; p) := \zeta(\sfM;p) - \alpha
+%		\mathcal U_\alpha(\sfM; p) := \inconsist(\sfM;p) - \alpha
 %                H(p). \label{eq:freeenergy-weighted} 
 %	\end{equation} 
 %joe3: This may be true, but why say it?        
@@ -1161,29 +1148,29 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %oli3: because mixing up the levels is problematic. Maybe it doesn't need to be said.
 %joe3: why does this mean someting is wrong?
 %oli3: rewording and uncommenting.
-% $\zeta$ provides us with a meaningful continuous score, but as
-% a semantics for PDGs, there's still something missing: $\zeta$ can
+% $\inconsist$ provides us with a meaningful continuous score, but as
+% a semantics for PDGs, there's still something missing: $\inconsist$ can
 % only distinguish between those distributions $p$ that are
 %         \emph{inconsistent} with $\sfM$.
 % 
 
-    \subsection{Putting The Scores Together}
-	Both the extra information $\H^\sfM$ and inconsistency $\zeta$ can be thought of measures of cost of fit for a distribution $\mu$, with higher numbers being worse. We can think of either as defining an energy landscape on possible distributions, in which we intuitively expect distributions with low energy to be more likely.  
+    \subsubsection{Putting The Scores Together}
+	Both the extra information $\H^\sfM$ and inconsistency $\inconsist$ can be thought of measures of cost of fit for a distribution $\mu$, with higher numbers being worse. We can think of either as defining an energy landscape on possible distributions, in which we intuitively expect distributions with low energy to be more likely.  
 	
-	We now consider the sum of the two scores, with the trade-off controlled by a parameter $\alpha \ge 0$, giving us a score as follows: 
+	We now consider the sum of the two scores, with the trade-off controlled by a parameter $\gamma \ge 0$, giving us a score as follows: 
 	\begin{align*}
-			%\bbr{\sfM}^\alpha(\mu)
-			\mathcal U_{\alpha}(\sfM; \mu) &:= \zeta(\sfM;p) + \alpha \H^\sfM(\mu)\\
-			&= \Bigg(\sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \E_{x \sim \mu_{\!_X}}  \left[\alpha\cdot \H (\bp (x)) + \beta_L \cdot \kldiv[\Big]{ \mu_Y(\cdot | X \!=\! x) }{\bp(x) }  \right] \Bigg) - \alpha \H(\mu) \\
+		\mathcal U_{\gamma}(\sfM; \mu) &:= \inconsist(\sfM;p) + \gamma \H^\sfM(\mu)\\
+		&= \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\! \E_{x \sim \mu_{\!_X}}  \left[\gamma\alpha_L\cdot \H (\bp (x)) + \beta_L \cdot \kldiv[\Big]{ \mu(Y\!= \cdot\ | X \sheq x) }{\bp(x) }  \right]  - \gamma \H(\mu) \\
 			\numberthis\label{eq:freeenergy-weighted}
 	\end{align*}
 	
-	For $\alpha = 0$, the only thing that matters is consistency.  For $\alpha$ arbitrarily small, the preference for consistency dominates, and extra information is used only to break ties. If an agent is very certain that their cpts are well-informed, which we will call the `low ambient uncertainty' case, this may be appropriate. 
-	As $\alpha$ grows, an agent becomes willing to compromise on some extra inconsistency for extra information. For instance, an agent that does not even have consistent knowledge might be better off hedging with an uncertain estimate, for the same reason that uniform randomness is optimal in rock-paper-scisors against an unknown adversary. Even in situations where there is a consistent distribution, one might be justified in picking something else, as the next example shows. 
+	For $\gamma = 0$, the only thing that matters is consistency, as $\mathcal U_0 = \inconsist$.
+	For $\gamma>0$ but arbitrarily small, the preference for consistency dominates, and extra information is used only to break ties. If an agent is very certain that their cpts are well-informed, which we will call the `low ambient uncertainty' case, this may be appropriate. 
+	As $\gamma$ grows, the semantics trade some consistency for safety. For instance, an agent that does not even have consistent knowledge might be better off hedging with an uncertain estimate, for the same reason that uniform randomness is optimal in rock-paper-scisors against an unknown adversary. Even in situations where there is a consistent distribution, one might be justified in picking something else, as the next example shows. 
 	
 	\begin{example}
-		Consider the PDG with variables $\sf 1$ and $X$, and two distributions $p, q$ on $X$. 
-		\todo{figure out if this example can be formulated without substochasticity. This is the one discussed in meeting, where two experts disagree on their except for $\epsilon$ overlap.}
+		Consider the PDG with variables $\sf 1$ and $X$, and two distributions $p, q$ on $X$, that only overlap with $\epsilon$ mass.
+		\todo{This works out nicely but I actually don't think this can be done without elliding a row of a cpt (which I've been calling sub-stochasticity). This is the one discussed in meeting, where two experts disagree on their except for $\epsilon$ overlap.}
 	\end{example}
 
 %joe3: I don't understand what ``ambient background uncertainty''
@@ -1206,16 +1193,11 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %true if \alpha where infitesimal, but we don't want to go there.  I
 %suspect ou mean ``increasing consistency'', not ``reducing
 %consistency''.  It's ust that more consistency mak=infμ∈∆V(M)ζ(M;μ)Proposition 3.1(??5.1 analog).JM∪M′K=JMK+JM′KLemma 3.2(Lemma 5.2 analog).ζis a convex function.Corollary 3.2.1.Uα(M;p)is convex inpforα≥0, and strictly so forα >0. Furthermore,J−Kisquasiconvex—that is, all of its level sets are convex sets.As a result of??3.2.1,JMKis a quasiconvex function In particular, Lemma 5.2 is the special case forthe level setU ≤0forα= 0.The semantics given in Section 3.1 does not allow us to express independencies very effectively.For instance, in Example 2, to fully get the joint representation given by the BN, we also needto somehow assume thatSC⊥⊥S|PS.  This is possible to do explicitly with an extra arrowmeaningless arrow, but this solution doe not scale well, looks like it dependence (the opposite ofour intention), and clutters the diagram. We now show that by applying the principal of maximumentropy, we can recover all of a BN’s independence assumptions at once. This should make intuitivesense: maximizing entropy tend to ‘make things as independent as possible’. Those familiar with theview of graphical models as separable exponential families may have even seen a similar result inan undirected setting e.g., (cf. WJ+08, pp. 37-39). We proceed with the theorem, and discuss someconsequences below.Definition 3.6.IfMis a PDG,JMKS⊆∆V(M)is a set of distributions,(D,)is an ordered set,and`: ∆WM→(D,≤)is a scoring function for probabilities, letthe upper≤-frontier under`,denotedJMK`S, be the set of distributions that are not strictly dominated by any others. Explicitly,JMK`S={μ∈JMKS∣∣∣∀μ′∈JMKS. `(μ′)`(μ)}Theorem 3.3.IfMis a consistent PDG, then there is a uniqueμ∈JMKsdthat maximizes theShannon entropy,H(μ) =∑x∈Supp(μ)μ(x) log1μ(x),whereSupp(μ)is the support ofμ.Proof.This is a direct consequence of Lemma 5.2 and the fact that entropy is strictly concave.Definition 3.7.IfMis a consistent PDG, letJMKHbe the unique distributionμ∈JMKsdof maximumentropy.Example 7(composition).Consider a slight alteration of Example 13 in whichA, which had anunconditional distribution onX,  is replaced withA′:=Zp′−→X,  representing a distributionconditioned onZ. As before,rA′∪Bzsd=rZp−→Xq−→Yzsd9
-%oli3: I want this case to be the default. I meant "reducing inconsistency / \zeta"
+%oli3: I want this case to be the default. I meant "reducing inconsistency / \inconsist"
 %A very small $\alpha \in O(\epsilon)$ corresponds to a lexicographical
 %ordering, in which 
 %reducing consistency is most important, and ties are broken by
 %maximizing entropy.  
-
-%joe3: I simply don't understand why you would hedge with a more
-%uncertain guess
-%inconsistency for the safety of hedging with a more uncertain guess,
-
 %joe3: I see no reason to identify more uncrtain with greater
 %entropy.  Why is an agent who is certain that a coin is far more
 %uncertain than one who thinks that the probability of heads is 1/3.
@@ -1237,76 +1219,20 @@ As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntact
 %to a belief that the world is extremely ordered, are also
 %psychologically plausible.  
 	
-%	if $\zeta(\sfM; p)$ is the additional information of communicating $p$ with knowledge $\sfM$, and $H(p)$ is the amount of information in $p$, then $\mathcal U_\alpha(\sfM; p)$ is the information required to communicate $p$ given a code optimized for the marginals of $\sfM$, 
+%	if $\inconsist(\sfM; p)$ is the additional information of communicating $p$ with knowledge $\sfM$, and $H(p)$ is the amount of information in $p$, then $\mathcal U_\alpha(\sfM; p)$ is the information required to communicate $p$ given a code optimized for the marginals of $\sfM$, 
 	
 
-	
 
 
-%joe3*: You said that there was a different motivation for this
-%transformation.  You should briefly explain it here.  Even if the
-%details are in Section 5, you should give a rough intuition here.  If
-%you're going to normalize, you should do that here too, and motivate
-%it.  If you need to do some normalization, this should be done and discussed
-Note that $U_\alpha(\sfM; p)$ can be anywhere between $-\infty$ and
-$\infty$.  This can be seen as a weighted set of distributions, as given in \cite{halpern2015weighted} once we transform it so that it is always
-non-negative.
-Let $V_{\alpha,\beta}(\sfM;p) = \exp(-\beta U_\alpha(\sfM;p) ) $.  Here
-  $\beta$ is a decay parameter,
-%joe3*: I don't understand this intuition at all
-  % This class of functions has a single decay rate parameter $\beta$
-  which intuitively corresponds to a strength of
-        commitment to a particular distribution. 
-With the score given by $V_{\alpha,\beta}$, a bigger score denotes a
-``better'' distribution.  Since relative entropy is always
-non-negative, if $\alpha=0$, we must have that $V_{\alpha,\beta} \in
-  [0,1]$.  Thus, $V_{0,\beta}$ acts like a weight in the sense of
-  Halpern and Leung \citeyear{halpern2015weighted}.
+$\mathcal U_\gamma(\sfM; p)$ can be thought of as the energy state of a distribution (larger numbers indicate a worse fit) and can be anywhere between $-\infty$ and $\infty$.  To get a semantics in the style of \cite{halpern2015weighted}, we transform it so that it is non-negative and larger scores are better (making it distribution-like, by analogy to a Boltzmann distribution) and normalize so that the lowest energy distributions get weight 1. We introduce a scaling parameter $k > 0$ (the corresponding inverse temperature) which does not affect the rankings of distributions.
+\[ W^k_\gamma(\sfM; \mu) := \exp\Big(  -k \Big\{\mathcal U_{\gamma}(\sfM;\mu)- \inf_{\mu'} \mathcal U_\gamma(\sfM,\mu')\Big\} \Big).\]
+Now 
+$W^k_\gamma(\mu) \in  [0,1]$, for all $k$, and hence acts like a weight in the sense of  Halpern and Leung \citeyear{halpern2015weighted}.
+For now, we set $k=1$, but note that $k$ does not affect the ranking of distributions of scores according to $W^k_\gamma(\sfM; -)$, and so $\arg\max_{\mu'} W^k_\gamma(\sfM; \mu')  = \arg\min_{\mu'} \mathcal U_\gamma(\sfM;\mu')$ is independent of $k$. 
+%
+$W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside from the normalization, but the latter is slightly more useful and will play a larger role in our analysis, and so we notatationally use this as our second semantics: $\bbr{\sfM}_\gamma(\mu) := \mathcal U_\gamma(\sfM ; \mu)$.
 
-%oli3: I don't think this is an important distinction. The semantics
-% can be thought of a single object which is a function 
-% (\alpha, \beta) \to \Delta W \to \mathbb R
-%We can now define the second semantics, which is really a family of semantics:
-We can now define the second semantics, parameterized by $\alpha,\beta$:
-$$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
-\Delta(\times_{X \in \N} \V(X))\}.$$
-%oli3: This is a counter-productive way of phrasing it, because we're scoring
-% ALL distributions, and technically just gives the definition of a function...
-%Thus is, the elements of $\bbr{\sfM}_{\alpha,\beta}$ are pairs $(p,
-%w(p))$ consisting of a probability distribution and its weight.
-% I also don't think we should replace it with "thus it is a function... " because
-% this is clear from the notation and definition.
-
-%joe3: said it above
-\commentout{
-	For reasons that we will explain carefully in
-        \Cref{sec:thermo}, we do this with an exponential decay.  
-	This class of functions has a single decay rate parameter $\beta$ which intuitively corresponds to a strength of commitment to a particular distribution.
-	%	(To avoid confusion, one could fix $\beta = 1$ for now.)
-	%
-	\begin{equation}
-		\bbr{\sfM}_{\alpha,\beta} := \mu~\mapsto~\exp \big\{ -\beta \cdot \mathcal U_\alpha(\sfM; \mu) \big\} \label{eqn:weighted-semantics}
-	\end{equation}
-	
-	For $\alpha = 0$ the maximum value of $\bbr{\sfM}$ is 1. It is always possible to re-normalize so that the maximum is 1, but this discards some consistency information, as factor graphs do.
-}
-%joe3: \end{commentout}
-	
-%	Inconsistency is something we try to minimize, making it analogous to a physical system trying to minimize its potential energy. If we think of the inconsistency as a potential energy directly, we can use something like a Boltzmann law (\Cref{eq:boltzmann}) to get likelihood over distributions. We therefore define a weighted distribution by
-
-%	One nice consequence of this definition is that the maximum value of $\bbr{M}_\zeta(\mu)$ is $1$, in keeping with the standard on weighted distributions \parencite{halpern2015weighted}; indeed all consistent distributions have weight 1. Still, there's something missing: we've now captured inconsistency
-
-        %joe3*: This is not a story!  You can't just write ``Here are
-        %3 results that you might be interested in''.  
-        %oli3*: Why not, in general? We'll move on to something else. Honestly this seems kind of optimal from a reader's perspective:
-        % We don't want to explain things that are out of the way of the story. We'll need to use them, so they need to be in this paper, but they're not the most exciting. Some people will get something out of knowing these results, and I don't want to just hide them away. I'm trying to explicitly avoid talking too much about these because they're dry, but I know some people will benefit. Because of the organization, they're VERY easy to skip over visually. I highly doubt this will get in anyone's way of the story; it's like a list of references at the end of a chapter of the book.
-        %The first
-        %``result'' is a definition, and it should appear earlier.  (I
-        %moved it back.)  The second is not part of the current story
-        %(and belongs in a separate section in any case); the third is
-        %misplaced and should be part of the result that needs it
-
-%\commentout
+\commentout
 {        
 	We now offer generalizations of some results found in in
         \Cref{sec:set-of-distribution-semantics}:
@@ -1317,20 +1243,12 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
         properties we wanted, and \Cref{thm:zetaconvex} will let us
         define concrete distributions just like its more specific
         counterpart. 
-	
-	\begin{defn}\label{def:cont-inconsist}
-		The inconsistency of a PDG $M = (\cal N, L, V, \bmu)$ is the minimum value that could be achieved with any test distribution $p$; that is, 
-		\[ \zeta(M) = \inf_{ \mu \in \Delta \V(\sfM)} \zeta (M; \mu) 
-		%			= -\log \sup_{p \in \Delta[W_{\cal V}]} \bbr{M}_\zeta (p)
-		\]		
-	\end{defn}
+
 	%	\Cref{prop:union-weight-semantics} shows that the weighted distributions also have the modularity properties we're interested in.
 	\begin{prop}[name=\Cref{prop:union-set-semantics} analog]\label{prop:union-weight-semantics}
 		$\bbr{\sfM \cup \sfM'} = \bbr{\sfM} + \bbr{\sfM'}$
 	\end{prop}
-	\begin{lemma}[name=\Cref{prop:convex} analog, restate=thmzetaconvex]\label{thm:zetaconvex}
-		$\zeta$ is a convex function. % in $p$.
-	\end{lemma}
+	
 	\begin{coro}\label{cor:u-convex}
 		$\mathcal{U}_\alpha(\sfM; p)$ is convex in $p$ for $\alpha \geq 0$, and strictly so for $\alpha> 0$. Furthermore, $\bbr{-}$ is quasiconvex---that is, all of its level sets are convex sets.
 	\end{coro}
@@ -1338,93 +1256,47 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	As a result of \Cref{cor:u-convex}, $\bbr{M}$ is a quasiconvex function 
 	%, and hence every local minimum is a global minimum. 
 	In particular, \Cref{prop:convex} is the special case for the level set $\mathcal U \leq 0$ for $\alpha = 0$. 
-	
-%        \subsection{\MN S AS MAX ENTROPY
-%DISTRIBUTIONS} \label{sec:maxent-semantics} 
 }
-%joe3: \end{commentout}
-	
-%	\moveme{
-%	Instead, we leave the picture alone, and tackle the independence by using our maximum entropy semantics: the distribution encoded by the BN is the maximum entropy one encoded by the \MN.}
 
+	% unhelpful?
+\commentout{
 	The semantics given in \Cref{sec:set-of-distribution-semantics} does not allow us to express independencies very effectively.
 	For instance, in \Cref{ex:smoking}, to fully get the joint representation given by the BN, we also need to somehow assume that $SC \CI S \mid PS$. This is possible to do explicitly with an extra arrow meaningless arrow, but this solution doe not scale well, looks like it dependence (the opposite of our intention), and clutters the diagram. 
 	We now show that by applying the principal of maximum entropy, we can recover all of a BN's independence assumptions at once. This should make intuitive sense: maximizing entropy tend to `make things as independent as possible'. 
-	Those familiar with the view of graphical models as separable exponential families may have even seen a similar result in an undirected setting e.g., \parencite[cf.][pp. 37-39]{wainwright2008graphical}. 
+	Those familiar with the view of graphical models as separable exponential families may have even seen a similar result in an undirected setting \parencite[e.g..][pp. 37-39]{wainwright2008graphical}. 
 	We proceed with the theorem, and discuss some consequences below.
+}
 
-\begin{vfull}
-		%	\[ \Big\llbracket M \Big\rrbracket^{\ell}(\mu) := \left\{\mu \in \Delta\left[~\prod_{N \in \mathcal N}\mathcal V(N)\right] ~\middle|~
-		%	\begin{array}{l}
-		%	\ell(\mu) \succeq \ell(\mu') \\[0.2em]
-		%	\qquad\text{for all $\mu' \in \Delta \prod \mathcal V$} \end{array} \right\}\]
-		
-		
-		
-		%	When ultimately pressed on a decision, an agent has incentives to temporarily act as though their beliefs were simply a distribution. Via maximum-entropy semantics,
-		
-		\begin{defn}
-			If  $\sfM$ is a \MN, $\bbr{\sfM}_{\mathbf S} \subseteq \Delta \V(\sfM)$ is a set of distributions, $(D, \preceq)$ is an ordered set, and $\ell : \Delta W_{\sfM} \to \mathbb (D, \leq)$ is a scoring function for probabilities, let \emph{the upper $\leq$-frontier under $\ell$}, denoted $\bbr{\sfM}_{\mathbf S}^\ell$, be the set of distributions that are not strictly dominated by any others. Explicitly,
-			
-			\begin{equation*}
-				\bbr{\sfM}_{\mathbf S}^\ell =  \left\{\mu \in \llbracket M \rrbracket_{\mathbf S} ~\Big|~ \forall \mu' \in \bbr{\sfM}_{\mathbf S}.~ \ell(\mu') \preceq \ell(\mu)  \right\} \\
-			\end{equation*}
-		\end{defn}
-\end{vfull}
-
-	\begin{theorem}\label{thm:uniqmaxemnt}
-		If $\sfM$ is a consistent \MN, then there is a unique $\mu \in \bbr\sfM\SD$ that maximizes the Shannon entropy, 
-		$$H(\mu) = \!\!\!\sum_{x \in \mathrm{Supp}(\mu)}\!\!\! \mu(x) \log \frac{1}{\mu(x)},$$
-		where $\mathrm{Supp}(\mu\notation[)]{ : \Delta W) = W}$ is the support of $\mu$.
-	\end{theorem}
+    \subsection{PDGs As Unique Distributions}\label{sec:uniq-dist-semantics}
+    Finally, we provide an interpretation of a PDG as a probability distribution.  
+    Before we provide this semantics, we would like to reiterate that this distribution does \emph{not} capture all of the important information in the PDG---in particular, as we have stressed, a PDG can represent inconsistent knowledge states. That said, the semantics we give here is still important, as it will allow us to compare with the semantics of existing graphical models, and ultimately will prove PDGs to also be a surprisingly flexible tool for specifying a distribution.
+    
+    The idea is to simply select the distribution with the maximum weight --- which will be unique, because of the following result:
+    
+    \begin{prop}\label{prop:u-convex}
+    	$\mathcal U_\gamma(\sfM;\mu)$ is strongly convex in $\mu$, for any $\gamma > 0$. 
+    \end{prop}
 	\begin{proof}
-		\vspace{-1em}
-		This is a direct consequence of \Cref{prop:convex} and the fact that entropy is strictly concave.
-	\end{proof}	
+		$\inconsist$ is convex, $-\H$ is strongly convex, and $\sum\alle \E_{x\sim \mu_X} \H(\bp(x))$ is linear in $\mu$. Therefore a non-negatively weighted linear combination of the three must be convex, and strongly so when the coefficient on $-\H$ ($\gamma$) is positive.
+	\end{proof}
 
-	\begin{defn}
-		If $\sfM$ is a consistent \MN, let $\bbr{\sfM}\MaxEnt$ be the unique distribution $\mu \in \bbr{\sfM}\SD$ of maximum entropy.
-	\end{defn}
+	We can now define the unique distribution semantics:
+    
+    \begin{defn}
+    	For $\gamma > 0$,
+    	$\bbr{\sfM}^*_\gamma := \arg\min_{\mu \in \Delta\V(\sfM)} \mathcal U_\gamma(\sfM;\mu)$
+    \end{defn}
 
+	$\UD\sfM$ will be used extensively to relate PDGs with other graphical models in \Cref{sec:other-graphical-models}, and can be thought of as the result of a free energy minimization process---a connection we explore in \Cref{sec:thermo}.
+	
+	In contrast with the other two semantics, $\UD{\sfM_1 \cup \sfM_2}$ cannot be calculated from $\UD{\sfM_1}$ and $\UD{\sfM_2}$. However, it is effectively the only semantics offered by alternative graphical models, which contributes to their relative lack of modularity. We return to this after a more careful treatment of unions in \Cref{sec:pdg-operations}.
+	
+	\subsection{Recovering Other Semantics As Special Cases of Distribution Scores}
 
-	% we can motivate composition here!
-	\begin{example}[composition]
-		Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\sf A$, which had an unconditional distribution on $X$, is replaced with $\mathsf A' := Z \xrightarrow{p'} X$, representing a distribution conditioned on $Z$. 
-		As before,
-		\[ \bbr[\Big]{{\sf A' \cup B}}\SD = \bbr[\Big]{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y}\SD \]
-		Suppose we are interested in the conditional marginal of $Y$ given $Z$. In this case, $\bbr{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y}\SD $ contains distributions $\mu$ with varying of $\mu(y \mid z)$, and so we can no longer conclude anything uniformly about this conditional marginal for all distributions in $\bbr{{\sf A' \cup B}}\SD$. 
-		
-		Still, we can get an estimate of this quantity using the maximum entropy semantics, which conveniently turns out to be the composition of $p$ and $q$ as probabilistic functions.
-		$$ \bbr{{\sf A \cup B}}\MaxEnt(y \mid z) = \sum_{x \in \V(X)}\!\! p (x \mid z)\ q(y \mid x) = q \circ p $$
-		We claim more is true: if $\sfM$ is \emph{any} PDG that is not over-constrained, and with $\sfM \supseteq \sf A \cup B$, i.e., containing $\sf A \cup B$ as a sub-graph, then
-		$ \bbr{\sfM}\MaxEnt(y \mid z) = q \circ p$,
-		suggesting that this composition is in some sense the best guess we have for the conditional marginal. 
-		This can be verified directly, but we will instead prove the more general result in our next result (\Cref{thm:maxent-hull}.).
-		%
-	\end{example}
-
-	The semantics $\bbr{-}\MaxEnt$ presented here and \Cref{thm:uniqmaxemnt} are all the tools we need to show that PDGs subsume BNs, but this semantics is still lacking something: it only works when the distribution is consistent.
-	We return to the idea of using a PDG to represent a unique distribution in \Cref{sec:uniq-dist-semantics-2}, after having developed our final semantics. 
-
-
-
-%joe3
-%        \subsection{UNIQUE DISTRIBUTIONS,
-        %          AGAIN}\label{sec:uniq-dist-semantics-2}
-    \subsection{PDGS AS UNIQUE DISTRIBUTIONS}\label{sec:uniq-dist-semantics-2} 
-
-%joe3: cut; I don't think that this adds anything
-%	A weighted distribution is closely related to a second order
-%        distribution: a distribution over distributions, which can be
-%        collapsed to a single distribution by taking an expectation. 
-%	The reason we say `closely related' is that $\bbr{M}$ will
-%        likely not have finite support, and won't always be
-%        integrable. Fortunately, if $\alpha > 0$, then by
-%        \Cref{cor:u-convex}, $\mathcal U_\alpha$ has a unique minimum,
-%        $\mu^*$. Therefore, taking a limit as $\beta \to \infty$, we
-%        know $\bbr{M}_{\alpha,\beta}$ converges to the weighted
-%        distribution that puts weight 1 on $\mu^*$ and weight 0 on all
-                %        other distributions, as shown below:
+	We have just seen that $\gamma >0$, $\mathcal U_\gamma$ has a unique minimum,
+        $\UD{\sfM}$. By increasing $k$ in $W^k_\gamma$, the weights of any distribution that is not optimal go to zero. Therefore, taking a limit as $k \to \infty$, we see that $W^k_\gamma$ converges to the weighted
+        distribution that puts weight 1 on $\UD{\sfM}$ and weight 0 on all
+                        other distributions, as shown below:
 %joe3*: I have no idea why this should put weight 1 on a single
 %distribution.  I'm lost!  I think we should just give a third
 %semantics that amounts to picking the distribution of higest weight, 
@@ -1435,35 +1307,42 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 % a supremum. A supremum is not continuous, but we can get it for these strongly
 % convex spaces by taking the associated temperature of the Boltzmann distribution to
 % zero.  We're just doing this one level up, for the weighted distributions...
-	\[ \Big(\lim_{\beta \to \infty} \bbr{\sfM}_{\alpha,\beta}(\mu)
-        \Big)  = \Big(\lim_{\beta \to \infty} \exp(-\beta\ \mathcal
-        U_\alpha) \Big)(\mu) = \delta_{\mu, \mu^*} \] 
-	
-%	Rather than writing out the limits, we will now substitute $\epsilon$ and $\infty$ for arbitrarily small and large positive numbers, respectively.
-%	Therefore there is always some $\beta$ for which this is
-	It turns out that every specific distribution we have given is a special case of this, with some tuning of our $\alpha$ and $\beta$ parameters. 
-	%oli2: Ok this last part is maybe a bit much, but I hadn't slept and kept going instead of finishing the rest.
-	% I still think I should state something like the proposition below but 
-	\begin{align*}
-		\Big(\bbr{\sfM}_{\alpha_0}^*\Big)(w) &:= \lim_{\substack{\alpha \to \alpha_0 \\ \beta \to \infty}} 
-		\E_{\mu \sim \bbr{\sfM}_{\alpha,\beta}} [\mu(w)] \numberthis\label{eqn:higher-expectation} \\
-		&= \lim_{\alpha \to \alpha_0 } \lim_{\beta \to \infty}  \frac{1}{Z} \sum_{\mu \in \Delta\V(\sfM)} \bbr{\sfM}_{\alpha,\beta}(\mu) \mu(w) 
-	\end{align*}
-	
-	defined where the sum is finite; $Z$ is a normalization constant across all worlds $w \in \V(\sfM)$. 
-	Using this construction, we can show that each of our other semantics can be expressed in terms of the weighted distributions.
-	
-	\begin{prop}
-%		Every semantics can be recovered from $\bbr{\sfM}$. In particular,
-		$\bbr{\sfM}\SD = \{ \mu \in \Delta \V(\sfM) : \bbr{\sfM}_0 (\mu) > 0 \}$, 
-		and if $\sfM$ is consistent, then $\bbr{\sfM}\MaxEnt = \bbr{\sfM}_{0^+}^*$
-	\end{prop}
-	
-	The important feature of this construction is that it gives us a uniform way of getting distributions based on our confidence in our beliefs.
+%oli4: I've made a bunch of changes so it's more readable. It still probably won't make it into the short paper, but I think it is useful intuition and verification for the naturality of the semantics.
+	\[ \lim_{k \to \infty} W_\gamma^k(\sfM, \mu)
+        = \lim_{k \to \infty} \exp\Big\{-k \Big(\mathcal
+        U_\gamma(\sfM;\mu) - \mathcal
+        U_\gamma(\sfM;\UD\sfM)\Big) \Big\} = \begin{cases}
+        	1 & \UD\sfM = \mu \\
+        	0 & \text{otherwise}
+        \end{cases} \] 
+\commentout{
+\begin{vfull}
+   		A weighted distribution is closely related to a second order
+    	distribution: a distribution over distributions, which can be
+    	naturally collapsed to a single distribution by taking an expectation. 
+   		\begin{align*}
+    		\Big(\bbr{\sfM}_{\alpha_0}^*\Big)(w) &:= \lim_{k \to \infty} 
+    		\E_{\mu \sim W_{\gamma}^k(\sfM,-)} [\mu(w)] \numberthis\label{eqn:higher-expectation} \\
+    		&= \lim_{k \to \infty}  \frac{1}{Z} \int_{\Delta\V(\sfM)} W_\gamma^k(\sfM;\mu) \mu(w) d\mu
+    	\end{align*}
+    	defined where the sum is finite; $Z$ is a normalization constant across all worlds $w \in \V(\sfM)$. 
+\end{vfull}}
 
-	
-%	This corresponds to a lexicographical ordering on \emph{all} distributions (as opposed to simply the ones in $\bbr{M}\SD$), where we order first by satisfaction of constraints, and then by entropy. In general, we might be willing to relax the constraints a little, and sacrifice some fit for aa more general distribution. This allows us to define a free energy; see \Cref{sec:thermo-background} for more.
-	
+	For $\gamma = 0$, and $\sfM$ is consistent ($i.e., \inconsist(\sfM) = 0$) we recover the set-of-distribution semantics with the same trick:
+%oli4:
+%	\note{thereby providing an alternate notational justification for $^*$ as a limit as $k\to \infty$}:
+	\begin{align*}
+		 \lim_{k \to \infty} W_0^k(\sfM, \mu)
+		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\mathcal U_0(\sfM;\mu) - \inf_{\mu'} \mathcal U_0(\sfM; \mu')\Big) \Big\} \\
+		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\inconsist(\sfM;\mu) - \inconsist(\sfM)\Big) \Big\} 
+		= \begin{cases}
+			1 & \mu \in \SD\sfM \\
+			0 & \text{otherwise}
+		\end{cases} 
+	\end{align*}
+
+	In this sense, a weighted distribution provides a much more expressive semantics for a PDG than a single probability distribution, or set of them.
+
 %joe1*: I cut this.  You haven't explained in what sense a conditional
 %distribuiton is a program, you havne't motivated it, it takes us too
 %far afield ...	
@@ -1512,7 +1391,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	
 	\begin{defn}
 		A PDG $\sfM$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
-		$$\bigcap_{p \in P}\ \bbr*{\vphantom{\Big|}p^0\circ \cdots\circ p^k}\SD \neq \varnothing$$
+		$$\bigcap_{p \in P}\ \SD*{\vphantom{\Big|}p^0\circ \cdots\circ p^k} \neq \varnothing$$
 	\end{defn}
 
 	\begin{example}
@@ -1540,113 +1419,19 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 
 
 %\begin{notfocus}
-	\section{RELATIONS TO OTHER GRAPHICAL MODELS}\label{sec:other-graphical-models}
-	%joe2*: Oliver, for the abstract, cut the figure, and talk about BNs,
-	%factor graphs, and perhaps one other model.  Less is more.  A huge
-	%cluttered picture does not help anyone.  You can perhaps say that, in
-	%the full paper, we relate what we're doing to other approaches, such
-	%as x, y, and z.   But let's discuss this before you do it.
-	%oli2: I will talk about those three, and reduce the figure. But I think it is helpful to have anything a non-trivial number of people use all in one place; it helps people get a much better map of . Unlike text which you have to read in order, I think this map will be helpful for anyone, as long as we're careful to place the models we talk about on it. 
-	
-	PDGs are surprisingly general. Many graphical models, and their abilities to represent one another are depicted in \Cref{fig:model-transformations}; we discuss the highlighted nodes. We now discuss some of the best known classes; see \Cref{sec:many-relations-graphical-models} for a full description of the diagram.
-
-	\usetikzlibrary{decorations.markings}	
-	\begin{figure*}[t]
-		\centering
-		\tikzset{attn/.style={draw, fill=magenta, fill opacity=0.3, font=\Large\bfseries, inner sep=4pt}}
-		\begin{tikzpicture}
-			\begin{scope}[every node/.style={ellipse, fill, fill opacity=0.05,text opacity=1,
-						outer sep=3pt,font=\bfseries}, xscale=2.5,yscale=1.2]
-				\node (KB) at (-3, 0.5) {KB};
-				\node (CG) at (-3, 1.5) {CG};
-
-				\node (CRF) at (-1.2, 0.4) {CRF}; % CFG
-%				\node (CRF) at (-2, 0) {CRF};
-			
-				\node (MRF) at (-2, 1) {MRF};
-				\node[draw, attn] (FG) at (-1,1.35) {FG};
-				\node (SDFG) at (0,1.5) {FG$^\rightharpoonup$};
-				\node[attn] (DFG) at (1,1.35) {FG$^\rightarrow$};
-				\node[attn] (BN) at (2,1) {BN};
-
-				\node (CBN) at (2,0) {CBN};
-				\node (DN) at (1.3, 0.6) {DN}; 
-
-				\node (sPDGH) at (0,0.5) {sPDG$_{\text{hyper}}\!\!$};
-				\node (PDGH) at (-0.8,-.5) {PDG$_{\text{hyper}}\!\!\!$};
-				\node (PDG) at (0,-.85) {PDG};
-				\node[attn, fill=black, fill opacity=0.9, text=white] (sPDG) at (0.8,-.5) {sPDG};
-
-				\node (prog) at (3, -0.2) {PProgSet};
-				
-				\node (CPS) at (1, -1.4) {CPS};	
-				\node (PlateBN) at (-2.5, -1.2) {PlateBN};
-				\node (LPS) at (-1,-1.4) {$\underline {\mathcal P}$};
-			\end{scope}
-	
-			% lossless		
-			\begin{scope}[every edge/.append style={->}]%right hook->
-				\draw (BN) edge (DFG) (DFG) edge (SDFG);
-				\draw (MRF) edge (FG) (FG) edge (SDFG);
-%				\draw[->] (DFG) -- (FG);
-				\draw (CBN) edge[bend left = 5, shorten >=7pt] (sPDGH);
-				\draw (CG) edge[bend left=10] (FG);
-				\draw (KB) edge (CG);
-				
-				\draw (sPDGH) edge (PDGH) (sPDG) edge (PDG);
-				
-				\draw (BN) edge (DN) (DN) edge (sPDGH);
-				\draw (DFG) edge (sPDGH);
-				
-				\draw (MRF) edge (CRF);% (CRF) edge (CFG);
-				\draw (BN) edge (CBN);
-				\draw (FG) edge (CRF); %crf
-				
-				\draw (CG) edge[out=-55, in=195, looseness=1.5, shorten >=7pt] (sPDGH);
-				\draw (prog) edge[bend left=5] (sPDG);
-				\draw (CPS) edge[out=180,in=-30] (PDG);
-				\draw (PlateBN) edge[bend right=5] (PDGH);
-				\draw (LPS) edge[out=0, in=-150] (PDG);
-			\end{scope}
-	
-			% PDG Equivalences
-%			\draw[->, transform canvas={yshift=2pt}] (PDGH) -- (PDG);
-%			\draw[->, transform canvas={yshift=-2pt}] (PDG) -- (PDGH);
-%			
-%			\draw[->, transform canvas={yshift=2pt}] (sPDGH) -- (sPDG);
-%			\draw[->, transform canvas={yshift=-2pt}] (sPDG) -- (sPDGH);
-			
-			\draw[double equal sign distance, shorten <=0pt, shorten >=0pt] (PDGH) -- (PDG);
-			\draw[double equal sign distance] (sPDGH) -- (sPDG);
-
-			
-			% Projections. Lose information but preserve something.
-			\begin{scope}[every edge/.append style={densely dashed, orange, ->}]
-				\draw (sPDGH) edge[bend left=10, out=10] (FG) (sPDGH) edge[bend right=10, out=-5] (FG);
-				\draw (SDFG) edge[bend right=20] (FG);
-			\end{scope}
-			% Inefficient conversions.
-			\begin{scope}[every edge/.append style={ultra thick, dotted, line cap=round, shorten >=2pt,
-					decoration={markings,mark=at position 1 with {\arrow[xshift=0pt,scale=.8]{>}}},
-					postaction={decorate}}]
-				\draw (CRF) edge (sPDGH);
-				\draw (SDFG) edge (sPDGH);
-			\end{scope}
+	\section{Relations to Other Graphical Models}\label{sec:other-graphical-models}
+	We now relate PDGs to two of the most popular graphical models: BNs and factor graphs. PDGs are strictly more general than BNs, in a way that is related, but meaningfully distinct from the factor graph approach. More concretely, we will see that we can get the standard free energy of factor graphs, and more generally, of the full exponential family that it corresponds to, by setting each $\alpha$ to zero, and removing an implicit  `local regularization' term in $\mathcal U$.
+%	; for others, consult \Cref{fig:model-transformations} and its explanation in \Cref{sec:many-relations-graphical-models}.
 		
-%			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
-%			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
-%			
-%			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert})$} (EDW);
-%			
-		\end{tikzpicture}
-		\caption{Transformations Between Graphical and Epistemic Models. Solid arrows indicate a model being a special case of another. Orange dashed transformations lose information, and the thick arrows are inefficient translations. For a full description, check \Cref{sec:many-relations-graphical-models}. }
-		\label{fig:model-transformations}
-	\end{figure*}
-
-	
-	\subsection{BAYESIAN NETWORKS} \label{sec:bn-convert}
+	\subsection{Bayesian Networks} \label{sec:bn-convert}
 		
-
+		
+	A (quantitative) Bayesian Network $(G, f)$ consists of two parts: its qualitative graphical structure $G$, indicating a set of conditional independencies, and its quantitative data $f$, an assignment of a cpt to each node.
+	The first is usually seen as more fundamental.
+	
+	One can think of the corresponding PDG as keeping only the second. Fortunately, there is an intuitive way to recover the independencies by optimizing for a natural information-theoretic quantity. This is the more desirable option if one cares about modularity, because the two components are contravariant: a subset of the graph, and hence of the cpts, results in a \emph{super-set} of the independencies, and vice versa. It is in part for this reason that a BN does not say monotonically less when edges are deleted, or more when edges are added.
+	
+	To do without the independence assumptions, one might hope that maximizing entropy would recover the conditional independencies, as maximizing entropy tends to make things as independent as possible given the constraints --- but maximizing entropy alone is not enough (\Cref{ex:counterexample}). In response, some \cite{williamson2001foundations}\cite{holmes2001independence} have added alternate constraints of a causal flavor, which are perhaps smaller and more palatable than the full set of conditional independencies.  Williamson, for instance, introduces what he calls the \emph{principle of causal irrelevance}--- that extending a BN with variables $\{C_i\}$ with children $\{D_j\}$ where no $C_i$ depends on a $D_j$, restricts to the same distribution as the original.  However, these constraints are also overkill: by merely maximizing entropy one can already get the BN distribution for rooted trees, disconnected graphs, and even graphs that have nodes with multiple incoming edges, so long as every row in each such target node's cpt has the same entropy---none of which are reflected as a weakening of assumptions in a Williamson's principle of causal irrelevance.
 	
 %	\begin{enumerate}
 %		\item (1) In contrast with a Bayesian Network, in which each node has a set of parents, each node of a PDG has possibly many sets of parents, where each set of parents corresponds to a different constraint, associated to a different table, and (2) We no longer require conditional independence of non-descendants given children
@@ -1673,20 +1458,27 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 %		}
 %	\end{center}
 %	\vspace{0.5em}
-
-	Intuitively, we would like 
-
-
-	\begin{defn}
-		The \emph{extra information}, $H^{\sfM}$, given by a distribution $p$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ is given by
-		\[ \H^{\sfM}(p) := \left(\sum_{L = (X,Y, \ell)\in \cal L} ~~\E_{x \sim p_X}  \H (\bp (x)) \right) - \H(p) \] 
-		where $p_X$ is the marginal of $p$ on the variable $X$, and $\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpt $\bp$ when $X = x$. 
+	The solution, as motivated in \Cref{sec:extra} is to minimize the $\emph{extra information}$ (\Cref{def:extra}) instead of maximizing entropy alone. Before we state this result, we first make the conversion of a BN into a PDG a bit more formal.
+	
+	\begin{defn}[Transformation of a BN to a PDG]\label{def:gamma}
+		If $\cal B$ is a Bayesian network on random variables $X_1, \ldots, X_n$, we construct its corresponding PDG as follows: we take $\N := \{X_1, \ldots, X_n \} \cup \bigcup_{i=1}^n\{ \Pa(X_i) \}$ to be the set of all of the BN's variables, plus a new variable for each collection of parents, if not already in the collection. The values $\V(X_i)$ for a random variable $X_i$ are unchanged, and $\V(\Pa(X_i))$ is defind on sets as above.		
+		We take the set of edges $\Ed := \{ (\Pa(X_i), X_i) : i = 1, \ldots, n \} \cup \{ (\Pa(X_i), Y) : Y \in \Pa(X_i)\}$ to be the set of links to a variable $X_i$ from its parents, plus also projection edges from the sets $\Pa(X_i)$ to their elements. 
+		Finally, we set $\bp[(\Pa(X_i), X_i)]$ to be the cpt associated with $X_i$ in $\cal B$, and for the projections, we set $\bp[(\Pa(X_i), Y)](Y = y \mid \Pa(X_i) = (\ldots, y', \ldots)) := \delta_{y,y'}$, that is, given a setting $(\ldots, y', \ldots)$ of a set including the variable $Y$, we give a distribution on $Y$ by  1 if $y = y'$ and 0 otherwise.
 	\end{defn}
-	% The cpts may not (in the entropy sense) 
-	We can think of the extra information as the sum of the entropies that \emph{actually} result from each table, in the context of distribution $p$, minus the total entropy of the distribution.
+	
+	We now present the theorem:
+	
 	\begin{theorem}[restate=thmbnsRpdgs]\label{thm:bns-are-pdgs}
-		If $\cal B$ is a Bayesian network, then there is a unique probability distribution $\mu^*$ consistent with the PDG $\Gamma(\cal B)$ with minimal extra information $\H^{\Gamma(\mathcal B)}(p)$. Furthermore, $\mu^* = \Pr_{\cal B}$. That is to say, $\mu^*$ is the same distribution as the unique one that satisfies all of the conditional independences of the $\cal B$.	
+		If $\cal B$ is a Bayesian network, then there is a unique probability distribution $\mu^* \in \SD{\Gamma(\mathcal B)}$ consistent with the PDG $\Gamma(\cal B)$ with minimal extra information $\H^{\Gamma(\mathcal B)}(\mu)$. Furthermore, $\mu^* = \Pr_{\cal B}$. That is to say, $\mu^*$ is the same distribution as the unique one that satisfies all of the conditional independencies of $\cal B$.	
 	\end{theorem}
+	\begin{coro}
+		Let $\cal B$ be a BN. For any $\gamma > 0$, and vector of positive numbers $\vec \beta > \vec 0$, 
+		\[ \UD[\Big]{\Gamma(\mathcal B), \vec{1}, \vec \beta}_\gamma = \Pr\nolimits_{\cal B} \]
+	\end{coro}
+	The corollary extends \Cref{thm:bns-are-pdgs} through the other two semantics, showing that the result is not sensitive to the additional parameters ($\beta, \gamma$), and works for the default value of $\alpha = 1$.
+	This is true for PDGs which are structurally just subsets of BNs, where every node has at most one incoming edge. In such a structure, every cpt can be simultaneously attained perfectly regardless of how little you are attached to them ($\beta$) and the strength of the bias towards uncertainty $(\gamma)$.
+	However, not all PDGs have the particularly nice structure, and these parameters will be important once there starts to be possible conflict between beliefs. 
+
 
 	
 	% d-separation? I don't have a lot to say but it the specialness of the ``colider'' or head-to-head nodes in determining connectedness  is related to the difference in interpretations I think.
@@ -1701,7 +1493,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 %	\end{fact}
 
 	
-	\subsection{FACTOR GRAPHS} \label{sec:factor-graphs}
+	\subsection{Factor Graphs} \label{sec:factor-graphs}
 
 	\tikzset{fgnode/.style={dpadded,inner sep=0.6em, circle},
 	factor/.style={light pad}}	
@@ -1709,7 +1501,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	% What I want to see is a serious discussion of the advantages and disadvantages of factor graphs vs. PDGs, illustrated by examples. This is critical.
 	
 	
-	We now compare PDGs with factor graphs, a general class of \emph{undirected} graphical models, often thought of as a generalization of BNs and Markov Networks.
+	We now compare PDGs with factor graphs, a general class of \emph{undirected} graphical models, often described as a generalization of BNs and Markov Networks.
 	%todo: hint at MN relation in beginning. 
 	%PDGs can simulate them (\cref{def:fg-convert}), but not without large cpts and sneaky use of inconsistency. 
 	
@@ -1719,10 +1511,10 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	A \emph{factor graph} is a collection of random variables $\mathcal X = \{X_i\}$ and a collection of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of $\mathcal X$.
 \end{quickdefn}
 	\begin{defn}
-		A \emph{factor graph} on variables $\{X_i\}$ is a set of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of the variables.
+		A \emph{factor graph} on variables $\{X_j\}$ is a set of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of the variables.
 		
 		More precisely, a factor graph $ (\{\phi_\alpha\}_{\alpha \in \cal I})$ on an indexed set of random variables $\mathbf X = \{ X_j \}_{j \in J}$, 
-		is a pair $(\mathcal I, \boldsymbol\phi)$, where $\cal I$ is a set,
+		is a pair $((\mathcal I,\iota), \boldsymbol\phi)$, where $\cal I$ is a set,
 		each element $\alpha\notation{\in \mathcal I}$ of which determines a selection $\iota(\alpha) \subseteq J$ of the variable indices, and
 		$\boldsymbol\phi$ is an indexed collection of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, 
 		where each factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R_{\geq 0}$ assigns a non-negative score to joint settings $\vec x_\alpha \notation{\in \mathcal X_\alpha}$ of every variable in $\iota(\alpha)$, all values of which we denote by $\mathcal X_\alpha\notation{ := \prod_{j \in \iota(\alpha)} \mathcal V(X_j)}$. 
@@ -1738,12 +1530,11 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 \end{fulldefn}
 
 	% $(J, \mathcal I)$
-	While the qualitative structure $(\mathbf X, \mathbf{Pa})$ of a BN on variables $\mathbf X$ is a directed graph, the qualitative structure $(\mathbf X, \mathcal I)$ of a factor graph on $\mathbf X$ is
+	While the qualitative structure $(\mathbf X, \mathbf{Pa})$ of a BN on variables $\mathbf X$ is a directed acyclic graph, the qualitative structure $(\mathbf X, \mathcal I)$ of a factor graph on $\mathbf X$ is
 %		technically an undirected \emph{multi-hyper-graph}
 %	 		\footnote{That is, a set of ``nodes'' $\N$ and a collection (possibly containing multiple copies) of ``hyper edges'' $\Ed$, each of which corresponds to a subset of $\N$}
-%	 	on $\bf X$, which is equivalent to 
-	a bipartite graph $({\mathbf X, \cal I}, \iota)$ with extra vertices (drawn as squares) corresponding to the factors. 
-	%Examples of these can be seen in \Cref{fig:fg-convert,}
+	a multi-hypergraph $(\mathbf X, (\cal I, \iota))$ where $\alpha \in \cal I$ is an undirected hyper-edge, drawn as a square, connecting the vertices in the set $\iota(\alpha)$. 
+%	a bipartite graph $((\mathbf X, \cal I), \iota)$ with extra vertices (drawn as squares) corresponding to the factors. 
 	
 %	\note{Though easier to define in terms of MRFs, and this obscures the relationship to BNs and MRFs; this  paper in particular is an attempt to claim that adding and removing nodes is not something to sweep under the rug.}
 	
@@ -1753,19 +1544,19 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	A factor graph $\Phi = (\{\phi_\alpha\}_{\alpha \in \cal I})$ on $\mathbf X$ defines a probability distribution over $\V(\mathbf X)$ by 
 	\begin{align*}
 		\Pr\nolimits_\Phi(\vec x) &:\propto \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha}) 
-		&= \frac{1}{Z_\Phi} \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha})
+		~~= \frac{1}{Z_\Phi} \prod_{\alpha \in \cal I} \phi_\alpha(\vec x_{\alpha})
 	\end{align*}
 	where $\vec{x}$ is a joint setting on all of the variables, $\vec{x}_\alpha$ is the restriction of $\vec{x}$ to only the variables selected by $\alpha$, and $Z_\Phi$ is the constant required to normalize the distribution. 
-	There are several ways of parameterizing factor graphs; we start with the simplest one.
+	There are several ways of parameterizing factor graphs; we start with the most explicit one.
 		
 	\subsubsection{Specifying Factors Directly}
 
-	How does one design a distribution with the factors? \Cref{ex:fg-exam} illustrates some features of how they work.
+	How does one design a distribution with the factors? One way is to specify each $\phi$ directly, reasoning roughly as in \Cref{ex:fg-exam}.
 	% has to be placed early or else the page is wrong. 
-	\begin{figure*}[t!]
+	\begin{figure}[t!]
 		\centering
-		\begin{subfigure}[b]{0.22\textwidth}
-		\scalebox{0.9}{
+		\begin{subfigure}[b]{0.22\linewidth}
+		\scalebox{0.8}{
 		\begin{tikzpicture}[center base]
 			\node[fgnode] (F) at (-1.5,0) {$F$};
 			\node[fgnode] (G) at (1.5,0) {$G$};
@@ -1777,9 +1568,9 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		\end{tikzpicture} }
 			\caption{}\label{subfig:fg-gf}
 		\end{subfigure}%
-		\hspace{2em}\vline\hspace{2em}%
-		\begin{subfigure}[b]{0.3\textwidth}
-		\scalebox{0.9}{
+		\hspace{1.5em}\vline\hspace{1.5em}%
+		\begin{subfigure}[b]{0.3\linewidth}
+		\scalebox{0.8}{
 			\begin{tikzpicture}[center base, scale=0.9]
 				\node[fgnode] (S) at (-0.4, 2) {$S$};
 				\node[fgnode] (C) at (3, 2) {$C$};
@@ -1795,10 +1586,10 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 			\caption{}\label{subfig:fg-planet}
 	
 		\end{subfigure}%
-		\hspace{2em}\vline\hspace{2em}%
-		\begin{subfigure}[b]{0.3\textwidth}%
+		\hspace{1.5em}\vline\hspace{1.5em}%
+		\begin{subfigure}[b]{0.3\linewidth}%
 %			\vspace{-1em}
-			\scalebox{0.9}{
+			\scalebox{0.72}{
 				\begin{tikzpicture}[center base, xscale=1.4,
 					fgnode/.append style={minimum width=3em}]
 					\node[factor] (1) at (1.65,1) {};
@@ -1822,13 +1613,13 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		\end{subfigure}%
 		\caption{Candidate factor graphs for \Cref{ex:guns-and-floomps,ex:planet,ex:smoking}}
 		\label{fig:fg-intro-examples}
-	\end{figure*}
+	\end{figure}
 	
 %	A factor graph is really just an exponential family \cite{wainwright2008graphical}, 
 
 
 	\begin{example}\label{ex:fg-exam}
-		To contrast with our other examples, which will all be local and correspond to directed models, we first present a more general factor graph designed to display some stranger features.
+		To contrast with our other examples, which mostly correspond to directed models, we first present a more general factor graph that displays some of the stranger features of factor graphs.
 		
 		Suppose Alice, Bob, Clara, and David each had a take-home exam; let $\mathbf X = \{A, B, C, D\}$ be binary random variables taking $\{1,0\}$, corresponding to whether or not each person passed the exam. 
 		
@@ -1879,34 +1670,60 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 			\item[$\phi_3$.] Alice thinks very poorly of Bob, and ultimately reverses the answers to all his questions; she's guarantee to fail if he passes, and vice versa. $\phi_3(a,b) = 1$ if $a \neq b$ and 0 if $a=b$.
 			\item[$\phi_4$.] The test is on factor graphs, which was unlikely, so $\phi_4() = 0.25$. This is true independent of anyone's scores, and doesn't bear on the distribution, so it will get normalized out.
 		\end{enumerate}
-		We don't know anything about David. \todo{numpy. Compute table.}
+		We don't know anything about David. The resulting distribution is given in \Cref{tab:fg-exam-dist}
+		
+		\begin{table}[h!]
+			\renewcommand{\arraystretch}{1.15} 
+			\centering
+			\begin{tabular}{c|cc|cc}
+				\multicolumn{1}{c}{}&\multicolumn{2}{c}{$a_0$} & \multicolumn{2}{c}{$a_1$} \\[-0.3em]
+				&$c_0$ & $c_1$ & $c_0$ & $c_1$ \\\hline
+				$b_0$&0 & 0 & .2667 & .5333 \\
+				$b_1$&.1333 & .0667 & 0 & 0
+			\end{tabular}
+			
+			\caption{The resulting distribution from \Cref{ex:fg-exam}}
+			\label{tab:fg-exam-dist}
+		\end{table}
+		
+		
 		Note some features of this example:
-		\begin{itemize}[nosep]
+		\begin{enumerate}[nosep]
 			\item $\phi_3$ totally overrides the first case of $\phi_2$: The directions of an individual factor are just suggestions that are resolved globally.
 			%The intuition of relative likelihoods, only works locally.
 			\item Although $\phi_3$ was symmetric, our story is not: Alice doesn't trust Bob, and not the other way around. There is an important distinction in the story (this changes Alice's score, and not Bob's), but this cannot be captured.
 %			To capture a conditional probability distributions, you need to impose \emph{local} normalization constraints \parencite{frey2012extending}. In this case, this means insisting that  $\sum_{a} \phi_3(a,b) = 1$
 			\item To get any marginal distribution such as $\Pr(B)$, you have to take into account every factor, including those such as $\phi_1$ that are not connected to $B$.
-			\item To emphasize that a factor is more important, we cannot simply scale it, as the scaling will be normalized out; the only control available is to changing the variance of its items. When viewed as a exponential family, \todo{links}
-		\end{itemize}
+			\item To emphasize that a factor is more important, we cannot simply scale it, as the scaling will be normalized out; the only control available is to changing the variance of its items: setting things (close to) zero is the only way to ensure that the factor matters more than others.
+		\end{enumerate}
 	\end{example}
 	Generally, factor graphs are learned from data or translated from another model, rather than specified by hand. \Cref{ex:fg-exam} should make it clear why: there is a lot of freedom in specifying the factors, even though the particular settings of which do matter, the interactions are global and it's hard to see how they will play out. Still, they are excellent descriptions of independencies.
 %	 David's score is independent of everything else in the picture, and though the other three are a clique, we can see different interactions
 
-	Any BN $\mathcal B = (\N, \mathbf{Par}, \V, p)$ can be seen naturally as a factor graph, which we denote $\Phi(\mathcal B)$. By the their global semantics, we have
+	Any BN $\mathcal B = (\N, \Pa, \V, p)$ can be seen naturally as a factor graph, which we denote $\Phi(\mathcal B)$. By the their global semantics, we have
 	\begin{align*}
 		\Pr_{\cal B}(\vec x) = \prod_{N \in \N} p_N( \vec x_N \mid \mathbf{Par}_N(\vec x)).
 	\end{align*} 
-	Factors can be read off directly: set $\cal I = \N$, connect every variable $X$, and all of its parents $\mathbf{Par}_X$, to the factor corresponding to $X$, by $\iota(X) := \{X\} \cup \mathbf{Par}_X$. Finally, define the function $\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid \mathbf{Par}_X \!\!=\!\! \vec y)$ to simply be the cpt at $X$.
+	Factors can be read off directly: set $\cal I = \N$, connect every variable $X$, and all of its parents $\Pa_X$, to the factor corresponding to $X$, by $\iota(X) := \{X\} \cup \Pa_X$. Finally, define the function $\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid \Pa_X \!\!=\!\! \vec y)$ to simply be the cpt at $X$.
 	Examples of this can be seen in the solid components of \Cref{subfig:fg-gf,subfig:fg-smoking}, which correspond to the initial to BNs in \Cref{ex:guns-and-floomps,ex:smoking}, respectively.
 	
-	This suggests an obvious way to view a PDG $\sfM$ as a factor graph $\Phi(\sfM)$: just like for a BN, ignore the directions of the edges and use the cpts as factors. 
-	%If $\sfM$ is a PDG, let $\Phi(\sfM)$ be the factor graph obtained in this way. There may not be a way to recover the PDG from the resulting factor graph.
+	This suggests an obvious way to view an arbitrary collection of cpts in the form of a PDG $\sfM$ as a factor graph $\Phi(\sfM)$: just like for a BN, ignore the directions of the edges and use the cpts as factors.
+	\begin{defn}
+		If $\sfM = \mnvars[]$ is a PDG, define 
+		$ \Phi(\sfM) := ((\Ed,\in), \mat p)$
+		to be the associated factor graph on the random variables $(\N, \V)$.
+	\end{defn}
+	\begin{remark}
+		It is easy to verify that this construction yields the same product of factors, whether one thinks of a PDG as a hypergraph directly, or translate it to a graph first as we formalize in \Cref{sec:formal+syntax}.
+	\end{remark}
 	
+	%factor graph(PDG).
+
 	 %Moreover, this process does not 
+	Claim
+	\[ \Pr_{\mathcal B}  = \Pr_{\Phi(\mathcal B)} = \Pr_{\Phi(\Gamma(\mathcal B))} = \UD{\Gamma(\Phi(\mathcal B))}_1 \]
 	\todo{discuss conditions under which $\bbr{\sfM}\MaxEnt = \Pr_{\Phi(\sfM)}$.}
 	\todo{Discuss representation of factor graph in terms of \MN.}
-
 
 	
 	\begin{example}\label{ex:planet-fg}
@@ -1915,15 +1732,18 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required.
 		
 		
-		In contrast with BNs, there is no structural barrier to adding a new node, and factor $\phi_2(w,l) \!=\! \Pr(L\!=\!l\mid W\!=\!w)$ --- though to make sense of this as a probability we have to re-compute the normalization constant. The combination of the two factors is represented graphically in \Cref{subfig:fg-planet}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 		
+		In contrast with BNs, there is no structural barrier to adding a new node, and factor $\phi_2(w,l) \!=\! \Pr(L\!=\!l\mid W\!=\!w)$ --- though to make sense of this as a probability we have to re-compute the normalization constant. The combination of the two factors is represented graphically in \Cref{subfig:fg-planet}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 
+		\todo{compute two different distributions}
 	\end{example}
 
-	\subsubsection{Canonical Parameters}
-	There is also a more standard presentation in terms of potentials, which makes the global resolution less mysterious, but also makes
+	\subsubsection{Specifying potentials: Exponential Families}
+	As we have seen, the intuitions of relative likelihood only weakly determine .
+	\todo{}standard
+	presentation in terms of potentials, which makes the global resolution less mysterious, but also makes
 	If we restrict to factors that are strictly positive, %by the Hammersley-Clifford theorem,
 	then we can set $ \varphi_\alpha := \log \phi_\alpha$, giving us:
-	\[ \Pr{\Phi} (\vec x)  = \exp \left\{ \sum_\alpha \varphi_\alpha(\vec x_\alpha)  - \ln Z_\Phi \right\} \] 
-	
+	\[ \Pr_{\Phi} (\vec x)  = \exp \left\{ \sum_\alpha \varphi_\alpha(\vec x_\alpha)  - \ln Z_\Phi \right\} \] 
+	\todo{}
 	
 %	\[ \Pr{} (\vec x)  = \frac{1}{Z(\vec\theta)} \exp \left\{ \sum_\alpha \theta_\alpha \varphi_\alpha(\vec x) \right\} \] 
 
@@ -1961,41 +1781,28 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	%		\Phi( \mathcal N, \Ed, \mathcal V, \bmu ) = (\alpha, \{ \phi_{} ) \}
 	%	\end{align*}
 	
-	\begin{prop} \label{prop:}
-		If $\mathcal B$ is a BN, then $\Phi(\mathcal B) = \Phi(\Gamma(\mathcal B))$
-	\end{prop}
+	%FALSE
+%	\begin{prop} \label{prop:}
+%		If $\mathcal B$ is a BN, then $\Phi(\mathcal B) = \Phi(\Gamma(\mathcal B))$
+%	\end{prop} 
+%todo: talk about why this is false to support the "by accident" theoery.
 	
 	
 	
 	\begin{conj}\label{thm:noninj}
 		$\bbr{M}\MaxEnt = \Pr_{\Phi(M)}$
 	\end{conj}
-	\begin{coro}\label{coro:same-dist;different-weight}
-		For every distribution $\mu \in W_{\cal V}$, there exist PDGs $M_1$ and $M_2$ that represent the same distributions, $\bbr{M_1}\MaxEnt=\bbr{M_2}\MaxEnt=\mu$, but $\bbr{M_1} \neq \bbr{M_2}$. 
-	\end{coro}
-	\begin{proof}
-		For any $\mu$ we can always add marginals which are already assumed, altering probability but different free weighted distributions; by \Cref{thm:noninj}, this depends only on the probability.
-	\end{proof}
+
 	
 	A PDG clearly encodes more information than just the distribution: this is true for both Bayesian Networks and Factor Graphs as well. In both cases, this is often cast as a flaw, as this makes them poor choices as canonical descriptions of distributions, which is why so much attention is given to I-maps in \parencite{koller2009probabilistic}. However, separation from a probability distribution has not been empirically damaging. Despite being less expressive and obscuring independence relations, BNs continue to be a more popular modeling tool. The causal picture they can provide, beyond anything in the distribution, is evidently worth a lot.
 
 
-
-
-%\begin{notfocus}
-	\subsection{DIRECTED FACTOR GRAPHS}
-	
-	One solution, by \parencite{frey2012extending} is to also enforce some local constraints, in the form of a local normalization.  While this indeed solves issues \cref{fgproblem:undirected,fgproblem:global}, directed factor graphs still leave some bits of issues \cref{fgproblem:corrob,fgproblem:reweight,fgproblem:volatile} unaddressed.
-	
-	Directed factor graphs are much more explicit with their factorizations than BNs, are as expected, even more closely related to PDGs. However, they too cannot capture scenarios such as \cref{ex:randomvars}. Consider example \ref{ex:directedfg}
-	
-	\begin{example}\label{ex:directedfg}
-		\todo{Choose a different directed factor graph example that doesn't rely on sub-stochasticity}
-	\end{example}
+	\subsubsection\
+	If we restrict the factors to have binary output $\phi_\alpha(x_\alpha$ of a constraint graph
 
 	
 	\section{Operations on PDGs}\label{sec:pdg-operations}
-	\subsection{GRAPH OPERATIONS}
+	\subsection{Graph Operations}
 	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpt $\mat r$, as a union of the original PDG with the single-cpt PDG $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
 	
 	Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two PDGs share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}. 
@@ -2056,9 +1863,9 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
         well-behaved with respect to this composition.	  
 	We therefore ask: what happens if we combine two PDGs $\sfM$
         and $\sfM'$ together? Intuitively, the set of distributions
-        $\bbr{\sfM \cup \sfM'}\SD$ consistent with the combined
+        $\SD{\sfM \cup \sfM'}$ consistent with the combined
         constraints $\sfM\cup \sfM'$ should be the intersection of the
-        distributions $\bbr{\sfM}\SD \cap \bbr{\sfM'}\SD$ consistent
+        distributions $\SD{\sfM} \cap \SD{\sfM'}$ consistent
         with each PDG separately. This is almost correct, but $\sf M$
         and $\sfM'$ may be over different set of variables, in which
         case the sets of distributions are automatically disjoint, as
@@ -2082,7 +1889,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	Now that we have the correct definition, we immediately get our desired property:
 	
 	\begin{prop}\label{prop:union-set-semantics}
-		$\bbr{M \cup M'}\SD = \bbr{M}\SD \dcap \bbr{M'}\SD$.
+		$\SD{M \cup M'} = \SD{M} \dcap \SD{M'}$.
 	\end{prop}
 
 	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
@@ -2092,32 +1899,51 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		Suppose we now have two PDGs with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
 		%
 		\begin{align*}
-			&\bbr[\Big]{{\sf A \cup B}}\SD = \bbr[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y}\SD \\
+			&\SD[\Big]{{\sf A \cup B}} = \SD[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y} \\
 				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
 		\end{align*}
 		where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpt of conditional marginals on $Y$ for each setting of $X$.
 		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
 	\end{example}
 
+
+	% we can motivate composition here!
+	\begin{example}[composition]
+		Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\sf A$, which had an unconditional distribution on $X$, is replaced with $\mathsf A' := Z \xrightarrow{p'} X$, representing a distribution conditioned on $Z$. 
+		As before,
+		\[ \SD[\Big]{{\sf A' \cup B}} = \SD[\Big]{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y} \]
+		Suppose we are interested in the conditional marginal of $Y$ given $Z$. In this case, $\SD{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y} $ contains distributions $\mu$ with varying of $\mu(y \mid z)$, and so we can no longer conclude anything uniformly about this conditional marginal for all distributions in $\SD{{\sf A' \cup B}}$. 
+		
+		Still, we can get an estimate of this quantity using the maximum entropy semantics, which conveniently turns out to be the composition of $p$ and $q$ as probabilistic functions.
+		$$ \bbr{{\sf A \cup B}}\MaxEnt(y \mid z) = \sum_{x \in \V(X)}\!\! p (x \mid z)\ q(y \mid x) = q \circ p $$
+		We claim more is true: if $\sfM$ is \emph{any} PDG that is not over-constrained, and with $\sfM \supseteq \sf A \cup B$, i.e., containing $\sf A \cup B$ as a sub-graph, then
+		$ \bbr{\sfM}\MaxEnt(y \mid z) = q \circ p$,
+		suggesting that this composition is in some sense the best guess we have for the conditional marginal. 
+		This can be verified directly, but we will instead prove the more general result in our next result (\Cref{thm:maxent-hull}.).
+		%
+	\end{example}
+
+
 	It turns out that this semantics only results in convex sets. This observation will be useful in the next section.
 	\begin{lemma}[restate=thmsetconvex] 
 		\label{prop:convex}
-		$\bbr{\sfM}\SD$ is convex, for any PDG $\sfM$.
+		$\SD{\sfM}$ is convex, for any PDG $\sfM$.
 	\end{lemma}%
 
 	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
 	\begin{vfull}
 	If the intersection of two sets is convex, then 
 	\begin{conj}\label{prop:intersect-set-semantics}
-		$$\bbr{M \cap M'}\SD = \text{ConvHull}(\bbr{M}\SD \mathop{\dot\cup} \bbr{M'}\SD).$$
+		\[ \SD{M \cap M'} = \text{ConvHull}(\SD{M} \mathop{\dot\cup} \SD{M'}).\]
 	\end{conj}
 	\end{vfull}
 	
-	\section{THERMODYNAMICS OF PDGS}\label{sec:thermo}
-	\begin{figure}[t]
+	\section{Thermodynamics of PDGs}\label{sec:thermo}
+	\begin{figure}[h]
 		\centering
 		\scalebox{0.9}{
 		\begin{tikzpicture}
+			%TODO left hand side of diagram, with worlds and mean parameters
 			\node[ellipse,draw, outer sep=4pt] (DW) at (0,0) {$\Delta W$};
 			\node[ellipse,draw, outer sep=4pt] (EW) at (0,2.4) {$\text{Energy}^W$};
 			\node[ellipse,draw, outer sep=4pt] (DDW) at (4,0) {$\Delta (\Delta W)$};
@@ -2134,7 +1960,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
 			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
 			
-			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert~})$} (EDW);
+			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$\thickD({-\Vert~})$} (EDW);
 			
 			\draw[->] (EW) to[bend left=15] node[above] {$\E^*$} (EDW);
 			\draw[->] (EDW) to node[fill=white] {$\E$} (EW);
@@ -2146,7 +1972,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		}
 		\label{fig:energies-and-dists}
 	\end{figure}
-	We now look at the weighted distribution semantics of PDGs from a thermodynamic perspective: this will provide better rationale for the parameter choices in \Cref{sec:weighted-semantics}, and draw some more explicit contrasts between PDGs and factor graphs.	Let $W$ be finite set of states, called ``micro-states'' on which the distribution is supported.
+	We now look at the weighted distribution semantics of PDGs from a thermodynamic perspective: this will provide better rationale for the parameter choices in \Cref{sec:weighted-semantics}, and draw some more explicit contrasts between PDGs and factor graphs.	Let $W$ be finite set of worlds, on which the distribution is supported, corresponding to a particle's possible ``micro-states''
 	
 	Our technical starting point will be the Boltzmann distribution \eqref{eq:boltzmann}, which asserts that the probability $P$ of being in a state exponentially decreases as its energy $U$ increases; the rate of exponential decay is related to the ``inverse temperature'', $\beta$; here $Z_U(\beta)$ is a normalization constant. Fixing $\beta$, we can of course, invert the Boltzmann distribution \eqref{eq:invbolz}, obtaining an energy from a probability. A probability distribution over $W$ is called a configuration, or macro-state.
  	\begin{align}
@@ -2172,7 +1998,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 
 
 	\begin{examplex}[continues=ex:worldsonly]\label{ex:energy-from-distrib}
-		For the PDG $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\zeta(\sfM; \nu) = \kldiv{\nu}{\mu}$. This quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
+		For the PDG $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\inconsist(\sfM; \nu) = \kldiv{\nu}{\mu}$. This quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
 	\end{examplex}
 
 
@@ -2207,109 +2033,6 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 %	\end{coro}
 
 	
-
-		
-	\section{WEIGHTED PDGs}
-	
-	We may also consider the edges as having different strengths: if we associate a different coefficient $\beta_L$ to each edge $L$, we can define
-	
-	\begin{defn}
-		A weighted PDG $(\sfM, \beta)$ is a PDG $\sfM$ together with a \emph{certainty} $\beta_L \in \mathbb R^{\geq 0} \cup \{\infty\}$ for each edge $L \in \Ed^\sfM$.
-	\end{defn}
-	
-	with corresponding inconsistency $\zeta((\sfM, \beta) ; p) :=$
-	\[
-	%\inf_{p \in \Delta(W^{\mathcal V})}~
-	\sum_{\substack{L \in \cal L\\L = (A,B, \ell)}}\!\! \mathop{\mathbb E}_{a \sim p(A)} \left[\frac{1}{\beta_L}\kldiv[\Big]{\bmu_{L}(a) }{ p(B | A \sheq a) } \right]
-	\]
-	
-	We an always take a PDG $M$ and uniformly assign every edge the same inverse temperature $\beta_0$; we'll call this $\sfM^{(\beta\colon\!=\beta_0)}$.
-	
-	As a sanity check, we can verify that with $\beta = \infty$, corresponding to very low ambient uncertainty, our weighted distribution exactly gives us a point mass on the global free energy minimum, which is the maximum entropy distribution.
-	
-	%	\begin{prop}
-	%		If $M$ is consistent, $\bbr{M^{\beta\!:\!=\infty}}^* = \bbr{M}\MaxEnt$.
-	%	\end{prop}
-	
-	
-	
-	
-	\begin{example}[continues=ex:guns-and-floomps]
-		Recall the PDG from our first example, in figure \ref{fig:gun-floomp-diagram}. Suppose that both the of the initial edges $1 \to F$ and $1\to G$ have certainty $\beta_{1 \shortto G} = \beta_{1\shortto F} = 1$, and we give our new observation a very low certainty of $\beta_T = 10^{-3}$.
-		%
-		In this case $\zeta(\sfM; \beta)$ is very close to zero, since the inconsistency can be resolved by a revision to the table $T$, which is cheap since $\beta_T$ is small. The $\zeta$-smallest perturbation effectively deletes the new observation. 
-		
-		%		In this example, the temperature parameters are like Barycentric coordinates over the triangle of edges, indicating how much each will would change in response to the inconsistency.
-	\end{example}	
-	
-% 	\begin{example}[Dempster's rule]
-% 		Suppose $p$ and $q$ are distributions over a set $W$, corresponding to the PDG $\sfM$ in \Cref{fig:parallel}. 		
-% 
-% 		\begin{figure}
-% 			\centering
-% 			\scalebox{0.8}{
-% 			\begin{tikzpicture}
-% 				\node[dpadded] (1) at (0,0) {$\sf 1$};
-% 				\node[dpadded] (W) at (3,0) {$W$};
-% 				\draw[arr] (1) to[bend left] node[fill=white]{$p$} (W);
-% 				\draw[arr] (1) to[bend right] node[fill=white]{$q$} (W);
-% 			\end{tikzpicture}
-% 			}
-% 			\caption{parallel}
-% 			\label{fig:parallel}
-% 		\end{figure}
-% 		Then $\sfM$
-% 
-% %		For those familiar with factor graphs, this example might 
-% 	\end{example}
-
-	
-	
-	\begin{vfull}
-		\section{Relations to Other Representations of Uncertainty}
-		\expandafter\expandafter\expandafter\MakeUppercase\modelnames\ are far from the first formalism to provide a weaker notion of uncertainty than probability. Belief functions, inner measures, sets of probabilities, lower probabilities, weighted sets of probabilities, and plausibility measures have all been studied extensively in the past. One feature that each of these has in common is that they are under-specified, from the perspective of wanting probabilities for everything.
-		
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (outcomes) at (0,0) {$\Omega$};
-			\node[dpadded] (1) at (-2,0) {$\mathsf 1$};
-			
-			\draw[arr] (1) -- (outcomes);		
-		\end{tikzpicture}
-		\end{center}
-		
-	
-		The natural question now becomes: to what do these under-constrained representations of belief correspond to under-constrained bits of a \modelname?
-		
-		\subsection{Conditional Probability Spaces}
-		
-		\begin{center}
-		\begin{tikzpicture}
-			\node[dpadded] (outcomes) at (0,0) {$\Omega$};
-			\node[dpadded] (1) at (-2,0) {$\mathsf 1$};
-			\node[dpadded] (U) at (2,1) {$U$};
-			\node[dpadded] (V) at (2,-1) {$V$};
-			
-			
-			\draw[arr] (1) -- (outcomes);		
-			\draw[arr, ->>] (outcomes) -- (U);
-			\draw[arr, ->>] (outcomes) -- (V);
-			
-			
-		\end{tikzpicture}
-		\end{center}
-		
-	
-		
-	
-		\subsection{Sets of Probability Measures}
-	%	As we discuss in section \ref{sec:set-of-distribution-semantics}
-	
-	
-		
-		\subsection{Lower Probabilities}
-	\end{vfull}
-
 
 	\section{USING INCONSISTENCY}	
 	\subsection{BELIEF UPDATING} \label{sec:belief-update}
@@ -2369,12 +2092,12 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	Even failure retain $\pi$ entirely may not be a concern: so long as an they continue to observe or remember, an agent endures discomfort until $\pi$ is incorporated. This setting is arguably more natural than a standard one: without spending energy, it is easy to forget or partially reject implications of the observation.	
 	Once again, with a \MN, the resolution need not happen immediately. This makes the approach more convincing for cognitively bounded agents, who might have more pressing matters than sorting through beliefs, and who might do them out of order.
 
-	\section{ALGORITHMS}\label{sec:algorithms}
-	\subsection{BELIEF PROPAGATION}
+	\section{Algorithms}\label{sec:algorithms}
+	\subsection{Belief Propagation}
 	\todo{figure out what the minimal things I can say here and still convince people  it's inconsistency reduction}
 	
 	
-	\subsection{SAMPLING}
+	\subsection{Sampling}
 	
 	One of the nice about directed graphical models is that the model itself is roughly a sampling algorithm. For instance, taking a Bayes Net $\cal B$ and generating samples according to the tables is an efficient way to sample $\Pr_{\mathcal B}$.
 
@@ -2490,9 +2213,9 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	\section{PROOFS}
 	\thmsetconvex*
 	\begin{proof}
-		Choose any two distributions $p, q \in \bbr{M}\SD$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any edge $(A,B) \in \Ed$.
+		Choose any two distributions $p, q \in \SD{M}$ consistent with $M$, any mixture coefficient $\alpha \in [0,1]$, and any edge $(A,B) \in \Ed$.
 		
-		By the definition of $\bbr{M}\SD$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
+		By the definition of $\SD{M}$, we have $p(B = b \mid A = a) = q(B = b \mid A = a) = \bmu_{A,B}(a,b)$.  
 		For brevity, we will use little letters ($a$) in place of events ($A = a$).
 		Therefore, $p(a\land b) = \bmu_{A,B}(a,b) p(a)$ and $q(ab) = \bmu_{A,B}(a,b) q(a)$. Some algebra reveals:
 		\begin{align*}
@@ -2503,11 +2226,13 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 			&=\bmu_{A,B}(a,b) \left(\frac{ \alpha  p(a) + (1-\alpha) q(a) }{\Big( \alpha p(a) + (1-\alpha) q (a)}\right)\\
 			&= \bmu_{A,B}(a,b)
 		\end{align*}
-		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\bbr{M}\SD$.
+		and so the mixture $\Big(\alpha p + (1-\alpha) q \Big)$ is also contained in $\SD{M}$.
 	\end{proof}
 	
 	
-	\thmzetaconvex*
+	\begin{lemma}%[name=\Cref{prop:convex} analog, restate=thmzetaconvex]\label{thm:zetaconvex}
+		$\inconsist$ is a convex function. % in $p$.
+	\end{lemma}
 	\begin{proof}
 		It is well-known that $D_{KL}$ is convex, in the sense that 
 		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
@@ -2518,46 +2243,146 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 		\begin{align*}
 			\E_{a\sim p(A=a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
 			\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
-			\zeta(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \zeta(M;p_1) + (1-\lambda) \zeta(M;p_2)
-		\end{align*}
-	\end{proof}
-	
-	\thmbnsRpdgs*
-	\begin{proof}
-		\def\Pa{\mathbf{Pa}}
-		\def\H{\mathrm{H}}
-		Let $\mathcal B = (G, f)$ be a quantitative Bayesian Network, where $G = (\N, \Pa)$ is a DAG on the variables $\mathbf X = \{ X_1, \ldots X_k\}$, with an acyclic parent relation $\Pa$, so that $\Pa(X)$ is the set of all parents of node $X \in \mathbf X$. As $\Pa$ is acyclic, there exists a (``topologically sorted'') total ordering $N_1, N_2, \ldots, N_k$ of all of the nodes in $\N$, such that every node's parents have smaller indices than the node itself---that is, if $N_i \in \N$, and $N_j \in \Pa(N_i)$, then $j < n$.
-		
-		If $\vec x$ is an assignment to every variable, the BN's global semantics give probability 
-		\[ \Pr\nolimits_{\mathcal B}(\vec x) = \prod_{N \in \N} p(x_{N} \mid x_{\Pa(N)})  
-			 = \prod_{i=1}^k p(x_{i} \mid x_{\Pa(N_i)}) 
-		\]
-		Where $x_N$ is the value of $\vec x$ for variable $N$, $x_{\Pa(N)}$ is the vector of values at every node that is a parent of $N$, and the second equation uses our order. 
-		
-		
-		For any distribution, we have
-		\[  \]
-		\begin{align*}
-			\H(X_1, X_2, \ldots, X_k)  &= \sum_{i =1}^k \H(X_i \mid X_1, \ldots X_{i-1}) \\
-				&\leq \sum_{i = 1}^k \H(X_i \mid \Pa(X_i)) \\
-				&= 
-		\end{align*}
-	
-		
-		Now, we can directly lower bound the entropy of this distribution:
-		
-		\begin{align*}
-			H(\Pr\nolimits_{\mathcal B}) &= \sum_{\vec x \in \V(\mathcal B)} \Pr\nolimits_{\mathcal B} (\vec x) \log \Pr\nolimits_{\mathcal B} \\
-				&= \sum_{\vec x} \left(\prod_{i=1}^k p(x_{i} \mid x_{\Pa(N_i)})\right)  \log \left(\prod_{i=1}^k p(x_{i} \mid x_{\Pa(N_i)}) \right) \\
-				&= \sum_{\vec x} \prod_{i=1}^k p(x_{i} \mid x_{\Pa(N_i)})  \log \left(\prod_{i=1}^k p(x_{i} \mid x_{\Pa(N_i)}) \right) \\
-				&= \\
-				&\geq
+			\inconsist(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \inconsist(M;p_1) + (1-\lambda) \inconsist(M;p_2)
 		\end{align*}
 	\end{proof}
 
+\subsection*{BNs are PDGs}
 
-	
+For brevity, we use the standard notation and write $p(x, y)$ instead of $p(X \!=\! x, Y \!=\! y)$, $p(x \mid y)$ instead of $p(X \!=\! x\mid Y \!=\! y)$, and so forth. So long as $x$ is bound solely as an element of $\V(X)$, the meaning is unambiguous. 
 
+
+\begin{defn}[Conditional Entropy]
+	If $p$ is a distribution over a set $\Omega$ of out comes, and $X$ and $Y$ are random variables on $\Omega$, then the \emph{conditional entropy}, $\H_p(X \mid Y)$, is defined as 
+	\[ - \sum_{x \in \V(X), y \in \V(Y)} p(x,y) \log \frac{p(x,y)}{p(x)} \]
+\end{defn}
+
+
+\begin{defn} \label{def:set-rv}
+	Sets of random variables as random variables. If $S$ is a set of random variables $X_i : \Omega \to \V(X_i)$ on the same set of outcomes $\Omega$, we consider $S$ itself to be the random variable taking values $\V(X) = \{(x_1, \ldots, x_i \ldots) \}$ for $x_i \in \V(X_i)$. Formally, we define its value on a world $\omega$ to be $S(\omega) := (X_1(\omega), \ldots, X_i(\omega), \ldots)$. 
+\end{defn}
+
+
+% \footnote{Contrary to common assertion, this is \emph{not} an abuse of notation so long as $\mathcal V(X) \cap \mathcal V(Y) = \emptyset$, which is always possible by simply tagging values with type information, by $x \mapsto (x, X)$, for instance.}   
+When we say a distribution $p$ ``satisfies the constraints given by a PDG $\sf M$'', we mean that for every edge from $X$ to $Y$ in $\sf M$, associated to the cpt $\mathbf e$, the table of conditional marginals $p(y \mid x)$ is equal to $\mathbf e$.
+
+To prove our theorem, we now present a helper lemma, which will do most of the work. For context, skip to its usage in the proof of Theorem~\ref{thm:bns-are-pdgs}.
+
+\begin{lemma} \label{lem:bnmaxent-component}
+	If $\mu$ is a probability distribution over a set of outcomes, and $X$, $Y$, $Z$ are random variables (or sets of random variables, by Definition~\ref{def:set-rv}), then 
+	\[ \tilde H_\mu(X \mid Y; Z) := \E_{y \sim \mu_{_{Y}}} \Big[ \H_\mu(X \mid Y \!=\!y) \Big]  - \H_\mu( X \mid Y, Z)\]
+	is (a) non-negative, and (b) equal to zero if and only if $X$ and $Z$ are independent given $Y$.
+\end{lemma}
+\begin{proof}
+	% We start by giving this quantity a name. Let's call it $\tilde H$.
+	\begin{align*}
+		\tilde H_\mu(X \mid Y; Z) &= \E_{y \sim \mu_{_{Y}}}  \Big[ \H_\mu(X \mid Y \!=\!y)\Big] - \H_\mu( X \mid Y, Z)  \\
+		&=  \left[\sum_{y} \mu(y) \sum_x  \mu(x\mid y) \log \frac{1}{\mu(x \mid y)} \right]+ \left[\sum_{x,y, z} \mu(x, y, z) \log \frac{\mu(x,y,z)}{\mu(y, z)}\right] \\[0.5em]
+		&= \left[\sum_{x,y} \mu(x,y) \log \frac{\mu(y)}{\mu(x,y)}
+		% \cdot \left( {\color{red} \vphantom{\sum_{z}}\smash{\overbracket{\color{black} \sum_{z}~\mu(z \mid x, y)}^{=1}}}\right)
+		\right] + {\left[\sum_{x,y, z} \mu(x, y, z) \log \frac{\mu(x,y,z)}{\mu(y, z)} \right]} \\
+		%(below is optional)
+		% &= \left[\sum_{x,y, z} \mu(x,y) \mu(z \mid x, y) \log \frac{\mu(y)}{\mu(x,y)} \right] + {\left[\sum_{x,y, z} \mu(x, y, z) \log \frac{\mu(x,y,z)}{\mu(y, z)} \right]} \\
+		&= \left[\sum_{x,y, z} \mu(x,y ,z) \log \frac{\mu(y)}{\mu(x,y)}
+		\right] + {\left[\sum_{x,y, z} \mu(x, y, z) \log \frac{\mu(x,y,z)}{\mu(y, z)} \right]} \\
+		&= \sum_{x,y, z} \mu(x,y ,z) \left[ \log \frac{\mu(y)}{\mu(x,y)} + \log \frac{\mu(x,y,z)}{\mu(y, z)} \right] \\
+		&= \sum_{x,y, z}  \mu(x,y ,z) \log \left[\frac{\mu(y)\ \mu(x,y,z)}{\mu(x,y)\ \mu(y,z)} \right]  \\
+	\end{align*}
+	% \intertext{
+	Define $q(x,z,y) := {\mu(x,y)\ \mu(y,z) }/{\mu(y)}$, wherever $\mu(y)\neq 0$, and $\mu(x,y,z) = 0$ otherwise. $q$ is in fact a distribution over the values of $X$, $Y$, and $Z$, since it 
+	is clearly non-negative, and sums to 1, as we now show:
+	\[
+	\sum_{x,y,z} q(x,y, z) = \sum_{x,y,z} \frac{\mu(x,y)\ \mu(y,z)}{\mu(y)}
+	= \sum_{x,y,z} \mu(x \mid y) \mu(y,z)
+	= \sum_{y,z} \left(\sum_x \mu(x \mid y)\right) \mu(y,z)
+	= \sum_{y,z}  \mu(y,z)
+	= 1
+	\]	
+	With this definition, we return to our computation of $\tilde H_\mu(X \mid Y; Z)$:
+	% }
+	\begin{align*}
+		\tilde H_\mu(X \mid Y; Z) &= \sum_{x,y, z}  \mu(x,y ,z) \log \left[\frac{\mu(y)\ \mu(x,y,z)}{\mu(x,y)\ \mu(y,z)} \right]  \\ % this is a duplicate line, for readabilitz
+		&= \sum_{x,y, z}  \mu(x,y ,z) \log \frac{\mu(x,y,z)}{q(x,y,z)}  \\
+		&= \kldiv{\mu_{_{XYZ}}}{q}
+	\end{align*}
+	where $\mu_{_{XYZ}}$ is the marginal of $\mu$ on the settings of $XYZ$, and $\kldiv{\mu_{_{XYZ}}}{q}$ is the relative entropy to $\mu_{_{XYZ}}$ from $q$. By Gibbs' inequality (non-negativity of relative entropy), $\tilde H$ is  (1) non-negative, and (2) equal to zero if and only if $\mu_{_{XYZ}} = q$, meaning that 
+	\[  \mu(x,y,z) =\begin{cases} \frac{\mu(x,y)\ \mu(y,z)}{\mu(y)} & \text{if }\mu(y) > 0\\ 0 & \text{otherwise} \end{cases} \qquad \implies \qquad \mu(x,y,z) \mu(y) = \mu(x,y) \mu(y, z) \] 
+	and so $\tilde H_\mu(X \mid Y; Z)$ is (1) non-negative, and (2) equal to zero if and only if $X$ and $Z$ are independent given $Y$ according to $p$.
+\end{proof}
+
+		
+	\thmbnsRpdgs*	
+	\begin{proof}%[Proof of Theorem~\ref{zhm:bns-are-pdgs}]
+		% \label{proof:bns-are-pdgs}
+		Choose an arbitrary distribution $\mu$ over the variables, subject to the sole constraint of being compatible with $\Gamma(\cal B)$ (which again means that each cpt in $\cal B$ must agree with the conditional marginals of $\mu$), and let $X_1, \ldots, X_n$ be any ordering of the variables in $\mathcal B$, such each node $X_i$ has parents $\Pa(X_i)$ with strictly smaller indices (we call such an ordering $\cal B$-topological). At least one $\cal B$-topological ordering is possible because the underlying graph of $\cal B$ is acyclic. 
+		
+		% We prepare to decompose $\H^{\Gamma(\cal B)}$ by recalling two facts. 
+		We now put the following facts in equational form for ease of use:
+		\begin{description}
+			\item[Fact 1] (Entropy Chain Rule). using the chain rule for conditional entropy, we can write 
+			\[ \H(\mu) = \sum_{i = 1}^n \H_\mu(X_i \mid X_1, \ldots X_{i-1}). \]
+			%
+			\item[Fact 2] (Only $\cal B$'s cpts have entropy).
+			In $\cal B$, there is exactly one cpt for each node. Recall from Definition~\ref{def:gamma}, that $\Gamma(\cal B)$ contains all of these cpts, and possibly also degenerate cpts $\pi_{i,j}$, which, for a setting $(y_1, y_2, \ldots, y_m)$ of the new joint variable $\Pa(X_i)$, determines a (degenerate) distribution over a particular parent $Y_j \in \Pa(X_i)$, by putting all mass on $y_j$. This cpt is equal to $\delta_{y, y_j}$, and $\H(\delta_{y, y_j}) = 0$. Although the value of $y_j$ may change between settings of $\Pa(X_i)$, in each case it is a point mass, which always has no entropy. 
+			Therefore, the projeections satisfy $H(\pi_{i,j}(y)) = 0$ for any value of $y \in \V(\Pa(X_i))$, and so the only cpts which could have non-zero expected entropy are the original ones from $\cal B$. As a result, we can write the sum of expected entropies in $\Gamma(\cal B)$ for all links can be expressed as
+			\[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bp ( y)) = \sum_{i=1}^n\E_{\vec y \sim p_{\Pa(X_i)}}  \H (\bp[(\Pa(X_i),X_i)] (\vec y))\]
+			
+			% since $\cal B$ is a BN, $\Gamma(\mathcal B)$ has $n$ cpts\footnote{exactly $n$ if no cpt is deterministic, otherwise at most $n$} whose target distributions (that is, the distribution that they give for $X_i$) could could have positive entropy, corresponding to the $n$ cpts describing the conditional probability of each variable given settings of its parents.% 
+			%  	\footnote{Projections, of course, have zero entropy, and so this is true for both the hyper-graph and standard presentations of PDGs.}
+			% Moreover, since $p$ is compatible with every cpt, $\bp[\Pa(X_i),X_i]$
+			\item[Fact 3.] (Compatibility). Since $\mu$ is compatible with every cpt, $\bp[\Pa(X_i),X_i] = \mu(X_i \mid \Pa(X_i))$. Therefore, $\H_\mu(X_i \mid \Pa(X_i) = \vec y) $, which depends on only on the probability of $X_i$ given $\Pa(X_i)$ according to $\mu$, is equal to $\H(\bp[\Pa(X_i),X_i](\vec y))$. 
+		\end{description}
+		We can now calculate $\H^{\Gamma(\cal B)}$ directly.
+		
+		% Putting these two together, we expand the \extrainfo\ of $p$ with respect to $\Gamma(\cal B)$:
+		
+		\begin{align*}
+			\H^{\Gamma(\mathcal B)}(\mu) &= \Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim \mu_Y}  \H (\bp (y)) \Bigg] - \H(\mu) \\
+			&= {\Bigg[\sum_{Y,X, \ell \in \cal L} ~~\E_{y \sim p_Y}  \H (\bp (y)) \Bigg]} - \sum_{i = 1}^n \H_\mu(X_i \mid X_1, \ldots X_{i-1}) & \text{Fact 1} \\
+			&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim \mu_{\Pa(X_i)}} \H (\bp[\Pa(X_i), X_i] (\vec y)) \Bigg] { - \sum_{i = 1}^n \H_\mu(X_i \mid X_1, \ldots X_{i-1})} & \text{Fact 2} \\
+			&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim \mu_{\Pa(X_i)}}  \H_\mu (X_i \mid \Pa(X_i) \!=\! \vec y) \Bigg] 
+			{ - \sum_{i = 1}^n \H_\mu(X_i \mid X_1, \ldots X_{i-1})} & \text{Fact 3} \\
+			&= \sum_{i = 1}^n  \Bigg[ \E_{\vec y \sim \mu_{\Pa(X_i)}} \H_\mu (X_i \mid \Pa(X_i) \!=\! \vec y)  - \H_\mu(X_i \mid X_1, \ldots X_{i-1}) \Bigg]  \\
+			\intertext{Applying the definition in Lemma~\ref{lem:bnmaxent-component},
+				with $Y := \Pa(X_i)$,~$Z := \{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)$, and $X := X_i$}
+			&= \sum_{i = 1}^n  \Bigg[ \tilde H\Big(X_i ~\Big|~\Pa(X_i);~~\{X_1, \ldots, X_{i-1}\} \setminus \Pa(X_i)\Big) \Bigg]   \numberthis\label{eqn:maxentsum}
+		\end{align*}%
+		% \footnotetext{To do this, we need to think of sets of variables as variables themselves. Doing so is straightforward (the joint variable takes valeues which are tuples, with probabilities given by the joint distribution on the set of variables), but those that are worried can verify that nothing in the proof of the lemma changes by recognizing this explicitly and writing $x,y,z$ as vectors.}%
+		Lemma~\ref{lem:bnmaxent-component} tells us that each individual term of the sum in \eqref{eqn:maxentsum} is non-negative, and equal to zero if and only if $X_i$ is independent of every previous (that is, $j < i$) non-parent variable $X_j$ for $j < i$, given its parents. 	
+		Therefore $\H^{\Gamma(\mathcal B)}(\mu)$, is non-negative, and equal to zero if and only if \emph{every} variable is independent of all previous variables given its parents, according to $\mu$. 
+		% As conditional independence is symmetric, we conclude that $\H^{\Gamma(\mathcal B)}(\mu) = 0$ iff $\mu$ causes every variable $X$ to be independent of any other $Z$ given $\Pa(X), \Pa(Y)$, which happens iff each varaible is independent of its non-descendants given its parents.
+		% Here are two alternate ways of using this to conclude that if $\H^{\Gamma(\mathcal B)}(p) = 0$, then $p = \Pr_{\cal B}$.
+		
+		\textbf{Extending these independences to all variables.}
+		% We claim that the following are equivalent:
+		% \begin{enumerate}[label=(\alph*)]
+		% 	\item $\H^{\Gamma(\cal B)} = 0$ \label{item:noextrainfo}
+		% 	\item $X_i \CI X_j \mid \Pa(X_i)$  if $j  < i$ for some $\cal B$-topological ordering of the variables.\label{item:someorder}
+		% 	\item $X_i \CI X_j \mid \Pa(X_i)$  if $j  < i$ for every $\cal B$-topological ordering of the variables.\label{item:allorders}
+		% \end{enumerate}
+		% We have just shown the equivalence of (\ref{item:noextrainfo}) and (\ref{item:someorder}). Now suppose 
+		
+		% The equivalence of \ref{item:noextrainfo} and \ref{item:someorder}
+		%   easily follows, since if there were some topological sort for which the independence didn't hold, then your proof shows that $\H^{\Gamma(\cal B)}(p) \ne 0$.
+		% 
+		We have shown that, for any topological ordering on the variables of $\cal B$, $\H^{\Gamma(\cal B)}(\mu) = 0$ if and only if, according to $\mu$,  each $X_i \CI X_j \mid \Pa(X_i)$ for $j  < i$; we will refer to this as $(\star)$.
+		
+		Now, suppose $X_j$ were a non-descendent of $X_i$, with $j > i$. Because $X_j$ is not a descendent of $X_i$, we can construct a second toplogoical sort of the variables in $\cal B$, in which $\#(X_j) < \#(X_i)$, where $\#(X)$ is the index of $X$ in the new ordering. 
+		We can obtain $\#$, for instance, by topologically sorting $X_j$ and its ancestors, and then adding the rest of the variables (which we call $\bf R$) in their original order. The concatination of these two is a valid topological sort because the ancestors of $X_j$ are topologicaly ordered, and the parents of each $X \in \bf R$ occur no later than before.
+		
+		
+		With this new order, suppose that $\H^{\Gamma(\cal B)}(\mu) = 0$. By $(\star)$, since $\#(X_j) < \#(X_i)$, we know that $X_i \CI X_j \mid \Pa(X_i)$ according to $\mu$. Since this is true for an aribitrary $i$ and $j$ without changing the distribution $\mu$, we conclude that if $\H^{\Gamma(\cal B)}(\mu) = 0$, then $\mu$ makes \emph{every} variable $X_i$ independent of its non-descendents $X_j$, given its parents.
+		Conversely, if every variable is independent of its non-descendents given its parents, then $\mu$ is the unique distribution determined by $\cal B$, and since each variable of $\cal B$ is independent of previous variables given the values of its parents,  we know by $(\star)$ that $\H^{\Gamma(\cal B)}(\mu) = 0$. Therefore, if $X_j$ is a non-descendent of $X_i$, 
+		\[ \H^{\Gamma(\cal B)}(\mu) = 0 \qquad\iff\qquad X_i \CI X_j \mid \Pa(X_i) \] 
+		% Conversely, if $\H^{\Gamma(\cal B)}(\mu) \neq 0$, then by $\star$ it cannot be the case that in some order, every variable is independent of all previous variables given its parents, and so in every order, some variable is not independent of all previous variables given its parents.  
+		
+		Because $\Pr_{\cal B}$ is the unique distribution that satisfies these independences, we conclude that $\H^{\Gamma(\cal B)}(\mu) = 0$ if and only if $\mu = \Pr_{\cal B}$. 	
+		As $\H^{\Gamma(\cal B)}(\mu)$ is non-negative, $\Pr_{\cal B}$ is its unique minimizer. 
+		
+		
+		% \textbf{v2. Uniqueness by strong convexity.}
+		% Part (a) of Lemma~\ref{lem:bnmaxent-component} tells us that $\H^{\Gamma(\mathcal B)}$ is a sum of strongly convex functions, and hence strongly convex itself. Because the set of distributions that are compatible with $\Gamma(\cal B)$ is convex (Lemma~\ref{lem:convex}), $\H^{\Gamma(\mathcal B)}$ has a unique minimum $\mu^*$ on this set. At the same time, the distribution $\Pr_{\cal B}$ described by $\cal B$ satisfies the independences from Lemma~\ref{lem:bnmaxent-component}, so we must have $\H^{\Gamma(\mathcal B)}(\Pr_{\cal B}) = 0$, and since $\H^{\Gamma(\cal B)} \geq 0$ and  has a unique minimizer, $\Pr_{\cal B} = \mu^*$.
+	\end{proof}
 
 	\section{Alternate Presentations}
 	\subsection{Random Variables}
@@ -2790,15 +2615,7 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 
 	Where $D(\nu || \mu)$ is the relative entropy from $\nu$ to $\mu$. 
 	
-	Note that \todo{}
-	\begin{enumerate}
-		\item By Gibbs inequality, the $D(\nu || \mu) \geq 0$, and equal to zero precisely when $\nu = \mu$, and so the free energy of a configuration $\nu$ in a potential that was designed for $\mu$ is minimized by $\mu$ itself.
-		
-		\item 
-	\end{enumerate}
-
-	
-	
+	Note that by Gibbs inequality, the $D(\nu || \mu) \geq 0$, and equal to zero precisely when $\nu = \mu$, and so the free energy of a configuration $\nu$ in a potential that was designed for $\mu$ is minimized by $\mu$ itself.	
 
 
 	
@@ -2817,24 +2634,131 @@ $$\bbr{\sfM}_{\alpha,\beta} = \{(p, V_{\alpha,\beta}(M;p)): p \in
 	The insight here is that these are related: one can simply internalize the structure of the uncertainty. This some precedent for this: Pearl's rule, for instance, prescribes a new random variable to describe the uncertainty.	
 	%%%
 	
-	Consider a factor graph on a set of variables $\{ X_i \}$, with only a single factor $\phi$ which connects to every variable. The free energy is $G_\phi(U)$
-	
-	\[ \frac{1}{\sum_{\vec x} \phi(\vec x)} \phi(u) \]
-	
-%	The normalization constant $Z = \sum_{\vec x} \phi(\vec x)$
-	
-	Any factor graph defines a free energy by \todo{finish}
-	
-	The Bethe approximation to the free energy is an estimate based only on the marginals on single pairs of nodes.
-		
-	With a PDG, the free energy becomes
-	\[ \sum \]
-	\todo{Write out $\zeta$, proofs of theorems}
-	
+%	Consider a factor graph on a set of variables $\{ X_i \}$, with only a single factor $\phi$ which connects to every variable. The free energy is $G_\phi(U)$
+%	
+%	\[ \frac{1}{\sum_{\vec x} \phi(\vec x)} \phi(u) \]
+%	
+%%	The normalization constant $Z = \sum_{\vec x} \phi(\vec x)$
+%	
+%	Any factor graph defines a free energy by \todo{finish}
+%	
+%	The Bethe approximation to the free energy is an estimate based only on the marginals on single pairs of nodes.
+%		
+%	With a PDG, the free energy becomes
+%	\[ \sum \]
+%	\todo{Write out $\inconsist$, proofs of theorems}
+%	
 	\section{Overview And Conversions Between Graphical Models}
 	\label{sec:many-relations-graphical-models}
 	
+	\usetikzlibrary{decorations.markings}	
+	\begin{figure*}[t]
+		\centering
+		\tikzset{attn/.style={draw, fill=magenta, fill opacity=0.3, font=\Large\bfseries, inner sep=4pt}}
+		\begin{tikzpicture}
+			\begin{scope}[every node/.style={ellipse, fill, fill opacity=0.05,text opacity=1,
+					outer sep=3pt,font=\bfseries}, xscale=2.5,yscale=1.2]
+				\node (KB) at (-3, 0.5) {KB};
+				\node (CG) at (-3, 1.5) {CG};
+				
+				\node (CRF) at (-1.2, 0.4) {CRF}; % CFG
+				%				\node (CRF) at (-2, 0) {CRF};
+				
+				\node (MRF) at (-2, 1) {MRF};
+				\node[draw, attn] (FG) at (-1,1.35) {FG};
+				\node (SDFG) at (0,1.5) {FG$^\rightharpoonup$};
+				\node[attn] (DFG) at (1,1.35) {FG$^\rightarrow$};
+				\node[attn] (BN) at (2,1) {BN};
+				
+				\node (CBN) at (2,0) {CBN};
+				\node (DN) at (1.3, 0.6) {DN}; 
+				
+				\node (sPDGH) at (0,0.5) {sPDG$_{\text{hyper}}\!\!$};
+				\node (PDGH) at (-0.8,-.5) {PDG$_{\text{hyper}}\!\!\!$};
+				\node (PDG) at (0,-.85) {PDG};
+				\node[attn, fill=black, fill opacity=0.9, text=white] (sPDG) at (0.8,-.5) {sPDG};
+				
+				\node (prog) at (3, -0.2) {PProgSet};
+				
+				\node (CPS) at (1, -1.4) {CPS};	
+				\node (PlateBN) at (-2.5, -1.2) {PlateBN};
+				\node (LPS) at (-1,-1.4) {$\underline {\mathcal P}$};
+			\end{scope}
+			
+			% lossless		
+			\begin{scope}[every edge/.append style={->}]%right hook->
+				\draw (BN) edge (DFG) (DFG) edge (SDFG);
+				\draw (MRF) edge (FG) (FG) edge (SDFG);
+				%				\draw[->] (DFG) -- (FG);
+				\draw (CBN) edge[bend left = 5, shorten >=7pt] (sPDGH);
+				\draw (CG) edge[bend left=10] (FG);
+				\draw (KB) edge (CG);
+				
+				\draw (sPDGH) edge (PDGH) (sPDG) edge (PDG);
+				
+				\draw (BN) edge (DN) (DN) edge (sPDGH);
+				\draw (DFG) edge (sPDGH);
+				
+				\draw (MRF) edge (CRF);% (CRF) edge (CFG);
+				\draw (BN) edge (CBN);
+				\draw (FG) edge (CRF); %crf
+				
+				\draw (CG) edge[out=-55, in=195, looseness=1.5, shorten >=7pt] (sPDGH);
+				\draw (prog) edge[bend left=5] (sPDG);
+				\draw (CPS) edge[out=180,in=-30] (PDG);
+				\draw (PlateBN) edge[bend right=5] (PDGH);
+				\draw (LPS) edge[out=0, in=-150] (PDG);
+			\end{scope}
+			
+			% PDG Equivalences
+			%			\draw[->, transform canvas={yshift=2pt}] (PDGH) -- (PDG);
+			%			\draw[->, transform canvas={yshift=-2pt}] (PDG) -- (PDGH);
+			%			
+			%			\draw[->, transform canvas={yshift=2pt}] (sPDGH) -- (sPDG);
+			%			\draw[->, transform canvas={yshift=-2pt}] (sPDG) -- (sPDGH);
+			
+			\draw[double equal sign distance, shorten <=0pt, shorten >=0pt] (PDGH) -- (PDG);
+			\draw[double equal sign distance] (sPDGH) -- (sPDG);
+			
+			
+			% Projections. Lose information but preserve something.
+			\begin{scope}[every edge/.append style={densely dashed, orange, ->}]
+				\draw (sPDGH) edge[bend left=10, out=10] (FG) (sPDGH) edge[bend right=10, out=-5] (FG);
+				\draw (SDFG) edge[bend right=20] (FG);
+			\end{scope}
+			% Inefficient conversions.
+			\begin{scope}[every edge/.append style={ultra thick, dotted, line cap=round, shorten >=2pt,
+					decoration={markings,mark=at position 1 with {\arrow[xshift=0pt,scale=.8]{>}}},
+					postaction={decorate}}]
+				\draw (CRF) edge (sPDGH);
+				\draw (SDFG) edge (sPDGH);
+			\end{scope}
+			
+			%			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
+			%			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
+			%			
+			%			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert})$} (EDW);
+			%			
+		\end{tikzpicture}
+		\caption{Transformations Between Graphical and Epistemic Models. Solid arrows indicate a model being a special case of another. Orange dashed transformations lose information, and the thick arrows are inefficient translations. For a full description, check \Cref{sec:many-relations-graphical-models}. }
+		\label{fig:model-transformations}
+	\end{figure*}
 	\todo{There is a ton to do here.}
+
+	
+
+	\subsection{DIRECTED FACTOR GRAPHS}
+	
+	One solution, by \parencite{frey2012extending} is to also enforce some local constraints, in the form of a local normalization.  While this indeed solves issues \cref{fgproblem:undirected,fgproblem:global}, directed factor graphs still leave some bits of issues \cref{fgproblem:corrob,fgproblem:reweight,fgproblem:volatile} unaddressed.
+	
+	Directed factor graphs are much more explicit with their factorizations than BNs, are as expected, even more closely related to PDGs. However, they too cannot capture scenarios such as \cref{ex:randomvars}. Consider example \ref{ex:directedfg}
+	
+	\begin{example}\label{ex:directedfg}
+		\todo{Choose a different directed factor graph example that doesn't rely on sub-stochasticity}
+	\end{example}
+	
+	
+
 	
 	
 	\section{Structure-editing PDG Operations}

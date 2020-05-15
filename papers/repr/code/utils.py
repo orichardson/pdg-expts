@@ -9,9 +9,20 @@
 
 # def CopiedType(wrapper):
 from inspect import signature
+from abc import ABCMeta
 
 def dictwo(d1, delkeys):
     return {k:v for k,v in d1.items() if k not in delkeys }
+    
+""" https://stackoverflow.com/a/47431859
+only flattens tuples,"""
+def flatten_tuples(l):
+    for el in l:
+        if isinstance(el, tuple):
+            for sub in flatten_tuples(el):
+                yield sub
+        else:
+            yield el
 
 class CopiedType(type):    
     def __new__(meta, classname, bases, classDict):
@@ -21,7 +32,7 @@ class CopiedType(type):
         #         # replace it with a wrapped version
         #         attribute = wrapper(attribute)
         #     newClassDict[attributeName] = attribute
-                i
+        
         found_dict = {}
         
         for b in bases:
@@ -82,20 +93,22 @@ class CopiedType(type):
         
         return type.__new__(meta, classname, bases, newClassDict)
 
+
+class CopiedABC(CopiedType, ABCMeta): pass
 ### TESTS for CopiedType
-class A(set, metaclass=CopiedType):
-    # def __init__(self): 
-    #     print("A init")
-    PARAMS = {"z", "x"}
-    
-    def a(self, aval):
-        print(aval);
-
-    def __mul__(self, other):
-        return set((a,b) for b in other for a in self)
-
-
-A.__init__
-
-a = A( {0,1}, z = 3)
-b = A({0,2})
+# class A(set, metaclass=CopiedType):
+#     # def __init__(self): 
+#     #     print("A init")
+#     PARAMS = {"z", "x"}
+# 
+#     def a(self, aval):
+#         print(aval);
+# 
+#     def __mul__(self, other):
+#         return set((a,b) for b in other for a in self)
+# 
+# 
+# A.__init__
+# 
+# a = A( {0,1}, z = 3)
+# b = A({0,2})
