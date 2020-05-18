@@ -89,11 +89,14 @@ from scipy import optimize
 M.score(mu2)
 
 
-def mscore(distvec):
-    return M.score(RawJointDist(distvec.reshape(*mu2.data.shape), mu2.varlist))
+mscore = M._build_fast_scorer()
 # optimize.minimize(M.score, mu3)
 mscore(mu2.data.reshape(-1))
+mscore(Pr.data)
+optimize.minimize(mscore, mu2.data.copy())
+res = _
 
+abs(res.x).sum()
 if False:
     # Building part by part in a context.
 

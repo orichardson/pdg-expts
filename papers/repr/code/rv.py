@@ -30,6 +30,9 @@ class Variable(set, metaclass=utils.CopiedType):
         joint.structure = [*self.structure, *other.structure, JointStructure(joint, self, other)]
         
         return joint
+    
+    # def __pow__(self, num):
+    #     joint = Variable
         
     def __ior__(self, other):
         newelts = [ o for o in other if not o in self ]
@@ -37,6 +40,11 @@ class Variable(set, metaclass=utils.CopiedType):
         self._ordered_set = self.ordered + newelts
         return self
         
+    def __repr__(self):
+        return "Var %s {%s}" % ( self.name if hasattr(self, 'name') else '', ', '.join(repr(v) for v in self) )
+        
+    def copy(self) -> 'Variable':
+        return Variable(self, **{k:v for k,v in self.__dict__.items() if k in Variable.PARAMS})
     # with a variable V taking v, can write
     # V.v
 

@@ -189,7 +189,10 @@ class PDG:
             self._set_edge(data.nfrom.name, data.nto.name, label, cpd=data)
         
         elif isinstance(data, Variable):
-            self._include_var(data)
+            vari = data.copy()
+            if label and not hasattr(vari, 'name'):
+                vari.name = label
+            self._include_var(vari)
         
         elif type(data) in (tuple,list):
             for o in data:
@@ -217,17 +220,18 @@ class PDG:
     
     def __delitem__(self, key):
         if isinstance(key, tuple):
+            k = list(key)
             if len(key) in [2,3]:
                 if isinstance(key[0], Variable):
-                    key[0] = key[0].name
+                    k[0] = key[0].name
                 if isinstance(key[1], Variable):
-                    key[1] = key[1].name
+                    k[1] = key[1].name
                     
                 if(len(key) == 2):
-                    key = (*key, next(iter(self.graph[key[0]][key[1]].keys())))
+                    k += [next(iter(self.graph[k[0]][k[1]].keys()))]
                     
-                self.graph.remove_edge(*key)
-                del self.edgedata[key]
+                self.graph.remove_edge(*k)
+                del self.edgedata[tuple(k)]
                 
         if isinstance(key, str):
             if key in self.vars:

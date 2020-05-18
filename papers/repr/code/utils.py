@@ -16,13 +16,37 @@ def dictwo(d1, delkeys):
     
 """ https://stackoverflow.com/a/47431859
 only flattens tuples,"""
-def flatten_tuples(l):
+def flatten_tuples(l, start_depth=-1, end_depth=float('inf')):
     for el in l:
         if isinstance(el, tuple):
-            for sub in flatten_tuples(el):
-                yield sub
+            rec = flatten_tuples(el, start_depth-1, end_depth-1)
+            if start_depth <= 0 and end_depth > 0:
+                for sub in rec:
+                    yield sub
+            else:
+                yield tuple(rec)
         else:
             yield el
+
+if False:
+    t = ('a','b','c')
+    list(flatten_tuples((t,(t,t)),0,1))
+    
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),-1))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,0))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,1))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,2))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,3))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,4))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),1,2))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),2,3))
+    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),3,4))
+            
+def tuple_depth(l):
+    if not isinstance(l, tuple):
+        return 0
+        
+    return 1+ max(( tuple_depth(el) for el in l if isinstance(el, tuple)), default=0)
 
 class CopiedType(type):    
     def __new__(meta, classname, bases, classDict):

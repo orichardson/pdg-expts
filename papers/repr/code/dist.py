@@ -45,22 +45,40 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
         
     
     @classmethod
-    def from_matrix(cls: Type[SubCPT], nfrom, nto, matrix, multi=True) -> SubCPT:
-        if multi:
-            cols = pd.MultiIndex.from_tuples(
-                [ (tuple(utils.flatten_tuples(v)) if type(v) is tuple
-                    else (v,) ) for v in nto.ordered ],
-                names=nto.name.split("×"))
+    def from_matrix(cls: Type[SubCPT], nfrom, nto, matrix, multi=True, flatten=False) -> SubCPT:
+        def makeidx( vari ):
+            if multi and False:
+                names=vari.name.split("×")
                 
-            rows = pd.MultiIndex.from_tuples(
-                [ (tuple(utils.flatten_tuples(v)) if type(v) is tuple 
-                    else (v,) ) for v in nfrom.ordered ],
-                names=nfrom.name.split("×"))
+                # maxdepth = utils.tuple_depth(vari.ordered[0])
+                # depth = maxdepth - len(names) if flatten else 0
                 
-        else:
-            cols,rows = nto.ordered, nfrom.ordered
+                # print("levels", depth)
+                # print([ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
+                # else (v,) ) for v in vari.ordered ])
 
-        return cls(matrix, index=rows, columns=cols, nto=nto,nfrom=nfrom)
+                # print(depth)
+                print('v', vari.ordered[0])
+                print(np.array([ str(v) for v in vari.ordered ]).shape)
+                print(names)
+                # print([ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
+                # else (v,) ) for v in [vari.ordered[0]] ])
+                # print(np.array([ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
+                # else (v,) ) for v in vari.ordered ],).shape)
+                # print(names)
+
+                return pd.MultiIndex.from_tuples(
+                    [ str(v) for v in vari.ordered ],
+                    names=names)
+                                    
+                # return pd.MultiIndex.from_tuples(
+                #     [ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
+                #     else (v,) ) for v in vari.ordered ],
+                #     names=names)
+            else:
+                return vari.ordered
+        
+        return cls(matrix, index=makeidx(nfrom), columns=makeidx(nto), nto=nto,nfrom=nfrom)
 
     @classmethod
     def from_ddict(cls: Type[SubCPT], nfrom, nto, data) -> SubCPT:
@@ -89,13 +107,14 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
         return cls.from_matrix(vfrom,vto,mat)
         
     @classmethod
-    def det(cls: Type[SubCPT], vfrom, vto, mapping) -> SubCPT:
+    def det(cls: Type[SubCPT], vfrom, vto, mapping, **kwargs) -> SubCPT:
         mat = np.zeros((len(vfrom), len(vto)))
         for i, fi in enumerate(vfrom.ordered):
             # for j, tj in enumerate(vto.ordered):
-            mat[i, vto.ordered.index(mapping[fi])] = 1
+            mapfi = mapping[fi] if isinstance(mapping,dict) else mapping(fi)
+            mat[i, vto.ordered.index(mapfi)] = 1
     
-        return cls.from_matrix(vfrom,vto,mat)
+        return cls.from_matrix(vfrom,vto,mat, **kwargs)
         # return cls.from_matrix(, index=vfrom.ordered, columns=vto.ordered, nto=vto, nfrom= vfrom)
 
 
@@ -240,6 +259,7 @@ class RawJointDist(Dist):
             elif query_mode == "dataframe":
                 vfrom = reduce(mul,conditionvars)
                 vto = reduce(mul,targetvars)
+                print(vfrom, vto)
                 mat2 = matrix.reshape(len(vto),len(vfrom)).T
 
                 return CPT.from_matrix(vfrom,vto, mat2,multi=False)
