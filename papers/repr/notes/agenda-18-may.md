@@ -1,21 +1,20 @@
+# Post-meeting.
+
+Two pieces of homework.
+1. Go through paper as it currently is, remove all intances of α, β. Determine if a factor graph can do all of this stuff.
+2. With the concession of unpacking every probabilistic function into a deterministic one and a noise variable, go through everywhere I look 
+
+
 # Main points.
-
 ## Recall Qualitative vs Quantitative BN
-
-
 ## In Expectation vs Everywhere
 α=0: Observation --- on average, this is the marginal
 α=1: Structural Necessity --- regardless of context, this is the marginal.
     > Intuitively has to do with causality because interventions do not affect.
     > Also because the 
     
-    
-
 ## Connection between Causality and MRFs
 The inference algorithms (message passing, Gibbs sampling, etc.,) all make updates assuming it happens everywhere
-
-
-
 
 
 # The email and my responses
@@ -91,7 +90,7 @@ this have any bearing on the intuition for \alpha?
 
 As I said, I don't understand this and to the extent that I do, I 
 certainly don't buy it.  I claimed that you could will have \sum \alpha  > 1
-if you had logically related variables, 
+if you had logically related variables,         
  *This is true. For Defn1, sum\alpha>1*
  *For defn2, we set\alpha<1 for logically related variables, which is less satisfying.  (in fact, if you know the causal equation for Y to depend on X, then a link Z×Y → Y will have α=0, as it's not the causal equation.) But in this case it's not in confict because the trade-off is in the definition of \alpha. They just have to sum to 1.*
 and I don't see how you can stop this.
