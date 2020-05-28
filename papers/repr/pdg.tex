@@ -309,7 +309,8 @@
 \let\Horig\H
 \let\H\relax
 \DeclareMathOperator{\H}{\mathrm{H}} % Entropy
-\DeclareMathOperator{\E}{\mathrm{E}} % Expectation
+\DeclareMathOperator*{\E}{\mathbb{E}} % Expectation
+\DeclareMathOperator*{\argmin}{arg\;min}
 \newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}} % Conditional Independence
 
 %\newcommand{\newbracketcmd}[2]{ \newcommand{\csname#1\endcsname}{{\color{##2}\ \!\Large\smash{\textbf{[}}{\normalsize\textsc{##1:} #1}\ \!\smash{\textbf{]}}}} }
@@ -327,59 +328,7 @@
 
 \newcommand\recall[1]{\expandarg\cref{#1}:\vspace{-1em} \begingroup\small\color{gray!80!black}\begin{quotation} \expandafter\csname #1\endcsname* \end{quotation}\endgroup }
 
-% Wow this works I'm brilliant
-\def\wrapwith#1[#2;#3]{
-	\expandarg\IfSubStr{#1}{,}{
-		\expandafter#2{\expandarg\StrBefore{#1}{,}}
-		\expandarg\StrBehind{#1}{,}[\tmp] 
-		\xdef\tmp{\expandafter\unexpanded\expandafter{\tmp}}
-		#3
-		\wrapwith{\tmp}[#2;{#3}]
-	}{ \expandafter#2{#1} }
-}
-\def\hwrapcells#1[#2]{\wrapwith#1[#2;&]}
-\def\vwrapcells#1[#2]{\wrapwith#1[#2;\\]}
-
-
-\newcommand{\smalltext}[1]{\text{\footnotesize#1}}
-\newsavebox{\idxmatsavebox}
-\def\makeinvisibleidxstyle#1#2{\phantom{\hbox{#1#2}}}
-\newenvironment{idxmatphant}[4][\color{gray}\smalltext]{%
-	\def\idxstyle{#1}
-	\def\colitems{#3}
-	\def\rowitems{#2}
-	\def\phantitems{#4}
-	\begin{lrbox}{\idxmatsavebox}$
-	\begin{matrix}  \begin{matrix} \hwrapcells{\colitems}[\idxstyle]  \end{matrix} \\[0.1em]
-		\left[ 
-		\begin{matrix}
-			\hwrapcells{\phantitems}[\expandafter\makeinvisibleidxstyle\idxstyle]  \\[-1em]
-	}{
-		\end{matrix}\right]		&\hspace{-0.5em}\begin{matrix*}[l] \vwrapcells{\rowitems}[\idxstyle] \end{matrix*}
-	\end{matrix}
-	$\end{lrbox}
-	\raisebox{0.75em}{\usebox\idxmatsavebox}
-%	\vspace{-0.5em}
-}
-
-\newenvironment{idxmat}[3][\color{gray}\smalltext]
-	{\begingroup\idxmatphant[#1]{#2}{#3}{#3}}
-	{\endidxmatphant\endgroup}
-
-\newenvironment{sqidxmat}[2][\color{gray}\smalltext]
-	{\begingroup\idxmat[#1]{#2}{#2}}
-	{\endidxmat\endgroup}
-	
-	
-%%%%%%%%%%%%
-% better alignment for cases
-\makeatletter
-\renewenvironment{cases}[1][l]{\matrix@check\cases\env@cases{#1}}{\endarray\right.}
-\def\env@cases#1{%
-	\let\@ifnextchar\new@ifnextchar
-	\left\lbrace\def\arraystretch{1.2}%
-	\array{@{}#1@{\quad}l@{}}}
-\makeatother
+\input{labelmatrix.tex}
 
 
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
@@ -531,11 +480,15 @@
 \newcommand{\V}{\mathcal V}
 \newcommand{\N}{\mathcal N}
 \newcommand{\Ed}{\mathcal E}
-\newcommand{\sfM}{\mathsf M}
+
+%oli8: factored out styling for PDGs (\dg) and variables (\var).
+\newcommand{\dg}[1]{\mathfrak{#1}}
+\newcommand{\var}[1]{\mathsf{#1}}
+
 \newcommand\Pa{\mathbf{Pa}}
 %joe4: I really don't like \oslash; let's use something more mnemonic
-%\newcommand\inconsist{\oslash}
-\newcommand\inconsist{\mathit{Inc}}
+%\newcommand\inco{\oslash}
+\newcommand\inco{\mathit{Inc}}
 %oli8: The injection of BNs as PDGs. I wanted something more mnemonic,
 % but discovered it made formulas much longer and uglier.
 %\newcommand\PDGof{\mathit{PDG}}
@@ -584,7 +537,6 @@
 %END_FOLD
 \begin{document}
 	\maketitle
-	
 	\begin{abstract}
 % %joe4: This is a nit
 % % We introduce a new graphical model, the Probabilistic Dependency
@@ -956,12 +908,12 @@ who use the local slang, after which you believe that with probility
 		However, it may be better not to sort this out right away. How to resolve it may be clearer if you can get confirmation that guns are indeed floomps, or read the laws more carefully.
 
 		By way of contrast, consider the corresponding \MN.
-		In a \MN, the cpds are attached to edges, rather than nodes of the graph. The cpd associated with an edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$ at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid X \!\!=\!\! x)$. In order to represent unconditional probabilities, we introduce a \emph{unit variable} $\mathsf 1$ which takes on only one possible value,	which we denote $\star$. Thus, we have the PDG depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\mathsf 1$ to $F$ and $G$ are associated with the unconditional probabilities of $F$ and $G$, and the edge from $F$ to $G$ is associated with the cpd $\mat r$.
+		In a \MN, the cpds are attached to edges, rather than nodes of the graph. The cpd associated with an edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$ at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid X \!\!=\!\! x)$. In order to represent unconditional probabilities, we introduce a \emph{unit variable} $\var 1$ which takes on only one possible value,	which we denote $\star$. Thus, we have the PDG depicted in \Cref{fig:gun-floomp-diagram}, where the edges from $\var 1$ to $F$ and $G$ are associated with the unconditional probabilities of $F$ and $G$, and the edge from $F$ to $G$ is associated with the cpd $\mat r$.
 		\begin{figure}[htb]
 			\centering
-			\scalebox{0.9}{
+			\scalebox{0.8}{
 			\begin{tikzpicture}
-				\node[dpadded] (true)  at (0,1.7) {$\mathsf 1$};
+				\node[dpadded] (true)  at (0,1.7) {$\var 1$};
 				\node[dpadded] (floomp) at (-1.5,0) {$F$};
 				\node[dpadded] (gun) at (1.5,0) {$G$};			
 				
@@ -996,7 +948,7 @@ who use the local slang, after which you believe that with probility
 		\end{figure}
 
 
-		The original state of knowledge consists of all three nodes and the two black edges from $\mathsf 1$. This is like Bayes Net that we considered above, except we no longer assume $F$ and $G$ to be independent; we merely record the constraints imposed by the given probabilities.
+		The original state of knowledge consists of all three nodes and the two black edges from $\var 1$. This is like Bayes Net that we considered above, except we no longer assume $F$ and $G$ to be independent; we merely record the constraints imposed by the given probabilities.
 	
 		The key point is that we can incorporate the new information into
 		our original representation (the graph in \Cref{fig:gun-floomp-diagram}
@@ -1166,7 +1118,7 @@ are omnipresent.
 				\begin{tikzpicture}[center base]
 				\fill[opacity=0.2, fill=orange!80!black] (2.7,1.35) rectangle (7.1, -1.35);
 				
-				\node[dpadded] (1) at (0,0) {$\mathsf 1$};
+				\node[dpadded] (1) at (0,0) {$\var 1$};
 				\node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
 				\node[dpadded, fill=black!.16, fill opacity=0.9] (S) at (3.2, 0.8) {$S$};
 				\node[dpadded, fill=black!.16, fill opacity=0.9] (SH) at (3.35, -0.8) {$\mathit{SH}$};
@@ -1354,7 +1306,7 @@ original BN.  Specifically, we read a thorough empirical study
 %		\begin{center}
 %			\scalebox{0.9}{
 %			\begin{tikzpicture}
-%			\node[dpadded] (1) at (0,0) {$\mathsf 1$};
+%			\node[dpadded] (1) at (0,0) {$\var 1$};
 %			\node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
 %			\node[dpadded, fill opaci semi-colon representty=0.16] (S) at (3.3, 0.8) {$S$};
 %			\node[dpadded, fill opacity=0.16] (SH) at (3.3, -0.8) {$\mathit{SH}$};
@@ -1938,21 +1890,21 @@ While a PDG is in some sense merely a set of constraints (the cpds), these const
 	\end{remark}
 	\end{vfull}
 
-	If $\sfM$ is a \MN, we reserve the names $\mnvars[^\sfM]$ for its components, so that we may reference one (e.g., $\Ed^\sfM$) without naming them all explicitly.
-	%; when the choice of $\sfM$ is clear we may omit the subscript.
+	If $\dg M$ is a \MN, we reserve the names $\mnvars[^\dg M]$ for its components, so that we may reference one (e.g., $\Ed^\dg M$) without naming them all explicitly.
+	%; when the choice of $\dg M$ is clear we may omit the subscript.
 %joe4: this seems more natural to me, but I won't insist.  You may
 %also want to use this notation more generally, for \V(X), for
 %example, where X is a subset of variables
-%	We write $\V(\sfM)$ for set of all possible joint settings of
+%	We write $\V(\dg M)$ for set of all possible joint settings of
 %oli5: Can you clarify: what is the 'this', that is more natural?
 %oli5: I agree with the suggestion; I've edited this.
-% 	We write $\V(\mnvars[^\sfM])$ for set of all possible joint settings of
-% 	the variables in $\sfM$. 
+% 	We write $\V(\mnvars[^\dg M])$ for set of all possible joint settings of
+% 	the variables in $\dg M$. 
 	We write $\V(S)$ for the set of possible joint settings of a set $S$
         of variables; in particular, 
-	we write $\V(\sfM)
-		= \prod_{N \in \N^\sfM} \V^\sfM(N)$
-	 for all settings of the variables $(\N^\sfM, \V^\sfM)$.
+	we write $\V(\dg M)
+		= \prod_{N \in \N^\dg M} \V^\dg M(N)$
+	 for all settings of the variables $(\N^\dg M, \V^\dg M)$.
 	
 
 	While the definition above is sufficient to represent the class of all legal \MNs,
@@ -2180,16 +2132,16 @@ We can also generalize PDGs by associating with each edge $L$
 	We therefore adopt the following definition, with both $\alpha$ and $\beta$ parameters:
 
 \begin{defn}
-	A weighted PDG $(\sfM, \vec \beta, \vec \alpha)$ is a PDG
+	A weighted PDG $(\dg M, \vec \beta, \vec \alpha)$ is a PDG
 %joe4*: I would replace ``certainty'' by ``confidence''.  If you want
 %to include what you're calling ``degree of causality'' as well, you
 %*must* give some intuition here.  It can't come out of the blue.  You
 %don't have to go into detail, but you have to say something.  I have no
 %clue what it reprsents.
 %oli5: I've added more context above, and an example below.
-        $\sfM$ together with a \emph{confidence} $\beta_L \in \mathbb
+        $\dg M$ together with a \emph{confidence} $\beta_L \in \mathbb
         R^{\geq 0}$ and \emph{degree of causality} $\alpha_L \in
-        [0,1]$ for each edge $L \in \Ed^\sfM$. 
+        [0,1]$ for each edge $L \in \Ed^\dg M$. 
 \end{defn}
 
 %joe4: please use ``edge'' consistently, rather than ``link''.
@@ -2210,8 +2162,6 @@ these parameters
 
 %\subsection{Operations on PDGs}
 %As illustrated in \Cref{ex:grok-ablate,ex:grok-union}, it is possible to syntactically combine and restrict PDGs in constant time without additional assumptions. We leave the formal details to \Cref{sec:pdg-operations}.
-
-
 
 
 	\section{Semantics}\label{sec:semantics}
@@ -2294,11 +2244,11 @@ approach that allows us to recover BNs from PDGs.
 		% As the data of PDG consists of a collection of cpds, the natural thing to do . 
 
 	\begin{defn} \label{def:set-semantics} %oli2: made words better. 
-		If $\sfM\sheq\mnvars[]$ is a \MN, let $\SD{\sfM}$ be
+		If $\dg M\sheq\mnvars[]$ is a \MN, let $\SD{\dg M}$ be
 %joe3
-%                the set of distributions over the variables in $\sfM$
+%                the set of distributions over the variables in $\dg M$
                 the \emph{s}et of \emph{d}istributions over the
-                variables in $\sfM$ 
+                variables in $\dg M$ 
 %joe3
 %                that whose conditional marginals on every edge are
                 for which the conditional probabilities are exactly 
@@ -2308,22 +2258,22 @@ approach that allows us to recover BNs from PDGs.
 %joe4*: no there aren't :-).  More importantly, please be consistent
 %about your notation for distribution.  Use p or use \mu, but don't
 %use both.  That makes life hard(er) for the reader
-%          That is, $p \in \SD\sfM$ iff, for all edges $L = (X,Y, \ell) \in 
-          That is, $p \in \SD\sfM$ iff, for all edges $L = (X,Y) \in 
+%          That is, $p \in \SD\dg M$ iff, for all edges $L = (X,Y, \ell) \in 
+          That is, $p \in \SD{\dg M}$ iff, for all edges $L = (X,Y) \in 
                 \Ed$,  $x \in \V(X)$,  and $y \in \V(Y)$, we have that
           $p(Y\sheq y \mid X\sheq x)$ is the $x,y$ entry in the cpd given by
           $\bp$.
 %oli4: I don't understand how this easier to read than my definition below, and and it's way less visually distinct and intentionally typeset. But I'll keep it.    
 		\notation{Formally,		
-		\[ \SD[\Big]\sfM := \!\left\{\mu \!\in\! \Delta \V_\none (\sfM) \middle|\!
+		\[ \SD[\Big]\dg M := \!\left\{\mu \!\in\! \Delta \V_\none (\dg M) \middle|\!
 		\begin{array}{l}
 		\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
 		~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
 		}
 	\end{defn}
 
-	As mentioned earlier, we say that the PDG $\sfM$ is \emph{consistent} if
-	$\SD\sfM \ne \emptyset$, and consistent otherwise.
+	As mentioned earlier, we say that the PDG $\dg M$ is \emph{consistent} if
+	$\SD{\dg M} \ne \emptyset$, and consistent otherwise.
 	
 %joe4*: this is the wrong place for these results, even in the full
 %paper.  I can imagine that the convexity result is useful, but I
@@ -2365,16 +2315,16 @@ approach that allows us to recover BNs from PDGs.
 		It turns out that this semantics only results in convex sets. This may provide useful intuition, and we will prove a stronger version of this statement that corresponds to our second semantics.
 		\begin{lemma}[restate=thmsetconvex] 
 			\label{prop:convex}
-			$\SD{\sfM}$ is convex, for any PDG $\sfM$.
+			$\SD{\dg M}$ is convex, for any PDG $\dg M$.
 		\end{lemma}
 	
 		Note that being inconsistent is not the same things as \emph{over-constrained}: 	
 		\begin{defn}
 
-			$\sfM = \mnvars[]$ is over-constrained if there exists
+			$\dg M = \mnvars[]$ is over-constrained if there exists
 			  \emph{some $\mat p'$} assigning cpds to the same edges as
 			  $\mat p$, such that $(\N, \Ed, \V, \mat p')$ is inconsistent
-			  \notation{(i.e., $\SD{\N^\sfM, \Ed^\sfM, \V^\sfM, \mat p}
+			  \notation{(i.e., $\SD{\N^\dg M, \Ed^\dg M, \V^\dg M, \mat p}
 				= \emptyset$)}, and under-constrained if there are
 			  multiple distributions in $(\N, \Ed, \V, \mat p')$ for
 			  \emph{every such $\mat p'$}, making this a property of the
@@ -2426,16 +2376,16 @@ approach that allows us to recover BNs from PDGs.
 % This sentence is the kind of thing I've been avoiding: due to your feedback it hints at something that is not in the paper, and feels like premature reaction against "why did you choose this one"? I also think I have better responses to that question, and actually believe that the semantics is natural---though I know I have yet to convince you of this.
 	% Of course, other approaches may  prove  useful as well.
 %oli5: I've tried to rewrite it again, incorporating your material.
-	We now generalize the previous semantics by viewing a PDG $\sfM$ as
-	as a \emph{scoring function} which, given an arbitrary distribution $\mu$ on $\V(\sfM)$,
-	returns a real-valued score indicating how well $\mu$ fits $\sfM$%
+	We now generalize the previous semantics by viewing a PDG $\dg M$ as
+	as a \emph{scoring function} which, given an arbitrary distribution $\mu$ on $\V(\dg M)$,
+	returns a real-valued score indicating how well $\mu$ fits $\dg M$%
 %oli5: optional:
 	% ; the score is thought of as a penalty, making smaller scores better
 	. Distributions with the lowest (best) scores are those that both (1)
 %oli6
 	% are closest to being consistent with $\mu$, 
-	 are closest to being consistent with $\sfM$, 
-	 and (2) for which $\sfM$ explicitly details 
+	 are closest to being consistent with $\dg M$, 
+	 and (2) for which $\dg M$ explicitly details 
 %oli6 
 %	all of the correlations.
 	the correlations in $\mu$.
@@ -2457,7 +2407,7 @@ approach that allows us to recover BNs from PDGs.
 %joe5: Sorry; what's misleading about this?  If you want, you can add
 %a parenthetical comment saying that we give a score of 0 to all
 %consistent distributions.
-	We start with the first component of the score--a continuous relaxation of \Cref{def:set-semantics}---which assigns higher numbers to distributions that require a larger perturbation in order to be consistent with $\sfM$. 
+	We start with the first component of the score--a continuous relaxation of \Cref{def:set-semantics}---which assigns higher numbers to distributions that require a larger perturbation in order to be consistent with $\dg M$. 
 %
 %joe4: this seems quite repetitive
 %oli5: There's one problematic sentence, but I think the rest is useful. I think it's mostly repetetive in the context additions you made above.
@@ -2538,7 +2488,7 @@ approach that allows us to recover BNs from PDGs.
 	% representations  of uncertainty.  The idea is to measure the distance
 	% between two distributions using relative entropy
 	% Specifically, we
-	% compare two PDGs $\sfM_1 = (\N, \Ed, \V, \mat p)$ and $\sfM_1 = (\N,
+	% compare two PDGs $\dg M_1 = (\N, \Ed, \V, \mat p)$ and $\dg M_1 = (\N,
 	% \Ed, \V, \mat p')$ 
 	% that have the same set of nodes, ranges of the nodes,
 	% and edges, but may differ in the function associating cpds with
@@ -2550,19 +2500,19 @@ approach that allows us to recover BNs from PDGs.
 	\begin{defn}\label{def:zeta-score}
 %joe3: can we use a friendlier letter than \zeta
 %oli3: what do you mean by friendlier?
-          %	  The inconsistency, $\zeta$, of a PDG $\sfM =
+          %	  The inconsistency, $\zeta$, of a PDG $\dg M =
 %oli8: slightly alter connotation: compatibility > consistency here? Acronym can be the same.
 % Is this a positive or negative conflation?
-%       	The \emph{inconsistency} of a PDG $\sfM = \mnvars[]$ with
-	       	The \emph{incompatbility} of a PDG $\sfM = \mnvars[]$ with
+%       	The \emph{inconsistency} of a PDG $\dg M = \mnvars[]$ with
+	       	The \emph{incompatbility} of a PDG $\dg M = \mnvars[]$ with
 %jeo4
-%          respect to a distribution $\mu \in \Delta[\V(\sfM)]$ is  
+%          respect to a distribution $\mu \in \Delta[\V(\dg M)]$ is  
 %oli8: "respect to"
-%          respect to a distribution $\mu \in \Delta[\V(\sfM)]$,
+%          respect to a distribution $\mu \in \Delta[\V(\dg M)]$,
 		a joint distribution $\mu$,	
-          denoted $\inconsist(\sfM;\mu)$, is  
+          denoted $\inco(\dg M;\mu)$, is  
 	  \[
-			\inconsist(\sfM ; \mu) := %\inf_{p \in \Delta(W^{\mathcal V})}~
+			\inco(\dg M ; \mu) := %\inf_{p \in \Delta(W^{\mathcal V})}~
 			\!\!\!\sum
 			%oli8: using new command
 				\alle
@@ -2582,22 +2532,22 @@ approach that allows us to recover BNs from PDGs.
 %oli2: I cut this description, as I did a lot of explaining above.
 %		taken between the two distributions over $B$: one given by the edge from $\bmu_{A,B}(a)$ and the other given by the marginal distribution of $p$ conditioned on $A = a$, over the variable $B$. 
                 %joe3: moved back from below; this is where it belongs:
-%joe3: you're inconsistent between using M and \sfM for a PDG.
+%joe3: you're inconsistent between using M and \dg M for a PDG.
 %Fortunately, it's hard to distnguish them.  But you should still be
 %consistent.  
-        The \emph{inconsistency of PDG $\sfM = \mnvars[]$},
-                denoted $\inconsist(\sfM)$, is the
+        The \emph{inconsistency of PDG $\dg M = \mnvars[]$},
+                denoted $\inco(\dg M)$, is the
 %joe4*: As I said below, you keep alternating between p and \mu.
 %Please be consistent!  More importantly, the Engish says
 %``minimum''; the math says ``max''
 %oli5: oops you're correct. I decided long ago to replace every $p$
 %with $\mu$, I hope this was one of the last ones. 
-        minimum over all distributions $\mu$ of the inconsistency of $\sfM$ with respect to $\mu$:  
+        minimum over all distributions $\mu$ of the inconsistency of $\dg M$ with respect to $\mu$:  
 %joe3: you're switching between \mu and p again
-%		\[ \inconsist(M) = \inf_{ \mu \in \Delta [W_{\cal V}]}
-%\inconsist (M; \mu) . 
-		\[ \inconsist(\sfM) = \inf_{\mu \in \Delta [\V(\sfM)]}
-                \inconsist (M; \mu) . \]
+%		\[ \inco(M) = \inf_{ \mu \in \Delta [W_{\cal V}]}
+%\inco (M; \mu) . 
+		\[ \inco(\dg M) = \inf_{\mu \in \Delta [\V(\dg M)]}
+                \inco (M; \mu) . \]
 %joe4: It would be useful to have a marker for the end of the
 %definition.  I'm not a big fan of the triangle marker that you used
 %before (and it's quite nonstandard).  
@@ -2662,11 +2612,11 @@ approach that allows us to recover BNs from PDGs.
 	% For even more intuition, imagine two agents with identical
 	For even more intuition, imagine two agents ($A$ and $B$) with identical
 %joe6: 
-%        beliefs $\sfM$, about a set of variables that are in fact
-        beliefs described by a PDG $\sfM$ about a set of variables
+%        beliefs $\dg M$, about a set of variables that are in fact
+        beliefs described by a PDG $\dg M$ about a set of variables
         that are in fact 
         distributed according to $\mu$. For each edge $L = (X,Y, \ell)
-        \in \Ed^\sfM$, values $x,y \in \V(X)$ are chosen according to
+        \in \Ed^\dg M$, values $x,y \in \V(X)$ are chosen according to
 %joe6*: Is this what you meant?  Or are you choosing (x,y)\in \V(X,Y)?
 %oli7: I intended to the second. It is als possible to do the first, and then
 % also choose $y$ according to $(\mu|X=x)_Y$ at some point (which would 
@@ -2690,7 +2640,7 @@ approach that allows us to recover BNs from PDGs.
 		had the agents beliefs lined up with the true distribution $\mu$.
 		
 		Repeating for each edge and summing the expectations of these costs, we can view
-		$\inconsist(\sfM;\mu)$ as the total number of \emph{additional} expected
+		$\inco(\dg M;\mu)$ as the total number of \emph{additional} expected
 %oli7: (end of additions). At this point I suspect the discussion here is too long for the short paper, overlaps with the previous paragraph in content, but I do want to execute it correctly so you can have the intuition and help me decide what is worth keeping.
         bits required to communicate $y$ with a code optimized for
         $\bp$ instead of the true conditional distribution
@@ -2715,7 +2665,7 @@ approach that allows us to recover BNs from PDGs.
 % which is the best as could possibly have been done, knowing $\mu$ exactly. If 
 % there is an inconsistency, then there is no way for them to make this bound
 % no matter what $\mu$ happened to be.
-	If $\sfM$ is inconsistent, then there will be a cost no matter
+	If $\dg M$ is inconsistent, then there will be a cost no matter
 %jeo6
 %        which distribution $\mu$ is used to generate the data. 
         what distribution $\mu$ is the true distribution.
@@ -2724,8 +2674,8 @@ approach that allows us to recover BNs from PDGs.
 %oli7: let me know if the arguent in the comment above is sufficient,
 % and to what to degree it is overkill. 
 % If you now understand completely, I can also get out of your way and let you draw from that explanation to make one more suitable to the current context and space limitations.
-	Conversely, if $\sfM$ is consistent, then any distribution
-        $\mu \in \SD{\sfM}$ will have $\inconsist(\sfM; \mu) = 0$.  
+	Conversely, if $\dg M$ is consistent, then any distribution
+        $\mu \in \SD{\dg M}$ will have $\inco(\dg M; \mu) = 0$.  
 }	
         %joe4*: I don't think that this example is all that helpful
 		%oli5: Ok. What about for the full version? It's a
@@ -2740,7 +2690,7 @@ approach that allows us to recover BNs from PDGs.
 				is over a single element, and the marginal on $W$ is
 %joe3: now you're using both \mu and p to represent distribution.
 %This is really bad notation.  Pick one and stick with it (and its variants)
-				the entire distribution. Therefore, $\inconsist(\sfM; \mu) =
+				the entire distribution. Therefore, $\inco(\dg M; \mu) =
 %joe3: sorry; I don't understand the intuition of the information
 %required to turn on distribution into another.  I don't understand
 %how information can affect distributions.
@@ -2750,13 +2700,13 @@ approach that allows us to recover BNs from PDGs.
 %                $p^* = \mu$. Furthermore, for $\alpha > 0$,
 				\kldiv{\mu}{\mu}$, so the inconsistency is just the information $\mu$ and $p$, so is minimized uniquely when $\mu$ is $p$,
 				\begin{vfull}
-					and corresponds exactly to the distribution of minimum Gibbs free energy for the the log liklihood defined by $\sfM$ (see \Cref{sec:thermo}).
+					and corresponds exactly to the distribution of minimum Gibbs free energy for the the log liklihood defined by $\dg M$ (see \Cref{sec:thermo}).
 				\end{vfull}
 %joe3: I couldn't parse this; to the extent that I could parse it, I
 %couldn't understand it.  I cut it.  If you want to reinstate it, you
 %have to explain it better.
 % Furthermore, if $\alpha > 0$,
-%                $\mathcal U_\alpha (\sfM; p)$ may be minimized
+%                $\mathcal U_\alpha (\dg M; p)$ may be minimized
 %                somewhere more entropic than $\mu$, intuitively
 %                corresponding to the idea that if your environment is
 %                chaotic, a more uncertain distribution may fit reality
@@ -2770,8 +2720,8 @@ approach that allows us to recover BNs from PDGs.
 %that most people are bigger fans of headings than I am).  But even so,
 %this is not a good heading.
 %	\subsubsection{Extra Information}\label{sec:extra}
-%	While $\SD{\sfM}$ and $\inconsist(\sfM;-)$ distinguish only
-$\SD{\sfM}$ and $\inconsist(\sfM;-)$ distinguish only
+%	While $\SD{\dg M}$ and $\inco(\dg M;-)$ distinguish only
+$\SD{\dg M}$ and $\inco(\dg M;-)$ distinguish only
         between distributions based on their compatibility with
 %joe4*: For what it's worth, I have a lot of problems with the use of
 %the word ``natural'' here. 
@@ -2808,13 +2758,13 @@ $\SD{\sfM}$ and $\inconsist(\sfM;-)$ distinguish only
 %fact that it's so dependent on the basis is one example of what makes
 %it not so obviously right (to me).  The fact that it's not obviously
 %right doesn't make it ad hoc though.
-%        $\sfM$, but even among distributions consistent with a set of
+%        $\dg M$, but even among distributions consistent with a set of
         %        constraints, some seem more natural than others. In
 %oli5: this is repetetive. I dislike the phrase "as we've said", the necessarily seems like unecessary hedging. 
-        % $\sfM$, as we said, we do not necessariliy want to treat all
+        % $\dg M$, as we said, we do not necessariliy want to treat all
         % the distributions  consistent with a set of 
         % constraints equally.
-		$\sfM$, but even among distributions consistent with a set of
+		$\dg M$, but even among distributions consistent with a set of
 %joe5*: Again, if you're going to say this, I'd like to know your
 %criterion.  If you're criterion is ``has lower relative entropy'',
 %then I find that a strange way of defining natural.
@@ -2889,7 +2839,7 @@ consistent with some constraints,
 %this counterfactual information.   It probably makes sense to put the
 %expanation here rather than below.
         Our approach is based on the observation that cpds contain
-counterfactual information:  
+\emph{counterfactual} information:  
 	a cpd for $Y$ given $X$ not only descrribes the distribution of $Y$
         for the actul distribution on $X$, but also for
         arbitrary distributions on $X$.
@@ -2898,20 +2848,26 @@ counterfactual information:
 %independent as possible'', which is true, but requires explanation
 %and intuition.  I'm also really unhappy about the unmotivated use of
 %causal weights (which I still don't understand at all)
-        As a result, one can maximize
-        entropy not only by selecting a distribution which makes
-        things as independent as possible, but also by simply putting
-        extra mass on rows of the cpd which already prescribe more
-        uncertainty. We therefore define the extra information below. 
+        % As a result, one can maximize
+        % entropy not only by selecting a distribution which makes
+        % things as independent as possible, but also by simply putting
+        % extra mass on rows of the cpd which already prescribe more
+        % uncertainty. We therefore define the extra information below. 
+%oli8: rewritten
+		However
+		Intuitively, two distributions that distributions that share 
 	
 	\begin{defn}\label{def:extra}
-		The \emph{extra information}, $\H^{\sfM}$, given by a distribution $\mu$ that satisfies the constraints of a PDG $\sfM = \mnvars[]$ 
+		The \emph{extra information}, $\H^{\dg M}$, given by a distribution $\mu$ 
+%oli8
+		% that satisfies the constraints of a PDG $\dg M = \mnvars[]$ 
+		with respect to a PDG $\dg M = \mnvars[]$ 
 %oli8: removed \alpha
 		% with causal weights $\vec \alpha$
 		is given by
 %joe6*: don't clutter things up with the \alpha_L here
-%		\[ \H^{\sfM}(\mu) := \sum\alle \alpha_L \Big[ \E_{x
-		\[ \H^{\sfM}(\mu) := \sum\alle \Big[ \E_{x
+%		\[ \H^{\dg M}(\mu) := \sum\alle \alpha_L \Big[ \E_{x
+		\[ \H^{\dg M}(\mu) := \sum\alle \Big[ \E_{x
                 \sim \mu_X}  \H (\bp (x))  \Big] - \H(\mu) \]  
 		where $\mu_X$ is the marginal of $\mu$ on the variable
                 $X$, and $\H(\bp(x))$ is the entropy of the
@@ -2919,7 +2875,7 @@ counterfactual information:
                 = x$.
 %joe6*
 %The extra information of an unweighted PDG is given by assuming
-%$\alpha_L = 1$ for each $L \in \Ed^\sfM$. 
+%$\alpha_L = 1$ for each $L \in \Ed^\dg M$. 
 	\end{defn}
 	% The cpds may not (in the entropy sense) 
 	The extra information is the sum of the entropies that
@@ -2929,7 +2885,7 @@ counterfactual information:
 %joe4L*: I don't understand the next sentence, but it seems like a
 %useful intuition.  Could hou explain it better.
 	Alternatively, we can think of the negation of the extra
-        information, $-\H^\sfM(\mu)$ as the uncertainty in $\mu$,
+        information, $-\H^\dg M(\mu)$ as the uncertainty in $\mu$,
         which has not already been specified by the cpds in $\sf M$.
 %joe4*: I now think that this is premature        
 %	We will show in \Cref{sec:bn-convert} the distribution with
@@ -2960,9 +2916,9 @@ counterfactual information:
 %%joe3: reorganizing what you wrote.  
 %Since we want to minimize inconsistency and maximize entropy, we
 %subtract one from the other (with relative weighting $\alpha$), to get
-%a score $\mathcal U_\alpha(\sfM; p)$:
+%a score $\mathcal U_\alpha(\dg M; p)$:
 %	\begin{equation}
-%		\mathcal U_\alpha(\sfM; p) := \inconsist(\sfM;p) - \alpha
+%		\mathcal U_\alpha(\dg M; p) := \inco(\dg M;p) - \alpha
 %                H(p). \label{eqn:full-score} 
 %	\end{equation} 
 %joe3: This may be true, but why say it?        
@@ -2972,16 +2928,16 @@ counterfactual information:
 %oli3: because mixing up the levels is problematic. Maybe it doesn't need to be said.
 %joe3: why does this mean someting is wrong?
 %oli3: rewording and uncommenting.
-% $\inconsist$ provides us with a meaningful continuous score, but as
-% a semantics for PDGs, there's still something missing: $\inconsist$ can
+% $\inco$ provides us with a meaningful continuous score, but as
+% a semantics for PDGs, there's still something missing: $\inco$ can
 % only distinguish between those distributions $p$ that are
-%         \emph{inconsistent} with $\sfM$.
+%         \emph{inconsistent} with $\dg M$.
 % 
 
 %joe4
 %        \subsubsection{Putting The Scores Together}
-	Both the extra information $\H^\sfM$ and inconsistency
-        $\inconsist$ can be thought of measures of cost of fit for a
+	Both the extra information $\H^\dg M$ and inconsistency
+        $\inco$ can be thought of measures of cost of fit for a
         distribution $\mu$, with higher numbers being worse.
 %joe4: we can think of this but I'd rather not introduce this metaphor
 %now.  I don't think it adds.
@@ -2994,12 +2950,15 @@ counterfactual information:
         controlled by a parameter $\gamma \ge 0$, giving us a score as
         follows:  
 	\begin{align*}
-		\mathcal U_{\gamma}(\sfM; \mu) &:= \inconsist(\sfM;p) + \gamma \H^\sfM(\mu)\\
-		&= \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\! \E_{x \sim \mu_{\!_X}}  \left[\gamma\alpha_L\cdot \H (\bp (x)) + \beta_L \cdot \kldiv[\Big]{ \mu(Y\!= \cdot\ | X \sheq x) }{\bp(x) }  \right]  - \gamma \H(\mu) \\
+		\mathcal U_{\gamma}(\dg M; \mu) &:= \inco(\dg M;\mu) + \gamma \H^\dg M(\mu)\\
+		&= \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\! \E_{x \sim \mu_{\!_X}}  \left[\gamma
+%oli8: no more \alpha
+% \alpha_L\cdot
+ 	\H (\bp (x)) + \beta_L \cdot \kldiv[\Big]{ \mu(Y | X \sheq x) }{\bp(x) }  \right]  - \gamma \H(\mu) \\
 			\numberthis\label{eqn:full-score}
 	\end{align*}
 	
-	For $\gamma = 0$, the only thing that matters is consistency, as $\mathcal U_0 = \inconsist$.
+	For $\gamma = 0$, the only thing that matters is consistency, as $\mathcal U_0 = \inco$.
 %joe4*: cut; this is false, unless you're allowing infinitesimals.
 %Why complicate things?
 %	For $\gamma>0$ but arbitrarily small, the preference for
@@ -3041,7 +3000,7 @@ counterfactual information:
 %changed a lot since you formed them, higher-entropy distributions are
 %better fits.	 
 %[...corrupted text deleted ...]
-%oli3: I want this case to be the default. I meant "reducing inconsistency / \inconsist"
+%oli3: I want this case to be the default. I meant "reducing inconsistency / \inco"
 %A very small $\alpha \in O(\epsilon)$ corresponds to a lexicographical
 %ordering, in which 
 %reducing consistency is most important, and ties are broken by
@@ -3067,12 +3026,12 @@ counterfactual information:
 %to a belief that the world is extremely ordered, are also
 %psychologically plausible.  
 	
-%	if $\inconsist(\sfM; p)$ is the additional information of communicating $p$ with knowledge $\sfM$, and $H(p)$ is the amount of information in $p$, then $\mathcal U_\alpha(\sfM; p)$ is the information required to communicate $p$ given a code optimized for the marginals of $\sfM$, 
+%	if $\inco(\dg M; p)$ is the additional information of communicating $p$ with knowledge $\dg M$, and $H(p)$ is the amount of information in $p$, then $\mathcal U_\alpha(\dg M; p)$ is the information required to communicate $p$ given a code optimized for the marginals of $\dg M$, 
 	
 
 
 
-$\mathcal U_\gamma(\sfM; p)$ can be thought of as the energy state of
+$\mathcal U_\gamma(\dg M; p)$ can be thought of as the energy state of
         a distribution (larger numbers indicate a worse fit) and can
         be anywhere between $-\infty$ and $\infty$.
         To get a semantics in the style of \cite{halpern2015weighted},
@@ -3085,12 +3044,12 @@ $\mathcal U_\gamma(\sfM; p)$ can be thought of as the energy state of
 %joe4*: I would like to add a sentence relating this to Halpern and
 %Leung, but I don't undrestand the scaling parameter at all.   Why
 %complicate matters. We can just take it to be 1.
-       \[ W^k_\gamma(\sfM; \mu) := \exp\Big(  -k \Big\{\mathcal U_{\gamma}(\sfM;\mu)- \inf_{\mu'} \mathcal U_\gamma(\sfM,\mu')\Big\} \Big).\]
+       \[ W^k_\gamma(\dg M; \mu) := \exp\Big(  -k \Big\{\mathcal U_{\gamma}(\dg M;\mu)- \inf_{\mu'} \mathcal U_\gamma(\dg M,\mu')\Big\} \Big).\]
 Now 
 $W^k_\gamma(\mu) \in  [0,1]$, for all $k$, and hence acts like a weight in the sense of  Halpern and Leung \citeyear{halpern2015weighted}.
-For now, we set $k=1$, but note that $k$ does not affect the ranking of distributions of scores according to $W^k_\gamma(\sfM; -)$, and so $\arg\max_{\mu'} W^k_\gamma(\sfM; \mu')  = \arg\min_{\mu'} \mathcal U_\gamma(\sfM;\mu')$ is independent of $k$. 
+For now, we set $k=1$, but note that $k$ does not affect the ranking of distributions of scores according to $W^k_\gamma(\dg M; -)$, and so $\arg\max_{\mu'} W^k_\gamma(\dg M; \mu')  = \arg\min_{\mu'} \mathcal U_\gamma(\dg M;\mu')$ is independent of $k$. 
 %
-$W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside from the normalization, but the latter is slightly more useful and will play a larger role in our analysis, and so we notatationally use this as our second semantics: $\bbr{\sfM}_\gamma(\mu) := \mathcal U_\gamma(\sfM ; \mu)$.
+$W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside from the normalization, but the latter is slightly more useful and will play a larger role in our analysis, and so we notatationally use this as our second semantics: $\bbr{\dg M}_\gamma(\mu) := \mathcal U_\gamma(\dg M ; \mu)$.
 }
 %joe4: \end{commentout}
 
@@ -3108,11 +3067,11 @@ $W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside fr
 
 	%	\Cref{prop:union-weight-semantics} shows that the weighted distributions also have the modularity properties we're interested in.
 	\begin{prop}[name=\Cref{prop:union-set-semantics} analog]\label{prop:union-weight-semantics}
-		$\bbr{\sfM \cup \sfM'} = \bbr{\sfM} + \bbr{\sfM'}$
+		$\bbr{\dg M \cup \dg M'} = \bbr{\dg M} + \bbr{\dg M'}$
 	\end{prop}
 	
 	\begin{coro}\label{cor:u-convex}
-		$\mathcal{U}_\alpha(\sfM; p)$ is convex in $p$ for $\alpha \geq 0$, and strictly so for $\alpha> 0$. Furthermore, $\bbr{-}$ is quasiconvex---that is, all of its level sets are convex sets.
+		$\mathcal{U}_\alpha(\dg M; p)$ is convex in $p$ for $\alpha \geq 0$, and strictly so for $\alpha> 0$. Furthermore, $\bbr{-}$ is quasiconvex---that is, all of its level sets are convex sets.
 	\end{coro}
 
 	As a result of \Cref{cor:u-convex}, $\bbr{M}$ is a quasiconvex function 
@@ -3134,16 +3093,24 @@ $W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside fr
     Before we provide this semantics, we would like to reiterate that
     this distribution does \emph{not} capture all of the important
     information in the PDG---in particular, as we have stressed, a PDG
-    can represent inconsistent knowledge states. That said, the
+    can represent inconsistent knowledge states. 
+%oli8
+%	That said, the
+	Still,
 %joe6
 %    semantics we give here is still important, as it will allow us to
-    semantics we give here is still important, as it allows us to
-    compare with the semantics of existing graphical models, and
+%oli8
+%    semantics we give here is still important, as 
+%	it allows us to compare with the semantics of existing graphical models
+	by giving a distribution, we enable comparisons with other graphical models,
 %joe6
 %    ultimately will prove PDGs to also be a surprisingly flexible tool
 %    for specifying a distribution. 
-    makes PDGs  a surprisingly flexible tool
-    for specifying distributions. 
+%oli8
+%	makes PDGs  a surprisingly flexible tool
+%	for specifying distributions. 
+	and in the process reveal PDGs to be a surprisingly flexible tool for specifying distributions as well.
+	
     
 	The idea is to simply select the distribution with the 
 %oli7: in response to the edit below: we maximize the weight, minimize the score. Options:
@@ -3156,26 +3123,27 @@ $W_\gamma$ and $\mathcal U_\gamma$ carry roughly equivalent information aside fr
 %joe6
 %    weight, which is unique, due to the following result: 
     score.  There is a unique such distribution because, as we now
-    show, the score is strongly convex.  It then follows from standard
-    results \todo{GIVE A REFERENCE HERE} that there is a unique minimum
-    score.  
+    show, the score is strongly convex.  
+	% It then follows from standard
+    % results \todo{GIVE A REFERENCE HERE} that there is a unique minimum
+    % score.  
 
     \begin{prop}\label{prop:u-convex}
 %joe6
-%      $\mathcal U_\gamma(\sfM;\mu)$ is strongly convex in $\mu$, for 
+%      $\mathcal U_\gamma(\dg M;\mu)$ is strongly convex in $\mu$, for 
       %      any $\gamma > 0$.
 %oli8: oops forgot paramter on strong convexity. 
-If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex in $\mu$.
+If $\gamma > 0$, then $\mathcal U_\gamma(\dg M;\mu)$ is $\gamma$-strongly convex in $\mu$.
 
     \end{prop}
 	%oli7: I can do a better job here; I was feeling rushed when I wrote it.
     \begin{proof}
-	%joe6*: Is it obvious/well known that \inconsist is
+	%joe6*: Is it obvious/well known that \inco is
 	%convex?  Perhaps because it's a convex combination of
 	%D's, each of which is convex.  If this is a standard result
 	%(which I suspect it is), you should give a citation.  Also, is
 	%it not strongly convex?
-	%oli7: The proof that $\inconsist$ is convex, was already in the appendix, but I forgot
+	%oli7: The proof that $\inco$ is convex, was already in the appendix, but I forgot
 	% to reference it. You're correct that I'm using the fact that
 	% a convex combination of convex functions is convex to deal with expectations,
 	% and that a positively weighted linear combination (a conic combination) of 
@@ -3185,24 +3153,30 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 	% not strictly decrease p(y | x), for instance. 
 	%oli7: minor updates for clarity
 	%oli8: inserted reference, added parameters, effectively rewrote the proof.
-		$\inconsist(\sfM; \mu)$ is convex in $\mu$  (\Cref{thm:inc-convex}), and $\gamma\sum\alle \E_{x\sim \mu_X} \H(\bp(x))$ is linear in $\mu$. 
+		$\inco(\dg M; \mu)$ is convex in $\mu$  (\Cref{thm:inc-convex}), and $\gamma\sum\alle \E_{x\sim \mu_X} \H(\bp(x))$ is linear in $\mu$. 
 		Negative entropy is $1$-strongly convex
 		(\Cref{prop:neg-ent-convex}), so $- \gamma \H(\mu)$ is $\gamma$-strongly convex.
 		The sum of a $\gamma$-strongly convex, linear, and convex function must be $\gamma$-strongly convex.
 %		, and strongly so when the coefficient on $-\H$ ($\gamma$) is positive. 
 		%(see \cite{Rockafellar1970ConvexA})
 	\end{proof}
-
-	We can now define the unique distribution semantics:
-    \begin{defn}
-    	For $\gamma > 0$,
-    	$\bbr{\sfM}^*_\gamma := \arg\min_{\mu \in \Delta\V(\sfM)} \mathcal U_\gamma(\sfM;\mu)$
-    \end{defn}
+%oli8: change text
+	% We can now define the unique distribution semantics:
+	We use this to get our desired semantics
+%oli8: reformat with equation, added the limit.
+	\begin{equation}
+		 \bbr{\dg M}^* := \lim_{\gamma\to 0^+}\argmin_{\mu \in \Delta\V(\dg M)} \mathcal U_\gamma(\dg M;\mu)
+			\label{eq:uniqdist}
+	\end{equation}
+    % \begin{defn}
+    % 	For $\gamma > 0$,
+    % 	$\bbr{\dg M}^*_\gamma := \arg\min_{\mu \in \Delta\V(\dg M)} \mathcal U_\gamma(\dg M;\mu)$
+    % \end{defn}
 
 %joe6
-%    $\UD\sfM$ will be used extensively to relate PDGs with other
+%    $\UD\dg M$ will be used extensively to relate PDGs with other
 %    graphical models in \Cref{sec:other-graphical-models}.
-    $\UD\sfM_\gamma$ allows us to relate PDGs to other
+    $\UD{\dg M}_\gamma$ allows us to relate PDGs to other
     graphical models, as we show in \Cref{sec:other-graphical-models}.
 %joe4: you can explain it later, when you discuss it
 %    and can be thought of as the result of a free energy minimization
@@ -3213,9 +3187,9 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 
 \begin{vleftovers}
 
-      In contrast with the other two semantics, $\UD{\sfM_1 \cup
-          \sfM_2}$ cannot be calculated from $\UD{\sfM_1}$ and
-        $\UD{\sfM_2}$. However, it is effectively the only semantics
+      In contrast with the other two semantics, $\UD{\dg M_1 \cup
+          \dg M_2}$ cannot be calculated from $\UD{\dg M_1}$ and
+        $\UD{\dg M_2}$. However, it is effectively the only semantics
         offered by alternative graphical models, which contributes to
         their relative lack of modularity. We return to this after a
         more careful treatment of unions in
@@ -3229,8 +3203,8 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 	\subsection{Recovering Other Semantics As Special Cases of Distribution Scores}
 
 	We have just seen that $\gamma >0$, $\mathcal U_\gamma$ has a unique minimum,
-        $\UD{\sfM}$. By increasing $k$ in $W^k_\gamma$, the weights of any distribution that is not optimal go to zero. Therefore, taking a limit as $k \to \infty$, we see that $W^k_\gamma$ converges to the weighted
-        distribution that puts weight 1 on $\UD{\sfM}$ and weight 0 on all
+        $\UD{\dg M}$. By increasing $k$ in $W^k_\gamma$, the weights of any distribution that is not optimal go to zero. Therefore, taking a limit as $k \to \infty$, we see that $W^k_\gamma$ converges to the weighted
+        distribution that puts weight 1 on $\UD{\dg M}$ and weight 0 on all
                         other distributions, as shown below:
 %joe3*: I have no idea why this should put weight 1 on a single
 %distribution.  I'm lost!  I think we should just give a third
@@ -3243,11 +3217,11 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 % convex spaces by taking the associated temperature of the Boltzmann distribution to
 % zero.  We're just doing this one level up, for the weighted distributions...
 %oli4: I've made a bunch of changes so it's more readable. It still probably won't make it into the short paper, but I think it is useful intuition and verification for the naturality of the semantics.
-	\[ \lim_{k \to \infty} W_\gamma^k(\sfM, \mu)
+	\[ \lim_{k \to \infty} W_\gamma^k(\dg M, \mu)
         = \lim_{k \to \infty} \exp\Big\{-k \Big(\mathcal
-        U_\gamma(\sfM;\mu) - \mathcal
-        U_\gamma(\sfM;\UD\sfM)\Big) \Big\} = \begin{cases}
-        	1 & \UD\sfM = \mu \\
+        U_\gamma(\dg M;\mu) - \mathcal
+        U_\gamma(\dg M;\UD\dg M)\Big) \Big\} = \begin{cases}
+        	1 & \UD\dg M = \mu \\
         	0 & \text{otherwise}
         \end{cases} \] 
 \begin{vleftovers}
@@ -3255,22 +3229,22 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
     	distribution: a distribution over distributions, which can be
     	naturally collapsed to a single distribution by taking an expectation. 
    		\begin{align*}
-    		\Big(\bbr{\sfM}_{\alpha_0}^*\Big)(w) &:= \lim_{k \to \infty} 
-    		\E_{\mu \sim W_{\gamma}^k(\sfM,-)} [\mu(w)] \numberthis\label{eqn:higher-expectation} \\
-    		&= \lim_{k \to \infty}  \frac{1}{Z} \int_{\Delta\V(\sfM)} W_\gamma^k(\sfM;\mu) \mu(w) d\mu
+    		\Big(\bbr{\dg M}_{\alpha_0}^*\Big)(w) &:= \lim_{k \to \infty} 
+    		\E_{\mu \sim W_{\gamma}^k(\dg M,-)} [\mu(w)] \numberthis\label{eqn:higher-expectation} \\
+    		&= \lim_{k \to \infty}  \frac{1}{Z} \int_{\Delta\V(\dg M)} W_\gamma^k(\dg M;\mu) \mu(w) d\mu
     	\end{align*}
-    	defined where the sum is finite; $Z$ is a normalization constant across all worlds $w \in \V(\sfM)$. 
+    	defined where the sum is finite; $Z$ is a normalization constant across all worlds $w \in \V(\dg M)$. 
 \end{vleftovers}
 
-	For $\gamma = 0$, and $\sfM$ is consistent ($i.e., \inconsist(\sfM) = 0$) we recover the set-of-distribution semantics with the same trick:
+	For $\gamma = 0$, and $\dg M$ is consistent ($i.e., \inco(\dg M) = 0$) we recover the set-of-distribution semantics with the same trick:
 %oli4:
 %	\note{thereby providing an alternate notational justification for $^*$ as a limit as $k\to \infty$}:
 	\begin{align*}
-		 \lim_{k \to \infty} W_0^k(\sfM, \mu)
-		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\mathcal U_0(\sfM;\mu) - \inf_{\mu'} \mathcal U_0(\sfM; \mu')\Big) \Big\} \\
-		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\inconsist(\sfM;\mu) - \inconsist(\sfM)\Big) \Big\} 
+		 \lim_{k \to \infty} W_0^k(\dg M, \mu)
+		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\mathcal U_0(\dg M;\mu) - \inf_{\mu'} \mathcal U_0(\dg M; \mu')\Big) \Big\} \\
+		&= \lim_{k \to \infty} \exp\Big\{-k \Big(\inco(\dg M;\mu) - \inco(\dg M)\Big) \Big\} 
 		= \begin{cases}
-			1 & \mu \in \SD\sfM \\
+			1 & \mu \in \SD\dg M \\
 			0 & \text{otherwise}
 		\end{cases} 
 	\end{align*}
@@ -3298,7 +3272,7 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 	\[ \bbr{M}_\lambda = \left\{
 			\begin{aligned}
 				 \text{paths } p = N_0 \xrightarrow{p^1} N_1 \xrightarrow{p^2}\cdots\xrightarrow{p^n}N_n \\
-				 \text{such that } (N_{i-1}, N_i, p^i) \in \Ed^\sfM
+				 \text{such that } (N_{i-1}, N_i, p^i) \in \Ed^\dg M
 			\end{aligned}
 		\right\} \]
 	
@@ -3321,10 +3295,10 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 	% It also has not escaped us that PDGs have a particularly nice description in categorical terms, which we do not pursue further here.
 	
 	Furthermore, thinking about the mental state of an agent as a collection of programs you could run from any concept gives our first natural interpretation of a sub-distribution (more in \Cref{sec:full-model}): probability mass assigned to $\none$ by a edge $p$ has not terminated yet (if at all). 
-	Even given infinite time, some paths in $\bbr{\sfM}_\lambda$ may be infinite.
+	Even given infinite time, some paths in $\bbr{\dg M}_\lambda$ may be infinite.
 	
 	\begin{defn}
-		A PDG $\sfM$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\sfM}_\lambda$ is compatible, in that 
+		A PDG $\dg M$ is \emph{strongly consistent} if every collection of paths $P \subseteq \bbr{\dg M}_\lambda$ is compatible, in that 
 		$$\bigcap_{p \in P}\ \SD*{\vphantom{\Big|}p^0\circ \cdots\circ p^k} \neq \varnothing$$
 	\end{defn}
 
@@ -3353,8 +3327,8 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 
 
 %\begin{notfocus}
-	\section{Relations to Other Graphical
-          Models}\label{sec:other-graphical-models}
+
+	\section{Relations to Other Graphical  Models}\label{sec:other-graphical-models}
 %joe6*: I still think that this is the wrong story.        
 	We now relate PDGs to two of the most popular graphical
         models: BNs and factor graphs. PDGs are strictly more general
@@ -3369,7 +3343,14 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 	\subsection{Bayesian Networks} \label{sec:bn-convert}
 		
 		
-	A (quantitative) Bayesian Network $(G, f)$ consists of two parts: its qualitative graphical structure $G$, indicating a set of conditional independencies, and its quantitative data $f$, an assignment of a cpd to each node.
+	A (quantitative) Bayesian Network $(G, f)$ consists of two parts: its qualitative graphical structure $G$, indicating a set of
+%oli8: inserted 
+	variables and
+	conditional independencies, and its quantitative data $f$, an assignment of 
+%oli8: expanded for clarity, removed paragraph break
+	% a cpd to each node.
+	a cpd $p_i(X_i \mid \Pa(X_i))$ to each variable $X_i$.
+%
 %joe4: this may be true, but why bother saying it?
 %oli5: I guess I really have a terrible model of what you view as
 %worth saying. This might not be the most efficient use of space, but
@@ -3387,10 +3368,10 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 %BNs, but about PDGs.  Even in the full paper, it doesn't belong.
         %oli5: I also think the narrative and reasons for dropping the independences are important for discussing BNs, which have historically had that focus.
 % I've therefore reinstated this paragraph, and promoted the rest of the comment to the full version.
-	The first is usually seen as more fundamental;
-%oli5: removed paragraph break.
-%
-	one can think of the corresponding PDG as keeping only the second. 
+	The first is usually seen as more fundamental%
+%oli8: Updated to reflect new understanding of \alpha, though could use further editing
+%	; one can think of the corresponding PDG as keeping only the second. 
+	, but equation \eqref{eq:uniqdist}, specifically the limit as $\gamma \to 0$, can be thought of as elevating the quantitative data above the independence assumptions. 
 %oli5: I can do without this sentence though:
 %	Fortunately, there is an intuitive way to recover the
 %independencies by optimizing for a natural information-theoretic
@@ -3404,7 +3385,7 @@ If $\gamma > 0$, then $\mathcal U_\gamma(\sfM;\mu)$ is $\gamma$-strongly convex 
 %joe6: No!  This is a distraction.  We are not writing a paper on BNs,
 %or what is the right way to interpret things to get modularity. Focus
 %on the story!
-        \begin{vfull}
+\begin{vfull}
 	This is the more desirable option if one cares about
 	modularity, because the two components are contravariant: a subset of
 	the graph, and hence of the cpds, results in a \emph{super-set} of
@@ -3474,12 +3455,12 @@ The key insight
 	\begin{defn}[Transformation of a BN to a PDG]\label{def:bn2PDG}
 		If $\cal B$ is a Bayesian network on random variables
     $X_1, \ldots, X_n$, we construct the corresponding PDG
-%oli5: I am not attached to the $\PDGof$ notation, but $\sf M$, $\sf
+%oli5: I am not attached to the $\Gamma$ notation, but $\sf M$, $\sf
 %N$, ...  
 % are symbols I've reseved in my head for specific PDGs. In a context where
-%\sfM is already defined, I want $\Gama(\sfN)$ to have nothing to do with $\sfM$.
+%\dg M is already defined, I want $\Gamma(\sfN)$ to have nothing to do with $\dg M$.
 % Therefore I have reverted the symbols, though I'm also happy to keep looking for suitable notation.
-	%$\sfM_{\cal B}$ 
+	%$\dg M_{\cal B}$ 
 	$\PDGof(\cal B)$
 %oli5: fixes a bug present in both formulations, described below:
 				as follows: we take $\N := \{X_1, \ldots, X_n \} \cup
@@ -3532,7 +3513,7 @@ of $X_i$%
 %joe5: I disagree; see above.
 % 	For simplicity, we can identify $\Pa(X_i)$ with the unique parent of $X_i$ if $X_i$ has only one parent;
 %oli5: This already happens automatically.
-	% if $X_i$ has no parents, then we can take $\Pa(X_i) = \emptyset$ to be $\mathsf 1$.   
+	% if $X_i$ has no parents, then we can take $\Pa(X_i) = \emptyset$ to be $\var 1$.   
                 The values $\V(X_i)$ for a random variable
                 $X_i$ are unchanged, 
 %oli5: added
@@ -3602,7 +3583,7 @@ We take the set of edges $\Ed^{\PDGof(\mathcal B)} := \{ (\Pa(X_i), \{X_i\}) :
                 the conditional independencies of $\cal B$.	 
 	\end{theorem}
 
-        %joe4: added
+%joe4: added
 Theorem~\ref{thm:bns-are-pdgs} tells us that we can recover BNs, and
 %joe6
 %all the independencies they encode, within the farmework of PDGs,
@@ -3894,18 +3875,18 @@ the BNs in \Cref{ex:guns-and-floomps,ex:grok-ablate,ex:smoking}, respectively.
 
 %joe6: I couldn't parse your English, so I wrote what I thought you meant:
 %	This suggests an obvious way to view an arbitrary collection
-%        of cpds in the form of a PDG $\sfM$ as a factor graph
-%        $\Phi(\sfM)$: just like for a BN, ignore the directions of the
+%        of cpds in the form of a PDG $\dg M$ as a factor graph
+%        $\Phi(\dg M)$: just like for a BN, ignore the directions of the
         %        edges and use the cpds as factors.
 We can apply this way of viewing BNs as factor graphs to arbitrary
 PDGs: we take the factors to be defined by the cpds.
 	\begin{defn}[PDG to factor graph]
-		If $\sfM = \mnvars[]$ is a PDG, define 
+		If $\dg M = \mnvars[]$ is a PDG, define 
 %joe6*: Sorry, I don't undestand this notation.  Is ((\Ed,\in), \mat
 %p)$ supposed to be a factor graph? So you're somehow identify \in
 %with \iota?  This shows that the use of \iota is making life worse
 %...  I think that you have to spell this out better.
-		$ \Phi(\sfM) := ((\Ed,\in), \mat p)$
+		$ \Phi(\dg M) := ((\Ed,\in), \mat p)$
 		to be the associated factor graph on the random
                 variables $(\N, \V)$. 
 	\end{defn}
@@ -4051,7 +4032,7 @@ PDGs: we take the factors to be defined by the cpds.
 	% distribution $\UD{\PDGof(F)}$ that PDG semantics prescribe may
     % look nothing like $\Pr_F$ (cf.~\Cref{ex:fg-exam}). 
 		
-	However, it is closely related---it turns out that by merely providing different weights for the terms in \Cref{eqn:full-score}, we can recover the probability distribution. Better still, this construction will litterally match the factor graph of equivalent of the scoring function $\mathcal U_\gamma(\sfM)$ (called the free energy, for reasons detailed in \Cref{sec:thermo}).
+	However, it is closely related---it turns out that by merely providing different weights for the terms in \Cref{eqn:full-score}, we can recover the probability distribution. Better still, this construction will litterally match the factor graph of equivalent of the scoring function $\mathcal U_\gamma(\dg M)$ (called the free energy, for reasons detailed in \Cref{sec:thermo}).
 	%oli6: When should I get people thinking about U being a free energy? 
 	% Ideally I want to point to the connection between them here, and I want to get people thinking
 	% thinking of "free energy" this way as soon as possible without losing them. 
@@ -4156,280 +4137,11 @@ PDGs: we take the factors to be defined by the cpds.
 %	If we restrict the factors to have binary output $\phi_\alpha(x_\alpha$ of a constraint graph
 
 %oli6*: this entire section has been heavily reorganized and modified.
-	\section{PDGs And The Standard Statistical Physics Analogy}
-	We now explain PDG's scoring semantics in more detail, relating it to factor graph's corresponding property, its free energy.
-	% and show how by coupling two information theoretic quantities to the same parameter, w 
-	
-	\subsection{Specifying potentials: Exponential
-          Families}\label{sec:fg-expfam}
 
-%joe6: Pointing to an example that appears 14 pages later is not
-%helpful.  And since I never got the intuition of factors as relative
-%likelihoods, this is not helping me at al.
-	As \Cref{ex:fg-exam} illustrates, notions of relative likelihood, while in some sense correct in isolation and for the specific factor graphs which are BNs, are not a very precise way to think of factors in general. 
-	For this reason, it is more standard to present them in terms of energy potentials, eliminating the illusion of local control. 
-	
-%joe6*: Sorry, Oliver, this is not 
-	Consider only factors that are strictly positive,%
-		\footnote{or equivalently, by the Hammersley-Clifford theorem, to Markov Random Fields}
-	and define $ \varphi_\alpha := -\log \phi_\alpha$, which is can be thought of the additive component of the energy state of a joint setting $\vec x$ due to factor $\alpha$. 
-	Low values of $\varphi_\alpha(x_\alpha)$ indicate settings judged to be low probability, or equivalently, of high energy. 
-	To obtain the total energy of a point $\vec x$ we take a sum of the individual factors' energies at $\vec x$. By weighting weight each factor's energy by a positive scalar $\theta_\alpha$, which intuitively corresponds to the importance of the factor $\phi_\alpha$ in the total total energy $\sum_\alpha \theta_\alpha \varphi_\alpha$,
-	%This is the total energy of a point $\vec x$; we now ask: what's the total energy of a distribution $\mu$? It will include the average energy 
-	and corresponding Boltzmann distribution at inverse temperature $\gamma$:
-	\[ \Pr_{\Phi, \vec\theta} (\vec x)  := \exp \left\{ -\gamma \sum_\alpha \theta_\alpha \varphi_\alpha(\vec x_\alpha)  + \ln Z_\Phi(\vec \theta, \gamma) \right\} \] 
-	which is the form of an exponential family with parameters $\theta$ (in which it is standard to absorb $\gamma$ into the parameters $\theta$ for compactness).
-	
-	Why have we chosen this distribution as the most favorable for our reaction, instead of the one with all probability mass on the point $\vec x$ that has minimum energy? Because we imagine that there is a cost to keeping things orderly, so long as there is ambient temperature. Choosing the exponential family distribution, which is equivalent to minimizing the \emph{free energy} of the system---that is, minimizing the average energy, but also imposing an energy cost for putting too much mass in one place. It turns out that a factor graph specifies a free energy landscape
-	
-	\begin{align*}
-		\mathcal G_\Phi(\mu) &=  \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \varphi_\alpha(\vec x) \right] - \gamma H(\mu) \\
-			&= \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \log \frac{1}{\phi_\alpha(\vec x)} \right] - \gamma H(\mu)
-	\end{align*}
-	For comparison, here is a slightly manipulated version of the energy landscape we defined in \Cref{sec:scoring-semantics}, with an extra scalar $\lambda$ inserted in the second term, intended to lie in $[0,1]$.
-	\begin{equation*}
-		\bbr{\sfM}(\mu) \!=\mskip-18mu \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\!\!\!\E_\mu  \Bigg[\!
-			\underbrace{\beta_L \log \frac{1}{\bp(y\mid x)} \vphantom{\Bigg|}}_{\text{Average Energy (1)}}  - 
-			\underbrace{\beta_L \lambda \log \frac{1}{\mu(y \mid x)}  \vphantom{\Bigg|}}_{\text{Local Uncertainty (2)}}  + 
-			\underbrace{\alpha_L \gamma \frac{\bp(y \mid x)}{\mu(y \mid x)}\log \frac{1}{\bp(y\mid x)}  \vphantom{\Bigg|}}_{\text{Causal Barrier (3)}}\! \Bigg] - 
-			\mskip-31mu\underbrace{\gamma \H(\mu) \vphantom{\Bigg|} }_{\text{Global Uncertainty (4)}}
-	\end{equation*}
+%oli8: Removed the two large sections on themodynamics and moved them to the appendix. 
+%TODO: I still have to merge the two thermo sections there.
 
-	The first term is the expected surprise information content of seing $\bp$, or the cross entropy. Optimizing this results in a maximum likelihood estimate. The second term is a regularization, which pushes each local distribution towards uncertainty. For $\lambda = 1$, the regularization is perfectly calibrated to ensure that $\bp(y \mid x)$ is the optimal value of $\mu$, yielding the expected divergence $\kldiv{\mu(y\mid x)}{\bp(y\mid x)}$, or after summing each of the edges, the inconsistency $\inconsist(\sfM ; \mu)$. We can also recognize (3) + (4) as the extra information.
-	
-	For this section, the important thing to note is that if we could set $\lambda = 0$ and $\alpha = 0$, we would have exactly the free energy landscape of the factor graph $\Phi(\sfM)$, thought of as an exponential family with parameters $\vec \theta i:= \vec \beta$. Recalling that for a PDG $\sfM$, $\Phi(\sfM)$ only has edges that originate at $\sf 1$, term (3) is constant, giving us the following theorem.
-	
-	\begin{theorem}
-		Consider an alternate semantics $\UD{-, \alpha, \beta, \lambda}$ that allows for the setting of the parameter $\lambda$ as described above. Then for any value of $\vec\alpha$, $\Pr_{\Phi(\sfM),\theta} = \UD{\sfM, \vec{\alpha}, \vec{\theta}, \vec\lambda \!=\! \vec 0 }_1$.
-	\end{theorem}
-
-	Though we find it instructive to see the version of the semantics with a locality paramter $\lambda$ included, we opt not to include it in the presentation of a weighted PDG, for reasons described in the next section.
-	
-	\begin{vfull}
-	\section{Operations on PDGs}\label{sec:pdg-operations}
-	\subsection{Graph Operations}
-	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpd $\mat r$, as a union of the original PDG with the single-cpd PDG $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
-	
-	Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two PDGs share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}. 
-	We now define the graph union formally. 
-
-	\begin{defn}[union] \label{def:model-union}
-		If $\sfM, \sfM'$ are \MN s such that $\V^\sfM(N) = \V^{\sfM'}(N)$ for every $N \in  \N^{\sfM} \cap \N^{\sfM'}$, then $\sfM \cup \sfM'$ is a PDG with the ordinary union of their nodes (necessary to align and glue PDGs together), and \emph{disjoint union} of their edges. \notation{Explicitly,
-		\begin{align*}
-			\N^{\sfM \cup \sfM'} &= \N^\sfM \cup \N^{\sfM'},  \\
-			\Ed^{\sfM \cup \sfM'} \!=& \Ed^\sfM \sqcup \Ed^{\sfM'}\!
-				=  \{ (A, B, \text{inl}(\ell)P) : (A,B,\ell)\in \Ed^\sfM \}  \\
-					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell)) : (A,B,\ell)\in \Ed^{\sfM'} \} \\ 
-			\V^{\sfM \cup \sfM'} (N) &= \begin{cases}
-					\V^{\sfM}(N) & \text{if }N \in \N^\sfM \\
-					\V^{\sfM'}(N) &\text{if }N \in \N^{\sfM'} 
-				\end{cases}\\
-			\bmu^{\sfM \cup \sfM'}_L &= \begin{cases}
-				\bmu^{\sfM}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
-				\bmu^{\sfM'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
-			\end{cases}
-		\end{align*}}
-	\end{defn}
-	The condition that $\V^\sfM$ and $\V^{\sfM'}$ agree on the shared variables is necessary for $\V^{\sfM\cup \sfM'}$ or $\bmu^{\sfM \cup \sfM'}$ to be well-defined.%
-		%oli4: this is commented out, don't worry.
-		\vfullfootnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts}
-	The restriction from \Cref{ex:grok-ablate} is more straightforward.%
-	%oli4: how much story, vs terseness?
-	%, but we provide it for completeness.
-	
-	\begin{defn}[restriction]\label{def:restriction}
-		The \emph{restriction} of $\sfM = \mnvars[]$ to a subgraph $(\N' \subseteq \N, \Ed' \subseteq \Ed)$ of $(\N, \Ed)$, is the PDG, $\sfM|_{\N', \Ed'} = (\N', \Ed', \V |_{\N'}, \bmu|_\Ed')$, where 
-		$\V|_{\N'}$ and $\bmu|_\Ed'$ are the same functions on the their respectively smaller domains $\N$ and $\Ed$. 
-	\end{defn}
-	
-
-
-	%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
-%joe3: ``enjoying modularity'' seems like strange wording to me.  What
-%we've said, in any case, is that PDGs are more modular than other
-%approaches. 
-%	We have said repeatedly that PDGs enjoy modularity, and seen
-%oli3:
-	We have seen
-        in \cref{ex:guns-and-floomps,ex:grok-union,ex:smoking} cases in
-        which capturing the relevant information involves taking a
-%joe3*: as I said, you've never talked about these examples in terms of
-%union.  I think that there may be a useful discussion to be had about
-%how modularity corresponds to union, and I understand that once you
-%have union, youll want multigraphs.  This isn't going to make it to
-%the abstract, and there's no question that this is the wrong place
-%for it.  I could imagine a section where you talk about modularity
-%and union, say that PDGs make sense even if they are multigraphs adn
-%prove the theorem.
-%oli3: that's the plan now. BUt it's not that it even makes sense, so
-% much as that it _only_ makes sense with multi-graphs.
-        union of two graphs, some of which may include new
-        concepts. We wish to verify that our semantics are
-        well-behaved with respect to this composition.	  
-	We therefore ask: what happens if we combine two PDGs $\sfM$
-        and $\sfM'$ together? Intuitively, the set of distributions
-        $\SD{\sfM \cup \sfM'}$ consistent with the combined
-        constraints $\sfM\cup \sfM'$ should be the intersection of the
-        distributions $\SD{\sfM} \cap \SD{\sfM'}$ consistent
-        with each PDG separately. This is almost correct, but $\sf M$
-        and $\sfM'$ may be over different set of variables, in which
-        case the sets of distributions are automatically disjoint, as
-        they are over different sets of possible worlds. To address
-        this, we define a more sophisticated intersection of
-        distributions that must agree on all overlapping
-        marginals. %(\cref{def:marginal-dist-intersection}) 
-	
-	\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
-		If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
-%oli: remove the coment below to hide the notation.
-%		\notation[$R \dcap S$~]
-			{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
-		is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
-		
-		This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
-	\end{defn}
-	
-	
-%	It is now natural to ask: how does this semantics interact with the PDG union (\Cref{def:model-union})? 	
-	Now that we have the correct definition, we immediately get our desired property:
-	
-	\begin{prop}\label{prop:union-set-semantics}
-		$\SD{M \cup M'} = \SD{M} \dcap \SD{M'}$.
-	\end{prop}
-
-	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
-	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
-	
-	\begin{example}\label{ex:sd-compose-unconditional}
-		Suppose we now have two PDGs with only one edge apiece, $\mathsf A = {\mathsf 1} \xrightarrow{p} X$ and $\mathsf B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
-		%
-		\begin{align*}
-			&\SD[\Big]{{\sf A \cup B}} = \SD[\Big]{{\mathsf 1} \xrightarrow{p} X \xrightarrow{q} Y} \\
-				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
-		\end{align*}
-		where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpd of conditional marginals on $Y$ for each setting of $X$.
-		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
-	\end{example}
-
-
-	% we can motivate composition here!
-	\begin{example}[composition]
-		Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\sf A$, which had an unconditional distribution on $X$, is replaced with $\mathsf A' := Z \xrightarrow{p'} X$, representing a distribution conditioned on $Z$. 
-		As before,
-		\[ \SD[\Big]{{\sf A' \cup B}} = \SD[\Big]{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y} \]
-		Suppose we are interested in the conditional marginal of $Y$ given $Z$. In this case, $\SD{{\mathsf Z} \xrightarrow{p} X \xrightarrow{q} Y} $ contains distributions $\mu$ with varying of $\mu(y \mid z)$, and so we can no longer conclude anything uniformly about this conditional marginal for all distributions in $\SD{{\sf A' \cup B}}$. 
-		
-		Still, we can get an estimate of this quantity using the maximum entropy semantics, which conveniently turns out to be the composition of $p$ and $q$ as probabilistic functions.
-		$$ \bbr{{\sf A \cup B}}\MaxEnt(y \mid z) = \sum_{x \in \V(X)}\!\! p (x \mid z)\ q(y \mid x) = q \circ p $$
-		We claim more is true: if $\sfM$ is \emph{any} PDG that is not over-constrained, and with $\sfM \supseteq \sf A \cup B$, i.e., containing $\sf A \cup B$ as a sub-graph, then
-		$ \bbr{\sfM}\MaxEnt(y \mid z) = q \circ p$,
-		suggesting that this composition is in some sense the best guess we have for the conditional marginal. 
-%		This can be verified directly, but we will instead prove the more general result in our next result (\Cref{thm:maxent-hull}.).
-		%
-	\end{example}
-
-	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
-	\begin{vleftovers}
-	If the intersection of two sets is convex, then 
-	\begin{conj}\label{prop:intersect-set-semantics}
-		\[ \SD{M \cap M'} = \text{ConvHull}(\SD{M} \mathop{\dot\cup} \SD{M'}).\]
-	\end{conj}
-	\end{vleftovers}
-\end{vfull}
-	
-	\section{Thermodynamics of PDGs}\label{sec:thermo}
-	\begin{figure}[htb]
-		\centering
-		\scalebox{0.9}{
-		\begin{tikzpicture}
-			%TODO left hand side of diagram, with worlds and mean parameters
-			\node[ellipse,draw, outer sep=4pt] (DW) at (0,0) {$\Delta W$};
-			\node[ellipse,draw, outer sep=4pt] (EW) at (0,2.4) {$\text{Energy}^W$};
-			\node[ellipse,draw, outer sep=4pt] (DDW) at (4,0) {$\Delta (\Delta W)$};
-			\node[ellipse,draw, outer sep=4pt] (EDW) at (4,2.4) {$\text{Energy}^{\Delta W}$};
-			
-			\node[right=0.5em of EDW, blue] {$\mathcal U_\alpha(\sfM; \cdot)$};
-			\node[right=0.8em of DDW, blue] {$\bbr{\sfM}_{\alpha,\beta}$};
-			\node[left=0.8em of DW, blue] {$\mu$};
-			\node[left=0.5em of EW, blue] {$\log\frac{1}{\mu}$};
-			
-			\draw[->, transform canvas={xshift=3pt}] (DW) -- node[right]{$E_\beta$} (EW);
-			\draw[->, transform canvas={xshift=-3pt}] (EW) -- node[left]{$P_\beta$} (DW);
-			
-			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
-			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
-			
-			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$\thickD({-\Vert~})$} (EDW);
-			
-			\draw[->] (EW) to[bend left=15] node[above] {$\E^*$} (EDW);
-			\draw[->] (EDW) to node[fill=white] {$\E$} (EW);
-
-			\draw[->] (DDW) to node[below] {$\E$} (DW);
-		\end{tikzpicture}}
-		\caption{Energy / Distribution Transformations. 
-			%The nodes are thermodynamic objects, the arrows are ways of constructing one from another
-		}
-		\label{fig:energies-and-dists}
-	\end{figure}
-	We now look at the weighted distribution semantics of PDGs from a thermodynamic perspective: this will provide better rationale for the parameter choices in \Cref{sec:scoring-semantics}, and draw some more explicit contrasts between PDGs and factor graphs.	Let $W$ be finite set of worlds, on which the distribution is supported, corresponding to a particle's possible ``micro-states''
-	
-	Our technical starting point will be the Boltzmann distribution \eqref{eq:boltzmann}, which asserts that the probability $P$ of being in a state exponentially decreases as its energy $U$ increases; the rate of exponential decay is related to the ``inverse temperature'', $\beta$; here $Z_U(\beta)$ is a normalization constant. Fixing $\beta$, we can of course, invert the Boltzmann distribution \eqref{eq:invbolz}, obtaining an energy from a probability. A probability distribution over $W$ is called a configuration, or macro-state.
- 	\begin{align}
-	 P_{\beta}(U) &:= w \mapsto  \frac{1}{Z_U(\beta)}\exp\Big(-\beta U(w)\Big) \label{eq:boltzmann} \\
- 		E_{\beta}(\mu) &:= w \mapsto \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right) \label{eq:invbolz}
- 	\end{align}
- 	Conversions between the two correspond to going up and down on the left of \Cref{fig:energies-and-dists}. 
- 	Now $\mathcal U$, as defined in \eqref{eqn:full-score} is an un-normalized badness score, making it like an energy; $W^k_\gamma(\sfM; \mu)$, is a strangely-normalized Boltzmann distribution for this energy. The parameter $\beta$, which we described earlier as a certainty, plays the physical role of an inverse temperature: lower is more chaotic. 
- 	
- 	$\mathcal U$ is not just an arbitrary construction either: it is analogous to a free energy. Why is the most favorable configuration not just a point mass as the minimum energy? Because in a world where an ambient temperature makes things more diffuse, doing things would require a lot more energy. Rather than just minimizing the average energy of a configuration $\nu$, you're better off minimizing the Gibbs free energy \eqref{eqn:gibbs-free-energy}. 
- 	\begin{equation}
- 		G_E(\nu) = {\E}_\nu( E )  - T S(\nu) \label{eqn:gibbs-free-energy}
- 	\end{equation}
- 	Analogously, why not put all of your weight on the one distribution you think is most likely? Because in a slightly chaotic world, doing so could actually incur a lot more inconsistency. Instead, we're better off minimizing $\cal U$. $\alpha$ is more transparently a temperature here, with higher values indicating higher preparedness for background chaos. 
- 	% The higher order expectation we take in \eqref{eqn:higher-expectation} corresponds to the bottom edge of \Cref{fig:energies-and-dists}, and the diagonal, which is the natural way to construct free energies from a distribution, is a KL divergence. This can be seen directly, as well, in \Cref{ex:energy-from-distrib}.
- 	%
-	See \ref{sec:thermo-background}, and \cite{bethe,friston2009free} for more comprehensive background on free energy. %and \cite{} for weighted probability distributions.
-	
-	A very weak version of this can already be seen in un-normalized factor graphs: by multiplying a factor $\phi$ by a constant $\alpha$, one obtains a free energy $G' = - \ln \alpha + G$, i.e., with a mere additive shift. However, this shift doesn't really distinguish belief states, which is part of why we're so eager to normalize the distribution.
-	There is also an opportunity to modify $\beta$, but in standard graphical model literature, people set $\beta = 1$ and forget about it.%
-		\footnote{A similar complaint, is lodged in \cite{fixing-broken-elbo}, in which many information theoretic trade-offs are hidden by assuming $\beta = 1$}
-
-
-	\begin{examplex}%[continues=ex:worldsonly]
-		\label{ex:energy-from-distrib}
-		For the PDG $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\inconsist(\sfM; \nu) = \kldiv{\nu}{\mu}$. This quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
-	\end{examplex}
-
-
-	%oli8: modifications for correctness and to preserve references
-	%	A priori, \Cref{thm:free-energy-strictly-more-expressive} might be thought of as merely a novel function we came up with, but in fact this is not the case--- when the PDG is a Bayesian network, this is just the normal Gibbs free energy.
-	When the PDG corresponds to a Bayesian network, this is just variational Gibbs free energy of a distribution in the energy well constructed by the distribution specified by the BN.
-
-	\begin{prop}\label{prop:bn-free-energy}
-		For any Bayesian Network $B$, 
-		\[ \bbr{\PDGof(B)} = D(- || \Pr\nolimits_B) = \mathcal G_{E(\Pr_B)} \]
-	\end{prop}
-	
-	By playing with thermodynamic parameters, the weighted distribution semantics coincide with the notions of free energy on standard graphical models; we therefore can view PDGs as implicitly providing a more expressive class of free energies, corresponding to weighted distributions, which in turn can be naturally adapted to be distributions themselves.
-	
-%	\begin{prop}
-%		The Bethe free energy is equivalent to the Gibbs free energy of $M$ iff $M$ is strongly consistent.
-%	\end{prop}
-
-
-%	\begin{conj}\label{thm:free-energy-strictly-more-expressive}
-%		The weighted distributions generated by PDGs are strictly more expressive than those generated by BNs, Factor Graphs, or directed factor graphs.
-%	\end{conj}
-%	\begin{proof}
-%		The first two parts come from \Cref{thm:fg-free-energy,prop:bn-free-energy}. Since 
-%	\end{proof}
-%	\begin{coro}
-%		Local minima of the Bethe free energy are fixed points of loopy belief propagation in \MNs		
-%	\end{coro}
-
-	
-
-	\section{USING INCONSISTENCY}	
+	\section{Using Inconsistency}	
 	\subsection{BELIEF UPDATING} \label{sec:belief-update}
 	Belief revision, both through Bayes' and Jeffrey's rules, can be thought of as the addition of a new marginal to a distribution, and then a resolution of inconsistency. In Dietrich, List, Bradly \cite{dietrich2016belief}, a belief revision is an update $p \mapsto p_I$ of a belief state $p$ to a new one consistent with the input $I$. 
 	
@@ -4496,12 +4208,12 @@ PDGs: we take the factors to be defined by the cpds.
 	
 	One of the nice about directed graphical models is that the model itself is roughly a sampling algorithm. For instance, taking a Bayes Net $\cal B$ and generating samples according to the tables is an efficient way to sample $\Pr_{\mathcal B}$.
 
-	This works because there is only one path, but more generally, for any conditional marginal $Y|X$, we can think of all of the different paths in the PDG different ways an agent with knowledge $\sfM$ can get probabilistic estimates of the conditional distribution $\bbr{\sfM}\MaxEnt(Y | X)$. The next result states that, in a precise sense, these various estimates bound the location of the marginal for this maximum entropy distribution, which suggests an efficient sampling algorithm for $\bbr{\sfM}\MaxEnt(Y | X)$, after learning some weights.
+	This works because there is only one path, but more generally, for any conditional marginal $Y|X$, we can think of all of the different paths in the PDG different ways an agent with knowledge $\dg M$ can get probabilistic estimates of the conditional distribution $\bbr{\dg M}\MaxEnt(Y | X)$. The next result states that, in a precise sense, these various estimates bound the location of the marginal for this maximum entropy distribution, which suggests an efficient sampling algorithm for $\bbr{\dg M}\MaxEnt(Y | X)$, after learning some weights.
 	
 	\begin{conj}\label{thm:maxent-hull}
-		For any PDG $\sfM = \mnvars[]$ containing variables $X, Y$, the maximum entropy conditional marginal $\bbr{\sfM}\MaxEnt(y \mid x)$ is a convex mixture of the conditional marginals generated by the paths from $X$ to $Y$.  That is, there exist weights $\{\alpha_i \geq 0\}$ on the paths in $\sf M$ and a bias weight $\alpha_0$ with $\sum_i {\alpha_i} = 1$ and
-		\[ \bbr{\sfM}\MaxEnt(Y \mid X) = \alpha_0 \  p^{\text{unif}}_Y \sum_{p \in \bbr{\sfM}_\lambda(X, Y)} \alpha_i (p_1 \circ \ldots \circ p_k) \]
-		where $p^{\text{unif}}_Y$ is the uniform distribution on $Y$, and $\bbr{\sfM}_\lambda(X,Y)$ is the set of paths from $X$ to $Y$ generated by composition and Bayes Rule in $\sfM$. 
+		For any PDG $\dg M = \mnvars[]$ containing variables $X, Y$, the maximum entropy conditional marginal $\bbr{\dg M}\MaxEnt(y \mid x)$ is a convex mixture of the conditional marginals generated by the paths from $X$ to $Y$.  That is, there exist weights $\{\alpha_i \geq 0\}$ on the paths in $\sf M$ and a bias weight $\alpha_0$ with $\sum_i {\alpha_i} = 1$ and
+		\[ \bbr{\dg M}\MaxEnt(Y \mid X) = \alpha_0 \  p^{\text{unif}}_Y \sum_{p \in \bbr{\dg M}_\lambda(X, Y)} \alpha_i (p_1 \circ \ldots \circ p_k) \]
+		where $p^{\text{unif}}_Y$ is the uniform distribution on $Y$, and $\bbr{\dg M}_\lambda(X,Y)$ is the set of paths from $X$ to $Y$ generated by composition and Bayes Rule in $\dg M$. 
 	\end{conj}
 
 	One natural choice of these $\alpha$'s is the certainty scores for each edge, given by a weighted \MN, but we do not have any further formal results in this direction.
@@ -4541,17 +4253,17 @@ PDGs: we take the factors to be defined by the cpds.
 	
 	
 
-	\subsection{Probabilities Still Encode Well}	
-	In some sense, while we have yet to find a mental state that is not encoded in some probability distribution, the choice of underlying space is extremely important, and we argue that it changes rapidly. Moreover, sometimes one has to make up new internal mental variables, which also changes the underlying space. PDGs offer a way to describe distributions, together with a number of internal parameters one might not be actively aware of. The relevant parameters, can always be internalized \todo{define internalization} until we reach a distribution. 
-	
-	However, storing knowledge in the form of another graphical model is extremely cumbersome if the set of worlds changes quickly.	
-
-	\begin{example}
-		\todo{recall coin example, internalize biases, sets of dists, etc.}
-	\end{example}
-	\begin{example}
-		\todo{Point to appendix where we discuss factor graph conversions: these internalize the energy}
-	\end{example}
+	% \subsection{Probabilities Still Encode Well}	
+	% In some sense, while we have yet to find a mental state that is not encoded in some probability distribution, the choice of underlying space is extremely important, and we argue that it changes rapidly. Moreover, sometimes one has to make up new internal mental variables, which also changes the underlying space. PDGs offer a way to describe distributions, together with a number of internal parameters one might not be actively aware of. The relevant parameters, can always be internalized \todo{define internalization} until we reach a distribution. 
+	% 
+	% However, storing knowledge in the form of another graphical model is extremely cumbersome if the set of worlds changes quickly.	
+	% 
+	% \begin{example}
+	% 	\todo{recall coin example, internalize biases, sets of dists, etc.}
+	% \end{example}
+	% \begin{example}
+	% 	\todo{Point to appendix where we discuss factor graph conversions: these internalize the energy}
+	% \end{example}
 	
 	
 	\begin{vfull}
@@ -4605,10 +4317,11 @@ PDGs: we take the factors to be defined by the cpds.
 	\section*{Acknowledgments and Disclosure of Funding}
 %	\section*{References}
 	%	\printbibliography[heading=none]
-	
-	\small
-	\bibliographystyle{alpha}
-	\bibliography{../refs,../uncertainty,../maths,graphical-models}
+	{
+		\small
+		\bibliographystyle{alpha}
+		\bibliography{../refs,../uncertainty,../maths,graphical-models}
+	}
 	%\addbibresource{../uncertainty.bib}
 	%\addbibresource{../maths.bib}
 	%\addbibresource{graphical-models.bib}
@@ -4640,20 +4353,22 @@ PDGs: we take the factors to be defined by the cpds.
 	\begin{lemma}
 		% [name=\Cref{prop:convex} analog, 	restate=thmincconvex]
 		\label{thm:inc-convex}
-		$\inconsist$ is a convex function. % in $p$.
+		$\inco(\dg M, \mu)$ is a convex function of $\mu$.
 	\end{lemma}
 	\begin{proof}
-		It is well-known that $D_{KL}$ is convex, in the sense that 
-		\[ D_{KL}(\lambda q_1 + (1-\lambda) q_2 \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (q_1\ ||\ p_1) + (1-\lambda) D_{KL}(q_2\ ||\ p_2) \]
+		It is well-known that $\thickD$ is convex, in the sense that 
+		\[ \kldiv{\lambda q_1 + (1-\lambda) q_2 }{ \lambda p_1 + (1-\lambda) p_2} \leq \lambda \kldiv {q_1}{ p_1} + (1-\lambda) \kldiv{q_2}{p_2} \]
 		Choose any edge $L \in \Ed$ from $A$ to $B$, and also any $a \in \mathcal V(A)$. 
 		Setting $q_1 = q_2 = \bp(a)$, we get
-		\[ D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \]
+		\[ \thickD(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) \leq \lambda \thickD (\bp(a) \ ||\ p_1) + (1-\lambda) \thickD(\bp(a)\ ||\ p_2) \]
 		Since this is true for every $a$ and edge, we can take a weighted sum of these inequalities for each $a$ weighted by $p(A=a)$, and therefore
 		\begin{align*}
-			\E_{a\sim p(A=a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \E_{a\sim p(A=a)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
-			\sum_{(A, B) \in \cal L}~\E_{a\sim p(a)} D_{KL}(\bp(a) \ ||\ \lambda p_1 + (1-\lambda) p_2) &\leq \sum_{(A, B) \in \cal L}~\E_{a\sim p(A)}\lambda D_{KL} (\bp(a) \ ||\ p_1) + (1-\lambda) D_{KL}(\bp(a)\ ||\ p_2) \\
-			\inconsist(M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \inconsist(M;p_1) + (1-\lambda) \inconsist(M;p_2)
+			\E_{a\sim p(A=a)} \kldiv{\bp(a)}{\lambda p_1 + (1-\lambda) p_2} &\leq \E_{a\sim p(A=a)}\lambda \kldiv {\bp(a)}{p_1} + (1-\lambda) \thickD(\bp(a)\ ||\ p_2) \\
+			\sum_{(A, B) \in \Ed}~\E_{a\sim p(a)} \kldiv{\bp(a) }{\lambda p_1 + (1-\lambda) p_2} &\leq \sum_{(A, B) \in \Ed}~\E_{a\sim p(A)}\lambda \kldiv{\bp(a)}{p_1} + (1-\lambda) \kldiv{\bp(a)}{p_2} \\
+		\intertext{and so}
+			\inco(\dg M ; \lambda p_1 + (1-\lambda)p_2) &\leq \lambda \inco(\dg M;p_1) + (1-\lambda) \inco(\dg M;p_2)
 		\end{align*}
+		Therefore $\inco(\dg M, \mu)$ is a convex function of $\mu$
 	\end{proof}
 
 	%oli8 :added. 
@@ -4818,6 +4533,278 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 		% \textbf{v2. Uniqueness by strong convexity.}
 		% Part (a) of Lemma~\ref{lem:bnmaxent-component} tells us that $\H^{\PDGof(\mathcal B)}$ is a sum of strongly convex functions, and hence strongly convex itself. Because the set of distributions that are compatible with $\PDGof(\cal B)$ is convex (Lemma~\ref{lem:convex}), $\H^{\PDGof(\mathcal B)}$ has a unique minimum $\mu^*$ on this set. At the same time, the distribution $\Pr_{\cal B}$ described by $\cal B$ satisfies the independences from Lemma~\ref{lem:bnmaxent-component}, so we must have $\H^{\PDGof(\mathcal B)}(\Pr_{\cal B}) = 0$, and since $\H^{\PDGof(\cal B)} \geq 0$ and  has a unique minimizer, $\Pr_{\cal B} = \mu^*$.
 	\end{proof}
+	\section{PDGs And The Standard Statistical Physics Analogy}
+	We now explain PDG's scoring semantics in more detail, relating it to factor graph's corresponding property, its free energy.
+	% and show how by coupling two information theoretic quantities to the same parameter, w 
+	
+	\subsection{Specifying potentials: Exponential
+          Families}\label{sec:fg-expfam}
+
+%joe6: Pointing to an example that appears 14 pages later is not
+%helpful.  And since I never got the intuition of factors as relative
+%likelihoods, this is not helping me at al.
+	As \Cref{ex:fg-exam} illustrates, notions of relative likelihood, while in some sense correct in isolation and for the specific factor graphs which are BNs, are not a very precise way to think of factors in general. 
+	For this reason, it is more standard to present them in terms of energy potentials, eliminating the illusion of local control. 
+	
+%joe6*: Sorry, Oliver, this is not 
+	Consider only factors that are strictly positive,%
+		\footnote{or equivalently, by the Hammersley-Clifford theorem, to Markov Random Fields}
+	and define $ \varphi_\alpha := -\log \phi_\alpha$, which is can be thought of the additive component of the energy state of a joint setting $\vec x$ due to factor $\alpha$. 
+	Low values of $\varphi_\alpha(x_\alpha)$ indicate settings judged to be low probability, or equivalently, of high energy. 
+	To obtain the total energy of a point $\vec x$ we take a sum of the individual factors' energies at $\vec x$. By weighting weight each factor's energy by a positive scalar $\theta_\alpha$, which intuitively corresponds to the importance of the factor $\phi_\alpha$ in the total total energy $\sum_\alpha \theta_\alpha \varphi_\alpha$,
+	%This is the total energy of a point $\vec x$; we now ask: what's the total energy of a distribution $\mu$? It will include the average energy 
+	and corresponding Boltzmann distribution at inverse temperature $\gamma$:
+	\[ \Pr_{\Phi, \vec\theta} (\vec x)  := \exp \left\{ -\gamma \sum_\alpha \theta_\alpha \varphi_\alpha(\vec x_\alpha)  + \ln Z_\Phi(\vec \theta, \gamma) \right\} \] 
+	which is the form of an exponential family with parameters $\theta$ (in which it is standard to absorb $\gamma$ into the parameters $\theta$ for compactness).
+	
+	Why have we chosen this distribution as the most favorable for our reaction, instead of the one with all probability mass on the point $\vec x$ that has minimum energy? Because we imagine that there is a cost to keeping things orderly, so long as there is ambient temperature. Choosing the exponential family distribution, which is equivalent to minimizing the \emph{free energy} of the system---that is, minimizing the average energy, but also imposing an energy cost for putting too much mass in one place. It turns out that a factor graph specifies a free energy landscape
+	
+	\begin{align*}
+		\mathcal G_\Phi(\mu) &=  \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \varphi_\alpha(\vec x) \right] - \gamma H(\mu) \\
+			&= \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \log \frac{1}{\phi_\alpha(\vec x)} \right] - \gamma H(\mu)
+	\end{align*}
+	For comparison, here is a slightly manipulated version of the energy landscape we defined in \Cref{sec:scoring-semantics}, with an extra scalar $\lambda$ inserted in the second term, intended to lie in $[0,1]$.
+	\begin{equation*}
+		\bbr{\dg M}(\mu) \!=\mskip-18mu \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\!\!\!\E_\mu  \Bigg[\!
+			\underbrace{\beta_L \log \frac{1}{\bp(y\mid x)} \vphantom{\Bigg|}}_{\text{Average Energy (1)}}  - 
+			\underbrace{\beta_L \lambda \log \frac{1}{\mu(y \mid x)}  \vphantom{\Bigg|}}_{\text{Local Uncertainty (2)}}  + 
+			\underbrace{\alpha_L \gamma \frac{\bp(y \mid x)}{\mu(y \mid x)}\log \frac{1}{\bp(y\mid x)}  \vphantom{\Bigg|}}_{\text{Causal Barrier (3)}}\! \Bigg] - 
+			\mskip-31mu\underbrace{\gamma \H(\mu) \vphantom{\Bigg|} }_{\text{Global Uncertainty (4)}}
+	\end{equation*}
+
+	The first term is the expected surprise information content of seing $\bp$, or the cross entropy. Optimizing this results in a maximum likelihood estimate. The second term is a regularization, which pushes each local distribution towards uncertainty. For $\lambda = 1$, the regularization is perfectly calibrated to ensure that $\bp(y \mid x)$ is the optimal value of $\mu$, yielding the expected divergence $\kldiv{\mu(y\mid x)}{\bp(y\mid x)}$, or after summing each of the edges, the inconsistency $\inco(\dg M ; \mu)$. We can also recognize (3) + (4) as the extra information.
+	
+	For this section, the important thing to note is that if we could set $\lambda = 0$ and $\alpha = 0$, we would have exactly the free energy landscape of the factor graph $\Phi(\dg M)$, thought of as an exponential family with parameters $\vec \theta i:= \vec \beta$. Recalling that for a PDG $\dg M$, $\Phi(\dg M)$ only has edges that originate at $\sf 1$, term (3) is constant, giving us the following theorem.
+	
+	\begin{theorem}
+		Consider an alternate semantics $\UD{-, \alpha, \beta, \lambda}$ that allows for the setting of the parameter $\lambda$ as described above. Then for any value of $\vec\alpha$, $\Pr_{\Phi(\dg M),\theta} = \UD{\dg M, \vec{\alpha}, \vec{\theta}, \vec\lambda \!=\! \vec 0 }_1$.
+	\end{theorem}
+
+	Though we find it instructive to see the version of the semantics with a locality paramter $\lambda$ included, we opt not to include it in the presentation of a weighted PDG, for reasons described in the next section.
+	
+	\begin{vfull}
+	\section{Operations on PDGs}\label{sec:pdg-operations}
+	\subsection{Graph Operations}
+	To model the process of adding information to a \MN, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpd $\mat r$, as a union of the original PDG with the single-cpd PDG $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
+	
+	Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two PDGs share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}. 
+	We now define the graph union formally. 
+
+	\begin{defn}[union] \label{def:model-union}
+		If $\dg M, \dg M'$ are \MN s such that $\V^\dg M(N) = \V^{\dg M'}(N)$ for every $N \in  \N^{\dg M} \cap \N^{\dg M'}$, then $\dg M \cup \dg M'$ is a PDG with the ordinary union of their nodes (necessary to align and glue PDGs together), and \emph{disjoint union} of their edges. \notation{Explicitly,
+		\begin{align*}
+			\N^{\dg M \cup \dg M'} &= \N^\dg M \cup \N^{\dg M'},  \\
+			\Ed^{\dg M \cup \dg M'} \!=& \Ed^\dg M \sqcup \Ed^{\dg M'}\!
+				=  \{ (A, B, \text{inl}(\ell)P) : (A,B,\ell)\in \Ed^\dg M \}  \\
+					&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell)) : (A,B,\ell)\in \Ed^{\dg M'} \} \\ 
+			\V^{\dg M \cup \dg M'} (N) &= \begin{cases}
+					\V^{\dg M}(N) & \text{if }N \in \N^\dg M \\
+					\V^{\dg M'}(N) &\text{if }N \in \N^{\dg M'} 
+				\end{cases}\\
+			\bmu^{\dg M \cup \dg M'}_L &= \begin{cases}
+				\bmu^{\dg M}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
+				\bmu^{\dg M'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
+			\end{cases}
+		\end{align*}}
+	\end{defn}
+	The condition that $\V^\dg M$ and $\V^{\dg M'}$ agree on the shared variables is necessary for $\V^{\dg M\cup \dg M'}$ or $\bmu^{\dg M \cup \dg M'}$ to be well-defined.%
+		%oli4: this is commented out, don't worry.
+		\vfullfootnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts}
+	The restriction from \Cref{ex:grok-ablate} is more straightforward.%
+	%oli4: how much story, vs terseness?
+	%, but we provide it for completeness.
+	
+	\begin{defn}[restriction]\label{def:restriction}
+		The \emph{restriction} of $\dg M = \mnvars[]$ to a subgraph $(\N' \subseteq \N, \Ed' \subseteq \Ed)$ of $(\N, \Ed)$, is the PDG, $\dg M|_{\N', \Ed'} = (\N', \Ed', \V |_{\N'}, \bmu|_\Ed')$, where 
+		$\V|_{\N'}$ and $\bmu|_\Ed'$ are the same functions on the their respectively smaller domains $\N$ and $\Ed$. 
+	\end{defn}
+	
+
+
+	%oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
+%joe3: ``enjoying modularity'' seems like strange wording to me.  What
+%we've said, in any case, is that PDGs are more modular than other
+%approaches. 
+%	We have said repeatedly that PDGs enjoy modularity, and seen
+%oli3:
+	We have seen
+        in \cref{ex:guns-and-floomps,ex:grok-union,ex:smoking} cases in
+        which capturing the relevant information involves taking a
+%joe3*: as I said, you've never talked about these examples in terms of
+%union.  I think that there may be a useful discussion to be had about
+%how modularity corresponds to union, and I understand that once you
+%have union, youll want multigraphs.  This isn't going to make it to
+%the abstract, and there's no question that this is the wrong place
+%for it.  I could imagine a section where you talk about modularity
+%and union, say that PDGs make sense even if they are multigraphs adn
+%prove the theorem.
+%oli3: that's the plan now. BUt it's not that it even makes sense, so
+% much as that it _only_ makes sense with multi-graphs.
+        union of two graphs, some of which may include new
+        concepts. We wish to verify that our semantics are
+        well-behaved with respect to this composition.	  
+	We therefore ask: what happens if we combine two PDGs $\dg M$
+        and $\dg M'$ together? Intuitively, the set of distributions
+        $\SD{\dg M \cup \dg M'}$ consistent with the combined
+        constraints $\dg M\cup \dg M'$ should be the intersection of the
+        distributions $\SD{\dg M} \cap \SD{\dg M'}$ consistent
+        with each PDG separately. This is almost correct, but $\sf M$
+        and $\dg M'$ may be over different set of variables, in which
+        case the sets of distributions are automatically disjoint, as
+        they are over different sets of possible worlds. To address
+        this, we define a more sophisticated intersection of
+        distributions that must agree on all overlapping
+        marginals. %(\cref{def:marginal-dist-intersection}) 
+	
+	\begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
+		If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
+%oli: remove the coment below to hide the notation.
+%		\notation[$R \dcap S$~]
+			{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
+		is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
+		
+		This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
+	\end{defn}
+	
+	
+%	It is now natural to ask: how does this semantics interact with the PDG union (\Cref{def:model-union})? 	
+	Now that we have the correct definition, we immediately get our desired property:
+	
+	\begin{prop}\label{prop:union-set-semantics}
+		$\SD{M \cup M'} = \SD{M} \dcap \SD{M'}$.
+	\end{prop}
+
+	\Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
+	From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining \MNs.
+	
+	\begin{example}\label{ex:sd-compose-unconditional}
+		Suppose we now have two PDGs with only one edge apiece, $\dg A = {\var 1} \xrightarrow{p} X$ and $\dg B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
+		%
+		\begin{align*}
+			&\SD[\Big]{{\dg A \cup \dg B}} = \SD[\Big]{{\var 1} \xrightarrow{p} X \xrightarrow{q} Y} \\
+				&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
+		\end{align*}
+		where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpd of conditional marginals on $Y$ for each setting of $X$.
+		For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
+	\end{example}
+
+
+	% we can motivate composition here!
+	\begin{example}[composition]
+		Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\sf A$, which had an unconditional distribution on $X$, is replaced with $\dg A' := Z \xrightarrow{p'} X$, representing a distribution conditioned on $Z$. 
+		As before,
+		\[ \SD[\Big]{{\dg A' \cup \dg B}} = \SD[\Big]{{Z} \xrightarrow{p} X \xrightarrow{q} Y} \]
+		Suppose we are interested in the conditional marginal of $Y$ given $Z$. In this case, $\SD{{Z} \xrightarrow{p} X \xrightarrow{q} Y} $ contains distributions $\mu$ with varying of $\mu(y \mid z)$, and so we can no longer conclude anything uniformly about this conditional marginal for all distributions in $\SD{{\dg A' \cup \dg B}}$. 
+		
+		Still, we can get an estimate of this quantity using the maximum entropy semantics, which conveniently turns out to be the composition of $p$ and $q$ as probabilistic functions.
+		$$ \bbr{{\sf A \cup B}}\MaxEnt(y \mid z) = \sum_{x \in \V(X)}\!\! p (x \mid z)\ q(y \mid x) = q \circ p $$
+		We claim more is true: if $\dg M$ is \emph{any} PDG that is not over-constrained, and with $\dg M \supseteq \sf A \cup B$, i.e., containing $\sf A \cup B$ as a sub-graph, then
+		$ \bbr{\dg M}\MaxEnt(y \mid z) = q \circ p$,
+		suggesting that this composition is in some sense the best guess we have for the conditional marginal. 
+%		This can be verified directly, but we will instead prove the more general result in our next result (\Cref{thm:maxent-hull}.).
+		%
+	\end{example}
+
+	%This will be interesting to explore in the full paper, but it's definitely not high priority here.
+	\begin{vleftovers}
+	If the intersection of two sets is convex, then 
+	\begin{conj}\label{prop:intersect-set-semantics}
+		\[ \SD{M \cap M'} = \text{ConvHull}(\SD{M} \mathop{\dot\cup} \SD{M'}).\]
+	\end{conj}
+	\end{vleftovers}
+\end{vfull}
+	
+	\section{Thermodynamics of PDGs}\label{sec:thermo}
+	
+	\begin{figure}[htb]
+		\centering
+		\scalebox{0.9}{
+		\begin{tikzpicture}
+			%TODO left hand side of diagram, with worlds and mean parameters
+			\node[ellipse,draw, outer sep=4pt] (DW) at (0,0) {$\Delta W$};
+			\node[ellipse,draw, outer sep=4pt] (EW) at (0,2.4) {$\text{Energy}^W$};
+			\node[ellipse,draw, outer sep=4pt] (DDW) at (4,0) {$\Delta (\Delta W)$};
+			\node[ellipse,draw, outer sep=4pt] (EDW) at (4,2.4) {$\text{Energy}^{\Delta W}$};
+			
+			\node[right=0.5em of EDW, blue] {$\mathcal U_\alpha(\dg M; \cdot)$};
+			\node[right=0.8em of DDW, blue] {$\bbr{\dg M}_{\alpha,\beta}$};
+			\node[left=0.8em of DW, blue] {$\mu$};
+			\node[left=0.5em of EW, blue] {$\log\frac{1}{\mu}$};
+			
+			\draw[->, transform canvas={xshift=3pt}] (DW) -- node[right]{$E_\beta$} (EW);
+			\draw[->, transform canvas={xshift=-3pt}] (EW) -- node[left]{$P_\beta$} (DW);
+			
+			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
+			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
+			
+			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$\thickD({-\Vert~})$} (EDW);
+			
+			\draw[->] (EW) to[bend left=15] node[above] {$\E^*$} (EDW);
+			\draw[->] (EDW) to node[fill=white] {$\E$} (EW);
+
+			\draw[->] (DDW) to node[below] {$\E$} (DW);
+		\end{tikzpicture}}
+		\caption{Energy / Distribution Transformations. 
+			%The nodes are thermodynamic objects, the arrows are ways of constructing one from another
+		}
+		\label{fig:energies-and-dists}
+	\end{figure}
+	We now look at the weighted distribution semantics of PDGs from a thermodynamic perspective: this will provide better rationale for the parameter choices in \Cref{sec:scoring-semantics}, and draw some more explicit contrasts between PDGs and factor graphs.	Let $W$ be finite set of worlds, on which the distribution is supported, corresponding to a particle's possible ``micro-states''
+	
+	Our technical starting point will be the Boltzmann distribution \eqref{eq:boltzmann}, which asserts that the probability $P$ of being in a state exponentially decreases as its energy $U$ increases; the rate of exponential decay is related to the ``inverse temperature'', $\beta$; here $Z_U(\beta)$ is a normalization constant. Fixing $\beta$, we can of course, invert the Boltzmann distribution \eqref{eq:invbolz}, obtaining an energy from a probability. A probability distribution over $W$ is called a configuration, or macro-state.
+ 	\begin{align}
+	 P_{\beta}(U) &:= w \mapsto  \frac{1}{Z_U(\beta)}\exp\Big(-\beta U(w)\Big) \label{eq:boltzmann} \\
+ 		E_{\beta}(\mu) &:= w \mapsto \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right) \label{eq:invbolz}
+ 	\end{align}
+ 	Conversions between the two correspond to going up and down on the left of \Cref{fig:energies-and-dists}. 
+ 	Now $\mathcal U$, as defined in \eqref{eqn:full-score} is an un-normalized badness score, making it like an energy; $W^k_\gamma(\dg M; \mu)$, is a strangely-normalized Boltzmann distribution for this energy. The parameter $\beta$, which we described earlier as a certainty, plays the physical role of an inverse temperature: lower is more chaotic. 
+ 	
+ 	$\mathcal U$ is not just an arbitrary construction either: it is analogous to a free energy. Why is the most favorable configuration not just a point mass as the minimum energy? Because in a world where an ambient temperature makes things more diffuse, doing things would require a lot more energy. Rather than just minimizing the average energy of a configuration $\nu$, you're better off minimizing the Gibbs free energy \eqref{eqn:gibbs-free-energy}. 
+ 	\begin{equation}
+ 		G_E(\nu) = {\E}_\nu( E )  - T S(\nu) \label{eqn:gibbs-free-energy}
+ 	\end{equation}
+ 	Analogously, why not put all of your weight on the one distribution you think is most likely? Because in a slightly chaotic world, doing so could actually incur a lot more inconsistency. Instead, we're better off minimizing $\cal U$. $\alpha$ is more transparently a temperature here, with higher values indicating higher preparedness for background chaos. 
+ 	% The higher order expectation we take in \eqref{eqn:higher-expectation} corresponds to the bottom edge of \Cref{fig:energies-and-dists}, and the diagonal, which is the natural way to construct free energies from a distribution, is a KL divergence. This can be seen directly, as well, in \Cref{ex:energy-from-distrib}.
+ 	%
+	See \ref{sec:thermo-background}, and \cite{bethe,friston2009free} for more comprehensive background on free energy. %and \cite{} for weighted probability distributions.
+	
+	A very weak version of this can already be seen in un-normalized factor graphs: by multiplying a factor $\phi$ by a constant $\alpha$, one obtains a free energy $G' = - \ln \alpha + G$, i.e., with a mere additive shift. However, this shift doesn't really distinguish belief states, which is part of why we're so eager to normalize the distribution.
+	There is also an opportunity to modify $\beta$, but in standard graphical model literature, people set $\beta = 1$ and forget about it.%
+		\footnote{A similar complaint, is lodged in \cite{fixing-broken-elbo}, in which many information theoretic trade-offs are hidden by assuming $\beta = 1$}
+
+
+	\begin{examplex}%[continues=ex:worldsonly]
+		\label{ex:energy-from-distrib}
+		For the PDG $\sf M$ that encodes just a probability distribution $\mu$ over $W$,  $\inco(\dg M; \nu) = \kldiv{\nu}{\mu}$. This quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
+	\end{examplex}
+
+
+	%oli8: modifications for correctness and to preserve references
+	%	A priori, \Cref{thm:free-energy-strictly-more-expressive} might be thought of as merely a novel function we came up with, but in fact this is not the case--- when the PDG is a Bayesian network, this is just the normal Gibbs free energy.
+	When the PDG corresponds to a Bayesian network, this is just variational Gibbs free energy of a distribution in the energy well constructed by the distribution specified by the BN.
+
+	\begin{prop}\label{prop:bn-free-energy}
+		For any Bayesian Network $B$, 
+		\[ \bbr{\PDGof(B)} = D(- || \Pr\nolimits_B) = \mathcal G_{E(\Pr_B)} \]
+	\end{prop}
+	
+	By playing with thermodynamic parameters, the weighted distribution semantics coincide with the notions of free energy on standard graphical models; we therefore can view PDGs as implicitly providing a more expressive class of free energies, corresponding to weighted distributions, which in turn can be naturally adapted to be distributions themselves.
+	
+%	\begin{prop}
+%		The Bethe free energy is equivalent to the Gibbs free energy of $M$ iff $M$ is strongly consistent.
+%	\end{prop}
+
+
+%	\begin{conj}\label{thm:free-energy-strictly-more-expressive}
+%		The weighted distributions generated by PDGs are strictly more expressive than those generated by BNs, Factor Graphs, or directed factor graphs.
+%	\end{conj}
+%	\begin{proof}
+%		The first two parts come from \Cref{thm:fg-free-energy,prop:bn-free-energy}. Since 
+%	\end{proof}
+%	\begin{coro}
+%		Local minima of the Bethe free energy are fixed points of loopy belief propagation in \MNs		
+%	\end{coro}
+
 
 	\section{Alternate Presentations}
 	%I think we finally covered this.
@@ -4956,7 +4943,7 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 	\Cref{thm:hyperequiv} shows PDGs and \MNH s to be equivalent, though in different cases one may seem more natural than the other, as illustrated in the following theorem.
 	
 	\begin{theorem}[restate=thmhyperequiv]\label{thm:hyperequiv}
-		Every \MNH\ $H$ is equivalent to a PDG $\sfM$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{H} = \bbr{\sfM}$.
+		Every \MNH\ $H$ is equivalent to a PDG $\dg M$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{H} = \bbr{\dg M}$.
 	\end{theorem}
 	\begin{proof}
 		\todo{}
@@ -5087,7 +5074,7 @@ To prove our theorem, we now present a helper lemma, which will do most of the w
 %		
 %	With a PDG, the free energy becomes
 %	\[ \sum \]
-%	\todo{Write out $\inconsist$, proofs of theorems}
+%	\todo{Write out $\inco$, proofs of theorems}
 %	
 	\section{Overview And Conversions Between Graphical Models}
 	\label{sec:many-relations-graphical-models}
