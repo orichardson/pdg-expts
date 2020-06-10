@@ -173,6 +173,7 @@
 \let\Horig\H
 \let\H\relax
 \DeclareMathOperator{\H}{\mathrm{H}} % Entropy
+\DeclareMathOperator{\I}{\mathrm{I}} % Information
 \DeclareMathOperator*{\E}{\mathbb{E}} % Expectation
 \DeclareMathOperator*{\argmin}{arg\;min}
 \newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}} % Conditional Independence
@@ -183,7 +184,8 @@
 \newcommand\mat[1]{\mathbf{#1}}
 %\newcommand{\indi}[1]{\mathbbm{1}_{\left[\vphantom{\big[}#1 \vphantom{\big]}\right]}}
 
-\newcommand\recall[1]{\expandarg\cref{#1}:\vspace{-1em} \begingroup\small\color{gray!80!black}\begin{quotation} \expandafter\csname #1\endcsname* \end{quotation}\endgroup }
+% \newcommand\recall[1]{\expandarg\cref{#1}:\vspace{-1em} \begingroup\small\color{gray!80!black}\begin{quotation} \expandafter\csname #1\endcsname* \end{quotation}\endgroup }
+
 
 \input{labelmatrix.tex}
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
@@ -194,6 +196,7 @@
 \crefname{defn}{definition}{definitions}
 \crefname{prop}{proposition}{propositions}
 \crefname{constr}{construction}{constructions}
+\crefname{fact}{fact}{facts}
 
 \definecolor{deepgreen}{rgb}{0,0.5,0}
 \hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=magenta, citecolor=deepgreen}
@@ -218,11 +221,12 @@
 
 \definecolor{vfullcolor}{gray}{0.7}
 \specialcomment{vfull}{\begingroup\color{vfullcolor}}{\endgroup}
-\excludecomment{vfull} %\includecomment{vfull}
+% \excludecomment{vfull}
+\includecomment{vfull}
 
-\excludecomment{vleftovers}
-% \definecolor{vleftoverscolor}{gray}{0.85}
-% \specialcomment{vleftovers}{\begingroup\color{vleftoverscolor}}{\endgroup}
+% \excludecomment{vleftovers}
+\definecolor{vleftoverscolor}{gray}{0.85}
+\specialcomment{vleftovers}{\begingroup\color{vleftoverscolor}}{\endgroup}
 
 \excludecomment{vcat} %\includecomment{vcat}
 \excludecomment{vnotation} %\includecomment{vnotation}
@@ -306,9 +310,10 @@
 %\newcommand\IBal[1][{\dg M}]{#1\text-\mathit{IBal}}
 %joe11: given your name change
 %\newcommand{\IBal}[1]{\mathit{IDiff}_{#1}}
-\newcommand{\IBal}[1]{\mathit{IDef}_{#1}}
+%oli15: global command change "\IBal => \IDef"
+\newcommand{\IDef}[1]{\mathit{IDef}_{#1}}
 
-\newcommand\extrainfo[2][\dg M]{\IBal[#1](#2)}
+\newcommand\extrainfo[2][\dg M]{\IDef[#1](#2)}
 % \newcommand\Inc[2][\dg M]{\Incsymb(#2;#1)}
 %oli10: changed name of command everywhere.
 \newcommand\Inc{\mathit{Inc}}
@@ -431,7 +436,7 @@
 
 %oli11: better kearning and spacing
 % \newcommand{\ed}[3]{#2 \xrightarrow{\!\!\smash{#1}} #3}
-%joe10: why are you wasting time on this when you have so many more
+%joe10: why are you wasting time on this `when you have so many more
 %important things that need to be done for this paper
 \newcommand{\ed}[3]{#2
   \overset{\smash{\mskip-5mu\raisebox{-1pt}{$\scriptscriptstyle
@@ -476,6 +481,28 @@
 %oli12: this particular detour took me all of 45 seconds. 
 %joe11: But you surely spent time thinking about it ...
 	\newenvironment{old}[1]{\par\noindent{\bf \Cref{#1}.} \em \noindent}{\par\medskip}
+%oli15
+%fixing up restatables so links happen automatically via the above.
+\usepackage{xpatch}
+\makeatletter
+\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
+    {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
+    % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
+    {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
+    \else\fi}
+    {\typeout{oii Success1?}}{\typeout{oiii failure1?}} % execute code for success/failure instances
+\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
+    {\csname end#2\endcsname}
+    {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
+    {\typeout{oii Success2?}}{\typeout{oiii failure2?}}
+\newcommand{\recall}[1]{\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
+    \expandafter\csname#1\endcsname* \endgroup\par\medskip}
+\makeatother
+% \newcommand{\begprop}[1]{\begin{prop}[restate=#1,label=#1]}
+\newcommand{\begthm}[2]{\begin{#1}[restate=#2,label=#2]}
+%oli15 end thmtools magic.
+
+
 
 \numberwithin{equation}{section}
 
@@ -1430,7 +1457,7 @@ It is used to represent
 %compelling before
 %joe4: This breaks the flow and is not necessary
 	\begin{vleftovers}
-		\begin{examplex}\label{ex:worldsonly}
+		\begin{example}\label{ex:worldsonly}
 			A probability distribution $p$ over a measurable set $W$ of possible worlds is represented as 
 			\begin{center}
 				\scalebox{0.8}{
@@ -1441,7 +1468,7 @@ It is used to represent
 					\draw[arr] (1) to node[fill=white]{$p$} (W);
 				\end{tikzpicture}}
 			\end{center}
-		\end{examplex}
+		\end{example}
 	\end{vleftovers}
 %joe4: \end{commentout}
 		\item Double-headed arrows, $A \tto
@@ -1937,9 +1964,9 @@ each edge $\ed LXY$, the randomness of $Y$ given $X$.
 
 For an arbitrary PDG and $\mu$, these two quantities will differ; if the amount
 of uncertainty in the distribution is lower than one would expect from the
-edges, the distribution has an \emph{information deficit}, indicating that there
+edges, the distribution has an \emph{information deficiency}, indicating that there
 are additional correlations between variables that are not captured by the
-graph. The higher the information deficit, the worse the qualitative fit between
+graph. The higher the information deficiency, the worse the qualitative fit between
 the PDG and $\mu$.
 %joe9*: Now you lost me.  What is ``surplus uncertainty''? This needs
 %tob e given *much* more intuition.
@@ -1967,7 +1994,7 @@ as though you believed $X$ to be uniform.
 %means that the agent is  aware of $X$, but has no  information
 %regarding the probability of various values of $X$ but no 
 We measure the surplus/deficit with a quantity we call
-the \emph{information fit} ($\IBal$) (between ${\dg M}$ and $\mu$):
+the \emph{information fit} ($\IDef$) (between ${\dg M}$ and $\mu$):
 }
 %oli11: end comment. The summary at the end of our meeting was,
 %" Given a distribution, compare the cost of specifying \mu directly
@@ -2198,12 +2225,13 @@ Such a $\mu$ is arguably a \emph{better} fit to $G$, than a distribution that th
 %fit the graph better. 
 
 %oli12: removing "Formally", wrapping in a definition.
-\begin{defn}\label{def:info-deficit}
+\begin{defn}\label{def:info-deficiency}
 % Formally, 
 %joe10: you can't talk about an arbirary G and then use E^M
 %oli12: Typo. Changing M to G. 
 % for an arbitrary multi-graph $G$ on a set of variables $\N$, we define
 %	given a PDG ${\dg M}$, we
+%oli15: 
 For a multi-graph $G = (\N, \Ed)$ over a set $\N$ of variables,
 %oli12*: removing "difference.", which only tells you about the subtraction,
 % and nothing more; it also linguistically suggests "between" which immediately
@@ -2219,21 +2247,22 @@ For a multi-graph $G = (\N, \Ed)$ over a set $\N$ of variables,
 %don't have a particularly better alternative.  I would have a slight
 %preference for calling it the information deficiency (rather than
 %deficit) of G with %respect to \mu.
-define the \emph{$G$-information deficit}
+%oli15: information deficiency is just as good for me.
+define the \emph{$G$-information deficiency}
 %oli12: Information "difference between" is wrong.
 % it impliies something like   info(G)  -  info(\mu)  -->  number
 % but we're emphasizing         G ->  (function \mu -> number)
 %joe11: I didn't understand the comment above, but, as I said, I left deficit
-%% between ${\dg M}$ and a distribution $\mu$, denoted $\IBal{\dg M}(\mu)$,
-of distribution $\mu$, denoted $\IBal{G}(\mu)$,
+%% between ${\dg M}$ and a distribution $\mu$, denoted $\IDef{\dg M}(\mu)$,
+of distribution $\mu$, denoted $\IDef{G}(\mu)$,
 by considering the difference between (a) and (b), 
 where we measure the amount of information needed for a description
 using entropy: 
 \begin{equation}
 %oli12:
-% \IBal{\dg M}(\mu) := \sum_{\ed{L}XY \in \Ed^{\dg M}} \H_\mu(Y\mid X)
+% \IDef{\dg M}(\mu) := \sum_{\ed{L}XY \in \Ed^{\dg M}} \H_\mu(Y\mid X)
 % - \H(\mu).  
-\IBal{G}(\mu) := \sum_{(X,Y) \in \Ed} \H_\mu(Y\mid X) - \H(\mu). 
+\IDef{G}(\mu) := \sum_{(X,Y) \in \Ed} \H_\mu(Y\mid X) - \H(\mu). 
   \label{eqn:alt-extra}
 \end{equation}
 %oli11: I've rewritten the commented out material below.
@@ -2261,10 +2290,10 @@ $- \sum_{x,y \in \V(\{X,Y\})} \mu(x,y) \log \mu(y\mid x)$.)
 %}
 %oli12
 %joe11: this is necessary, since you made the definition for a graph.
-For a PDG ${\dg M}$, we take $\IBal{\dg M} = \IBal{G^{\dg M}}$.         
+For a PDG ${\dg M}$, we take $\IDef{\dg M} = \IDef{G^{\dg M}}$.         
 \end{defn}
 
-We illustrate $\IBal{\dg M}$ with some simple examples.  
+We illustrate $\IDef{\dg M}$ with some simple examples.  
 %joe10*: I find this incredibly frustrating.  I'm sure you spent hours
 %on this.  Unfortunately, these figures tell me NOTHING about the
 %definition we have given.  
@@ -2302,7 +2331,7 @@ There is no information required
 }
 %joe10: \end{commentout} followed by my rewrite
 Suppose that $\dg M$ has two nodes, $X$ and $Y$.  
-If $\dg M$ has no edges, the $\IBal{\dg M}(\mu) = - H(\mu)$.
+If $\dg M$ has no edges, the $\IDef{\dg M}(\mu) = - H(\mu)$.
 %joe11
 %There is no information required to specify, for each edge from $X$ to
 There is no information required to specify, for each edge in ${\dg
@@ -2310,15 +2339,15 @@ There is no information required to specify, for each edge in ${\dg
 $Y$, the value ${\mat w}_Y$ given ${\mat w}_X$, since there are no
 edges.
 Since we view smaller numbers as representing a better fit,
-$\IBal{\dg M}$ in this case will prefer the distribution that
+$\IDef{\dg M}$ in this case will prefer the distribution that
 maximizes entropy.
 If $\dg M$ has one edge from $X$ to $Y$, then since
 $H(\mu) = H_{\mu}(Y \mid X) + H_\mu(X)$ by the well known 
 \emph{entropy chain rule} \cite{mackay2003information},
-$\IBal{\dg   M}(\mu) = -H_{\mu}(X)$.
+$\IDef{\dg   M}(\mu) = -H_{\mu}(X)$.
 Intuitively, while knowing the conditional probability $\mu(Y \mid X)$
 is helpful, to completely specify $\mu$ we also need 
-$\mu(X)$.     Thus, in this case, $\IBal{\dg
+$\mu(X)$.     Thus, in this case, $\IDef{\dg
   M}$ prefers distributions that maximize the entropy of 
 the marginal on $X$.
 If $\dg M$ has  
@@ -2326,7 +2355,7 @@ If $\dg M$ has
 %joe13: undid change
  sufficiently many parallel edges
 %joe11*: Why is, say, 2 parallel edges sufficient to guarantee that
-%that \IBal > 0?  This is not at all obvious to me 
+%that \IDef > 0?  This is not at all obvious to me 
 %oli13: Oops, it's not. However, it is the condition required to get the
 % second thing you mention, which in context feels like the emphasis. What I
 % don't like about "sufficiently many" is that we're varying the graph while
@@ -2351,9 +2380,9 @@ an edge $1 \to X$, and also
 % Because of the context, I'm assuming you meant the former and changing it.
 % (so knowing $X$ tells you something about $Y$),
 (so that $Y$ is not totally determined by $X$)
-then we have $\IBal{\dg M}(\mu) > 0$, because the redundant edges add no
+then we have $\IDef{\dg M}(\mu) > 0$, because the redundant edges add no
 information, but there is still a cost to specifying them.
-In this case, $\IBal{\dg M}$ prefers distributions that make $Y$ a
+In this case, $\IDef{\dg M}$ prefers distributions that make $Y$ a
 deterministic function of $X$ will maximizing the entropy of the
 marginal on $X$.
 Finally, if ${\dg M}$ has an edge from $X$ to $Y$ and another from $Y$
@@ -2361,7 +2390,7 @@ to $X$, then
 %oli12
 % we minimize
 a distribution $\mu$ minimizes
-$\IBal{\dg M}$ when 
+$\IDef{\dg M}$ when 
 % $X$ and $Y$ depend on each other 
 %joe11: I don't like ``have randomness'', and it's unneessary.  I
 %don't see why ``vary together'' is better than ``depend on each
@@ -2419,7 +2448,7 @@ Moreover, if $X_i$ is independent of $X_k$ given $X_j$, then $H(X_i
 \mid X_j, X_k) = H(X_i\mid X_j)$.  It follows that if the
 independencies in $\mu$ are
 correctly represented by the PDG ${\dg M}$
-then $\IBal(\dg M;
+then $\IDef(\dg M;
 \mu) = 0$, where
 %joe7**: Is there any reason to believe that this is always positive
 %(or always negative, for that matter).  I'm prety sure that if we
@@ -2559,7 +2588,7 @@ then $\IBal(\dg M;
 %TODO: reference fact 3 in the proof of Theorem 4.1
 	If we take a variant of the extra information given by
 	\begin{equation}
-		\IBal'(\dg M; \mu) := \sum\alle \H_\mu(Y\mid X) - \H_\mu
+		\IDef'(\dg M; \mu) := \sum\alle \H_\mu(Y\mid X) - \H_\mu
 			\label{eqn:alt-extra}
 	\end{equation}
  	which uses this simpler term directly, we can get a clearer
@@ -2603,7 +2632,7 @@ then $\IBal(\dg M;
 %joe8: shortened a bit, since I said it above.
 %We now have two measures for how good a PDG ${\dg M}$ is at capturing
 %a distribution $\mu$. The first, $\Inc({\dg M}, \mu)$ measures how
-$\Inc({\dg M}, \mu)$ and $\IBal{\dg M},\mu)$ give us two measures
+$\Inc({\dg M}, \mu)$ and $\IDef{\dg M},\mu)$ give us two measures
 %oli10: "how close" is the wrong intuition, but measure of consistency is still fine.
 % for how close $\mu$ is to being consistent with ${\dg M}$.
 of compatibility between ${\dg M}$ and a distribution $\mu$.
@@ -2647,7 +2676,7 @@ We take the score of interest to be their sum, with the tradeoff
 %things to focus on.  But since it seems that we agree that the convex
 %combination is ``right'', let's do that for the full paper.
 	  % := (1-\gamma) \Inc(\dg M,\mu) + \gamma \extrainfo\mu
-	 := \Inc_{\dg M}(\mu) + \gamma \IBal{\dg M}(\mu)
+	 := \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu)
           %oli8: I'm not sure this equation is actually very helpful
           %joe7: it's not; let's cut it
    %		&= \!\! \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\!
@@ -2666,7 +2695,8 @@ We take the score of interest to be their sum, with the tradeoff
 %        The following just make precise that the scoring semantics
         The following just makes precise that the scoring semantics
         generalizes the first semantics.
-	\begin{prop}\label{prop:sd-is-zeroset}
+% \begin{prop}[restate=prop:sd-is-zeroset]\label{prop:sd-is-zeroset}
+\begthm{prop}{prop:sd-is-zeroset}
 %joe9:try to avoid ``any''
 %joe10
 %For all PDGs, $\dg M$, $\SD{\dg M} = \{ \mu : \bbr{\dg
@@ -2877,7 +2907,7 @@ distribution.  But if $\gamma$ is sufficiently small, then it does:
 %before adding a set of deterministic edges, it continues to be convex
 %afterwards. Is this actionable?
 %joe10: probably not worth it
-\begin{prop}\label{prop:sem3}
+\begthm{prop}{prop:sem3}
 If $\dg M$ is a PDG and $0 < \gamma \leq \min_L \beta_L^{\dg M}$, then $\bbr{\dg
 M}_\gamma^*$ is a singleton. 
 \end{prop}
@@ -2901,7 +2931,7 @@ S_{\gamma_i}$ for all $i$.
 %slogged through the algebra. I'm still holding out hope. 
 %oli11: added
 It can be further shown that 
-\begin{prop}\label{prop:limit-uniq}
+\begthm{prop}{prop:limit-uniq}
     %oli12:added
 %joe11: as a general rule, avoid using ``any''
   %  For any $\dg M$,
@@ -2984,7 +3014,7 @@ semantics by ensuring the limit%
 %joe8: \end{commentout}
 %oli11: removed paragraph break
 The semantics has an important property: 
-\begin{prop}\label{prop:consist}
+\begthm{prop}{prop:consist}
 $\bbr{\dg M}^* \in \bbr{\dg M}_0^*$; in particular, if $\dg M$ is consistent,
 then $\bbr{\dg M}^* \in \SD{\dg  M}$.
 \end{prop}
@@ -3000,7 +3030,7 @@ then $\bbr{\dg M}^* \in \SD{\dg  M}$.
 	\begin{remark}
 		If $\dg M$ is a consistent PDG, then 
 		$\bbr{\dg M}'_* = \bbr{\dg M}_*$
-	 	where $\bbr{\dg M}'_*$ is the variant of \eqref{eq:uniqdist} which uses the alternate formulation $\IBal'$ of the extra information in place of $\IBal$.
+	 	where $\bbr{\dg M}'_*$ is the variant of \eqref{eq:uniqdist} which uses the alternate formulation $\IBal'$ of the extra information in place of $\IDef$.
 	\end{remark}
 }
 
@@ -3336,46 +3366,24 @@ to the appendix. % (\Cref{def:bn2PDG}).
 \end{defn}
 
 	
-	\begin{theorem}[restate=thmbnsRpdgs]\label{thm:bns-are-pdgs}
-%oli11:
- 	% If $\cal B$ is a Bayesian network, then
+	% \begin{theorem}[restate=thmbnsRpdgs]\label{thm:bns-are-pdgs}
+    % \begin{restatable}{theorem}{bnsRpdgs}\label{thm:bns-are-pdgs}
+\begthm{theorem}{thm:bns-are-pdgs}
  	  If $\cal B$ is a Bayesian network
-%joe10
-          %          (specifying a distribution $\Pr_{\cal B}$), then
-                    and specifies the distribution $\Pr_{\cal B}$, then 
+%oli15:
+    % and specifies the distribution $\Pr_{\cal B}$, then 
+    and $\Pr_{\cal B}$ is the distribution it specifies, then
 %oli11: insert \betas, and reword because one semantics distribution is provably unique.
 	% for all $\gamma > 0$,
 	% we have $\bbr{\PDGof{{\mathcal B}}}_\gamma^* =
 	% \bbr{\PDGof{{\mathcal B}}}^*$.  Moreover, the unique probability distribution in
 	% $\bbr{\PDGof{{\mathcal B}}}^*$ is the distribution specified by
 	%             ${\mathcal B}$.
-%joe10
-%    for all $\gamma > 0$ and all vectors $\beta$ over the nodes of $\cal B$, 
     for all $\gamma > 0$ and all vectors $\beta$,
-                    %joe10: far too complex
-%	$\bbr{\PDGof{\mathcal B, \beta}_\gamma^*}$
-    %%        contains a unique   element, equal to $\bbr{\PDGof{\mathcal
-    $\bbr{\PDGof{\mathcal B, \beta}}_\gamma^* = \{Pr_{\cal B}\}$. 
-        %        B, \beta }}^* =
-%        	$\bbr{\PDGof{\mathcal B, \beta}_\gamma^*}
-%         = \{\bbr{\PDGof{\mathcal B, \beta }}^* =
-%        \Pr_{\cal B}$. 
-%oli11 line shave by moving to top
-%	where $\Pr_{\cal B}$ is the distribution specified by
-%	            ${\mathcal B}$.
-%joe8
-%%oli9
-%          % unique probability distribution $\mu^* \in
-%the          unique probability distribution $\mu_* \in
-%%joe4: I would prefer to use M_{\cal B} rather than \PDGof{\cal B}$,
-%%oli9: a distribution doesn't represent a BN, because the BN has extra
-            %%stuff like directions of arrows.
-%joe8: that might be true, but you can't introduce the notation Pr_B
-%out of the blue           
-%\bbr{\PDGof{\mathcal B}}_*$ is the one given by $\Pr_{\mathcal B}$.
-%oli9: this should have been commented out
-%                the conditional independencies of $\cal B$.	 
-	\end{theorem}
+    $\bbr{\PDGof{\mathcal B, \beta}}_\gamma^* = \{ \Pr_{\cal B}\}$. 
+%oli15: added
+    In particular, $\bbr{\PDGof{\mathcal B, \beta}}^* = \Pr_{\cal B}$.
+\end{theorem}
 
 	%oli11: For the full paper, once we add restriction & combination, add the following result for conditional BNs.
 %joe10*: If we include this, we'll need a *much* better story.  The
@@ -3663,12 +3671,13 @@ then the factor graph and the associated PDG have the same semantics.
 
 \commentout{
 %oli9: this holds more generally, illustrating that PDGs can carry factor graph data regardless of \theta, \beta.
-	\begin{prop}[restate=propfgpdglossless]%\label{prop:fg-pdg-lossless}
+	\begthm{prop}{prop:fg-pdg-lossless}
 		$\Phi \circ \PDGof = \mathrm{Id}_{\text{FG}}$. That is, if $F$ is a factor graph, then $\Pr_{\Phi(\PDGof{F})} = \Pr_F$.
 	\end{prop}
 }
 
-\begin{theorem}[restate=thmpdgisfg]\label{thm:pdg-is-fg}
+% \begthm{theorem}[restate=thmpdgisfg]\label{thm:pdg-is-fg}
+\begthm{theorem}{thm:pdg-is-fg}
 If $\dg M$ is a PDG with $\beta_L = \gamma$ for all 
 %oli12 line shave
 %edges
@@ -3678,10 +3687,14 @@ $\bbr{\dg M}_{\gamma}^* = \{\Pr_{\Phi({\dg M})} \}$.
  	% $\kldiv{\mu}{\Pr_{\Phi(\dg M)}} = \bbr{\dg M}_{1}(\mu)$
 	% In particular, $\Pr_{\Phi(\dg M)} = \bbr{\dg M}_*^{\gamma := 1}$
 \end{theorem}
-\begin{theorem}[restate=thmfgispdg]\label{thm:fg-is-pdg}
+% \begin{theorem}[restate=thmfgispdg]\label{thm:fg-is-pdg}
+\begthm{theorem}{thm:fg-is-pdg}
 %oli12: line shave
 % If $\Phi$ is a factor graph, then
 For a factor graph $\Phi$,
+%oli15: important clarification, because we've now edited "factor graph" to 
+% mean something that includes weights
+with every $\theta_L = \gamma$, has 
  	% for any joint distribution $\mu$ on $\V(\mathcal X)$, we
         % have $\kldiv{\mu}{\Pr_\Phi} = \bbr{\PDGof{(\Phi)}}_{1}(\mu)$ 
 %joe8: again
@@ -3693,6 +3706,8 @@ For a factor graph $\Phi$,
 %joe10
 %        where $k$ is a constant, and 
 for some constant $k$, and 
+%oli15 line break is gone anyway so might as well add
+so in particular,
         $\bbr{\PDGof{\Phi}}_{\gamma}^* = \{\Pr_{\Phi} \}$. 
 \end{theorem}
 %oli12: I still think this is critical. Edited surrounding text.
@@ -3701,12 +3716,13 @@ for some constant $k$, and
 %$\bbr{\dg M}$ as follows:
 Justification for both theorems is provided by rewriting
 $\bbr{\dg M}_\gamma$ as follows: 
-\begin{prop}[restate=propnicescore] \label{prop:nice-score}
+\begin{prop}[restate=prop:nice-score,label=prop:nice-score]% \label{}
+% \begin{restatable}{prop}{propnicescore}\label{prop:nice-score}
 %oli12: I still think this is critical. 
 %joe10*: you have to come up with better notations.  Perhaps replace x
 %and y by W_X and w_Y.  As it is, it makes your equation unparseable.
 %oli12: edited for a dependene on $W$. Using lower case of the same letter,
-% for values of random variables is standard, so I've done it this way.
+% for values of random variables is standard, so I've done it this  way.
 %joe11
 %  Denoting with $x^{\mat w}$ and $y^{\mat w}$ the respective values of
 %  $X$ and $Y$ at $\mat w \in \V(\dg M)$, 
@@ -3881,7 +3897,7 @@ Consider the simplest situation, where $p$ and $q$ are both associated
 with the same distribution on $X$.  For definiteness, suppose that
 $\V(X) = \{x_1,x_2\}$, 
 %oli10*: I don't understand this example. Why does Gib alone matter? 
-% Also I'm not convinced by the argument in any setting: just because the ones that give probability 1 and 0 are the ones that minimize \IBal, doesn't mean that all intermediate distributions score the same. Actually the scores definitely will not cancel.
+% Also I'm not convinced by the argument in any setting: just because the ones that give probability 1 and 0 are the ones that minimize \IDef, doesn't mean that all intermediate distributions score the same. Actually the scores definitely will not cancel.
 %oli10: I'm happy to reinstate this or a variant if you still think it's useful and true.
 %
 % and the distribution ascribes is $\mu_{1/2}$,
@@ -3890,7 +3906,7 @@ $\V(X) = \{x_1,x_2\}$,
 % consistent with this PDG, so $\bbr{\dg M} = \{\mu_{1/2}\}$, by
 % Proposition~\ref{prop:sem3}.  
 % But it is not hard to see that there are two distributions that
-% minimize $\IBal(\dg M; \mu)$, the ones that give $x_1$ either
+% minimize $\IDef(\dg M; \mu)$, the ones that give $x_1$ either
 % probability 1 or probability 0.  As a consequence,
 % $\bbr{\dg   M}_{1/2}^*$ consists of \emph{all} distributions.
 %
@@ -4233,8 +4249,8 @@ uniquely modular.
 \item They allow for a clean separation between quantitiatve
   information (the cpds) and more qualitative information contained by
 %joe10
-%  the graph struture; this is captured by the terms $\Inc$ and $\IBal$
-    the graph structure; this is captured by the terms $\Inc$ and $\IBal{}$
+%  the graph struture; this is captured by the terms $\Inc$ and $\IDef$
+    the graph structure; this is captured by the terms $\Inc$ and $\IDef{}$
   in our scoring function.
 \item PDGs have (several) natural semantics;
 %oli11 added
@@ -4429,7 +4445,7 @@ PDGs are powerful statistical models, but are by necessity
 semantically more complicated than many existing methods. This will
 likely restrict their accessibility. To mitigate this, we commit to
 making sure our work is widely accessible to researchers of different
-backgrounds,
+backgrounds.
         
 \begin{ack}
 	% \section*{Acknowledgments and Disclosure of Funding}
@@ -4447,6 +4463,7 @@ backgrounds,
 %\addbibresource{../maths.bib}
 %\addbibresource{graphical-models.bib}
 
+\appendix
 \include{appendix}
 
 \end{document}
