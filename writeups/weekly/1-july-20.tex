@@ -1,0 +1,122 @@
+% !TeX TXS-program:bibliography = txs:///bibtex
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+
+\usepackage{mathtools,amssymb}
+\usepackage{amsthm}
+\usepackage{thmtools} % asmsymb must be loaded also.
+	\theoremstyle{plain}
+	\newtheorem{poss}{Possible Result}
+	\theoremstyle{definition}
+	\declaretheorem[name=Definition,qed=$\square$]{defn}
+	\declaretheorem[name=Example,qed=$\square$]{example}
+	\theoremstyle{remark}
+	\newtheorem*{remark}{Remark}
+	
+\usepackage{color}
+\usepackage{enumitem}
+\usepackage[colorlinks=true]{hyperref}
+
+\DeclarePairedDelimiterX{\bbr}[1]{[}{]}{\mspace{-3.5mu}\delimsize[#1\delimsize]\mspace{-3.5mu}}
+\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+\newcommand{\dg}[1]{\mathbdcal{#1}}
+\newcommand{\thickD}{I\mkern-8muD}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{#1\;\delimsize\|\;#2}
+\newcommand{\kldiv}{\thickD\infdivx}
+
+
+\begin{document}
+	\begin{center}
+		\bf\Large July 1 Report + Meeting Summary
+	\end{center}
+	\medskip
+	
+
+	We are looking to build upon the first paper, which defines PDGs and their semantics, and displays their expressive power. 
+	In the last three meetings, our focus has shifted with the following order.
+
+	\begin{enumerate}
+		\item \textbf{Resolving inconsistency.} Having decided what PDGs are capable of representing, and emphasized their possible inconsistency, we wanted to write a paper focusing on how one resolves inconsistency. The original paper answers the question about which distribution is most appropriate. Taking the conditional marginals along the PDG edges gives 
+		
+		\item \textbf{PDG Dynamics.} Last week we decided to look into the way PDGs change over time, in a broader sense; reducing inconsistency is only one of many drivers of change in a PDG. Others include mere observation (simply incorporating something into a PDG), additions of concepts, reasoning, and perhaps most importantly, the processes of forgetting and compressing cpts and deleting variables, which is necessary for an agent with finite memory.
+		
+		We are still hoping that natural heuristics for keeping a PDG below resource budgets can be seen as ``cognitive biases'' from the behavioral economics literature. There is hope for this in a few places:
+		\begin{enumerate}
+			\item Nika's recent paper on polarization may be a special case of this, when the compression heuristic is to use only a deterministic function. 
+			\item The motivation for PDGs in the first place suggests that PDGs will be able to explain things such as value capture and inconsistent answers to framing problems.
+			\item Any SPACE approximation hardness result for a PDG computation ensures that a resource-bounded agent must necessarily exhibit some such behavior.
+		\end{enumerate}
+		To defend this line of thought, we would like to claim that with these resource limitations, the `best reasonable' algorithms have these effects. We must first explicate `best', which requires a model of how one uses PDGs to answer questions, even in the static case.
+		
+		\item \textbf{PDG Queries.} To that end, we now shift our focus towards developing a query model for PDGs. As we have suggested in the past, PDGs are like probabilistic databases. When we consider the special case in which every cpt is a deterministic function (or partial function, in the non-strict case), I claim that we can precisely describe a relational database, and moreover that the underlying graph is the same as the database schemea.
+		
+		In any case, the goal is now to explain how PDGs answer queries, ground the computational complexities of these answers, and the representational complexities of their corresponding PDGs. These questions ought be addressed before we may proceed with an account of PDG dynamics: we have to know what questions are easy and hard to answer with a PDG, before we get caught up in making sure that a resource-constrained PDG is in some sense ``good''.
+		
+		\href{https://www.researchgate.net/publication/221590198_The_Complexity_of_Relational_Query_Languages_Extended_Abstract}{Vardi's 1982 paper} was mentioned. After we more carefully establish the correspondence between PDGs and databases, these complexity concerns will become relevant special cases.
+		
+		
+	\end{enumerate}
+	
+	
+	\section{Queries}
+	
+	\begin{defn}
+		A \emph{query} is a pair ($S, T$) of variables, and a response to the query is a conditional probability distribution of $T$ given $S$. 
+	\end{defn}
+	
+	One notion of closeness, which matches the one that we have given in PDG semantics themselves, is the expected KL divergence $\kldiv p q$ from the given cpd $p$ to the a gold standard cpd $q$. However, we do not want to treat all queries the same way.
+	
+	\medskip
+	\begin{example}[some queries more important than others]
+		A doctor, whose variables include ``patient instance'', ``symptoms'', ``disease'', and  ``appropriate treatment'', should care much more about making good predictions about disease given symptoms, and symptoms given patient instance, than patient instance given disease. Even the former two are mostly only useful so that ``$\Pr($appropriate treatment $\mid$ patient ID$)$'' is optimal.
+	\end{example}
+	
+	
+	\subsection{Complexity Concerns}
+	
+	We have not yet told a reader how exactly to answer a query, given access to a PDG. There are some natural answers to this question:
+	\begin{enumerate}
+		\item The conditional marginal $\bbr{\dg M}^*(T \mid S)$ that the PDG corresponds to the distribution
+		\item The above can be thought of a zero-temperature Boltzmann distribution over the free energy landscape defined by a PDG. Higher temperature Boltzmann distributions, in which the marginal is informed not just the distribution that has the very smallest score, but also influenced by other low-scoring distributions, are also worth considering.
+		\item The result of employing derivation rules (e.g., composition, Bayes' rule) to generate the desired conditional marginal.
+	\end{enumerate}
+	
+	\subsection{Caching}
+	Once a query has been asked, the structure of a PDG allows the result to simply be saved in memory. If we believe that recently requested queries will be requested more in the future (as is the case with processors), simply saving the result of the computation directly to the PDG itself is a good way of 
+	
+	\medskip
+	\begin{poss}
+		This could lead to confirmation bias, and in the case of preferences, value capture. If $\beta_L > 0$ for the new edge $L$, we see redundancy for the belief begin to form, and its certainty increase, despite a lack of observation. 
+	\end{poss}
+
+	
+	
+	Even further, there is no reason a PDG cannot also represent the meta-level the fact that a query was asked in the first place. More we can track the likely distribution of queries, internal to the PDG itself. 
+	
+	This could some very interesting effects. Given different beliefs about the likelihood or importance of queries, one might answer queries differently, even if in every case, one is optimizing for accuracy. I suspect that this effect only occurs for inconsistent PDGs.
+	
+%	\section{Representation}
+%	\begin{remark}
+%		The fact that (lax) PDGs are equivalent to the case where rows may be omitted, is related to the fact that 
+%	\end{remark}
+	
+	
+	\section{Some Concrete Questions to Think About}
+	
+	\begin{enumerate}
+		\item What is the query language? What are semantics of a query? What makes an answer good or bad? How do we articulate the fact that we care about some queries more than others?
+		\item Relevant assumptions: de need to consider a distribution over possible queries? a utility function over queries? If so, what properties do we need to assume in order to capture something reasonable?
+		\item What kinds of complexity are we going to track?
+		\begin{enumerate}[nosep]
+			\item The space complexity to store PDG data: i.e., the total number of matrix entries. 
+			\item The representational complexity of a PDG --- that is, the number of nodes, regularity of the structure, and simplicity of the graph topology. 
+			\item The computational complexity of answering queries, given a compressed PDG.
+			\item The computational complexity of forming / updating a PDG, from raw observational data.
+		\end{enumerate}
+		The first three are relevant for just static concerns, and the last one is important for dynamics. 
+	\end{enumerate}
+	
+\end{document}
