@@ -114,6 +114,7 @@
 \crefname{fact}{fact}{facts}
 
 \usepackage{subcaption}
+%\usepackage{subfig}
 	\captionsetup[subfigure]{subrefformat=simple,labelformat=simple}
 	\renewcommand\thesubfigure{(\alph{subfigure})}
 
@@ -164,16 +165,17 @@ and in probabilistic programming frameworks, such as \href{https://pyro.ai/}{Pyr
 
 
 
-On the other hand, many 
+\todo{Address Joe's comments and input email / org file}
 
-
-
-\begin{description}
-	\item[The problem I'm solving.]
-	\item[Why this problem is intereesting.]
-	\item[Some example instances of the problem.]
-	\item[Why this problem is non-trivial.]
-\end{description}
+%On the other hand, many 
+%
+%
+%\begin{description}
+%	\item[The problem I'm solving.]
+%	\item[Why this problem is intereesting.]
+%	\item[Some example instances of the problem.]
+%	\item[Why this problem is non-trivial.]
+%\end{description}
 
 
 %
@@ -275,10 +277,103 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
     The definition of an untyped database with underlying domain $D$ is a special case of a typed database, where $\Attrs = \mathbb N$ corresponding to the argument index, set every $\Doms_n := D $, and every $\sch_{i,j} = \mathbbm1[j \le \arity(i)]$. 
     In some sense, the two are equally expressive: we can also simulate a typed database $\D$ with an untyped one. Simply set $D := \uplus_j \mathcal D_j$ to be the disjoint union of all domains, and $\arity(i) := |\sch_i|$. Now any table $R_i \in \Rels^\D$ can be directly used as a table in the untyped database, since
     \[R_i \subseteq \mat D_i = \prod_{j \in \sch_i} \mathcal D_{j} 
-		\subseteq \prod_{j \in \sch_i} D = \prod_{j = 1}^{\arity_i} D = 
+		\subseteq \prod_{j \in \sch_i} D = \prod_{j = 1}^{\arity(i)} D = 
         D^{\arity(i)} .\] 
   	The definitions are not equivalent, and the typed version is more expressive, because it disallows some rows by fiat (which has a different meaning from being absent from the relation), encoding type-level constraints. This is nice even within the context of databases, since a ds. By naming $A$, we can explicitly restrict the  allowable collections of attributes, which with which we will be able to define classes of databases which behave like other specific graphical models.
 \end{remark}
+
+
+\begin{figure}
+	\centering
+	\subcaptionbox{ The three tables of $\D$\label{subfig:tables} }{ 
+		\begin{tikzpicture}[baseline=0, tablename/.style={inner sep=1pt,circle,text=black,font={}}]
+			%fill=gray!20
+			\node at (1,1.5){\textbf{Database}};
+			
+			\node[tablename] (R1) at (-1.3,1.2) {\large$\mathbf R_1$};
+			\node[below right=-0.2em and -1.2em of R1] (table1) {
+				\begin{tabular}{ccc@{}}
+					$\var A$ & $\var B$ & $\var C$\\\hline
+					$a_1$ & $b_1$ & $c_1$ \\ $a_2$ & $b_2$ & $c_2$ 
+				\end{tabular}
+			};
+			\draw[] ($(R1.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1);
+			\draw[] ($(R1.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1);
+			\fill[white] ($(R1.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1);
+			
+			
+			\node[tablename] (R3) at (-0.5,-0.8) {\large$\mathbf R_3$};
+			\node[below right=-0.6em and -0.6em of R3] (table1) {
+				\begin{tabular}{cc@{}}
+					$\var C$ & $\var D$\\\hline
+					$c_2$ & $d_1$ \\ $c_1$ & $d_3$  
+				\end{tabular}
+			};
+			\draw[] ($(R3.south east)+(.2,.1)$) -- ++(-0.2,-0.2) -- ++(0,-1);
+			\draw[] ($(R3.south east)+(.18,.12)$) -- ++(-0.2,-0.2) -- ++(0,-1);
+			\fill[white] ($(R3.south east)+(.19,.12)+(-0.2,-0.2)$) rectangle ++(-0.1,-1);
+			
+			%        \node[draw,circle,inner sep=0.2pt,fill=gray!50] (R2) at (1.3,1) {\large$R\mspace{-3.5mu}R_2$};
+			\node[tablename] (R2) at (1.6,0.7) {\large$\mathbf R_2$};%\mspace{-12.5mu}R
+			\node[below right=-0.2em and -1.2em of R2] (table2) {
+				\begin{tabular}{cc@{}}
+					$\var B$ & $\var D$ \\\hline
+					$b_2$ & $d_1$ \\ $b_3$ & $d_2$ \\
+					$b_4$ & $d_3$
+				\end{tabular}
+			};
+			\draw[] ($(R2.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
+			\draw[] ($(R2.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
+			\fill[white] ($(R2.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1.6);
+		\end{tikzpicture}
+	}
+	\hfill\vline\hfill
+	\subcaptionbox{ Its schema $\sch^\D$, as an undirected hypergraph\label{subfig:schema}}{
+		\begin{tikzpicture}[baseline=0]
+			\node at (0,1.5) {\textbf{Relational Schema}};
+			\node[dpadded] (A) at (-2,-0.4){$\var A$};
+			\node[dpadded] (B) at (-0.5, 0.5){$\var B$};
+			\node[dpadded] (C) at (-0.5,-1.3){$\var C$};
+			\node[dpadded] (D) at (1.5,0.5){$\var D$};
+			
+			\coordinate (ABC) at (barycentric cs:A=1,B=1,C=1);
+			\node[above left=1pt and -4pt of ABC]{$R_1$};
+			
+			\draw[arr, -, shorten >=0, shorten <=1.5pt] (A) -- (ABC) (B) -- (ABC) (C) -- (ABC);
+			\draw[arr, -, shorten >=0] (D) -- node[above]{$R_2$} (B);
+			
+			\draw[arr, -, shorten >=0] (D) -- node[below right]{$R_3$} (C);
+		\end{tikzpicture}
+	}
+	\hfill\vline\hfill
+	\subcaptionbox{ The PDG $\PDGof{\sch^\D}$\label{subfig:indexed}}{
+		\begin{tikzpicture}[baseline=0]
+			\node at (1.5,1.5) {\textbf{Explicit Indices}};
+			\node[dpadded] (A) at (-0.6,-1.2){$\var A$};
+			\node[dpadded] (C) at (1.4,-1.5){$\var C$};
+			\node[dpadded] (B) at (0.5, 0.5){$\var B$};
+			\node[dpadded] (D) at (3.3,0.6){$\var D$};
+			
+			\node[dpadded,inner sep=2pt] (R1) at (barycentric cs:A=1,B=1.5,C=1){$\var R_1$};
+			\node[dpadded,inner sep=2pt] (R2) at (barycentric cs:B=1,D=1){$\var R_2$};
+			\node[dpadded,inner sep=2pt] (R3) at (barycentric cs:C=1,D=1){$\var R_3$};
+			% \node[above left=1pt and -4pt of ABC]{$R_1$};
+			
+			\begin{scope}[->, thick, shorten <=0pt, shorten >=0pt]
+				\draw (R1) -- (A);
+				\draw (R1) -- (B);
+				\draw (R1) -- (C);
+				\draw (R2) -- (B);
+				\draw (R2) -- (D);
+				\draw (R3) -- (D);
+				\draw (R3) -- (C);
+			\end{scope}
+		\end{tikzpicture}
+	}
+	
+	\caption{A simple relational database $\D$ \subref{subfig:tables}, its schema \subref{subfig:schema}, and an encoding as a PDG \subref{subfig:indexed} with a ``variable'' for a row index. Note that we do not interpret two arrows into an attribute (such as those from $R_1$ and $R_2$ to $B$) as a joint dependence, so this directed representation should not be interpreted as a BN, but rather as a PDG.} \label{fig:sketches}
+\end{figure}
+
 
 \begin{example}\label{ex:abcd}
 	Consider a database $\D$ with three tables $R_1, R_2, R_3$, where $R_1$ has columns $\{A,B,C\}$, $R_2$ has columns $\{B,D\}$, and $R_3$ has columns $\{C,D\}$. The data we have specified so far is qualitative in nature, and forms precisely the schema.
@@ -350,6 +445,7 @@ In this sense, the resulting constraint graph%
 	Interpreted with factor graph semantics, it gives the uniform distribution over joint settings that satisfy the constraints, because each world either has a score of 1 or 0, and the result is normalized.}
 respresents a set of complete choices of domain elements $(a,b,c,d)$ that satisfies all three relations (that is, $(a,b,c) \in R_1$, $(b,d) \in R_2$, and $(c,d) \in R_3$), which in this case consists only of $\{(a_2,b_2, c_2,d_1)\}$. If there were no overlap between the values of $B$ in the two tables, the constraints would be unsatisfiable. 
 
+
 For the analogy to make sense, implicitly, a ``possible world'' is in this setting must be a selection from each domain.
 This is of course not at all what most people would mean say about a ``possible world'' in the setting of probabilistic databases. 
 The dominant view is that a particular database is a constraint graph, and so a probabilistic database is a distribution over constraint graphs. 
@@ -375,90 +471,6 @@ Before we get into the details (\Cref{sec:PDG-db-details}), we'll start with som
 \subsection{Illustrations}
 
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}[baseline=0, tablename/.style={inner sep=1pt,circle,text=black,font={}}]
-    	 %fill=gray!20
-        \node at (1,1.5){\textbf{Database}};
-               
-        \node[tablename] (R1) at (-1.3,1.2) {\large$\mathbf R_1$};
-        \node[below right=-0.2em and -1.2em of R1] (table1) {
-            \begin{tabular}{ccc@{}}
-                $\var A$ & $\var B$ & $\var C$\\\hline
-                $a_1$ & $b_1$ & $c_1$ \\ $a_2$ & $b_2$ & $c_2$ 
-            \end{tabular}
-        };
-	    \draw[] ($(R1.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1);
-  		\draw[] ($(R1.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1);
-  		\fill[white] ($(R1.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1);
-  		
-  		
-  		\node[tablename] (R3) at (-0.5,-0.8) {\large$\mathbf R_3$};
-  		\node[below right=-0.6em and -0.6em of R3] (table1) {
-  			\begin{tabular}{cc@{}}
-  				$\var C$ & $\var D$\\\hline
-  				$c_2$ & $d_1$ \\ $c_1$ & $d_3$  
-  			\end{tabular}
-  		};
-  		\draw[] ($(R3.south east)+(.2,.1)$) -- ++(-0.2,-0.2) -- ++(0,-1);
-  		\draw[] ($(R3.south east)+(.18,.12)$) -- ++(-0.2,-0.2) -- ++(0,-1);
-  		\fill[white] ($(R3.south east)+(.19,.12)+(-0.2,-0.2)$) rectangle ++(-0.1,-1);
-    
-%        \node[draw,circle,inner sep=0.2pt,fill=gray!50] (R2) at (1.3,1) {\large$R\mspace{-3.5mu}R_2$};
-        \node[tablename] (R2) at (1.6,0.7) {\large$\mathbf R_2$};%\mspace{-12.5mu}R
-        \node[below right=-0.2em and -1.2em of R2] (table2) {
-            \begin{tabular}{cc@{}}
-                $\var B$ & $\var D$ \\\hline
-                $b_2$ & $d_1$ \\ $b_3$ & $d_2$ \\
-                $b_4$ & $d_3$
-            \end{tabular}
-        };
-	    \draw[] ($(R2.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
-	    \draw[] ($(R2.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
-	    \fill[white] ($(R2.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1.6);
-    \end{tikzpicture}
-    \hfill\vline\hfill
-    \begin{tikzpicture}[baseline=0]
-        \node at (0,1.5) {\textbf{Relational Schema}};
-        \node[dpadded] (A) at (-2,-0.4){$\var A$};
-        \node[dpadded] (B) at (-0.5, 0.5){$\var B$};
-        \node[dpadded] (C) at (-0.5,-1.3){$\var C$};
-        \node[dpadded] (D) at (1.5,0.5){$\var D$};
-
-        \coordinate (ABC) at (barycentric cs:A=1,B=1,C=1);
-        \node[above left=1pt and -4pt of ABC]{$R_1$};
-        
-        \draw[arr, -, shorten >=0, shorten <=1.5pt] (A) -- (ABC) (B) -- (ABC) (C) -- (ABC);
-        \draw[arr, -, shorten >=0] (D) -- node[above]{$R_2$} (B);
-        
-	    \draw[arr, -, shorten >=0] (D) -- node[below right]{$R_3$} (C);
-    \end{tikzpicture}
-    \hfill\vline\hfill
-    \begin{tikzpicture}[baseline=0]
-        \node at (1.5,1.5) {\textbf{Explicit Indices}};
-        \node[dpadded] (A) at (-0.6,-1.2){$\var A$};
-        \node[dpadded] (C) at (1.4,-1.5){$\var C$};
-        \node[dpadded] (B) at (0.5, 0.5){$\var B$};
-        \node[dpadded] (D) at (3.3,0.6){$\var D$};
-
-        \node[dpadded,inner sep=2pt] (R1) at (barycentric cs:A=1,B=1.5,C=1){$\var R_1$};
-        \node[dpadded,inner sep=2pt] (R2) at (barycentric cs:B=1,D=1){$\var R_2$};
-        \node[dpadded,inner sep=2pt] (R3) at (barycentric cs:C=1,D=1){$\var R_3$};
-        % \node[above left=1pt and -4pt of ABC]{$R_1$};
-        
-        \begin{scope}[->, thick, shorten <=0pt, shorten >=0pt]
-            \draw (R1) -- (A);
-            \draw (R1) -- (B);
-            \draw (R1) -- (C);
-            \draw (R2) -- (B);
-            \draw (R2) -- (D);
-            \draw (R3) -- (D);
-            \draw (R3) -- (C);
-        \end{scope}
-    \end{tikzpicture}
-    
-    \caption{a simple relational database (left), the undirected hyper-graph depicting its schema (center), and an encoding as a PDG including variables for the row indices (right). Note that we must interpret the two rows into B separately, and not as a joint dependence, so the directed representation is not possible with standard graphical models.} \label{fig:sketches}
-\end{figure}
 \begin{example}
     With reference to \Cref{fig:sketches}, let's construct a typed relational database with domains $\var{A, B, C, D}$, and relations $R_1 \subseteq \mathcal V(\var{A\times B \times C}); R_2 \subseteq \mathcal V(\var{B, D})$. To specify $R_1$ and $R_2$ is to fill in rows of the tables on the left of the figure. We then present two graphical illustrations.
     
@@ -922,11 +934,19 @@ The example below differs from the illustration of a Cartesian product only in t
 
 \section{Link Guard Variables} \label{sec:link-gurad}
 
-Often predicates are false, when we talk about them, we do not want to assert their truth. 
+Predicates can fail to hold; not every person is friends with every other person. It would be nice to have an edge of the graph 
+
+It is very often c
+However, 
+
+We would like to talk about predicates, without asserting their truth. 
+
+
 Without any modifications, a link $\ed LXY$ in a PDG $\dg M$ is effectively an assertion that the variables $X$ and $Y$ enjoy the relation described by $L$. Interpreted in the relational setting, we have specified a (directed and probabilistic) relation $L$, between $X$ and $Y$; but it may be that this relation does not hold. At the very least, we might want to entertain the possibility.%
 	\footnote{Entertaining this possibility means we are no longer quite using an \emph{optimal} encoding to transmit our beliefs, but rather also adding some additional bits of redundancy to make sure that. This appears to be analogous to a noisy channel in information theory.}
 
 \section{The Computation of a PDG} \label{sec:automaton}
+
 The scoring semantics $\bbr{-}$ developed in the previous work is clearly only enough to capture the joint-distribution view of a possible world. However, given that scoring functions are contravariant, we may as well extend it to other, more general general objects. At the same time, we will be able to explain how PDGs can be computed with. 
 
 
@@ -939,11 +959,18 @@ Given that the scoring function for joint distributions don't quite capture all 
 The original PDG semantics (the score of a joint distribution) may now be recovered as a 
 }
 
+\section{A PDG within a PDG: The Levels Begin}\label{sec:levels}
 
+A schema $\sch : \Idx \to \Attrs$
+
+
+\section{The Expanded Semantics}
 
 \bibliographystyle{alpha}
 \bibliography{../papers/repr/joe.bib,../db.bib}
 \appendix
 
     
+
+
 \end{document}
