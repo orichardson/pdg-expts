@@ -33,6 +33,16 @@
 \usepackage{amsthm}
 \usepackage{thmtools} % asmsymb must be loaded also.
 
+\makeatletter
+\begingroup
+\@for\theoremstyle:=definition,remark,plain\do{%
+	\expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
+		\addtolength\thm@preskip\parskip
+	}%
+}
+\endgroup
+\makeatother
+
 	\newtheorem{poss}{Possible Result}
 	\declaretheorem[name=Intuition]{intu}
 	\theoremstyle{definition}
@@ -226,7 +236,7 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
     	$\Attrs$ & \oftype{\Set} & is a finite set of attribute names, \\
     	$\Idx$ & \oftype{\Set} & is a finite set of table names,\\
     	$\Doms$ & \oftype{\Attrs \to \Set} & assigns a domain of possible values to each attribute name, and \\
-    	$\sch$ & \oftype{\Idx \to \Attrs \to \two,} & called the \emph{schema} of $\D$, assigns a multi-set of attribute names $\Attrs$ to each table name (corresponding to the table columns).
+    	$\sch$ & \oftype{\Idx \to \Attrs \to \Set,} & called the \emph{schema} of $\D$, assigns a multi-set of attribute names $\Attrs$ to each table name (corresponding to the table columns).
  \\[0.5em]\multicolumn{3}{@{}p{\textwidth}@{}}{
  	In this way, $\sch$ gives the database type structure: it ensures that column $j$ of the $i^\text{th}$ table comes from the specific attribute $j \in \Attrs$. The arity function can be defined by flattening all of the type information in the schema, and reducing $\sch_i$ to its length: $\arity(i) := | \sch_i |$.
 	Together, $\sch$ and $\Doms$ determine a product domain $\mat D_i := \prod_{j \in \sch_i} \Doms_{j}$ of valid tuples in the relation $R_i$. With this, we can define the final and most important component of a database, the tables themselves:
@@ -265,6 +275,7 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 	Since $\Idx$, and $\Attrs$ are implicit in the type of $\sch$, and $\Doms$ is implicit in the definition of $\Rels$,
 	we sometimes use the abbreviated form $\D = (\sch, \Rels)$. %where $\sch$ is understood to be packaged with appropriate data for $\Idx, \Attrs$, and $\arity$. 
 \end{defn}
+\medskip
 %\begin{defn}
 %	The component $\Att^\D$ of a typed database $\D = (\mathcal D, I, \arity, \Att, \mathcal R)$, is the \emph{schema} of $\D$. %$(I, \Att)$ defines a hypergraph. 
 %\end{defn}
@@ -374,7 +385,7 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 	\caption{A simple relational database $\D$ \subref{subfig:tables}, its schema \subref{subfig:schema}, and an encoding as a PDG \subref{subfig:indexed} with a ``variable'' for a row index. Note that we do not interpret two arrows into an attribute (such as those from $R_1$ and $R_2$ to $B$) as a joint dependence, so this directed representation should not be interpreted as a BN, but rather as a PDG.} \label{fig:sketches}
 \end{figure}
 
-
+\medskip
 \begin{example}\label{ex:abcd}
 	Consider a database $\D$ with three tables $R_1, R_2, R_3$, where $R_1$ has columns $\{A,B,C\}$, $R_2$ has columns $\{B,D\}$, and $R_3$ has columns $\{C,D\}$. The data we have specified so far is qualitative in nature, and forms precisely the schema.
 	%(and the other components of a typed database implicit in it).
@@ -448,13 +459,16 @@ respresents a set of complete choices of domain elements $(a,b,c,d)$ that satisf
 
 For the analogy to make sense, implicitly, a ``possible world'' is in this setting must be a selection from each domain.
 This is of course not at all what most people would mean say about a ``possible world'' in the setting of probabilistic databases. 
-The dominant view is that a particular database is a constraint graph, and so a probabilistic database is a distribution over constraint graphs. 
-
- in which a possible world is a complete database, and the tables on the left of \Cref{fig:sketches}. Specifically, we will need to address the following issues with this picture:
+If a particular database is a constraint graph, and so a probabilistic database is a distribution over constraint graphs. To justify our approach, we will need to address two issues with the picture thus far.
 
 \begin{enumerate}
-	\item  In general, we are not thinking of  $A, B, C, D$ as random variables that ``take a single value''; all attributes are taken at once by different elements of the domain. We will argue why that this practice is not meaningfully different from what needs to be done to model other things with graphical models; we will ultimately resolve it in a more satisfactory way in \Cref{sec:possible-world}.
-	\item Even if there is a reasonable notion of ``possible world'' that is a joint setting of attributes, the mere existence of a table in a database does not constitute an assertion that its corresponding relational predicate is true. In fact, any table with zero rows (an empty relation) is unsatisfiable, making the corresponding graphical model inconsistent. This is resolved by conditioning on the truth of the predicate itself (which we call a \emph{link guard}) in \Cref{sec:link-gurad}. This turns out to be equivalent to adopting the stance that some variables can take a ``none of the above'' value, on which interpretations of arrows are silent%
+	\item  \itshape In general, we are not thinking of  $A, B, C, D$ as random variables that ``take a single value''; all attributes are taken at once by different elements of the domain. 
+\end{enumerate}
+We will argue why that this practice is no worse than the independence assumtpions that would otherwise need to be made  in order to model the database itself; we will ultimately resolve it in a more satisfactory way in \Cref{sec:possible-world}.
+
+
+\begin{enumerate}[resume]
+	\item \itshape Even if there is a reasonable notion of ``possible world'' that is a joint setting of attributes, the mere existence of a table in a database does not constitute an assertion that its corresponding relational predicate is true. In fact, any table with zero rows (an empty relation) is unsatisfiable, making the corresponding graphical model inconsistent. This is resolved by conditioning on the truth of the predicate itself (which we call a \emph{link guard}) in \Cref{sec:link-gurad}. This turns out to be equivalent to adopting the stance that some variables can take a ``none of the above'' value, on which interpretations of arrows are silent%
 	\footnote{This is the left half of the additional benefit we get from general PDGs over strict ones; the right half is not assigning all of the probability mass, or \emph{sub-stochasticity}. }
 \end{enumerate}
 
@@ -825,7 +839,7 @@ Now come the three important main predicates of relational algebra, as given in 
 		\node[dpadded] (A) at (0,-0.5){$\var A$};
 		\node[dpadded] (B) at (1,0){$\var B$};
 		\node[dpadded] (C) at (2,0.5){$\var C$};
-		\node[dpadded] (1) at (-2, -1.5){$\var 1$};
+%		\node[dpadded] (1) at (-2, -1.5){$\var 1$};
 		
 		\node[dpadded, inner sep=5pt] (R1) at (0,1.5){$\var R$};
 		
@@ -841,18 +855,21 @@ Now come the three important main predicates of relational algebra, as given in 
 			%				\draw[arr, -] (Q) -- (A) (Q) -- (C) (B) -- (Q);
 			%			\end{scope}
 			%			\draw[arr, shorten <=0] (Q) -- (phi);
-			\draw[arr] (phi) -- (A);
-			\draw[arr] (phi) -- (B);
-			\draw[arr] (phi) -- (C);
-			\draw[arr] (1) -- (phi);
+%			\draw[arr] (phi) -- (A);
+%			\draw[arr] (phi) -- (B);
+%			\draw[arr] (phi) -- (C);
+			\mergearr{A}{C}{phi}
+			\draw[arr, -, shorten <=-1pt, shorten >=0] (B) -- (center-ACphi);
+%			\draw[arr] (1) -- (phi);
 			\draw[arr, thick] (R12) -- (A);
 			\draw[arr, thick] (R12) -- (B);
 			\draw[arr] (R12) to [bend left=5] (C);
+			\draw[arr] (R12) to [bend right=25] (phi);
 			
 			\draw[arr, dashed] (R12) to[bend left=10, looseness=1.3] (R1);
 			
 		\end{scope}
-		\draw[arr,->>] (R12) -- (1);
+%		\draw[arr,->>] (R12) -- (1);
 	\end{tikzpicture}
 \caption{Selection}\label{fig:selection}
 	\end{subfigure}
