@@ -28,3 +28,166 @@ You won't waste time reading about studies that have participants whose outcomes
 are unlikely to match yours.
 
 *
+
+* COOL IDEAS TO FOLLOW UP WITH
+** Noisy Channel and Imperfect Coding & Guard Variables
+Maybe one way to do smoothing about the [[file:writeups/databases.tex][DB document]]
+
+**
+
+Each belief and concept has a time scale τ (expected time to decay).
+
+
+A sequence of probability distributions scores according to the degree to which,
+for every $L$, each probability matrix pᵗ_L(Y | X) converges, while t is in
+timescale τ_L.
+
+    ((Instead of a time-scale, which is global and scheduler dependent, we might also))
+
+
+- Roughly like a scope. It may be just a partial order, or have weak ordering information, in addition to strict information.
+  - specifically, one scope may be a strict subset of another (think: one timescale really long relative to another), but
+
+** Theme: we supply the partial interpretation
+Fully interpreted vs partially interpreted functor
+
+| Fully    | Partially                                 | None            |
+|----------+-------------------------------------------+-----------------|
+| a PDG    | Subset of a PDG (some arrows interpreted) | Qualitative PDG |
+| functor  | profuntor                                 | No relationship |
+| Function | CPD                                       | No edge         |
+| CPD      | Sub-CPD (missing fibers)                  | No edge         |
+| Function | Partial Function                          |                 |
+| Lax PDG  | Strict PDG                                |                 |
+
+
+This is because PDGs are the simplest well-behaved objects that incorporate both
+(1) in-between-ness / convexity, and (2) functions, properly.
+They are the basis of probabilistic programming.
+
+
+    ((Aside: that's why I might not be right about a lot of things; they're so great that I'm holding onto a lot of threads at once. If I can successfully defend all of the threads, I'll be in a good place.))
+
+The reason generalizations are useful is becasue they give a notion of
+"in-betweenness" that means something more useful.
+
+"a in-betweenness" in pixel space is boring, and not the one that follows the
+patterns that look like the world. To view distance in that world, you have to
+train a statstical model to transform you into those coordinates before you can
+properly evaluate betweenness.
+
+
+Another theme of PDGS:
+
+Safety is important, but
+**PROGRAMS DO NOT NEED TO BE SAFE BY CONSTRUCTION**
+
+Safety is not guaranteed before things are run. This is too good to be true,
+unless you know a whole lot about what is happening.
+
+But there are lots of blurred time around "runtime" anyway, and safety is about
+protecting one runtime from another..
+
+ - Protect code (executed) from
+
+** A Type Logarithm
+
+What I mean: the introduction of a variable which represents attention.
+
+For example, in  [i -> X], the variable i, in fact refers to the value of the attention variable in  [X1, X2, ... Xn]
+
+** Independence is holding graphical models back.
+
+If we want to model a dependent sum, in which the values of one variable
+themselves, are dependent on the other, it's easy to replace
+
+\[ (i : I) \to X_i \] (i : I) → Xᵢ ( or ∏ᵢ Xᵢ )
+
+         with
+
+   I → ⊎ᵢ Xᵢ
+
+ resulting in some loss of preccision, but this is standard. The "disjoint" bit
+ is necessary to avoid acicdentally encoding equations, which create ambiguity
+ if we care about distinguishing ~inl(x)~ and ~inl(y)~, for instance \gamma
+
+**
+
+* Things to build
+** TODO AN input tool for labeled graphs, hypergraphs.
+
+
+* Joe's Questions
+** *What am I doing?*
+I am trying to clarify the relationship between databases and graphical models, by introducing a new correspondence.
+
+The probailistic database community seems to believe that there is a single, correct way to model a database with a graphical model, which corresonds to Koller & Friedman's view of first-order systems (such as databases) as under the purview of template models, which compile to a ground network with tons of nodes. Both approaches are valuable, but the former makes a large number of possibly-unsavory independence assumptions, and the latter is extremely expensive. I believe that we can use the marginal expressiveness of PDGs over BNs and MRFs to capture such systems in a totally different (and cheaper) way, which should have a side effect of simultaneously modeling databases (memory), trained statistical models (instincts/intuitions) and computation, all in the same framework.
+
+This new correspondence is structurally easy to see, but semantically unusual: we introduce new "index variables", so that we are not modeling the system itself, but our own exploration of the system. By doing so, we enable a much more compact, effectively propositional account of the most salient properties of the larger first-order system, which may be too big to fit into memory. I argue that this is a common encoding in human memory. Moreover, we can do this in a way which avoids independence assumptions except when strictly necessary to construct a best-guess distribution.
+
+Separeately, I believe that many operations we want to do on PDGs anyway (querying, copying and refactoring nodes, factorization) have analogs in databases, and so for this reason it is an important verification and source of inspiration to look to match the behavior of deterministic databases.
+
+However, there is more than one way of introcducing probabilities into a database. "Attribute-level" and "tuple-level" uncertainties are the ones emphasized in the Dan Sucieu et al. Probabilistic Databases book. They stick to the second and use it to emulate the first, but this is not always appropriate.
+
++ A small shortcoming of tulple-level uncertainty :: For instance, you may know that a certain data entry should be a part of a database (because you entered it on a specific date) but be unsure if you entered an age correctly. Putting tupples in a "mutually-exclusive" block solves the problem only if you can guarantee that the relation is complete. If unsure about the attribute C, rather than writing (a,b,~c) with a ~c ∈ ΔC, we would have to give a distribution over [(a,b,c₁), (a,b,c₂), … ]. This requires a distributive law which cannot be inverted, unless we assume that the block of tuples is mutually exclusive. But this can have undesirable side effects; we might actualy have a second tuple that is uncertain, so that the tuples are not in fact mutually exclusive. In fact, merely the number of rows in a relation is impossible to encode in this framework, if the support of the possible tupples is not disjoint. (This can be fixed by giving the table to have a unique, and uncertain, primary key).
+
+I believe PDGs can emulate both kinds of uncertainty at once, in the way that people more naturally think of them. Better still, I think there is another, more exotic, way of adding probabilities a database — which I believe also more closely matches the way a bounded agent must necessarily think about any object that is too large to fit in memory all at once. In the process, I think we can provide a compressed nonstandard model of higher order probabilities .
+
+*So, why am I doing this?*
+ - Because databases and graphical models have interesting structure in common, which is not exploited in the literatue. It is also self-similar; there are two levels of the same kind of structure, and classically they are dealt with very differently in the probabilistic case.
+
+   - For instance, the schema of a databse is itself a relation on the attributes themselves (rather than on tuples of attributes).
+
+ - The interpretation of arrows offered by PDGs makes it possible to emulate aspects of databases with graphical models in a natural way, which are otherwise unavailable. For instance, only one foreign key is necessary to find a row in a table (a joint setting of all foriegn keys is overkill)
+
+ - This setting naturally motivates the need for non-strict PDGs: the relations in a database are seldom complete.
+
+
+** What is the problem I'm solving?
+Perhaps this is itself problematic, but I find it very difficult to think of this project in this way. It is not so much that I'm trying to solve a pressing issue, but merely noticing that there is an interesting structural similarity between databases and PDGs.
+I do not believe there is a pressing issue at hand, but I think we will find ourselves solving problems we didn't realize we had, for having pursued it. Here are a few not-so-urgent problems that we might be able to solve.
+
+*** Probabilistic databases make a lot of independence assumptions, and do not model neural networks or other statistical models in their current presentation.
+
+BOth issues, if addressed, could dramatically improve the listed benefits of probailistic databases: namely, their ability to clean data and model uncertainty
+
+*** PDGs do not yet interface with the way we keep indexed data.
+We therefore look to strengthen the contention that PDGs are a good model of mental state, by showing that they naturally model our data stores.
+
+*** Different kinds of probabilistic databases do not emulate one another cleanly
+more general way of supplying data for a probabilistic database in a heterogeneous way, with simple, homogeneous theory.
+
+*** First-order probabilistic systems have so many variables that their correlations quickly become intractible to model.
+
+*we want texpose a more natural 'higher order probability' for bounded agents.*
+Currently we focus on modelng the entire situation. But the set of variables
+that an agent is aware of might be so large that it can't be kept in memory.
+Rather than throwing out variables, one can simply index them. You can't ask
+certain kinds of things from this model, but it can be expanded where necessary
+with queries.
+
+
+
+** Why is this problem interesting?
+
+1. First-order objects are expensive, and it's strange that we might be able to model useful parts of them purely propositionally. By adding variables regarding one's own attention (index variables), it is possible to also reason about concepts that are undefined. For instance, for a person viewing the world as a series of variables X1, X2, X3, ..., asking "what is the distribution of X?" does not make sense; a clarification about "which X?" is required. Nonetheless, we can think of temperature without knowing the time, etc.
+
+2. Because it is so much more compact, this encoding might be necessary or optimal for bounded agents.
+
+3. Being able to pull out a meta-variable and reason about it together with the other variables, would make PDGs something of a "probabilistic type logarithm"; rather than the exponentially many variables, we can do inference on a compressed space.
+
+4. People have thought about higher order probabilities for a long time and there has not been an accepted resolution. This lends credence to the idea that perhaps modeling the full higher-order system as a convex combination of the deterministic higher order systems may not be "the right thing to do". This leaves the field unusually open to strange semantics such as this one.
+
+** What are some example instances of this problem?
+
+See the other document for most of examples; there is much to illustrate.
+
+** Why is this problem not trivially solved in another way?
+
+The problems I mention above are not common, not insurmountable, and perhaps even go unnoticed. That does not mean they are not worth solving. Considered individually, I'm sure there are other, more natural solutions. This one is interesting because it explores a connection between a first-order and a propositional system. This particular connection between PDGs and databases is has clearly non-trivial, and my failure to present it (even to myself) in a clear way suggests that there's something non-trivial going on here.
+
+
+* Vague Aphorisms to Clarify or Reject
+** PDGs are probabilistic logarithms
+
+* OUTLINE
