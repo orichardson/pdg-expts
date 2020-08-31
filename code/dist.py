@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 from abc import ABC
-from typing import Type, TypeVar, Union, Mapping
+from typing import Type, TypeVar# , Union, Mapping
 import collections
 
 from functools import reduce
@@ -11,6 +11,7 @@ from operator import mul
 import utils 
 import rv
 
+import warnings
 import itertools
 # recipe from https://docs.python.org/2.7/library/itertools.html#recipes
 def powerset(iterable):
@@ -42,10 +43,9 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
         rows = self.index.to_flat_index().map(lambda s: s[0])
 
         return pd.DataFrame(self.to_numpy(), columns = cols, index=rows)
-        
-    
+
     @classmethod
-    def from_matrix(cls: Type[SubCPT], nfrom, nto, matrix, multi=True, flatten=False) -> SubCPT:
+    def _from_matrix_inner(cls: Type[SubCPT], nfrom, nto, matrix, multi=True, flatten=False) -> SubCPT:
         def makeidx( vari ):
             if multi and False:
                 names=vari.name.split("×")
@@ -61,6 +61,7 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
                 print('v', vari.ordered[0])
                 print(np.array([ str(v) for v in vari.ordered ]).shape)
                 print(names)
+                
                 # print([ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
                 # else (v,) ) for v in [vari.ordered[0]] ])
                 # print(np.array([ (tuple(utils.flatten_tuples(v, depth)) if type(v) is tuple
@@ -79,6 +80,14 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
                 return vari.ordered
         
         return cls(matrix, index=makeidx(nfrom), columns=makeidx(nto), nto=nto,nfrom=nfrom)
+        
+    @classmethod
+    def from_matrix(cls: Type[SubCPT], nfrom, nto, matrix, multi=True, flatten=False) -> SubCPT:
+        return cls._from_matrix_inner(nfrom,nto,matrix,multi,flatten).check_normalized()
+    
+    @classmethod
+    def make_stoch(cls: Type[SubCPT], nfrom, nto, matrix, multi=True, flatten=False) -> SubCPT:
+        return cls._from_matrix_inner(nfrom,nto,matrix,multi,flatten).renormalize()
 
     @classmethod
     def from_ddict(cls: Type[SubCPT], nfrom, nto, data) -> SubCPT:
@@ -98,13 +107,13 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
                 data[a][next(iter(remainder))] = 1 - total
         
         matrix = pd.DataFrame.from_dict(data , orient='index')
-        return cls(matrix, index=nfrom.ordered, columns=nto.ordered, nto=nto,nfrom=nfrom)
+        return cls(matrix, index=nfrom.ordered, columns=nto.ordered, nto=nto,nfrom=nfrom).check_normalized()
         
     @classmethod
     def make_random(cls : Type[SubCPT], vfrom, vto):
         mat = np.random.rand(len(vfrom), len(vto))
-        mat /= mat.sum(axis=1, keepdims=True)
-        return cls.from_matrix(vfrom,vto,mat)
+        # mat /= mat.sum(axis=1, keepdims=True)
+        return cls._from_matrix_inner(vfrom,vto,mat).renormalize()
         
     @classmethod
     def det(cls: Type[SubCPT], vfrom, vto, mapping, **kwargs) -> SubCPT:
@@ -117,6 +126,16 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
         return cls.from_matrix(vfrom,vto,mat, **kwargs)
         # return cls.from_matrix(, index=vfrom.ordered, columns=vto.ordered, nto=vto, nfrom= vfrom)
 
+    def check_normalized(self):
+        amt = ((np.sum(self, axis=1)-1)**2).sum()
+        if amt > 1E-5:
+            warnings.warn("%.2f-Unnormalized CPT"%amt)
+            
+        return self
+        
+    def renormalize(self):
+        self /= np.sum(self, axis=1)[:, None]
+        return self
 
 ## useless helper methods to either use dict values or list.
 def _definitely_a_list( somedata ):
@@ -131,29 +150,27 @@ class RawJointDist(Dist):
         self.data = data
         self.varlist = varlist
         
-        if rv.Unit not in varlist:
-            self.varlist = [rv.Unit] + self.varlist
-            self.data = self.data.reshape(1, *self.data.shape)
+        # if rv.Unit not in varlist:
+        #     self.varlist = [rv.Unit] + self.varlist
+        #     self.data = self.data.reshape(1, *self.data.shape)
         
         self._query_mode = "dataframe" # query mode can either be
             # dataframe or ndarray
+            
+    def __mul__(self,other):
+        return self.data * other
+    def __rmul__(self,other):
+        return self.data * other
+
+    @property
+    def shape(self):
+        return self.data.shape
         
-    # TODO: Make this synatx more useful.
-    def __call__(self, evt, given=None):       
-        # sum {x_i != evt} p(x,y,z,..., evt)
-        val, var = evt
-        idx = self._idx(var)
+    def __repr__(self):
+        varstrs = [v.name+"⟨%d⟩"%len(v) for v in self.varlist]
+        return f"RJD : Δ[{';'.join(varstrs)}] -- {np.prod(self.shape)} params"
         
-        reduced = np.sum(self.data, axis=tuple(i for i in range(len(self.varlist)) if i != idx))
-        
-        # othervarvals = itertools.product(X for X in varlist if X.name != var)
-        # for setting in othervarvals:
-        #     total += data[setting[idx:] + [val] setting[:idx]]
-        
-        return reduced[var.ordered.index(val)]
-    
-    
-    def _proccess_vars(self, vars, given=None):
+    def _process_vars(self, vars, given=None):
         if vars is ...:
             vars = self.varlist
             
@@ -194,11 +211,24 @@ class RawJointDist(Dist):
             return self.varlist.index(var)
         except ValueError:
             raise ValueError("The queried varable", var, " is not part of this joint distribution")
-    
+        
+    def _idxs(self, *varis, multi=False):
+        idxs = []
+        for V in varis:
+            if V in self.varlist and (multi or V not in idxs):
+                idxs.append(self.varlist.index(V))
+            elif '×' in V.name:
+                idxs.extend([v for v in self._idxs(*V.split()) if (multi or v not in idxs)])
+            #     for v in V.name.split('×'):
+            #         idxs.append([v])
+        
+        return idxs
+
     def broadcast(self, cpt : CPT, vfrom=None, vto=None) -> np.array:
         """ returns its argument, but shaped
         so that it broadcasts properly (e.g., for taking expectations) in this
-        distribution. 
+        distribution. For example, if the var list is [A, B, C, D], the cpt
+        B -> D would be broadcast to shape [1, 2, 1, 3] if |B| = 2 and |D| =3.
         
         Parameters
         ----
@@ -208,33 +238,54 @@ class RawJointDist(Dist):
         if vfrom is None: vfrom = cpt.nfrom
         if vto is None: vto = cpt.nto
         
-        idxf = self.varlist.index(vfrom)
-        idxt = self.varlist.index(vto)
+        # idxf = self.varlist.index(vfrom)
+        # idxt = self.varlist.index(vto)
+        # 
+        # shape = [1] * len(self.varlist)
+        # shape[idxf] = len(self.varlist[idxf])
+        # shape[idxt] = len(self.varlist[idxt])
         
-        shape = [1] * len(self.varlist)
-        shape[idxf] = len(self.varlist[idxf])
-        shape[idxt] = len(self.varlist[idxt])
+        # print(vfrom, vto)
+
+        # idxf,idxt = self._idxs(vfrom), self._idxs(vto)
+        IDX = self._idxs(vfrom,vto,multi=True)
+        UIDX = np.unique(IDX).tolist()
         
+        init_shape = [1] * (len(self.varlist)+len(IDX)-len(UIDX))
+        
+        for j,i in enumerate(IDX):
+            init_shape[j] = len(self.varlist[i])
+
         # print(f,'->', t,'\t',shape)
         # assume cpd is a CPT class..
         # but we don't necessarily want to do this in general
         
         cpt_mat = cpt.to_numpy() if isinstance(cpt, pd.DataFrame) else cpt
-        if idxt < idxf:
-            cpt_mat = cpt_mat.T
+        
+        # if idxt < idxf:
+        #     cpt_mat = cpt_mat.T
+                
+        cpt_mat = cpt_mat.reshape(*init_shape)
+        cpt_mat = np.einsum(cpt_mat, [*IDX,...], [*UIDX, ...])
+        cpt_mat = np.moveaxis(cpt_mat, np.arange(len(UIDX)), UIDX)
 
-        return cpt_mat.reshape(*shape)
+        return cpt_mat
+        # return cpt_mat.reshape(*end_shape)
 
+    def normalize(self):
+        total = self.sum()
+        self.data /= total
+        return self
     
     def conditional_marginal(self, vars, query_mode=None):
         if query_mode is None: query_mode = self._query_mode
         # if coordinate_mode is "joint": query_mode = "ndarray"
         
         # print(type(vars), vars, isinstance(vars, rv.Variable))
-        targetvars, conditionvars = self._proccess_vars(vars)
+        targetvars, conditionvars = self._process_vars(vars)
 
-        idxt = [ self._idx(var) for var in targetvars ]
-        idxc = [ self._idx(var) for var in conditionvars ]
+        idxt = self._idxs(*targetvars)
+        idxc = self._idxs(*conditionvars)
         IDX = idxt + idxc
         
         # sum across anything not in the index
@@ -259,7 +310,6 @@ class RawJointDist(Dist):
             elif query_mode == "dataframe":
                 vfrom = reduce(mul,conditionvars)
                 vto = reduce(mul,targetvars)
-                print(vfrom, vto)
                 mat2 = matrix.reshape(len(vto),len(vfrom)).T
 
                 return CPT.from_matrix(vfrom,vto, mat2,multi=False)
@@ -279,14 +329,15 @@ class RawJointDist(Dist):
     def prob_matrix(self, *vars, given=None):
         """ A global, less user-friendly version of 
         conditional_marginal(), which keeps indices for broadcasting. """        
-        tarvars, cndvars = self._proccess_vars(vars, given=given)
-        idxt = [ self._idx(var) for var in tarvars ]
-        idxc = [ self._idx(var) for var in cndvars ]
+        tarvars, cndvars = self._process_vars(vars, given=given)
+        idxt = self._idxs(*tarvars)
+        idxc = self._idxs(*cndvars)
         IDX = idxt + idxc
         
         N = len(self.varlist)
         dim_nocond = tuple(i for i in range(N) if i not in idxc )
         dim_neither = tuple(i for i in range(N) if i not in IDX ) # sum across anything not in the index
+        # print("dim_nocond", dim_nocond, "dim_neither", dim_neither, "shape", self.data.shape)
         collapsed = self.data.sum(axis=dim_neither, keepdims=True)
         
         if len(cndvars) > 0:
@@ -311,10 +362,10 @@ class RawJointDist(Dist):
         # return E_surprise.sum()
     
     def I(self, *vars, given=None):
-        tarvars, cndvars = self._proccess_vars(vars, given)
+        tarvars, cndvars = self._process_vars(vars, given)
         
-        n = len(tarvars)
         sum = 0
+        # n = len(tarvars)
         
         for s in powerset(tarvars):
             # print(s, (-1)**(n-len(s)), self.H(*s, given=cndvars))
@@ -338,11 +389,11 @@ class RawJointDist(Dist):
     
     
     def info_diagram(self, X, Y, Z=None):
-        import matplotlib.pyplot as plt
+        # import matplotlib.pyplot as plt
         from matplotlib_venn import venn3
          
          
-        H = self.H
+        # H = self.H
         I = self.I
         
         infos = [I(X|Y,Z), I(Y|X,Z), I(X,Y|Z), I(Z|X,Y), I(X,Z|Y), I(Y,Z|X), I(X,Y,Z) ]
@@ -365,3 +416,92 @@ class RawJointDist(Dist):
         varlist = _definitely_a_list(vars)
         data = np.random.rand( *[len(X) for X in varlist] )
         return RawJointDist(data / np.sum(data), varlist)
+
+
+# 
+# class CoreJointDist(RawJointDist):
+#     def __init__(self, data, varlist):
+# 
+#         self.redvars = [v for v in varlist if '×' in v.name]
+#         self.ghostvars = [v for v in varlist if '×' in v.name]
+# 
+#         self.rvlookup = {v.name: v for v in self.redvars}
+# 
+#         missing = [n for v in self.ghostvars for n in v.name.split('×') if n not in self.redvars]
+#         assert len(missing)==0, "Missing Components: "+repr(missing)
+# 
+#         super().__init__(self, data, self.redvars)
+# 
+#     def vsplit(self, *vars):
+#         for V in vars:
+#             for v in V.name.split('×'):
+#                 yield self.rvlookup[v]
+# 
+#     def _process_vars(self, vars, given=None):
+#         if vars is ...:
+#             vars = self.redvars
+# 
+#         if isinstance(vars, rv.Variable) \
+#             or isinstance(vars, rv.ConditionRequest):# or vars is ...:
+#                 vars = [vars]
+# 
+#         targetvars = []
+#         conditionvars = list(given) if given else []
+# 
+#         mode = "join"
+# 
+#         for var in vars:
+#             if isinstance(var, rv.ConditionRequest):
+#                 if mode == "condition":
+#                     raise ValueError("Only one bar is allowed to condition")
+# 
+#                 mode = "condition"
+#                 targetvars.append(var.target)
+#                 conditionvars.append(var.given)
+#             else:
+#                 l = (conditionvars if mode == "condition" else targetvars)
+#                 if isinstance(var, rv.Variable):
+#                     l.append(*self.vsplit(var))
+#                 elif var is ...:
+#                     l.extend(v for v in self.varlist if v not in l)
+#                 else:
+#                     raise ValueError("Could not interpret ",var," as a variable")
+# 
+#         return targetvars, conditionvars
+# 
+    # def _idxs(self, var):
+    #     try:
+    #         return self.varlist.index(var)
+    #     except ValueError:
+    #         raise ValueError("The queried varable", var, " is not part of this joint distribution")
+
+    # def broadcast(self, cpt, vfrom=None, vto=None) -> np.array:
+    #     """ returns its argument, but shaped
+    #     so that it broadcasts properly (e.g., for taking expectations) in this
+    #     distribution. For example, if the var list is [A, B, C, D], the cpt
+    #     B -> D would be broadcast to shape [1, 2, 1, 3] if |B| = 2 and |D| =3.
+    # 
+    #     Parameters
+    #     ----
+    #     > cpt: the argument to be broadcast
+    #     > vfrom,vto: the attached variables (supply only if cpt does not have this data)
+    #     """
+    #     if vfrom is None: vfrom = cpt.nfrom
+    #     if vto is None: vto = cpt.nto
+    # 
+    #     idxf = self.varlist.index(vfrom)
+    #     idxt = self.varlist.index(vto)
+    # 
+    #     shape = [1] * len(self.varlist)
+    #     shape[idxf] = len(self.varlist[idxf])
+    #     shape[idxt] = len(self.varlist[idxt])
+    # 
+    #     # print(f,'->', t,'\t',shape)
+    #     # assume cpd is a CPT class..
+    #     # but we don't necessarily want to do this in general
+    # 
+    #     cpt_mat = cpt.to_numpy() if isinstance(cpt, pd.DataFrame) else cpt
+    #     if idxt < idxf:
+    #         cpt_mat = cpt_mat.T
+    # 
+    #     return cpt_mat.reshape(*shape)

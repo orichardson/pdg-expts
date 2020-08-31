@@ -103,16 +103,24 @@ class CopiedType(type):
                 # print("super: ", super().__init__)
                 # print("super globals: ", super(globals()[classname], self).__init__)
                 # print("base: ", bases[0].__init__)
+                metap = {"debug"}
                 
-                base_init.__init__(self, *args[:], **dictwo(kwargs, params))  
+                if 'debug' in kwargs and 'print' in kwargs['debug']:
+                    print('ARGS: ', args, '\nKWARGS:', kwargs)
+                
+                base_init.__init__(self, *args[:], **dictwo(kwargs, params | metap ))  
                 if custom_init:
-                    custom_init(self, *args, **dictwo(kwargs,class_params))
+                    custom_init(self, *args, **dictwo(kwargs,class_params | metap))
 
                 for name in params:
                     if name in kwargs:
                         setattr(self, name, kwargs[name])
 
             alterinit.__name__ = '__init__'
+            alterinit.__doc__ = '* BASE INIT: ' + base_init.__doc__ 
+            if custom_init and custom_init.__doc__:
+                alterinit.__doc__ += "\n\nCUSTOM INIT: " + custom_init.__doc__
+
             newClassDict['__init__'] = alterinit
         
         return type.__new__(meta, classname, bases, newClassDict)

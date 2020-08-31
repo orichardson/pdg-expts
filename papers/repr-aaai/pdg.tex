@@ -1,7 +1,6 @@
 % !TeX TXS-program:bibliography = txs:///bibtex
 %oli8: this line allows me to use plain BibTex without reconfiguring
 %my own settings. 
-%BEGIN_FOLD  Complete Preamble
 
 %BEGIN_FOLD  AAAI-preamble
 \def\year{2021}\relax
@@ -32,7 +31,8 @@
 /Author (Oliver Richardson, Joseph Halpern)
 /TemplateVersion (2021.1)
 }
-\setcounter{secnumdepth}{1}  
+%oli21: enabling subsection numbers (0: no numbers, 1: section, 2: subsection)
+\setcounter{secnumdepth}{2} 
 %END_FOLD   AAAI-preamble
 %BEGIN_FOLD Tikz Stylings.
 \usepackage{tikz}
@@ -178,15 +178,18 @@
 \newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
 %oli20: apparently this is not allowed in AAAI style.
-% \usepackage{hyperref}
-% \definecolor{deepgreen}{rgb}{0,0.5,0}
-% \hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=magenta, citecolor=deepgreen}
+%oli21: but it helps me edit so I'm reenabling it until later
+%FIXME
+\usepackage{hyperref}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=magenta, citecolor=deepgreen}
 
 \usepackage[noabbrev,nameinlink,capitalize]{cleveref}
 \crefname{example}{Example}{Examples}
 \crefname{defn}{Definition}{Definitions}
 \crefname{prop}{Proposition}{Propositions}
 \crefname{constr}{Construction}{Constructions}
+\crefname{conj}{Conjecture}{Conjectures}
 \crefname{fact}{Fact}{Facts}
 %\crefname{section}{\S\!}{\S\!}
 
@@ -210,15 +213,14 @@
    {\csname end#2\endcsname}
    {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
    {\typeout{oii Success2?}}{\typeout{oiii failure2?}}
-\newcommand{\recall}[1]{\smallskip\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
+\newcommand{\recall}[1]{\medskip\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
    \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
 \makeatother
 %oli16: The extra space was because there was extra space in the paragraph, not
 %because this length was too big. By breaking arrays, everything will be better.
 \allowdisplaybreaks
 
-% \newcommand{\begprop}[1]{\begin{prop}[restate=#1,label=#1]}
-\newcommand{\begthm}[2]{\begin{#1}[restate=#2,label=#2]}
+\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
 
 %TODO
 \newcommand{\createversion}[2][{gray}{0.75}]{
@@ -257,11 +259,13 @@
 \definecolor{contentiouscolor}{rgb}{0.7,0.3,.1} 
 \newcommand{\commentout}[1]{\ignorespaces} 
 
-\newcommand{\contentious}[1]{
-	\noindent\colorbox{red!10!white}{\parbox{\linewidth-3pt}{\color{red!10!black}#1}}}
-\newcommand{\contentio}[1]{
-	\colorbox{red!10!white}{\color{red!10!black}#1}}
-\newcommand{\vcontentio}[1]{{\color{red!40!black}#1}}
+% \newcommand{\contentious}[1]{
+% 	\noindent\colorbox{red!10!white}{\parbox{\linewidth-3pt}{\color{red!10!black}#1}}}
+% \newcommand{\valpha}[1]{%
+% 	% \colorbox{red!10!white}
+% 	{\color{red!10!black}{#1}}%
+% }
+\newcommand{\valpha}[1]{{\color{red!80!black}#1}}
 %END_FOLD
 
 
@@ -336,6 +340,8 @@
 
 \newcommand\Inc{\mathit{Inc}}
 \newcommand{\PDGof}[1]{{\dg M}_{#1}}
+%oli21: a macro for weighted factor graphs
+\newcommand{\WFGof}[1]{\Psi_{{#1}}}
 
 \newcommand{\ed}[3]{#2
   \overset{\smash{\mskip-5mu\raisebox{-1pt}{$\scriptscriptstyle
@@ -433,6 +439,7 @@ PDGs.
 %structure (which we currently don't, as near as I can tell), we
 %should absolutely not mention it in the abstract.  
 %but the latter view destroys qualitative information
+%
 %that may become relevant if the network structure
 %changes. This difference is visible from the differences between the
 %semantics of the respective PDGs of $B$ and $\Phi_B$. 
@@ -1166,15 +1173,16 @@ that involves adding an extra node.
 		associates to each edge $(X,Y,\ell) \in \Ed$ a distribution $\bp(x)$ on $Y$ for each $x \in \V(X)$; 
 % %joe8*: I thought of adding \alpha, then decided it was a bad idea; see below
 %oli20: added temporarily so you can see what I'm envisioning
-	
-	\item[\contentio{$\alpha$}] \contentious{$\notation{}$
-	 	associates a non-negative real number $\alpha_L$ 
- 		to each link $L$,
-%joe18: it would be fine if we could ever agree on what it meant.
-%indicating an agent's confidence in the functional (and we have tried
-%many times in the past ...)
-%       	 	dependence suggested by $L$ } 
-	 	dependence suggested by $L$;} 
+\valpha{
+%%oli21
+% 	\item[$\alpha$] $\notation{}$
+% 	 	associates a non-negative real number $\alpha_L$ 
+%  		to each link $L$,
+% %joe18: it would be fine if we could ever agree on what it meant.  (and we have tried
+% % many times in the past ...)
+% indicating an agent's confidence in the functional
+% 	 	dependence suggested by $L$;
+} 
 	\item[$\beta$] $\notation{:\Ed \to \mathbb R^+}$
 		associates a positive real number $\beta_L$ to each edge $L$, indicating an agent's subjective confidence in the reliability of cpd $\bp$. 
 %joe8*: can't the number be 0?  Also, is higher intended to be better;
@@ -1195,13 +1203,19 @@ that involves adding an extra node.
 \end{defn}
 
 If $\dg M$ is a PDG, we reserve the names 
-$\pdgvars[^{\dg M}]$
-% $\N^{\dg M}$, $\Ed^{\dg M}$, and so forth,
+%oli21
+% $\pdgvars[^{\dg M}]$
+$\N^{\dg M}, \Ed^{\dg M}, \ldots$,
 for the components of $\dg M$, so that we may reference one without naming them
 all explicitly. We write $\V(S)$ for the set of possible joint settings of a set
-$S$ of variables; in particular, we write $\V(\dg M) = \prod_{N \in \N^\dg M}
-\V^\dg M(N)$ for all settings of the variables $(\N^\dg M, \V^\dg M)$. 	
-
+$S$ of variables; in particular, we write 
+%oli21: unnecessarily complex:
+% $\V(\dg M) := \prod_{N \in \N^\dg M} \V^{\dg M}(N)$
+$\V(\dg M) :=\V^{\dg M}(\N^{\dg M})$
+for all settings of the variables $(\N^\dg M, \V^\dg M)$%
+%oli21: introduce for clarity
+%.
+which we also refer to as ``worlds''.
 While the definition above is sufficient to represent the class of all legal
 PDGs, we often use two additional bits of syntax to represent common
 constraints:  
@@ -1393,6 +1407,7 @@ the distributions with the best score, typically associating with a PDG a unique
 distribution.
 
 %joe18*: Oliver, can you reinstate subsection numbers?
+%oli21: Ah, only section numbers. Changed.   
 \subsection{PDGs As Sets Of Distributions}\label{sec:set-of-distribution-semantics} 
 We have been thinking of a PDG as a collection of constraints on distributions,
 specified by matching cpds. From this perspective, it is natural to consider the
@@ -1767,10 +1782,12 @@ $X$ alone.
 %joe13: cut
 %\todo{anything}
 %that is not described by $G$.
-%joe10
-%To formalize this, we require only the underlying multigraph $G :=
-To formalize this, we require only the underlying multigraph $G^{\dg M} :=
-(\N^{\dg M}, \Ed^{\dg M})$ of $\dg M$. 
+%oli21:
+% To formalize this, we require only the underlying multigraph
+To formalize this, we require only the underlying variable multigraph
+%oli21: don't want to carry the subscript. Need the values.
+% $G^{\dg M} := (\N^{\dg M}, \Ed^{\dg M})$ of $\dg M$. 
+$G := ((\N^{\dg M},\V^{\dg M}), \Ed^{\dg M})$. 
 %joe10: I'm not ure where there ``are known'' is coming from
 %oli12: I don't think this is strictly necessary, but it could be useful
 % clarification. It seems you (and sometimes I) sometimes get
@@ -1807,26 +1824,44 @@ Given $G$ and $\mu$, contrast the amount of
 %For an arbitrary  $G$ and $\mu$ are known, contrast the amount of
 % We thus consider the difference between the
 information required to 
-\begin{enumerate}[label=(\alph*)]
-\item directly describe a joint outcome   
+%oli21: I globally replaced ``(a)'' and  ``(b)'' with the appropriate \ref.
+%oli21: relatedly, are there short (sequences of) letters that would help you
+% keep them straight without referring back to them? Or is (a)/(b) good enough?
+% \begin{enumerate}[label=(\alph*)]
+\begin{enumerate}[label=(\roman*)]
+%oli21: added labels for both items.
+\item directly describe a joint outcome  \label{item:globalinfo}
 %oli20: line shave
 %$\mat w ~ \sim \mu$ drawn from $\mu$, and 
 $\mat w$ drawn from $\mu$, and 
-	\item separately specify, for each edge $\ed LXY$, the value
+\item separately specify, for each edge $\ed LXY$, the value
 %joe10
 %          $\mat w_Y$  given the value $\mat w_X$, in expectation. 
 %oli20: this is a more natural explanation I think?
 	% $\mat w_Y$ (the projection of $\mat w$ onto the variable $Y$) 
     $\mat w_Y$ (of $Y$ in world $\mat w$) 
-	given the value $\mat w_X$, in expectation. 
+	given the value $\mat w_X$, in expectation. \label{item:localinfo}
 \end{enumerate}
-
-%oli20:
+%oli21: restructure to break things up (see my comments below):
+According to $G$, \ref{item:localinfo} should be small (it would be zero were it not for the allowance for noise), while  \ref{item:globalinfo} is the information required to eliminate all noise. 
 %joe18: Why did you cut this line?  I thought it was useful for the reader
- When these two quantities are equal, a specification of (b) has
- exactly the same length as a full desciption of the world. 
+%oli21: it seems like a weaker restatement of the definition of (a) without expanding (b) to give any insight. I was hoping I could replace it with a clear example of where it intuitively feels obvious that the two should be the same. 
+%oli21: This sentence also makes me slightly uncomfortable because "description of the world"
+% must be interpreted relative to $\mu$, which might be a point of confusion.
+% minor rewrite.
+	 % When these two quantities are equal, a specification of (b) has
+	 % exactly the same length as a full desciption of the world. 
+	 If \ref{item:globalinfo} $=$ \ref{item:localinfo}, 
+	 as occurs for instance when $\mu$ has no uncertanty,
+	 a specification along each edge of $G$
+	 has the same expected length as an optimal description of the world. 
 %joe18*: I couldn't parse the next sentence.   I think you mean to be
 %talking about distributions that are point masses, but why focus on them?
+%oli21: Yeah, by degenerate I mean point masses. The intent was to give a clear
+% example of where the information deficiency is zero. Somehow it seems 
+% geometrically relevant that the term goes to zero on the vertices of the simplex.
+% --- any individual world, regarded as a distribution, has no info deficiency.
+%oli20:
 %For degenerate distribution $\mu$, every variable is known zero
 %further information, (a) = (b) = 0, and there is no information
 %deficiency. 
@@ -1838,36 +1873,86 @@ $\mat w$ drawn from $\mu$, and
 %If (b) $>$ (a), then there are extra correlations in $\mu$ that are
 % If (b) $>$ (a), then there are dependencies suggested by $G$ that are
 % not present in $\mu$
-If (b) $>$ (a), then there are correlations in $\mu$ that allow for a more
-compact representation than $G$ provides.
-%oli20: trying to use our terminology a little and tie toegether the
-%analogy a  bit more cohesively
-% The larger the difference, the poorer the fit.
-The larger the difference, the more information is needed to determine
+If \ref{item:localinfo} $>$ \ref{item:globalinfo}, then there are correlations in $\mu$ that allow for a more compact representation than $G$ provides.
+% The larger the difference, the more information is needed to determine
+% targets $Y$ beyond their sources $X$ (which according to $G$ should be
+% sufficient to compute them)
 %joe18*: I found this hard to follow, so rewrote slightly.   But, more
 %importantly, I'm really confused.  I would have thought that if (b) > (a)
-%then the information given in G might be enough to determine \mu, but
-%it can be described more compactly.  You're suggesting that it's not
-%enough, which would be the case if (a) > (b), not if (b) > (a)>  
-%targets $Y$ beyond their sources $X$ (which according to $G$ should be
-targets $Y$ beyond the conditional probabilities associated with the
-edges $X \rightarrow Y$ leading to $Y$
-(which according to $G$ should be
-sufficient to compute them), and so the greater the $G$-information
-deficiency of $\mu$, 
-%oli20: hoping that "deficiency" is negative enough that I don't need
-%to say this.
-%joe18: Sorry; I disagree.  I think this change makes it worse.
-and the poorer the qualitative fit of $\mu$ to $G$.
+%then the information given in G might be enough to determine \mu, 
+	%oli20: In retrospect I may have writen this in a misleading way.
+	% It is true (and basically just a restatement of the defns of a and b)
+	% that if (b) > (a), and if the bits in (b) were used more intelligently,
+	% the number of bits used for (b) could determine an outcome drawn from \mu.
+	% However, it is NOT true that the data of (b) determines (a). It could be
+	% that there are just a ton of parallel edges which make (b) expensive
+	% without saying anything about the rest of the distribution. Do not take
+	% this as saying something about G; recall that for the purposes of this
+	% definition, we take G as truth, and evaluate the quality of \mu relative
+	% to it. Many parallel edges in G, amounts to an assertion that for \mu to be 
+	% any good, it must be such that that Y is almost entirely determined by knowing X.
+	%(intuitively: you're willing to compute it in all these different ways, which agree.)
+	% 
+%joe18*[continued]:... but it can be described more compactly.  You're suggesting
+% that it's not enough, which would be the case if (a) > (b), not if (b) > (a).  
+%oli21*:
+% The quantity (b) is the total amount of information REQUIRED (in expectation),
+% to determine Y, given the value of X. So if (b) is large, this is an intuitive
+% violation  of G's qualitative assertion that Y can be computed from X --- 
+%  --- because if this were the case, then not very much information is required
+% to determine Y if X is known. 
 %
-On the other hand, if (a) $>$ (b), then 
-$\mu$ requires additional information to specify, beyond
+% I think what you wrote is misleading for two reasons:
+% (1) we're not using the conditional probabilities associated to edges; we're 
+% only using data of \mu, and 
+% (2) it doesn't mention the value of the source X, which is critical. 
+%oli21: your old version below:
+	% The larger the difference, the more information is needed to determine
+	% targets $Y$ beyond the conditional probabilities associated with the
+	% edges $X \rightarrow Y$ leading to $Y$
+	% (which according to $G$ should be sufficient to compute them)
+%oli21: Below is a technically accurate version which is quite hard to parse,
+% for the reading I intended ---  but feel free to ignore if you like something
+% along the lines of my rewrite, which is a little different.
+%      The larger the difference, the more the additional information needed (in
+% expectation) to determine, for each link from $X$ to $Y$, (in a world $\mat
+% w\sim \mu$, knowing $\mu$, but not $\mat w$) the value of $Y$ ($\mat w_Y$)
+% already knowing the value of $X$  ($\mat w_X$), which according to $G$ should be
+% sufficient to compute $Y$ with some uncertainty,  exceeds the total amount
+% uncertainty there is to be had in $\mu$ ($\H(\mu)$).  
+%oli21: I've rewritten this sentence probably 50 times. I think finally found something
+% that's not too long and ties together the metaphrs a little better 
+The larger the difference,
+the shorter $\mu$ falls in acounting for all of its noise along $G$,
+% the more $\mu$'s correlations undermine the qualitative picture painted by $G$,
+% the more such correlations undermine a view of \cref{item:locclinfo} as noise,
+% the less reasonable it is to view \cref{item:localinfo} as noise, 
+% the more the noise along $G$ exceeds all noise in the system, 
+% the more the variation that $G$ attributes to noise exceeds the total entropy in the system, 
+% the more additional information beyond a of each edge target given its source exceeds the information required to determine a sample drawn from $\mu$,
+%
+and so the greater the $G$-information deficiency of $\mu$, 
+and the poorer the qualitative fit of $\mu$ to $G$.
+%oli21: third hand
+% On the other hand, 
+Finally,
+if \ref{item:globalinfo} $>$ \ref{item:localinfo}, then 
+%oli21: (new line) add the clause for intuition on this half also
+$\mu$ must also display further uncertainty on variables $G$ does not constrain, because a world requires
+% we give $\mu$ bonus credit for displaying uncertainty about random variables $G$ does not constrain, and requires
+% $\mu$ must also align with $G$'s indeterminateness by displaying uncertainty about random variables $G$ does not constrain, because $\mu$ requires
+%oli21: comma
+% additional information to specify beyond
+additional information to specify, beyond
 %oli20: minor style edits + trying to continue style pattern in other direction
 % what could be used to encode outcomes of the marginals selected by $G$.
-what is necessary to specify outcomes of the marginals selected by $G$%.
+%oli21: make it easier to parse by swapping out a "specify"
+% what is necessary to specify outcomes of the marginals selected by $G$.
+what is necessary to determine outcomes of the marginals selected by $G$.
 %joe18: cut this; I don't think it helps.  I prefer what we had
 %before.  More importantly, I think what we had before will be more
 %meaningful to more readers.
+%oli21: Ok I agree now.
 %---what might be called a $G$-information excess.
 
 % $\mu$ now has a $G$-information \emph{surplus}.
@@ -1979,7 +2064,9 @@ what is necessary to specify outcomes of the marginals selected by $G$%.
 %fit the graph better. 
 
 \begin{defn}\label{def:info-deficiency}
-For a multi-graph $G = (\N, \Ed)$ over a set $\N$ of variables,
+%oli21: technically we also need \V. 
+% For a multi-graph $G = (\N, \Ed)$ over a set $\N$ of variables,
+For a multi-graph $G = ((\N,\V), \Ed)$ over a set $\N$ of variables,
 define the \emph{$G$-information deficiency}
 of distribution $\mu$, denoted $\IDef{G}(\mu)$,
 by considering the difference between (a) and (b), 
@@ -2004,7 +2091,9 @@ using entropy:
 % \emph{conditional entropy of $Y$ given $X$} with respect to $\mu$, is
 ($\mu$-)\emph{conditional entropy of $Y$ given $X$}, is
 defined as $- \sum_{x,y \in \V(X,Y)} \mu(x,y) \log \mu(y\mid x)$.)
-For a PDG ${\dg M}$, we take $\IDef{\dg M} = \IDef{(\V^{\dg M}, \Ed^{\dg M})}$.  
+%oli21: this had \V, (I meant to type \N), but in fact it needs both.
+% For a PDG ${\dg M}$, we take $\IDef{\dg M} = \IDef{(\V^{\dg M}, \Ed^{\dg M})}$.  
+For a PDG ${\dg M}$, we take $\IDef{\dg M} = \IDef{((\N^{\dg M}, \V^{\dg M}), \Ed^{\dg M})}$.  
 \end{defn}
 
 We illustrate $\IDef{\dg M}$ with some simple examples.  
@@ -2044,24 +2133,32 @@ We illustrate $\IDef{\dg M}$ with some simple examples.
     There is no information required
 }
 %joe10: \end{commentout} followed by my rewrite
+%oli21: adding a backslash to each H in this section so it is typeset correctly
+% as an operator.
 Suppose that $\dg M$ has two nodes, $X$ and $Y$.  If $\dg M$ has no edges, the
-$\IDef{\dg M}(\mu) = - H(\mu)$. There is no information required to specify, for
+$\IDef{\dg M}(\mu) = - \H(\mu)$. There is no information required to specify, for
 each edge in ${\dg M}$ from $X$ to $Y$, the value ${\mat w}_Y$ given ${\mat
 w}_X$, since there are no edges. Since we view smaller numbers as representing a
 better fit, $\IDef{\dg M}$ in this case will prefer the distribution that
-maximizes entropy. If $\dg M$ has one edge from $X$ to $Y$, then since $H(\mu) =
-H_{\mu}(Y \mid X) + H_\mu(X)$ by the well known \emph{entropy chain rule}
-\cite{mackay2003information}, $\IDef{\dg   M}(\mu) = -H_{\mu}(X)$. Intuitively,
+maximizes entropy. If $\dg M$ has one edge from $X$ to $Y$, then since $\H(\mu) =
+\H_{\mu}(Y \mid X) + \H_\mu(X)$
+%oli21: this is not worth saying. My guess is over 99% of the people who
+% get this far into the paper will know this, there's no vagueness, 
+% and it feels condescending to  point it out.
+	% by the well known \emph{entropy chain rule} \cite{mackay2003information},
+, 
+$\IDef{\dg   M}(\mu) = -\H_{\mu}(X)$. Intuitively,
 while knowing the conditional probability $\mu(Y \mid X)$ is helpful, to
 completely specify $\mu$ we also need $\mu(X)$. Thus, in this case, $\IDef{\dg
 M}$ prefers distributions that maximize the entropy of the marginal
-on $X$. If $\dg M$ has sufficiently many parallel edges
+on $X$. 
+If $\dg M$ has sufficiently many parallel edges
 % What I don't like about "sufficiently many" is that we're varying the graph
 % while keeping $\mu$ constant, and so $\H > 0$ is not particularly meaningful.
 % I'm adding an edge 1 -> X so that this is correct and has the right emphasis.
 %joe13*: Aargh!! You took a clean story with two nodes, and muddled it
 %by adding a third node.  This is not helpful.  I reverted back.  
-an edge $1 \to X$, and also 
+% an edge $1 \to X$, and also 
 %oli15* AAhh This node doesn't even change the joint space! It's also
 %not and  emphasizes the wrong things
 %joe14*: but from a reader's perspective, it does (and you've never
@@ -2091,7 +2188,7 @@ an edge $1 \to X$, and also
  from $X$ to $Y$
 %oli13:
 %joe13: reverted
- and $H_{\mu}(Y \mid X) > 0$ 
+ and $\H_{\mu}(Y \mid X) > 0$ 
 %while $H_{\mu}(Y \mid X) > 0$ 
 %oli12: this is reversed for H, but the correct intuition for each edge.
 % Because of the context, I'm assuming you meant the former and changing it.
@@ -2109,8 +2206,8 @@ to $X$, then a distribution $\mu$ minimizes $\IDef{\dg M}$ when
 %don't see why ``vary together'' is better than ``depend on each
 %other'', but I'll leave it
 %$X$ and $Y$ both individually have randomness, but vary together
-$X$ and $Y$  vary together (so that $H_\mu(Y \mid X) = H_\mu(X \mid Y) = 0$)
-while maximizing $H(\mu)$, for example, by taking $\mu(0,0) = \mu(1,1) = 1/2$.
+$X$ and $Y$  vary together (so that $\H_\mu(Y \mid X) = \H_\mu(X \mid Y) = 0$)
+while maximizing $\H(\mu)$, for example, by taking $\mu(0,0) = \mu(1,1) = 1/2$.
 %oli12: added.
 %joe11
 %More complicated examples and graphical illustrations can be found in
@@ -2118,98 +2215,27 @@ while maximizing $H(\mu)$, for example, by taking $\mu(0,0) = \mu(1,1) = 1/2$.
 %true.  If it is, we should reinstate this.
 %More examples can be found in the appendix. 
 
-\commentout{
-    we prefer those whose independence structure comes closer to that of
-    the PDG.       
-    We measure how closely a distribution $\mu$ comes to the independence
-    structure of the PDG using entropy. 
-    %oli9**: I strongly disagree with this motivation. I don't think it works unless the PDG is litterally a BN. What are even the independencies of the PDG? In general it is not the kind of object where we can just port d-separation. 
-    %oli9*: Moreover, it covers more than independence. It also covers the maximum entropy case. I feel like until you look at the information diagrams a little more carefully, motivating this will be very tricky, and I know that you don't trust me to motivate it. 
-    %oli9: Perhaps we can try to write it together on a shared doc. 
-    To motivate our approach, we need recall some definitions and results.
-    Recall that the entropy function $\H(\mu) = -\sum_{w \in \text{Supp($\mu$)}}
-    \mu(w) \log \mu(w)$ (where $Supp(\mu)$ denotes the \emph{support} of $\mu$,
-    that is, the elements to which $\mu$ gives positive measure) can be
-    understood as the number of bits required to describe the exact state
-    \cite{Jaynes57}.  If $\mu$ is a distribution over variables $X_1, \ldots,
-    X_n$, then $H_\mu(X_i \mid X_j) = \sum_{\{x_i,x_j: \mu(x_i,x_j) \ne 0\}}
-    \mu(x_i,x_j) \log(\mu(x_i)/\mu(x_i,x_j))$.  It is well known that entropy
-    satisfies the \emph{chain rule}: $H(\mu) = \sum_{i=1}^n H_\mu(X_i \mid X_1,
-    \ldots, X_{i-1})$. Moreover, if $X_i$ is independent of $X_k$ given $X_j$,
-    then $H(X_i \mid X_j, X_k) = H(X_i\mid X_j)$.  It follows that if the
-    independencies in $\mu$ are correctly represented by the PDG ${\dg M}$ then
-    $\IDef(\dg M; \mu) = 0$, where
-}
-\commentout{ 
-    \[ \extrainfo\mu :=
-    \sum_{\ed{L}XY \in \E^{\dg M}} \Big[ \E_{x
-                    \sim \mu_X}  \H (\bp (x))  \Big] - \H(\mu). \]  
-	The \emph{extra information}, given by a distribution $\mu$ 
-	with respect to a PDG $\dg M = \pdgvars[]$ 
-	is given by
-\[ \extrainfo\mu := \sum\alle \Big[ \E_{x \sim \mu_X}  \H (\bp (x))  \Big] - \H(\mu) \] 
-	where $\mu_X$ is the marginal of $\mu$ on the variable $X$, and
-	$\H(\bp(x))$ is the entropy of the distribution on $Y$ specified by the cpd
-	$\bp$ when $X = x$.
-
-	The extra information is the sum of the entropies that \emph{actually}
-	result from each table, in the context of distribution $\mu$, minus the
-	total entropy of the distribution.  We can think of its negation as the
-	uncertainty in $\mu$, which has not already been specified by the cpds in $\dg M$.
-
-    %joe4*: I don't undrestand this, since I don't understand the causal
-    %interpretaiton.  I would strongly prefer to cut it from here, and
-    %then have a separate section on the causa interpretaino.
-    %	Note that when every $\alpha_L = 0$, minimizing the extra
-    %        information corresponds to maximizing entropy subject to
-    %        constraints, which is arguably the right thing to do if we
-    %        take the constraints at face value, rather than causally (see
-    %        \Cref{ex:counterexample}), justifying their naming. 
-
-    %%joe3*: Can you give some intuition for why this is reasonable?
-    %%oli3: yeah. Here are several arguments:
-    %% (1) if the constraints are all you know, and you choose another distribution, you're somehow claiming to know more than you do. This is the maximum entropy distribution associated with some other constraints. 
-    %% (2) Specifying the wrong distribution is costly --- but much cheaper if you specified a uniform distribution. For this reason, the relative entropy from uniform to any other distribution is cheaper than the relative entropy to go back: the maximum entropy distribution is the most adaptable, paying the smallest price to specialize, where price is the expected surprise, = log (1 / p), related to energy of the associated Boltzmann distribution.
-    %%oli3*: More generally, I do not think it's worth the space to do any motivation like this at all. I could do it, and it would make me a better person, but it takes a lot of time, will require a lot of energy from readers, and it's a very standard thing. My guess is at least half are already on board with maximizing entropy, and providing a remedial introduction to such a deep topic in a 9-page abstract is not a good use of space. I also imagine that it will come off as patronizing to those who know what they're doing in the context of an original research paper. 
-    %We think of distributions with higher entropy as being ``better''.
-    %%joe3: reorganizing what you wrote.  
-    %Since we want to minimize inconsistency and maximize entropy, we
-    %subtract one from the other (with relative weighting $\alpha$), to get
-    %a score $\mathcal U_\alpha(\dg M; p)$:
-    %	\begin{equation}
-    %		\mathcal U_\alpha(\dg M; p) := \Inc(\dg M;p) - \alpha
-    %                H(p). \label{eqn:full-score} 
-    %	\end{equation} 
-    %joe3: This may be true, but why say it?        
-    %	Thought of this way, in specifying a PDG, a modeler has not
-    %        only specified a a distribution, but also a higher-order
-    %        object, that scores all distributions.  
-    %oli3: because mixing up the levels is problematic. Maybe it doesn't need to be said.
-    %joe3: why does this mean someting is wrong?
-    %oli3: rewording and uncommenting.
-    % $\Inc$ provides us with a meaningful continuous score, but as
-    % a semantics for PDGs, there's still something missing: $\Inc$ can
-    % only distinguish between those distributions $p$ that are
-    %         \emph{inconsistent} with $\dg M$.
-    % 
-    %oli8:added remark
-    \begin{remark}
-    	For distributions $\mu$ that exactly match the cpds in $\dg M$, then the term $\E_{x \sim \mu_X} \H (\bp (x))$ is can be recognized as the conditional entropy $\H_\mu(Y \mid X)$.
-    	If we take a variant of the extra information given by
-    	\begin{equation}
-    		\IDef'(\dg M; \mu) := \sum\alle \H_\mu(Y\mid X) - \H_\mu
-    			\label{eqn:alt-extra}
-    	\end{equation}
-     	which uses this simpler term directly, we can get a clearer
-            picture of the ``qualitative'' structure of a PDG. Motivating
-    %joe7*: If this is really true (I'm hoping it's not, and that the
-    %intuition I gave is sufficient), then I would not agree to include it
-    %in the paper.  We can't use what we can't motivate and explain!
-            this properly is trickier and beyond the scope of the paper,
-            but this definition will be useful point of comparison when we
-            discuss factor graphs.  
-    \end{remark}
-} %joe7: \end{commentout}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %I know you didn't ask for this, but it made it way easier to articulate
+% % the dependency network stuff.
+% Furthermore, $\IDef{}$ captures conditional independence.
+% % , while also providing the ability to back off of this (e.g., by providing a universal graph structure), and simultaneously providing a way of articulating qualitative independences.
+% 
+% \begin{defn}
+% For sets of variables $\mat X, \mat Y, \mat Z \sutbseteq \N$, the quantity%
+% 	\footnote{where $\I(\mat X; \mat Y \mid \mat Z)(\mu)$ is the conditional information between $\mat X$ and $\mat Y$ given $\mat Z$, a non-negative quantity which is zero iff $\mat X \CI_{\mu} \mat Y \mid \mat Z$.
+% }
+% \[  \frac{\partial \IDef{G}}{\partial \I_{\mu}(\mat X; \mat Y \mid \mat Z)}(\mu) < 0 
+% 	\text{for all $\mu$ iff} \mat X \CI_{G} \mat Y \mid \mat Z
+% 	% \quad\text{iff}\quad \mat X \CI_\mu \mat Y \mid \mat Z
+% 	 \]
+% we say $ \mat X \CI_{\IDef{G}} \mat Y \mid \mat Z$ iff it is negative. 
+% \end{defn}
+% \begin{prop}
+% 	$\mat X \CI_{\IDef{G}} \mat Y \mid \mat Z$ iff $\mat X \CI_{G} \mat Y \mid \mat Z$
+% \end{prop}
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%
 
 $\Inc_{\dg M}(\mu)$ and $\IDef{\dg M}(\mu)$ give us two measures
 of compatibility between ${\dg M}$ and a distribution $\mu$.
@@ -2273,6 +2299,7 @@ other scoring functions may well end up being of interest.
 % To get the BN theorem, we only need Inc to be such that a distribution minimizing
 % it is compatible with all CPTs.  (Please follow up if you still want a reference.)
 %
+%oli21: what do you think of adding the below with that definition?
 %In fact, \Cref{thm:bns-are-pdgs} would follow from \emph{any} choice
 %of divergence, so the fact that PDGs extend Bayesian Network semantics
 %does not hinge on this choice. 
@@ -2636,8 +2663,14 @@ For $\gamma = 0$, and $\dg M$ is consistent
 %joe9
 %\section{Relations to Other Graphical
 %          Models}\label{sec:other-graphical-models}
-\section{Relations to BNs and Factor Graphs}\label{sec:other-graphical-models} 
-We now relate PDGs to two of the most popular graphical models: BNs and factor
+%oli21: updating title
+% \section{Relations to BNs and Factor Graphs}
+\section{Relationships to Other Graphical Models}
+\label{sec:other-graphical-models} 
+%oli21: no need to mention DNs here, right?
+%We now relate 
+We start by relating
+PDGs to two of the most popular graphical models: BNs and factor
 graphs. PDGs are strictly more general than BNs, and can emulate factor graphs
 for a particular value of $\gamma$. 
 %oli8: Unecessary, I'll get to it. Would require updating anyway. Deleted.
@@ -2777,15 +2810,21 @@ for a particular value of $\gamma$.
 \Cref{constr:hyperedge-reducton} can be generalized to convert arbitrary Bayesian Networks into PDGs.
 %oli19: don't need to wrap in defn
 % \begin{defn}[BN to PDG]
-Given a BN $\mathcal B$, and a positive number $\beta_X$ for
-        each variable $X$ of $\cal B$,
+%oli21:
+% Given a BN $\mathcal B$, and a positive number $\beta_X$ for
+%         each variable $X$ of $\cal B$,
+Given a BN $\mathcal B$, and a positive confidence $\beta_X$ for
+        the cpd of each variable $X$ of $\cal B$,
 %joe10
 %oli120: reinstating your %joe10 .
-       let $\PDGof{\mathcal B, \beta}$
-               be the PDG containing of the cpds of $\cal B$%,
+let $\PDGof{\mathcal B, \beta}$
+%oli21:
+% be the PDG containing of the cpds of $\cal B$
+be the PDG comprising the cpds of $\cal B$
 %oli20: ... with this extra text:
-in this way,
-the straightforward formal details of which we defer to the appendix. 
+%oli21:
+% in this way, the straightforward formal details of which we defer to the appendix. 
+in this way; we defer the straightforward formal details to the appendix. 
 %oli20: here's what we had before:
 % we denote its corresponding PDG $\PDGof{\mathcal B, \beta}$.  
 % We defer the
@@ -2931,19 +2970,17 @@ and thus $\bbr{\PDGof{\mathcal B, \beta}}^* = \Pr_{\cal B}$.
 %joe18: we may want to cite the original paper on factor graphs here,
 %along with (probably more accessible) KF09; I on'd tfeel strongly
 %about this though.
-Factor graphs \cite{KF09}, like PDGs, generalize BNs and have a
+%oli21: added refernece; is easy to remove. I've also subsituted
+% the wainwright reference because it's much more focused on factor graphs
+% and the authors more strongly take the "factor graphs generalize BNs" position.
+% Factor graphs \cite{KF09},
+Factor graphs \cite{wainwright2008graphical,kschischang2001sumproduct},
+ 		like PDGs, generalize BNs and have a
         low barrier to adding observations.  Moreover, their failure to
         normalize in general may be viewed as a way of representing
-%oli9: line shave
-%joe8: reinstated
-        some
-        inconsistency.
-%joe8
-        In this section, we consider the relationship between factor graphs
-and PDGs.        
+        some inconsistency.
+In this section, we consider the relationship between factor graphs and PDGs.
 
-%oli9: inserting a lot of material. Some taken from appendix and added, so 
-% End of insert marked below with %%oli9-end insert
 \begin{defn}
 %joe8
   %  A \emph{factor graph} is a collection of random variables
@@ -2966,13 +3003,16 @@ and PDGs.
 %joe9: we have to explain the notation
   %  that define relationships between subsets of variables in
 %        $\mathcal X$;
-  that define relationships between subsets $J$ of variables in
-        $\mathcal X$ in some index set $\mathcal J$;
+%oli21: somehow this definiton is also wrong.
+	% that define relationships between subsets $J$ of variables in
+	% $\mathcal X$ in some index set $\mathcal J$;
+	% more precisely, each factor $\phi_J$ is associated with a subset
+	% $X_j\subseteq \mathcal{X}$, and maps
+	%values of $\V(X_j)$ to non-negative real numbers.
+where each $X_J \subseteq \mathcal X$.  
 more precisely, each factor $\phi_J$ is associated with a subset
-$X_j\subseteq \mathcal{X}$,
-%oli10
-% and maps $\V(X_j)$ to $\mathbb{R}^+$ (the non-negative reals).
-and values of $\V(X_j)$ to non-negative real numbers.
+$X_J\subseteq \mathcal{X}$ of variables, and maps
+joint settings of $X_J$ to non-negative real numbers.
 %oli10:
 % I'm not sure how to do this, but it's not the factor graph itself
 % that has the weights. It's just the natural exponential family,
@@ -2984,16 +3024,16 @@ and values of $\V(X_j)$ to non-negative real numbers.
 % factor graph specifies the distribution
 %oli19:
 \end{defn}
-A factor graph $\Phi$,
-together with a vector of non-negative weights $\{ \theta_J \}_{J \in \mathcal J}$,%
-\footnote{\label{note:fg-or-expfam}
-Typically, a factor graph is taken to be the special case
-%oli12: shave a line from footnote.
-% where all the parameters $\theta_J$ are set to 1,
-where each $\theta_J=1$,
- while the more general
-case is the exponential family associated with the factor graph.
- For convenience, we allow the weights from the outset.}
+%oli21: minor definition restructure to clarify weights and eliminate the need for
+% the footnote.
+We will refer to a factor graph $\Phi$,
+together with a vector of non-negative weights $\{ \theta_J \}_{J \in \mathcal J}$,
+%oli21: footnote removed for this presentation
+% \footnote{\label{note:fg-or-expfam}
+% 	Typically, a factor graph is taken to be the special case where each
+% 	$\theta_J=1$, while the more general case is the exponential family associated
+% 	with the factor graph. For convenience, we allow the weights from the outset.}
+as a \emph{weighted factor graph} (WFG) , which 
 %joe9*: is this the standard notation for free energy?  If not, please
 %change it to the standard notation.
 %specifies a scoring function $\mathcal G_\Phi$ of its own, called its
@@ -3004,36 +3044,32 @@ case is the exponential family associated with the factor graph.
 % \emph{free energy} \cite{KF09} of the factor graph, and a distribution
 %oli19: switching the order to emphasize the probability distribution
 specifies a distribution 
-%oli20: explicitly add \theta dependence
-% \[ {\Pr}_{\Phi}(\vec x)
-\[ {\Pr}_{\Phi,\theta}(\vec x)
-		= \frac{1}{Z_{\Phi, \theta}} \prod_{J \in \cal J} \phi_J(\vec
+%oli21: adding parentheses so the single subscript is more reasonable
+% \[ {\Pr}_{\Phi,\theta}(\vec x)
+\[ {\Pr}_{(\Phi,\theta)}(\vec x)
+		= \frac{1}{Z_{\Phi,\theta}} \prod_{J \in \cal J} \phi_J(\vec
                                 x_J)^{\theta_J} \]
 and also a canonical scoring function 
-%oli20: \begin{equation} instead of \[ for number, referring to this later.
-%\[
 \begin{equation}
-%oli20: explicitly add \theta dependence
-% \mathcal G_\Phi(\mu)
- 	\mathcal G_{\Phi,\theta}(\mu)
+%oli21: here also
+% \mathcal G_{\Phi,\theta}(\mu)
+	\mathcal G_{(\Phi,\theta)}(\mu)
 	 := \!\E_{\vec x\sim\mu}\left[  \sum_{J \in
            \cal J} \theta_J \log\frac1{\phi_J(\vec
                x_J)}\right] - \H(\mu)  , 
 			   \label{eqn:free-energy}
 \end{equation}
-%\]
 %joe17: you should give a reference for this
 %which $\Pr_\Phi$ mimizes, called the variational Gibbs free energy.
-which $\Pr_{\Phi,\theta}$ minimizes, called the \emph{variational Gibbs free energy}
-%oli20:
-\cite{wainwright2008graphical}. 
-%oli19: before I had ", where x is ..."; I don't know if it is
-%acceptable to wait
-%joe17: Please, please leave the original version in, commented out, so that I
-%can compare more easily!
+%oli21: parens
+% which $\Pr_{\Phi,\theta}$ minimizes, called the \emph{variational Gibbs free energy}
+which $\Pr_{(\Phi,\theta)}$ minimizes, called the \emph{variational Gibbs free energy}
+% \cite{wainwright2008graphical}
+%oli21: actually this terminology is from
+\cite{mezard2009information}. 
 Here $\vec{x}$ is a joint setting on all of the variables,
         $\vec{x}_J$ is the restriction of $\vec{x}$ to only the
-        variables $X_J$, and $Z_{\Phi, \theta}$ is the constant required to
+        variables $X_J$, and $Z_{\Phi,\theta}$ is the constant required to
         normalize the distribution.  
 %oli19
 % \end{defn}
@@ -3060,7 +3096,10 @@ The cpds of a PDG straightforwardly constitute the data of a factor graph.
   %  $\mathcal J := \Ed$ and the associated factor graph	on the
 %oli20: 
 % the associated factor graph $\Phi_{\dg M}$ on the	
-the associated factor graph $(\Phi_{\dg M}, \theta)$ on the	
+%oli21: I'm envisioning some disagreement about this notation; putting this in a 
+% macro to make this smoother
+% the associated factor graph $(\Phi, \theta)_{\dg M}$ on the	
+the associated WFG $\WFGof{\dg M} = (\Phi,\theta)$ on the 
 %oli9.question: is (\N, \V) appropriate? you need both \N and \V to determine the
 % variables, but it looks strange.
 variables $(\N,\V)$ by
@@ -3100,23 +3139,26 @@ factor.
 \begin{defn}[factor graph to PDG] \label{def:fg2PDG}
 %oli20: shuffle + add \theta (2 lines)
 % If $\Phi=(\{\phi_J\}_{J \in \cal J})$ is a factor graph, then $\PDGof{\Phi}$ is
-For a factor graph $\Phi=(\{\phi_J\}_{J \in \cal J})$ and 
-	non-negative vector $\theta$ over $\cal J$,  let $\PDGof{\Phi,\theta}$ be
-%
-the PDG which has all the variables in $\Phi$ together with $\sf 1$ and a
-variable $X_J := \prod_{j \in J} X_j$ for every factor $J \in \mathcal J$; there
-are edges $X_J \tto X_j$ for each $X_j \in X_J$
-(as in the appendix)%
-%oli20
-% , and edges $\sf 1 \to X_J$ with
-, and edges ${\mathsf 1} \to X_J$ with
-associated cpd $\bp[J]$ is the joint distribution on $X_J$ obtained by
-normalizing $\phi_J$; finally, let $\beta_L := \theta_L$. 
-%oli19: added, and also figure
-%oli19: later cut the text for line. Should reinstate if we drop the
-%reference beneath it.
-%joe17: I didn't understand your omment above, an don't see any reason
-%to remove this line, which I think is useful.
+%oli21: this is fine but using WFG terminology instead:
+	% For a factor graph $\Phi=(\{\phi_J\}_{J \in \cal J})$ and 
+	% non-negative vector $\theta$ over $\cal J$,  let $\PDGof{\Phi,\theta}$ be
+For a WFG $\Psi = (\Phi,\theta)$, let $\PDGof{\Psi}$ be
+%oli21
+% the PDG which has all the variables in $\Phi$ together with $\sf 1$ and a
+% variable $X_J := \prod_{j \in J} X_j$ for every factor $J \in \mathcal J$%
+the PDG whose variables are the variables in $\Phi$ together with $\sf 1$ and a
+variable $X_J := \prod_{j \in J} X_j$ for every factor $J \in \mathcal J$%
+%oli21: This is pretty awkward; also the discussion is not in the appendix anymore.
+% I'm swapping order, as the projections are less important. The cut material
+% appears in slightly altered form at the end of the definition
+	% ; there are edges $X_J \tto X_j$ for each $X_j \in X_J$ (as in the appendix)%
+	% , and edges $\sf 1 \to X_J$ with
+, whose edges consist of projections $X_J \tto X_j$ for each $X_j \in X_J$ and
+unconditional joint distributions ${\mathsf 1} \to X_J$ with
+%oli21
+	% associated cpd $\bp[J]$ is the joint distribution on $X_J$ obtained by
+associated cpd $\bp[J]$ equal to the joint distribution on $X_J$ obtained by
+normalizing $\phi_J$; finally, let \valpha{$\alpha_L = $}$\beta_L := \theta_L$. 
 The process is illustrated in \cref{fig:fg2PDG}.
 \end{defn}
 %joe18
@@ -3198,27 +3240,29 @@ The process is illustrated in \cref{fig:fg2PDG}.
 Conversion of the PDG in \cref{ex:smoking} to a factor graph
 according to \cref{def:PDG2fg} (left), and from that factor graph back
 to a PDG by \cref{def:fg2PDG} (right). 
-%oli20:
-%joe18
-%In the later,
-In the latter,
 %joe17
 %blue edges carry the (renormalized) cpds corresponding to the
 %joe18: what does ``renormalized'' mean here?  Why did the cpds have
 %to be renoormalized
-%blue edges are associated with the (renormalized) cpds corresponding to the
-blue edges are associated with the cpds corresponding to the
-%joe17: what's a product node?  This is very mysterious, and needs to
-%be expanded a bit.
-%oli20:
-% original factors, and product nodes 
-original factors, each leading to a new node $X_J$ (displayed as a
-%joe18
-%smaller darker rectangle) whose values are joint settings the
+%oli21: because they're now being regarded as unconditional distributions. To
+%illustrate: both a cpt X -> Y and an unconditional distribution 1 -> XY are
+%matrices. In the first case, each row sums to 1, whereas in the second, the
+%whole matrix sums to 1. We're renormalizing the cpd so that they are
+%unconditional distributions. I think your original edit introduced this ambiguity.
+%oli21: let me try again to write this clearly.
+	% In the latter, blue edges are associated with the cpds corresponding to the
+	% original factors, each leading to a new node $X_J$ (displayed as a
+	% smaller darker rectangle) whose values are joint settings of the
+	% variables connected to the factor $J$. 
+%
+In the latter, for each $J$ we intorduce a new node $X_J$ (displayed as a
 smaller darker rectangle) whose values are joint settings of the
-variables connected to the factor $J$. 
-%oli20:
-%	are inserted for every edge.
+variables connected it, and also an edge $1 \to X_J$ 
+(blue) %oli21: AAAI only begrudgingly accepts color I will make sure all the 
+% figures, etc. look good in black and white later.
+%FIXME
+to which we associate with the unconditional 
+distribution given by normalizing $\phi_J$.
 } 
 	\label{fig:fg2PDG}
 \end{figure*}
@@ -3245,6 +3289,9 @@ the mappings can change the graphical structure significantly.
 Nevertheless, in the case where every weight is the same,
 %joe18: why do we have to say this
 %and equal to $\gamma$,
+%oli21: PDGs have a parametric family of semantics, one for each \gamma.
+% The specific one of these that is preserved depends on what each \beta is.
+% [[M]]^* is not defined if only one value of \gammma works.
 %oli19: because the process is not involutive, I'm changing the wording
 % then the factor graph and the associated PDG have the same semantics.  
 then both conversions preserve the semantics. 
@@ -3265,21 +3312,29 @@ then both conversions preserve the semantics.
 %joe18: I actually thought it was fine before, but I'm OK with the
 %following slight reweroding
 %If $\dg M$ is a PDG, and $\gamma$ is a number such that $\beta_L\!
-If $\dg M$ is a PDG such that for some $\gamma >0$, we have that $\beta_L\!
-= \gamma$ for all  
-%oli12 line shave
-%edges
- $L$, then
+	If $\dg M$ is a PDG such that for some $\gamma >0$, we have that $\beta_L\!
+	= \gamma$ for all  $L$, then
+%oli21: your reword (above) has the structure:
+% if [exists \gamma ... ] then  [\phrase involving \gamma], which 
+% muddles quantifiers, but I don't like my fix (below) so I'll leave yours.
+	% If $\dg M$ is a PDG and $\gamma > 0$ satisfies $\beta_L\!
+	% = \gamma$ for all  $L$, then
 %oli20: we're now using subscripts. Also, swapping order so the conclusion
 % is read in the direction we're emphasizing. Spacing also.
 % $\gamma \mathcal G_{\Phi(\dg M)} = \bbr{\dg M}_{\gamma}$ and
 % $\bbr{\dg M}_{\gamma}^* = \{\Pr_{\Phi({\dg M})} \}$.
 %joe18*: this is problematic given your current notation.  \G needs to
 %subscripts, and so does \Pr.
-$\bbr{\dg M}_{\gamma} = \gamma\,\mathcal G_{\Phi_{\dg M}}$ and
-$\bbr{\dg M}_{\gamma}^* = \{\Pr_{\Phi_{{\dg M}}} \}$.
-% $\kldiv{\mu}{\Pr_{\Phi(\dg M)}} = \bbr{\dg M}_{1}(\mu)$
-	% In particular, $\Pr_{\Phi(\dg M)} = \bbr{\dg M}_*^{\gamma := 1}$
+%oli21: oops you're right... 
+% $\bbr{\dg M}_{\gamma} = \gamma\,\mathcal G_{\Phi_{\dg M}}$ and
+% $\bbr{\dg M}_{\gamma}^* = \{\Pr_{\Phi_{{\dg M}}} \}$.
+$\bbr{\dg M}_{\gamma} = \gamma\,\mathcal G_{ \WFGof{\dg M} }$ and
+$\bbr{\dg M}_{\gamma}^* = \{\Pr_{ \WFGof{\dg M}} \}$.
+%oli21: to do it directly in the old notation (I find it 
+%cluttered and difficult to parse, which is why I changed it)
+% $\bbr{\dg M}_{\gamma} = \gamma\,\mathcal G_{ \WFGof{\dg M}, \beta^{\dg M}}$ and
+% $\bbr{\dg M}_{\gamma}^* = \{\Pr_{ \Phi_{{\dg M}},  \beta^{\dg M}} \}$.
+
 \end{theorem}
 % \begin{theorem}[restate=thmfgispdg]\label{thm:fg-is-pdg}
 \begthm{theorem}{thm:fg-is-pdg}
@@ -3304,11 +3359,12 @@ we have that
 %joe18: missing \kappa, I think
 %$\mathcal G_{\Phi, \kappa} = \nicefrac{1}{k}\bbr{\PDGof{\Phi}}_{k} + C$  
 $\mathcal G_{\Phi, \kappa} = \nicefrac{1}{k}\bbr{\PDGof{\Phi,\kappa}}_{k} + C$  
-for some constant $C$, so
-	$\Pr_{\Phi, \kappa}$ is the unique element of $\bbr{\PDGof{\Phi,\kappa}}_{k}^*$. 
+for some constant $C$, so $\Pr_{\Phi, \kappa}$ is the unique element of 
+$\bbr{\PDGof{\Phi,\kappa}}_{k}^*$. 
 \end{theorem}
 %oli20: general versions for whole exponetial family
-\noindent\contentious{
+% \noindent\contentious{
+{
 %joe18*: rewrote.  Assuming we keep this, the real question is where
 %we introduce \alpha.  If we introduce it at the beginning, then we
 %need to include it in the BN theorem and were really should give more
@@ -3348,6 +3404,10 @@ If $\dg M$ is a PDG such that for some $\gamma >0$, we have that
 %that because the construction made it a constant, the following result holds.
 %If the updated Definition 4.3 allows some flexibility in
 %choosing \alpha and \beta, then this would reqire more work.
+%oli21: Oops, I forgot to add those two characters; we set \alpha_L = \beta_L. 
+% In any case, I think the true things you say above can be sold better:
+
+ 	
 
 	\begthm{theorem}{thm:fg-is-pdg2}
 	%oli20: we got to remove the condition!
@@ -3380,9 +3440,9 @@ For every factor graph $\Phi$, and EVERY vector $\theta$ over $\cal J$
 %        1$.\footnotemark 
 %joe18*: This is the point; you have to explain how the tranlsation
 %works in the presence of \alpha!
-%\vcontentio{\footnotetext{The result can be achieved for arbitrary
+%\footnotetext{The result can be achieved for arbitrary
 %	$\gamma \neq 1$, if we are willing to set $\alpha$ based on
-%	$\gamma$ in our translation of factor graphs to PDGs.}} 
+%	$\gamma$ in our translation of factor graphs to PDGs.}}
 
 %oli19:
 % Justification for both theorems is provided by rewriting
@@ -3439,7 +3499,7 @@ we have
 %	}^{\color{gray}\smash{\text{log likelihood}}} + \\[-0.5em]
 	}^{\color{gray}\smash{\mathclap{\text{log likelihood / cross entropy}}}} + \\[-0.5em]
     \color{gray}\underbrace{\color{black} 
-(\contentio{$\alpha_L$}\gamma - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})} 
+(\valpha{\alpha_L}\gamma - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})} 
 	}_{\color{gray}\smash{\mathclap{\text{local regularization (if $\beta_L > \gamma$)}}}}\bigg] - \underbrace{\color{black}
 %joe17
 %\gamma \log \frac{1}{\mu(w)}
@@ -3486,8 +3546,8 @@ G_\Phi$, for $\phi_J = \bp$ and $\theta_J
 %oli20: edit for flow
 % Furthermore, if each $\beta_L = \gamma$, the local regularization term disappears, so we get 
 %joe18
-%If in addition, each $\beta_L = \contentio{$\alpha_L$}\gamma$,
-If, in addition, $\beta_L = \contentio{$\alpha_L$}\gamma$ for all
+%If in addition, each $\beta_L = \valpha{$\alpha_L$}\gamma$,
+If, in addition, $\beta_L = \valpha{\alpha_L}\gamma$ for all
 edges $L$, then
 the local regularization term disappears, giving us
 %oli20:
@@ -3501,13 +3561,28 @@ We now explain how the middle term may be viewed as a ``local'' regularization,
 and why including such a term is necessary for the semantics to 
 %joe18*: I find this statement very confusing.  Why shouldn't we take
 %them seriously?  And they *are* assertions about probability, no
-%matter how we  take them.  Most importantly of all, I see no way in
+%matter how we  take them.  
+%oli21*: I agree completely! But that is not the way the semantics work, without
+% a local regularization term. I'm trying to motivate the need for the locaity.
+%joe18*[continued]: Most importantly of all, I see no way in
 %which this example tells me anything about how I shoudl view p.  It
 %shows potential probablems with the factor graph (which is what I
 %believe it was intended to do).  Some signposting would be useful, but I find
-%this completely unhelpful.  We had some text here which you seem to
+%this completely unhelpful.
+%oli21*: I'm not sure exactly what you mean about "how you veiew p", but I assume
+% you mean something like, whether to take the cpds seriously or think of them
+% as energies. The example clearly shows that without a local regularization
+% term, the semantics effectively treats them like energies, and the interpretation
+% as a probability distribution is not preserved without the local term. As we
+% point out, this local term  
+%joe18*[continued]: We had some text here which you seem to
 %have cut, rather than commenting it out.  I though the text was fine,
 %and I'm reinstating it.  (Also, please don't just cut text.)
+%oli21: This text was not removed; it's was just at the end of the document 
+% serving a slightly different post-example analysis purpose. 
+% To be honest I'm perplexed that so many of these stories, whose delivery I take
+% quite seriously and that I edit several times before turning over to you, are
+% still entirely lost in transit....
 %take our cpds $\mat p$ seroiusly, as assertions about probability%
 view our cpds $\mat p$ as assertions about probability%
 % (instead of viwing them as each contributing to a badness, as factor graphs do)
@@ -3517,9 +3592,12 @@ view our cpds $\mat p$ as assertions about probability%
 
 %joe18*: reinstating some material from before, with slight rewriting.
 \Cref{eq:semantics-breakdown} also makes it clear that 
-taking $\beta_L = \alpha_L \gamma$ for all edges $L$ is
+taking $\beta_L = \valpha{\alpha_L} \gamma$ for all edges $L$ is
 essentially necessary to get \Cref{thm:pdg-is-fg,thm:fg-is-pdg}.
-If this equality does not hold, then we can get some 
+%oli21*: ! this is the opposite polarity of what we need to say.
+%. The equality HOLDING is what gives us strange behavior.  Rewriting.
+%	If this equality does not hold, then we can get some 
+\valpha{\cref{prop:consist} does not hold unless .}
 some strange
 behavior in factor graphs trying to capture the same phenomena as
 PDGs, as the following example shows.
@@ -3569,9 +3647,13 @@ However, it can be shown that
 % $\Pr_{\Phi{{\dg M')}}} = \mu_{.85}$, so  $\bbr{\dg M'} = \{\mu_{.85}\}$.
 %joe18: there's a typo here: I wrote what I thought you intended
 %$\Pr_{\Phi{{\dg M)}}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
+%oli21: 
+% $\Pr_{\Phi_{{\dg M)},1)}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
+$\Pr_{\WFGof{\dg M}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
 %joe18*: this arguably also shows the problem with the \bbr{\dg M}_k^*
 %semantics when k \ne 0.  We should say something about that.
-$\Pr_{\Phi_{{\dg M)},1)}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
+%oli21: A more accurate takeaway is that if \gamma is strictly positive, then a messed
+% up qualitative picture will impact the semantics.
 \end{example}
 
 %joe11*: is this what you mean?  Why is there only one such world?
@@ -3603,12 +3685,14 @@ $\Pr_{\Phi_{{\dg M)},1)}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
 %is the only term that makes use of the cpds.
 %joe18*: in what sense is it the most important?
 %so in some sense it is the most important.  
+%oli21: (because it's the only term that depends on the cpds)
 %joe18*: Sorry, I can't make any sense of the next sentence.  In what
 %sense are the distributions miscalibrated?
 %On its own, however, the distributions it selects are badly
 %miscalibrated, placing all mass on worlds with the very highest
 %likelihood.
 %joe18*: the best distance by what metric?
+%oli21: (metric=scoring function with only log likelihood term)
 %For instance, the best distribution in \cref{ex:overdet}
 %by this metric is $\mu_{1.0}$, even if only link $p$ were given ---
 %which is in direct conflict with $p$ itself.  
@@ -3624,6 +3708,18 @@ $\Pr_{\Phi_{{\dg M)},1)}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
 %joe18*: Sorry, I can't make any sense of this.  What does it mean to
 %``properly balance'' something.  How can ou tell if it's ``properly
 %balanced''.  
+%oli21*: By "balanced", I am referring technically to the situation where they
+% have the same coefficient. But saying this doesn't describe the effect:
+% When the coefficient on a regularization term, log[ 1 / \mu(x) ], equals the
+% coefficient on the energy term, log [ 1 / p(x)], for some fixed p, the
+% distribution \mu that minimizes the total is p (because their sum is then the KL
+% divergence from \mu to p).  If the regularization term
+% had a smaller coefficient, the optimal \mu would be distorted to be more
+% deterministic than p, and if it had a smaller one, it would be more spread
+% out. I claim that if p is meant as a description of the actual probability and
+% not just some measure of relative goodness, then balancing the two terms is
+% important.  
+%
 %which imposes a cost for uncertainy. For the PDG consisting of only
 %$p : 1 \to X$ from \cref{ex:overdet}, this results in $\bbr{1 \to
 %p}^* = p$. As we have seen, adding $q$ . It seems that as long as our
@@ -3631,37 +3727,25 @@ $\Pr_{\Phi_{{\dg M)},1)}} = \mu_{.85}$, so  $\bbr{\dg M}_1^* = \{\mu_{.85}\}$.
 %graph, and which nodes they attach to, it cannot properly balance the
 %likelihood so that the cpt is satisfied.    
 
-%joe17: I don't understand the next sentence.  I have no idea of the
-%sense in which local unceratinty ``offset'' local energy, and have no
-%idea what it would mean to do so.  I tried to write what I
-%thought you intended in a less mysterious way
-%PDG semantics may be viewed as extending factor graphs with ``local
-%uncertainty'' to offset each local energy.
 %joe18*: The next sentence should go earlier, after we've talked about
 %that first and last terms of (5) captring the free energy.
+%oli21: I keep trying to tell a story about what the equation does by building
+% up the terms, but I'm not getting through. I think without communicating the
+% instability + overconfidence of the likelihood term, and its standard 
+% resolution which involves the free energy, it's not really worth saying this anymore.
 %The scoring function that we use for PDGs can thus be viewed as
 The scoring function that we use for PDGs can be viewed as
-%oli20: added \theta. Also, we're not naming this term, we're just describing it. Its name is conditional entropy.
-% extending ${\mathcal G}_{\Phi,\theta}$ by including what we have called the local
 extending ${\mathcal G}_{\Phi,\theta}$ by including
-%joe18
-%a \emph{local} regularization term.
 the local regularization term.
-%oli20: more analogy.
 As $\gamma$ approaches zero,
 %joe18: it's not the strength, but the importance
+%oli21: Huh, I've always heard the adjective "strength" used to describe the magnitude
+% of the coefficient of a regularization term.  
 %the strenth of global regularization
 %drops and the strength of local regularization increases. 
 the importance of the global regularization terms decreases relative
  to that of the local regularization term.
-%joe17*: I can't even parse the rest of this, let alone understand it.
-%I just cut it.
-%As $\gamma \to 0$, these local terms dominate.
-%, and the semantics correspondingly that a distribution $\mu$ has the
-%appropriate amount of uncertainty at the target of each edge, while
-%demoting the 
-%preference for entropy on other variables (which the does not know about) to an
-%infinitessimal tie-breaker.
+
 
 %joe11*: why do we want to express uncertainty?   What is it
 %uncertainty about.  I'm trusting you that ``regularization'' will be
@@ -3740,6 +3824,8 @@ varies with $\beta$.
 %a paper about PDGs.  What does this tell us about PDGs.
 %increasing it results in optimal distributions which are more
 %deterministic.  
+%oli21: You raise a good point about an individual $\theta_J$;
+% thanks for adding the context.  
 %oli20: added
 %joe18*: I have no idea how a generaic atatement about properties. I
 %would *strongly* prefer to return this to its previous state (modlo
@@ -3832,24 +3918,13 @@ Because a factor graph fuses $\alpha_L = \beta_L$, adding a new edge effectively
 %$\theta$ only controls the likliehood, and so as it
 %increases the benefits of reporting an uncertain distribution fade as
 
-\Cref{eq:semantics-breakdown} also makes it clear that 
-%joe11*: what does ``on the smae scale'' mean?   Why say something
-%mysterious when you can say it clearly
-%oli13: This is weaker than what I meant to say. The point is to get the result,
-% you need $\gamma$ to be small enough; we cannot approximate  with small
-% gamma if it is fixed to the scale of the $\beta's$. This is fine though.
-%fixing $\gamma$ on the same scale as $\beta$ is 
-taking $\beta_L = \contentio{$\alpha_L$} \gamma$ for all edges $L$ is
-essentially necessary to get \Cref{thm:pdg-is-fg,thm:fg-is-pdg}.
-However, the analogue of \Cref{prop:consist} does not hold
-in general for such choices, leading to some arguably unacceptable
-% strange
-behavior in factor graphs 
-%oli19
-%joe17: No!  We've never talked about epistemic state before.  Now is
-%not the time to start.
-trying to capture the same phenomena as PDGs.
-%trying to capture epistemic state.
+%oli21: Here's the paragraph that I didn't cut before, but now it's above so I'm cutting it.
+% \Cref{eq:semantics-breakdown} also makes it clear that 
+% taking $\beta_L = \valpha{$\alpha_L$} \gamma$ for all edges $L$ is
+% essentially necessary to get \Cref{thm:pdg-is-fg,thm:fg-is-pdg}.
+% However, the analogue of \Cref{prop:consist} does not hold
+% in general for such choices, leading to some arguably unacceptable
+% behavior in factor graphs trying to capture the same phenomena as PDGs.
 
 %joe9: cut; folded some material into the next section
 %oli20: I rewrote this section and brought it up in case 
@@ -3890,45 +3965,106 @@ including those of Bayesian Networks. A directed edge
 	change quickly, or could be inconsistent. 
 }
 %oli20: I got to this a bit late and didn't do as good a job as I wanted, but
-%this is the flavor of whwat we can expect. I'm pretty sure the conjecture is
+%this is the flavor of whwat we can exppdgs}ect. I'm pretty sure the conjecture is
 %true, though it won't quite litterally hold for /inconsistent/ dependency
 %graphs, because ordered sampling is very hacky. I suspect it does hold if we
 %were to eliminate the "ordered" bit of their semantics and randomize th link
 %according to $\beta$, which would be a nice result.
 %joe18*: commented this out again.  If you can prove your conjecture,
 %then it would be worth adding.  Otherwise, it hurts mor than helps.
-\commentout{
+%oli21*: Proved conjecture and added this back in.
+% \commentout
+{
 	\subsection{Dependency Networks}
 %joe18
 %PDGs are much more closely related to Dependency Networks, or
-PDGs are closely related to Dependency Networks, or
-DNs \cite{heckerman2000dependency}. 
-	The data of a DN is also an unstructured collection of cpds,
-        but the cpds are attached to nodes rather than edges, so there
-        must be exactly one per
-        node.  \citeauthor{heckerman2000dependency} also emphasize the
-        benefit of being able to supply arbitrary data in the cpds,
-        even if they are inconsistent. Although on the surface PDG and
-        DN semantics are quite different (the latter is in terms of an
-        ordered Gibbs sampler), it turns out that DNs too are a
-        specific case of a PDG.  
+PDGs are closely related to Dependency Networks, or DNs
+\cite{heckerman2000dependency}. The data of a DN is also an unstructured
+collection of cpds, but the cpds are attached to nodes rather than edges, so
+there must be exactly one per node.  \citeauthor{heckerman2000dependency} also
+emphasize the benefit of being able to supply arbitrary data in the cpds,
+%oli21: using language directly from their paper.
+% even if they are inconsistent.
+without enforcing the consistency constraints.
+
+%oli21: let's define them.
+\begin{defn}
+	A DN is a tuple $\mathcal D = (\mathcal G, \mathcal P) $, where $\mathcal G = (\N,\V,\Ed)$ is a
+	directed graph of variables, and $\mathcal P$, gives for each $X \in \N$ a cpd $\bp[X](X \mid \Pa(X))$, where $\Pa(X)$ are the parents of $X$ in $\mathcal G$.
+	Given a total order $\prec$ on $\N$,
+	$\mathcal D$ defines a joint distribution on $\V(\N)$ by an ordered Gibbs sampler. The process of repeatedly cycling through the variables (ordered by $\prec$).
+\end{defn}
+
+%oli21: describe transltation. It's the same as a BN. We do nothing 
+% fancy, just do what we need to do to include the cpts, and set all weights to
+% 1 as there is nothing to break symmetry.
+A dependency network $\mathcal D$, and a vector of confidences $\beta$ for the cpds on each variable
+ % (defaulting to $\beta_X=1$) 
+can be naturally regarded as a PDG $\PDGof{\mathcal D}$ 
+via the same translation used for a Bayesian Network.
+Although on the surface PDG and DN semantics are quite
+%oli21:
+% different (the latter is in terms of an ordered Gibbs sampler),
+different,
+%oli21
+% it turns out that DNs too are specific case of PDGs
+PDGs are more general.
 %joe18*: It's strange to say ``it turns out'' and then to state a
 %conjecture, rather than a theorem.
+%oli21: Like most of the material I added last cycle, I didn't want to 
+% deveote too much time to proving it lest it get cut. 
 
-	\begin{conj}
-		If $\mathcal D = (\N, \Ed, \V, \mathcal P)$ is a consistent dependency network with a positive stationary distribution $p^*$ of its sampling procedure, then the PDG $\PDGof{\mathcal D} = (\N, \mathit{merge}(\Ed), \V, $$\mathcal P, \mat 1\contentio{, $\mat 1$})$, then $\bbr{\PDGof{\mathcal D}} = p^*$.
-	\end{conj}
-	\begin{proof}
-		Sketch:  By Theorem 2 of their paper, the stationary point of this procedure is unique, and equal to the only distribution $p$ which both is consistent with the independece assumptions, and also the cpds.  A feq examples strongly suggest thte independece assumptions associated with this structure, are correctly encoded in $\IDef{\PDGof{\mathcal D}}$. This needs to be done more rigorously but I don't expect it to be too bad.
-\end{proof}
-	
+%oli21: this simple theorem is just a repackaging of their Theorem 2, so I 
+% am now attributing it to them.
+\begthm[\citeauthor{heckerman2000dependency}]{theorem}{thm:dns-are-pdgs}
+%oli21: updating theorem statement
+	% If $\mathcal D = (\N, \Ed, \V, \mathcal P)$ is a consistent dependency network with a positive stationary distribution $p^*$ of its sampling procedure, then the PDG $\PDGof{\mathcal D} = (\N, \mathit{merge}(\Ed), \V, $$\mathcal P, \mat 1\valpha{, $\mat 1$})$, then $\bbr{\PDGof{\mathcal D}} = p^*$.
+	If $\mathcal D$ is a consistent dependency network with positive local distributions, then $\SD{\PDGof{\mathcal D}} =  \{ \Pr_{\cal D}^\prec \}$, where $\Pr_{\cal D}^\prec$ is the unique stationary distribution of the $\prec$-ordered Gibbs sampling procedure. 
+\end{theorem}
+
+It follows from \Cref{thm:dns-are-pdgs,prop:sem3} that $\bbr{\PDGof{\mathcal D}}^* = \Pr_{\cal D}$. This is comforting, but not particularly surprising; it merely states that PDGs and DNs have the same notion of inconsistency. Perhaps more surprisingly, the independencies of $\mathcal D$ are captured by the qualitative term $\IDef{}$.  
+
+
+\begin{prop}
+	A distribution $\mu$ that locally minimizes $\IDef{\mathcal G^{\mathcal D}}$ satisfies all of the independencies of $\mathcal D$.
+	% For any distribution $\mu$ violating the independencies of $\mathcal D$, there is a $\mu'$ for which $\IDef_{\mathcal G^{\mathcal D}}(\mu') < \IDef_{\mathcal G^{\mathcal D}}(\mu)$.
+\end{prop}
+% \begin{prop}
+% 	% what I want to say: IDef entails the independencies of D, in that 
+% 	% it causes the region of the information profile
+% 	% associated with any independence of the DN, to be red. 
+% 	For any sets of variables $\mat X, \mat Y, \mat Z$, for which $\mat  X \CI_{\mathcal D} \mat Y \mid \mat Z$, we have
+% 	\[ \frac{\partial \IDef{\cal D}}{\partial \I(\mat X; \mat Y \mid \mat Z)}(\mu) < 0 \]
+% 	where $\I(\mat X; \mat Y \mid \mat Z)(\mu)$ is the conditional information between $\mat X$ and $\mat Y$ given $\mat Z$, a non-negative quantity which is zero iff $\mat X \CI_{\mu} \mat Y \mid \mat Z$. 
+% \end{prop}
+
+
+Inconsistent DNs still define a unique distribution, but we cannot hope that it 
+will be the same one as generated by the PDG, owing to the fact that
+the Gibbs sampler defined by \citeauthor{heckerman2000dependency} is dependent
+on the (arbitrary) fixed order used in sampling.
+A PDG can simulate the effect of the order by 
+
+\begin{theorem}
+	If $\mathcal D$ is a dependency network over the variables
+	$X_1 \prec X_2  \ldots  \prec X_n$ is a total order on the variables, and $\beta$ is a vector over the edges
+	%oli21: to preemptively eliminate some confusion:
+	% (which have a 1-1 correspondence with variables in a DN) 
+	such that  $\beta_1 \ll_\epsilon \beta_2 \ll_\epsilon  \ldots \ll_\epsilon \beta_n$, 
+	then $\Pr_{\cal D}^{\prec} = \bbr{\dg M; \beta}^*$
+\end{theorem}
+
+A \emph{symmetrized} Gibbs sampler, rather than cycling though variables in a 
+particular order, randomly draws the variable to update. Doing so results 
+
+\begin{theorem}
+	The fixed point $\mu^*$ of a symmetrized Gibbs sampler for a DN $\mathcal D$ 
+\end{theorem}
+
 }
 %joe9: \end{commentout}
 	
 	% \todo{more related work if this is the right place to put it.}
-
-%oli8: Removed the two large sections on themodynamics and moved them to the appendix. 
-%TODO: I still have to merge the two thermo sections there.
 
 %joe8: This will not make it to the submission.  It's totally
 %unrelated to the rest of the paper.  We should definitely write a
@@ -6420,6 +6556,7 @@ so the two functions differ only by the constant $k \log \prod_{J} Z_J$.
 	% We know that $ $, and so 
 	% \[ Z_\Phi \Pr_\Phi = \prod_J \phi_J  = \prod_J p_J Z_J \]
 \end{proof}
+
 \commentout{
 % \propfgpdglossless*
 \begin{proof}
@@ -6440,6 +6577,15 @@ so the two functions differ only by the constant $k \log \prod_{J} Z_J$.
 	and since the two distributions are normalized, they must be equal.
 \end{proof}
 }
+
+\subsection{Dependency Networks}
+Finally, we prove
+
+\recall{thm:dns-are-pdgs}
+\begin{proof}
+	Sketch:  By Theorem 2 of their paper, the stationary point of this procedure is unique, and equal to the only distribution $p$ which both is consistent with the independece assumptions, and also the cpds.  A feq examples strongly suggest thte independece assumptions associated with this structure, are correctly encoded in $\IDef{\PDGof{\mathcal D}}$. This needs to be done more rigorously but I don't expect it to be too bad.
+\end{proof}
+
 
 %oli12: New section
 \vfull{

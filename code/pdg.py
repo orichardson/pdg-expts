@@ -2,16 +2,16 @@
 # %autoreload 2
 
 
-import pandas as pd
+# import pandas as pd
 import numpy as np
 import networkx as nx
 
 import collections
 from numbers import Number
 
-import utils
+# import utils
 from rv import Variable, ConditionRequest, Unit
-from dist import Dist, CDist, RawJointDist, CPT
+from dist import RawJointDist as RJD, CPT #, Dist, CDist,
 
 # CPT.from_ddict(One, PS, {'*': 0.3})
 # V = Variable("abc")X
@@ -53,7 +53,7 @@ class PDG:
     # By default, use the base labeleler, which
     # just gives a fresh label by incrementing a counter.
     def __init__(self, labeler: Labeler = Labeler()):
-        self.vars = {} # varname => Variable
+        self.vars = {"1" : Unit } # varname => Variable
         self.edgedata = collections.defaultdict(dict)
             # { (nodefrom str, node to str, label) => { attribute dict } }
             # attributes: cpt, alpha, beta. context. (possible lambdas.). All optional.
@@ -61,6 +61,35 @@ class PDG:
         self.labeler = labeler
         self.graph = nx.MultiDiGraph()
         self.gamma = 1
+        
+        self._dist_repr = "atomic"
+        
+    """
+    Custom string interpolation for interpreting PDG queries & command, making it
+    easier to construct things and do work in the context of a PDG.
+    Examples:
+        M('AB')  replaces  Variable.product(M.vars['A'], M.vars['B'])
+
+    Future:
+        M('A B -> C')  returns  a β-combination of cpts.
+        M('A B -> B C := ', P)  adds a matrix with the appropriate types,
+            and any missing variables with the right # of elements, if they are msising.
+    """
+    def __call__(self, *INPUT, **kwargs):
+        connectives = ["->"]
+        
+        def interpret(token):
+            if token in connectives:
+                pass
+            elif token in self.vars:
+                return self.vars[token]
+        
+        if len(INPUT) == 1 and type(INPUT[0]) is str:
+            objects = [interpret(t.strip()) for t in INPUT[0].split()]
+            # print(objects)
+            
+            if all(isinstance(o,Variable) for o in objects):
+                return Variable.product(*objects) if len(objects) != 1 else objects[0]
         
     # generates <node_name_from, node_name_to, edge_label> 
     # @property
@@ -90,11 +119,39 @@ class PDG:
     
     @property
     def varlist(self):
+        return self.getvarlist(self._dist_repr)
+
+    def getvarlist(self, repr):
+        if repr == "raw": return self.rawvarlist
+        elif repr == "atomic": return self.atomic_vars
+        return []
+    
+    @property
+    def rawvarlist(self):
         return list(X for X in self.vars.values())
         
     @property
+    def atomic_vars(self):
+        atoms =  [v for v in self.rawvarlist if '×' not in v.name and len(v) > 1]
+        ghostvars = [v for v in self.rawvarlist if '×' in v.name]
+
+        missing = [n for v in ghostvars for n in v.split(atomic=True) if n.name not in self.vars]
+        assert len(missing)==0, "Missing Components: "+repr(missing)
+
+        return atoms
+        
+
+    def getdshape(self, repr):
+        return tuple(len(X) for X in self.getvarlist(repr))
+
+    @property
     def dshape(self):
-        return tuple(len(X) for X in self.varlist)
+        return self.getdshape(self._dist_repr)
+    
+    @property
+    def cpds(self):
+        for (X,Y,cpd, α,β) in self:
+            yield cpd
     
     def _get_edgekey(self, spec):
         label = None
@@ -254,8 +311,7 @@ class PDG:
         else:
             try:
                 gn,tn,label = self._get_edgekey(key)
-            except e:
-                print(e) 
+            except:
                 print(key, 'is not a valid key')
                 return
 
@@ -286,7 +342,7 @@ class PDG:
         return True
         
     
-    def _build_fast_scorer(self, weightMods=None, gamma=None):
+    def _build_fast_scorer(self, weightMods=None, gamma=None, repr="atomic", grad_mode='joint'):
         N_WEIGHTS = 4
         if weightMods is None:
             weightMods = [lambda w : w] * N_WEIGHTS
@@ -306,59 +362,84 @@ class PDG:
             for j, (wsug,wm) in enumerate(zip(w_suggest, weightMods)):
                 weights[j,i] = wm(wsug)
 
-        SHAPE = self.dshape
-        mu = RawJointDist.unif(self.varlist)
+        # SHAPE = self.dshape
+        mu = self.genΔ(RJD.unif, repr)
+        SHAPE = mu.data.shape
         Pr = mu.prob_matrix
+                                                        
+        PENALTY = 1001.70300201
+        # PENALTY = 101.70300201
+            # A large number unlikely to arise naturally with
+            # nice numbers. 
+            # Very hacky but faster to do in this order.
                     
         def score_vector_fast(distvec):
             # enforce constraints here... 
             distvec = np.abs(distvec).reshape(*SHAPE)
             distvec /= distvec.sum() 
-            # mu = RawJointDist(distvec, self.varlist) 
             mu.data = distvec # only create one object...
-                        
-            PENALTY = 1001.70300201
-                # A large number unlikely to arise naturally with
-                # nice numbers. 
-                # Very hacky but faster to do in this order.
 
+            gradient = np.zeros(distvec.shape)        
             thescore = 0        
-            for i, (X,Y,cpd_df,alpha,beta) in enumerate(self):
-                # This could easily be done 3x more efficiently
-                # by generating the matrices jointly.
-                # look here if optimization reqired. 
-                muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
-                cpt = mu.broadcast(cpd_df)            
-                logcpt = - np.ma.log(cpt) 
-                                            
-                logliklihood = z_mult(muxy, logcpt.filled(PENALTY))
-                logcond_info = z_mult(muxy, -np.ma.log(muy_x).filled(PENALTY) )
-                logextra = z_mult(mux * cpt, logcpt.filled(PENALTY))
-                                            
-                ### The "right" thing to do is below.
-                # logliklihood = z_mult(muxy, logcpt)
-                # logcond_info = z_mult(muxy, -np.ma.log(muy_x) )
-                # logextra = z_mult(mux * cpt, logcpt)
-                
-                ### Dependency Network Thing.
-                # nonXorYs = [Z for Z in self.vars.values() if Z is not Y and Z is not X]
-                # dnterm = z_mult(muxy, -np.ma.log(Pr(Y|X,*nonXorYs)))
-                
-                # no complex, just big score, in fast version
-                thescore += weights[0,i] * logliklihood.filled(PENALTY).sum()  
-                thescore += weights[1,i] * logcond_info.filled(PENALTY).sum()  
-                thescore += weights[2,i] * logextra.filled(PENALTY).sum()  
-                    
 
-            ################# λ4 ###################
+            for i, (X,Y,cpd_df,alpha,beta) in enumerate(self):
+                # muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
+                muxy = Pr(X, Y)
+                muy_x = Pr(Y | X)
+                cpt = mu.broadcast(cpd_df)
+                
+                # eq = (np.closecpt - muy_x
+                
+                logliklihood = - np.ma.log(cpt).filled(PENALTY)
+                logcond_info = - np.ma.log(muy_x).filled(PENALTY)
+                # logextra = z_mult(mux * cpt, logcpt.filled(PENALTY))
+                                
+                gradient += weights[0,i] * (logliklihood )
+                gradient += weights[1,i] * (logcond_info )
+                                                                            
+                thescore += weights[0,i] * z_mult(muxy, logliklihood).sum()  
+                thescore += weights[1,i] * z_mult(muxy, logcond_info).sum()  
+                # thescore += weights[2,i] * logextra.filled(PENALTY).sum()  
+                    
+            gradient /= np.log(2)
             thescore /= np.log(2)
             thescore -= gamma * mu.H(...)
+            # gradient += gamma * (np.ma.log( distvec ) + mu.H(...))
+            gradient -= thescore
             
-            return thescore
+            print(gradient.min(), gradient.max(), np.unravel_index(gradient.argmax(), gradient.shape))
+            
+            return thescore, gradient.reshape(-1)
+        
+        # def score_gradient(distvec):
+        #     distvec = np.abs(distvec).reshape(*SHAPE)
+        #     distvec /= distvec.sum() 
+        #     mu.data = distvec # only create one object...
+        # 
+        #     gradient = np.zeros(distvec.shape)        
+        #     for i, (X,Y,cpd_df,alpha,beta) in enumerate(self):
+        #         # muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
+        #         muy_x = Pr(Y | X)
+        #         cpt = mu.broadcast(cpd_df)            
+        # 
+        #         logliklihood = - np.ma.log(cpt).filled(PENALTY)
+        #         logcond_info = - np.ma.log(muy_x).filled(PENALTY)
+        #         # logextra = z_mult(mux * cpt, logcpt.filled(PENALTY)
+        # 
+        #         gradient += weights[0,i] * (logliklihood - distvec.dot(logliklihood))
+        #         gradient += weights[1,i] * (logcond_info - distvec.dot(logcond_info))
+        #         # thescore += weights[2,i] * logextra.filled(PENALTY).sum()  
+        # 
+        #     gradient += gamma * (np.ma.log( distvec ) + mu.H(...))
+        #     gradient /= np.log(2)
+        #     return gradient
+            
         return score_vector_fast
     
     #  semantics 2  
-    def score(self, mu : RawJointDist, weightMods=None):
+    def score(self, mu : RJD, weightMods=None, gamma=None):
+        if gamma is None:
+            gamma = self.gamma
         if weightMods is None:
             weightMods = [lambda w : w] * 4
         else:
@@ -379,7 +460,6 @@ class PDG:
             cpt = mu.broadcast(cpd_df)            
             logcpt = - np.ma.log(cpt) 
                         
-            weights = [beta, -beta, alpha*self.gamma, 0]
             
             ### Liklihood.              E_mu log[ 1 / cpt(y | x) ]
             logliklihood = z_mult(muxy, logcpt)
@@ -391,8 +471,10 @@ class PDG:
             nonXorYs = [Z for Z in self.varlist if Z is not Y and Z is not X]
             dnterm = z_mult(muxy, -np.ma.log(Pr(Y|X,*nonXorYs)))
             
-            
+            weights = [beta, -beta + alpha*gamma, 0, 0]
             terms = [logliklihood, logcond_info, logextra, dnterm]
+            
+            # print(f"Weights for {X.name} -> {Y.name}", weights)
             for term, λ, mod in zip(terms, weights, weightMods):
                 # adding the +1j here lets us count # of infinite
                 # terms. Any real score is better than a complex ones
@@ -402,56 +484,128 @@ class PDG:
 
         ################# λ4 ###################
         thescore /= np.log(2)
-        thescore -= self.gamma * mu.H(...)
+        thescore -= gamma * mu.H(...)
         
         return thescore.real if thescore.imag == 0 else thescore
-        
+    
+    
+    def Inc(self, p, ed_vector=False):
+        Prp = p.prob_matrix        
+        # n_cpds = len(self.edgedata) # of edges
+        Inc = np.zeros((len(self.edgedata),*p.shape),dtype=np.complex_)
+        for i,(X,Y,cpd_df,alpha,β) in enumerate(self):
+            cpd = p.broadcast(cpd_df)
+            # print(i,X.name,Y.name,cpd_df.shape, cpd.shape, Prp(Y | X).shape, p.prob_matrix(Y, given=[X]), "the variable X is ", X, 'and its indices are ', p._idxs(X), 'while the indices of Y are ', p._idxs(Y), '; if we split X we get ', list(X.split()), ' because its structure is ', X.structure)
+            # print("p's conditional marginal ", Prp(Y | X))
+            # print("broadcast cpd", cpd)
+            # print((p * np.ma.log(  Prp(Y | X ) / cpd )).sum())
+            
+            Inc[i,...] = β * p * (np.ma.log(  Prp(Y | X ) / cpd )) #.astype(np.complex_)).filled(1j)
+
+        if ed_vector:
+            return Inc.sum(axis=tuple(range(1, Inc.ndim)))
+        return Inc.sum()
 
     ####### SEMANTICS 3 ##########
-    # WARNING: this will output the distribution 
-    def optimize_score(self):
-        scorer = self._build_fast_scorer()
-        factordist = self.factor_product().data.reshape(-1)
-        init = RawJointDist.unif(self.vars).data.reshape(-1)
+    def optimize_score(self, gamma, repr="atomic", **solver_kwargs ):
+        scorer = self._build_fast_scorer(gamma=gamma, repr=repr)
+        factordist = self.factor_product(repr=repr).data.reshape(-1)
+        
+        # init = self.genΔ(RJD.unif).data.reshape(-1)
         # alternate start:
-        # init = factordist
+        init = factordist
         
         from scipy.optimize import minimize, LinearConstraint, Bounds
 
         req0 = (factordist == 0) + 0
-        opt1 = minimize(f, 
-            init,
-            constraints = [LinearConstraint(np.ones(init.shape), 1,1), LinearConstraint(req0, 0,0.01)],
+        # rslt = minimize(scorer,
+        #     init,
+        #     constraints = [LinearConstraint(np.ones(init.shape), 1,1), LinearConstraint(req0, 0,0.01)],
+        #     bounds = Bounds(0,1),
+        #         # callback=(lambda xk,w: print('..', round(f(xk),2), end=' \n')),
+        #     method='trust-constr',
+        #     options={'disp':False}) ;
+        solver_args = dict(
             bounds = Bounds(0,1),
-                # callback=(lambda xk,w: print('..', round(f(xk),2), end=' \n')),
-            method='trust-constr',
-            options={'disp':False}) ;
-        rslt = minimize(scorer, init)
+            # constraints = [LinearConstraint(np.ones(init.shape), 1,1)],
+            jac=True, tol=1E-4)
+        solver_args.update(**solver_kwargs)
+
+        rslt = minimize(scorer, 
+            init +  np.random.rand(*init.shape)*1E-2 * (1-req0),
+            **solver_args)
         self._opt_rslt = rslt
         
-        varlist = self.varlist
-        rsltdata = abs(rslt.x).reshape(self.dshape)
+        rsltdata = abs(rslt.x).reshape(self.getdshape(repr))
         rsltdata /= rsltdata.sum()
         
-        return RawJointDist(rsltdata, varlist)
+        return RJD(rsltdata, self.getvarlist(repr))
         # TODO: figure out how to compute this. Gradient descent, probably. Because convex.
         # TODO: another possibly nice thing: a way of testing if this is truly the minimum distribution. Will require some careful thought and new theory.
 
+        
+    def genΔ(self, kind=RJD.random, repr="atomic"):
+        d = kind(self.getvarlist(repr))
+        return d
 
     ##### OTHERS ##########
-    def factor_product(self) -> RawJointDist:
+    def make_edge_mask(self, distrib):
+        M = PDG()
+        
+        for name,V in self.vars.items():
+            M += name, V
+            # print(name, self.vars[name].structure, M.vars[name].structure)
+            
+        for X,Y,cpt,alpha,beta in self:
+            # print('edge  ', X.name,'->', Y.name,beta)
+            M += distrib.conditional_marginal(Y | X)
+        return M
+        
+    def factor_product(self, repr="raw") -> RJD:
         # start with uniform
-        d = RawJointDist.unif(self.vars)
+        # d = RJD.unif(self.atomic_vars)
+        
+        d = self.genΔ(RJD.unif, repr)
         for X,Y,cpt,*_ in self:
             if cpt is not None:
                 #hopefully the broadcast works...
                 d.data *=  d.broadcast(cpt)
+                
         d.data /= d.data.sum()
-        
         return d
+        
+    def iter_GS_ordered(self, ordered_edges=None,  max_iters: Number = 100, repr="atomic") -> RJD:
+        if ordered_edges is None:
+            ordered_edges = list(self)
+            
+        def cpdgen(stats):
+            for it in range(max_iters):
+                yield ordered_edges[it % len(ordered_edges)]
+                
+        return self.iterative_Gibbs(init=self.genΔ(RJD.unif, repr), cpdgen=cpdgen)
+        
+    def iterGS(self, init : RJD, cpdgen) -> RJD:
+        stats = {}
+        dist = init
+        
+        for cpd in cpdgen(stats):
+            not_target = list(v for v in dist.varist if v != cpd.nto)
+            lcpd = dist.broadcast(cpd)
+            
+            pα1 = dist.prob_matrix(*not_target) * lcpd
+
+            # Thought: if we had used full target instead, and then renormalized, this would be 
+            # an \alpha = 0 update? It would certainly be more straightforwardly the renormalized
+            # product of cpds... wait...
+            # pα0 = dist.data * lcpd
+            dist.data = pα1           
+            
+        return dist
 
     ############# Testing 
     def random_consistent_dists():
         """ Algorithm:  
         """
         pass
+
+        
