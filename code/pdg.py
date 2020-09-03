@@ -37,6 +37,17 @@ def joint_index(varlist):
 def z_mult(joint, masked):
     """ multiply assuming zeros override nans; keep mask."""
     return np.ma.where(joint == 0, 0, joint * masked)
+    
+def zz_div(top, bot):
+    """ multiply assuming zeros override nans; keep mask."""
+    #TODO remove
+    # top = np.array(top)
+    # bot = np.array(bot)
+
+    rslt = np.ma.divide(top,bot)
+    rslt = np.ma.where( np.logical_and(top == 0, bot == 0), 1, rslt)
+    return rslt
+
 
 class Labeler:
     # NAMES = ['p','q','r']
@@ -260,7 +271,7 @@ class PDG:
                                 
         
     def __iadd__(self, other):
-        if type(other) is tuple and len(other) > 1 and type(other[0]) is str:            
+        if type(other) is tuple and len(other) > 1 and type(other[0]) in (str,int):            
             self.add_data(other[1], label=other[0])
             self += other[2:]
         else:
@@ -325,16 +336,40 @@ class PDG:
         # if (obj == )
         
     def __iter__(self):
+        return self.edges("XYPαβ")
+            
+    """
+    Examples:
+        M.edges("X,Y,cpd,α,β")
+        M.edges("XYLp")
+        M.edges(['X', 'Y'])
+    """
+    def edges(self, spec='XY'):
+        if type(spec) is str:
+            delims = ',; '
+            for d in delims:
+                if d in spec:
+                    spec = spec.split(d)
+                    break
+                
         for (Xname, Yname, l), data in self.edgedata.items():
             X,Y = self.vars[Xname], self.vars[Yname]
-            alpha = data.get('alpha', 1)
-            beta = data.get('beta', 1)
+            lookup = dict(src=X,tgt=Y,X=X,Y=Y,Xname=Xname,Yname=Yname, Xn=Xname, Yn =Yname,
+                alpha=1,beta=1,l=l,label=l, L=l,**data)
+            lookup['α'] = lookup['alpha']
+            lookup['β'] = lookup['beta']
+            lookup['P'] = lookup['p'] =  data.get('cpd',None)
+
+            # alpha = data.get('alpha', 1)
+            # beta = data.get('beta', 1)
+            # yield X,Y, data.get('cpd', None), alpha, beta
             
-            yield X,Y, data.get('cpd', None), alpha, beta
+            yield tuple(lookup.get(s,None) for s in spec) if len(spec) > 1 \
+                else lookup.get(spec[0],None)
         
     # semantics 1:
     def matches(self, mu):
-        for X,Y, cpd, *_ in self:
+        for X,Y, cpd in self.edges("XYP"):
             # print(mu[Y], '\n', mu[X], '\n', cpd)
             if( not np.allclose(mu[Y], mu[X] @ cpd) ):
                 return False
@@ -367,7 +402,7 @@ class PDG:
         SHAPE = mu.data.shape
         Pr = mu.prob_matrix
                                                         
-        PENALTY = 1001.70300201
+        PENALTY = 101.70300201
         # PENALTY = 101.70300201
             # A large number unlikely to arise naturally with
             # nice numbers. 
@@ -382,7 +417,7 @@ class PDG:
             gradient = np.zeros(distvec.shape)        
             thescore = 0        
 
-            for i, (X,Y,cpd_df,alpha,beta) in enumerate(self):
+            for i, (X,Y,cpd_df) in enumerate(self.edges("XYP")):
                 # muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
                 muxy = Pr(X, Y)
                 muy_x = Pr(Y | X)
@@ -407,7 +442,7 @@ class PDG:
             # gradient += gamma * (np.ma.log( distvec ) + mu.H(...))
             gradient -= thescore
             
-            print(gradient.min(), gradient.max(), np.unravel_index(gradient.argmax(), gradient.shape))
+            # print(gradient.min(), gradient.max(), np.unravel_index(gradient.argmax(), gradient.shape))
             
             return thescore, gradient.reshape(-1)
         
@@ -500,22 +535,24 @@ class PDG:
             # print("broadcast cpd", cpd)
             # print((p * np.ma.log(  Prp(Y | X ) / cpd )).sum())
             
-            Inc[i,...] = β * p * (np.ma.log(  Prp(Y | X ) / cpd )) #.astype(np.complex_)).filled(1j)
+            Inc[i,...] = β * p * (np.ma.log(  zz_div(Prp(Y | X ), cpd) )) #.astype(np.complex_)).filled(1j)
 
+        Inc /= np.log(2)
         if ed_vector:
             return Inc.sum(axis=tuple(range(1, Inc.ndim)))
         return Inc.sum()
 
     ####### SEMANTICS 3 ##########
-    def optimize_score(self, gamma, repr="atomic", **solver_kwargs ):
+    def optimize_score(self, gamma, repr="atomic", store_iters=False, **solver_kwargs ):
         scorer = self._build_fast_scorer(gamma=gamma, repr=repr)
         factordist = self.factor_product(repr=repr).data.reshape(-1)
         
         # init = self.genΔ(RJD.unif).data.reshape(-1)
         # alternate start:
         init = factordist
+        iters = [ np.copy(init.data) ]
         
-        from scipy.optimize import minimize, LinearConstraint, Bounds
+        from scipy.optimize import minimize, Bounds#, LinearConstraint
 
         req0 = (factordist == 0) + 0
         # rslt = minimize(scorer,
@@ -525,10 +562,14 @@ class PDG:
         #         # callback=(lambda xk,w: print('..', round(f(xk),2), end=' \n')),
         #     method='trust-constr',
         #     options={'disp':False}) ;
+        
         solver_args = dict(
             bounds = Bounds(0,1),
             # constraints = [LinearConstraint(np.ones(init.shape), 1,1)],
-            jac=True, tol=1E-4)
+            jac=True, tol=1E-7)
+        if store_iters:
+            solver_args['callback'] = lambda xk: iters.append(xk)
+            
         solver_args.update(**solver_kwargs)
 
         rslt = minimize(scorer, 
@@ -538,8 +579,9 @@ class PDG:
         
         rsltdata = abs(rslt.x).reshape(self.getdshape(repr))
         rsltdata /= rsltdata.sum()
+        rsltdist =  RJD(rsltdata, self.getvarlist(repr))
         
-        return RJD(rsltdata, self.getvarlist(repr))
+        return (rsltdist, iters) if store_iters else rsltdist
         # TODO: figure out how to compute this. Gradient descent, probably. Because convex.
         # TODO: another possibly nice thing: a way of testing if this is truly the minimum distribution. Will require some careful thought and new theory.
 
@@ -556,9 +598,9 @@ class PDG:
             M += name, V
             # print(name, self.vars[name].structure, M.vars[name].structure)
             
-        for X,Y,cpt,alpha,beta in self:
-            # print('edge  ', X.name,'->', Y.name,beta)
-            M += distrib.conditional_marginal(Y | X)
+        for X,Y, l in self.edges('XYl'):
+            # print('edge  ', X.name,'->', Y.name,beta, self.edgedata)
+            M += l, distrib.conditional_marginal(Y | X)
         return M
         
     def factor_product(self, repr="raw") -> RJD:
@@ -574,38 +616,102 @@ class PDG:
         d.data /= d.data.sum()
         return d
         
-    def iter_GS_ordered(self, ordered_edges=None,  max_iters: Number = 100, repr="atomic") -> RJD:
-        if ordered_edges is None:
-            ordered_edges = list(self)
-            
-        def cpdgen(stats):
-            for it in range(max_iters):
-                yield ordered_edges[it % len(ordered_edges)]
+    def iter_GS_beta(self, max_iters=600, tol=1E-30, store_iters=False, repr='atomic') -> RJD:
+        dist = self.genΔ(RJD.unif, repr)
+        iters = [ np.copy(dist.data) ]
+        totalβ = sum(β for β in self.edges("β"))
                 
-        return self.iterative_Gibbs(init=self.genΔ(RJD.unif, repr), cpdgen=cpdgen)
-        
-    def iterGS(self, init : RJD, cpdgen) -> RJD:
-        stats = {}
-        dist = init
-        
-        for cpd in cpdgen(stats):
-            not_target = list(v for v in dist.varist if v != cpd.nto)
-            lcpd = dist.broadcast(cpd)
+        for it in range(max_iters):
+            nextdist = np.zeros(dist.data.shape)
+            for X,Y,cpd,β in self.edges("XYPβ"):
+                nextdist += (β / totalβ) * self.GS_step(dist, (X,Y,cpd))
+                
+            change = np.sum((dist.data - nextdist) ** 2 )
+            dist.data = nextdist
             
-            pα1 = dist.prob_matrix(*not_target) * lcpd
+            if store_iters: iters.append(nextdist)
+            else: iters[-1] = nextdist
 
-            # Thought: if we had used full target instead, and then renormalized, this would be 
-            # an \alpha = 0 update? It would certainly be more straightforwardly the renormalized
-            # product of cpds... wait...
-            # pα0 = dist.data * lcpd
-            dist.data = pα1           
+
+            if change < tol:
+                break
+        else:
+            print('hit max iters, still changing at rate ', change, ' (tol = %f)'%tol)
+
+                # if change == 0: break
+        return dist, iters if store_iters else dist 
+        
+    def iter_GS_ordered(self, ordered_edges=None,
+            max_iters: Number = 50,  tol=1E-30,
+            store_iters=False, repr="atomic") -> RJD:
             
-        return dist
+        if ordered_edges is None:
+            ordered_edges = list(self.edges("XYP"))
+        
+        
+        dist = self.genΔ(RJD.unif, repr)
+        iters = [ np.copy(dist.data) ]
+        
+        for it in range(max_iters):
+            for XYp in ordered_edges:
+                dist.data = self.GS_step(dist, XYp)
+                
+            change = ((dist.data - iters[-1]) ** 2 ).sum()
+            
+            if store_iters:
+                iters.append(np.copy(dist.data))
+            else:
+                iters[-1] = dist.data
+            
+            
+            if change < tol: break            
+        else:
+            print('hit max iters, still changing at rate ', change, ' (tol = %f)'%tol)
 
-    ############# Testing 
-    def random_consistent_dists():
-        """ Algorithm:  
-        """
-        pass
+        return dist, iters if store_iters else dist 
+        # return self.iterGS(init=self.genΔ(RJD.unif, repr), cpdgen=cpdgen)
+        
+    def GS_step(self, dist : RJD, XYP) -> RJD:
+        X,Y,cpd = XYP
+        not_target = list(v for v in self.rawvarlist if
+            len(set(v.name.split('×')) & set(Y.name.split("×"))) == 0)
+                # Get the cpd from all variables that do not share a name with target.  
+        return dist.prob_matrix(*not_target,X) * dist.broadcast(cpd)
+
+
+
+    ############# Utilities ############## 
+
+    def all_dists(self, repr='atomic', SHAPE=(-1,)
+        # , return_type="indexed"
+            ):
+        dists = {}
+        
+        def store(tag, distrib, iterdatalist= []):
+            dists[tag] = distrib.data.reshape(*SHAPE)
+            for i,io in enumerate(iterdatalist):
+                dists[tag+' ; i=%d'%i] = io.reshape(*SHAPE)
+                
+        store('π', self.factor_product(repr))
+        store('β GS', *self.iter_GS_beta(repr=repr, store_iters=True))
+        store('≺ GS', *self.iter_GS_ordered(repr=repr, store_iters=True))
+        store('≺ GS', *self.iter_GS_ordered(repr=repr, store_iters=True))
+        store('opt γ=0', *self.optimize_score(0, repr=repr, store_iters=True, tol=1E-20))
+
+        for γ in np.logspace(-5, 1, 10): # γ is between .00001 and 10
+            # store('opt;γ=%f'%γ, *self.optimize_score(γ, repr=repr, store_iters=True, tol=1E-20))
+            store('opt γ=%.2f'%γ, self.optimize_score(γ, repr=repr, store_iters=False, tol=1E-20))
+        
+        
+        # if return_type == 'indexed':
+        # 
+        # else:
+        
+        return dists
+
+    # def random_consistent_dists():
+    #     """ Algorithm:  
+    #     """
+    #     pass
 
         

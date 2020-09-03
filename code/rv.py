@@ -102,9 +102,7 @@ class Variable(set, metaclass=utils.CopiedType):
         return cls([nl+str(i) for i in range(n)], default_value=nl+"0", name=name)    
 # V = Variable([3, 10, 2], name='V')
 # (V*V).name
-
-
-
+# α = β / γ
 
 def binvar(name : str) -> Variable:
     nl = name.lower()
