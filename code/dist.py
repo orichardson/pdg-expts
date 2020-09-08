@@ -13,11 +13,33 @@ import rv
 
 import warnings
 import itertools
+
+import seaborn as sns
+greens = sns.light_palette("green", as_cmap=True)
+
 # recipe from https://docs.python.org/2.7/library/itertools.html#recipes
 def powerset(iterable):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
     return itertools.chain.from_iterable(itertools.combinations(s, r) for r in range(len(s)+1))
+
+
+def z_mult(joint, masked):
+    """ multiply assuming zeros override nans; keep mask."""
+    return np.ma.where(joint == 0, 0, joint * masked)
+    
+def zz1_div(top, bot):
+    """ multiply assuming zeros override nans; keep mask."""
+    #TODO remove
+    # top = np.array(top)
+    # bot = np.array(bot)
+
+    rslt = np.ma.divide(top,bot)
+    rslt = np.ma.where( np.logical_and(top == 0, bot == 0), 1, rslt)
+    return rslt
+
+def D_KL(d1,d2):
+    return z_mult(d1, np.ma.log(zz1_div(d1,d2))).sum()
 
 
 class CDist(ABC): pass
@@ -31,7 +53,11 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
     _internal_names = pd.DataFrame._internal_names + ["nfrom", "nto"]
     _internal_names_set = set(_internal_names)
     
-    
+    def __init__(self,*args,**kwargs):
+        # print("CPT constructor")
+        # self.style.background_gradient(cmap=greens, axis=None)
+        pass
+        
     # def __call__(self, pmf):
     #     pass
     # def __matmul__(self, other) :
@@ -143,11 +169,10 @@ def _definitely_a_list( somedata ):
         return list(somedata.values())
     return list(somedata)
 
-
 # define an event to be a value of a random variale.
 class RawJointDist(Dist):
     def __init__(self, data, varlist):
-        self.data = data
+        self.data = data.reshape(*(len(X) for X in varlist))
         self.varlist = varlist
         
         # if rv.Unit not in varlist:
@@ -156,19 +181,27 @@ class RawJointDist(Dist):
         
         self._query_mode = "dataframe" # query mode can either be
             # dataframe or ndarray
-            
+
+    # Both __mul__ and __rmul__ reqiured to do things like multiply by constants...
     def __mul__(self,other):
-        return self.data * other
+        return RawJointDist(self.data * other, self.varlist)
     def __rmul__(self,other):
-        return self.data * other
+        return RawJointDist(self.data * other, self.varlist)
+        
+    def __pos__(self):
+        return self.normalize()
+    def __floordiv__(self,other):
+        return D_KL(self.data,other.data)
+
+
+    def __repr__(self):
+        varstrs = [v.name+"⟨%d⟩"%len(v) for v in self.varlist]
+        return f"RJD Δ[{';'.join(varstrs)}]--{np.prod(self.shape)} params"
+
 
     @property
     def shape(self):
         return self.data.shape
-        
-    def __repr__(self):
-        varstrs = [v.name+"⟨%d⟩"%len(v) for v in self.varlist]
-        return f"RJD : Δ[{';'.join(varstrs)}] -- {np.prod(self.shape)} params"
         
     def _process_vars(self, vars, given=None):
         if vars is ...:
@@ -273,8 +306,7 @@ class RawJointDist(Dist):
         # return cpt_mat.reshape(*end_shape)
 
     def normalize(self):
-        total = self.sum()
-        self.data /= total
+        self.data /= self.data.sum()
         return self
     
     def conditional_marginal(self, vars, query_mode=None):

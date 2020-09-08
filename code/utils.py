@@ -11,6 +11,14 @@
 from inspect import signature
 from abc import ABCMeta
 
+import numpy as np
+
+def joint_index(varlist):
+    """Given sets/variables/lists [Unit, A, B, C], reutrns
+    np.array([ (⋆, a0, b0, c0), .... (⋆, a_m, b_n, c_l) ]) 
+    """
+    return np.rollaxis(np.stack(np.meshgrid(*[np.array(*X) for X in varlist],  indexing='ij')), 0, len(varlist)+1)
+    
 def dictwo(d1, delkeys):
     return {k:v for k,v in d1.items() if k not in delkeys }
     
@@ -28,19 +36,19 @@ def flatten_tuples(l, start_depth=-1, end_depth=float('inf')):
         else:
             yield el
 
-if False:
-    t = ('a','b','c')
-    list(flatten_tuples((t,(t,t)),0,1))
-    
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),-1))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,0))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,1))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,2))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,3))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,4))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),1,2))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),2,3))
-    list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),3,4))
+# if False:
+#     t = ('a','b','c')
+#     list(flatten_tuples((t,(t,t)),0,1))
+# 
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),-1))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,0))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,1))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,2))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,3))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),0,4))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),1,2))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),2,3))
+#     list(flatten_tuples((1,(2,(3,(4,(5,6),4)))),3,4))
             
 def tuple_depth(l):
     if not isinstance(l, tuple):
