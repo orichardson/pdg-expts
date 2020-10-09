@@ -43,7 +43,7 @@ class Variable(set, metaclass=utils.CopiedType):
         
         return joint
         
-    def __mul__(self, other):
+    def __and__(self, other):
         return Variable.product(self,other)
         # kwargs = {}
         # if hasattr(self, 'default_value') and hasattr(other, 'default_value'):

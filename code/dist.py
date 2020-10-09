@@ -6,7 +6,7 @@ from typing import Type, TypeVar# , Union, Mapping
 import collections
 
 from functools import reduce
-from operator import mul
+from operator import and_
 
 import utils 
 import rv
@@ -340,8 +340,8 @@ class RawJointDist(Dist):
             if query_mode == "ndarray":
                 return matrix
             elif query_mode == "dataframe":
-                vfrom = reduce(mul,conditionvars)
-                vto = reduce(mul,targetvars)
+                vfrom = reduce(and_,conditionvars)
+                vto = reduce(and_,targetvars)
                 mat2 = matrix.reshape(len(vto),len(vfrom)).T
 
                 return CPT.from_matrix(vfrom,vto, mat2,multi=False)
@@ -351,7 +351,7 @@ class RawJointDist(Dist):
                 return joint_expanded
             elif query_mode == "dataframe":
                 mat1 = joint_expanded.reshape(-1,1).T;
-                return CPT.from_matrix(rv.Unit, reduce(mul,targetvars), mat1,multi=False)
+                return CPT.from_matrix(rv.Unit, reduce(and_,targetvars), mat1,multi=False)
                 
     # returns the marginal on a variable
     def __getitem__(self, vars):
@@ -429,10 +429,10 @@ class RawJointDist(Dist):
         I = self.I
         
         infos = [I(X|Y,Z), I(Y|X,Z), I(X,Y|Z), I(Z|X,Y), I(X,Z|Y), I(Y,Z|X), I(X,Y,Z) ]
-        # infos = [round(i, 3) for i in infos]
-        infos = [int(round(i * 100)) for i in infos]
+        infos = [round(i, 3) for i in infos]
+        # infos = [int(round(i * 100)) for i in infos]
         # Make the diagram
-        v = venn3(subsets = infos) 
+        v = venn3(subsets = infos, set_labels=[X.name,Y.name,Z.name]) 
         return v
 
     #################### CONSTRUCTION ######################

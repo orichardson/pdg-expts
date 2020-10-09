@@ -1,12 +1,12 @@
 # %load_ext autoreload
 # %autoreload 2
 
-import numpy as np
-import pandas as pd
+# import numpy as np
+# import pandas as pd
 
-from dist import RawJointDist, CPT
-from rv import Variable, binvar, Unit
-from pdg import *
+from dist import CPT
+from rv import binvar, Unit
+from pdg import PDG
 
 ############""" Example Code """##############
 
