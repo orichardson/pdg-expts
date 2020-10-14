@@ -22,6 +22,11 @@
 \input{../papers/model-commands.tex}
 
 \definecolor{inactive}{gray}{0.8}
+\definecolor{expand}{rgb}{0.1,0.8,0.2}
+\definecolor{eliminate}{rgb}{0.9,0,0}
+\definecolor{t1}{rgb}{0.5,0.5,0}
+\definecolor{t2}{rgb}{0.3,0,0.3}
+\definecolor{t3}{rgb}{0,0.3,0.3}
 
 \newcommand{\bp}[1][L]{\mat{p}_{\!_#1\!}}
 \newcommand{\V}{\mathcal V}
@@ -127,10 +132,12 @@
 	\begin{align*}
 		\pz{\kldiv{\mu}{\phi}} &= \pz{\sum_w \mu(w) \log \frac{\mu(w)}{\phi(w)}} \\
 			&= \sum_w \left[ \pz{\mu(w)} \log \frac{\mu(w)}{\phi(w)} + \pz{\log\frac{\mu(w)}{\phi(w)} }\mu(w) \right] \\
-			&=\sum_w \left[ \pz{\mu(w)} \log \frac{\mu(w)}{\phi(w)} + \frac{\phi(w)}{\ln 2\cdot\mu(w)} \pz{\frac{\mu(w)}{\phi(w)}} \mu(w) \right] \\
-			&=\sum_w \left[ \pz{\mu(w)} \left(\log \frac{\mu(w)}{\phi(w)} + \frac{1}{\ln 2} \right) \right] \\
+			&=\sum_w \left[ \pz{\mu(w)} \log \frac{\mu(w)}{\phi(w)} + \frac{\phi(w)}{\ln 2\cdot\color{eliminate}\mu(w)} {\color{expand}\pz{\frac{\mu(w)}{\phi(w)}}} {\color{eliminate}\mu(w)} \right] \\
+			&=\sum_w \left[ \pz{\mu(w)} \log \frac{\mu(w)}{\phi(w)} + \frac{\color{eliminate}\phi(w)}{\ln 2} 	\left(\frac{{\color{eliminate}\phi(w)} \pz{\mu(w)} - {\color{eliminate}\mu(w) \pz{\phi(w)}}}{\color{eliminate}\phi(w)^2}\right)  \right] \\
+			&=\sum_w \left[ \pz{\mu(w)} \left(\log \frac{\mu(w)}{\phi(w)} + \frac{1}{\ln 2} \right) \right] & \text{since $\pz{\phi(w)} = 0$}\\
 			&=\sum_w \left[ (\delta_{w,v} - \mu(w)) \left(\log \frac{\mu(w)}{\phi(w)} + \frac{1}{\ln 2} \right) \right] \\
-			&= \log \frac{\mu(v)}{\phi(v)} + \frac{1}{\ln 2} - \sum_w \left[ \mu(w) \left(\log \frac{\mu(w)}{\phi(w)} +  \right) \right] - \frac{1}{\ln 2} \\
+			&= \log \frac{\mu(v)}{\phi(v)} + \frac{1}{\ln 2} - \sum_w \left[ \mu(w) \left(\log \frac{\mu(w)}{\phi(w)}  \right) \right] - \frac{1}{\ln 2} 
+				&\text{as $\ln 2$ cancels}\\
 			&= \log \frac{\mu(v)}{\phi(v)} - \kldiv{\mu}{\phi} \\
 	\end{align*}
 	
@@ -143,14 +150,18 @@
 %		&= \pz{\mu(x,y)} \log \frac{\mu(x)}{\mu(x,y)} + \frac{\mu(x,y)^2}{(\ln 2)\ \mu(x) } \left(\frac{1}{\mu(x,y)^2} \right) \left(\pz{\mu(x)} \mu(x,y) - \mu(x) \pz{\mu(x,y)}\right) \\
 		&= \pz{\mu(x,y)} \log \frac{\mu(x)}{\mu(x,y)} + \frac{\mu(x,y)^2}{(\ln 2)\ \mu(x) } \left(\frac{ \pz{\mu(x)} \mu(x,y) - \mu(x) \pz{\mu(x,y)}}{\mu(x,y)^2} \right) \\
 		&= \pz{\mu(x,y)} \log \frac{\mu(x)}{\mu(x,y)} + \frac{1}{\ln 2} \left( \pz{\mu(x)} \frac{\mu(x,y)}{\mu(x)} - \pz{\mu(x,y)} \right) \\
-		&= \pz{\mu(x,y)} \left(\log \frac{\mu(x)}{\mu(x,y)} - \frac{1}{\ln 2}\right) -  \frac{1}{\ln 2} \pz{\mu(x)} \mu(y \mid x) \\
+		&= \pz{\mu(x,y)} \left(\log \frac{\mu(x)}{\mu(x,y)} - \frac{1}{\ln 2}\right) +  \frac{1}{\ln 2} \pz{\mu(x)} \mu(y \mid x) \\
 	\end{align*}
 	
-	Therefore, twice using the fact that $\sum_x \mathbbm1[X(v) = x]\varphi(x) = \varphi(X(v))$, we have
+	This is not quite the conditional entropy $\H(Y\mid X)$; we have to also add the summation. Substituting that in, together with the fact that $\pz{\mu(\mathbf X)} = \Big(\mathbbm1[\mathbf X_v \!=\! \mathbf x] - \mu(\mathbf x)\Big)$ for any set of variables $\mathbf X$, we can factor the terms multiplied by a $\mathbbm1$ out of the sum:
 	\begin{align*}
 		\pz{\H_\mu(Y \mid X)} &= \pz{\sum_{x,y}\mu(x,y) \log \frac{\mu(x)}{\mu(x,y)}} \\
-			&= \sum_{x,y} \left[ \Big(\mathbbm1[XY_v \!=\! x,y] - \mu(x,y)\Big)\left(\log \frac{1}{\mu(y \mid x)} - \frac{1}{\ln 2}\right) -  \frac{1}{\ln 2} \Big(\mathbbm1[X_v \!=\! x] - \mu(x)\Big) \mu(y \mid x) \right] \\
-			= \Bigg(\log& \frac{1}{\mu(Y_v | X_v)} - \frac{1}{\ln 2}\Bigg)  + \frac{1}{\ln 2} \sum_{y} \mu(y \mid X_v) - \sum_{x,y} \left[\mu(x,y) \log\frac{1}{\mu(y\mid x)} + \frac{1}{\ln2} (\mu(x)\mu(y\mid x) - \mu(x,y)) \right] \\
+			&= \sum_{x,y} \left[ {\color{t1}\Big(\mathbbm1[XY_v \!=\! x,y] - \mu(x,y)\Big)\left(\log \frac{1}{\mu(y \mid x)} - \frac{1}{\ln 2}\right)} + {\color{t2}\frac{1}{\ln 2} \Big(\mathbbm1[X_v \!=\! x] - \mu(x)\Big) \mu(y \mid x)} \right] \\
+\intertext{
+	twice using the fact that $\sum_x \mathbbm1[X(v) = x]\varphi(x) = \varphi(X(v))$, we have
+}
+			= \color{t1}\Bigg(\log&{\color{t1} \frac{1}{\mu(Y_v | X_v)} - \frac{1}{\ln 2}\Bigg)}
+			 +{ \color{t2}\frac{1}{\ln 2} \sum_{y} \mu(y \mid X_v)} - \sum_{x,y} \left[ {\color{t1}\mu(x,y) \log\frac{1}{\mu(y\mid x)} -\frac{1}{\ln2} \mu(x,y)} + {\color{t2}\frac{1}{\ln2} \mu(x)\mu(y\mid x)} \right] \\
 			&= \log \frac{1}{\mu(Y_v | X_v)} - \sum_{x,y} \left[\mu(x,y) \log\frac{1}{\mu(y\mid x)} \right] \\
 			&= \log \frac{1}{\mu(Y_v | X_v)} - \H_\mu(Y \mid X)
 	\end{align*}
@@ -161,6 +172,28 @@
 	
 	\textbf{The Total Gradient.}\\
 	We can now compute this partial derivative for the entire link. Putting it all together, we have:
+	
+	\begin{align*}
+		\pz{\bbr{\sfM}(\mu)} &= \pz{ \sum_{ X \xrightarrow{\!\!L} Y} \sum_{x,y}\mu(x,y)  \left[
+		\beta_L \log \frac{1}{\bp(y\mid x)} + (\alpha_L\gamma - \beta_L) \log \frac{1}{\mu(y \mid x)} \right] - \gamma \H(\mu)} \\
+		&= \sum_{ X \xrightarrow{\!\!L} Y} \left[ \pz{  \sum_{x,y}\mu(x,y)\;
+		\beta_L \log \frac{1}{\bp(y\mid x)}} +  \pz{\sum_{x,y}\mu(x,y) (\alpha_L\gamma - \beta_L) \log \frac{1}{\mu(y \mid x)} } \right] - \gamma \pz{\H(\mu)} \\
+%		&= \sum_{ X \xrightarrow{\!\!L} Y}  \left[  \sum_{x,y}\pz{\mu(x,y)} \beta_L \log \frac{1}{\bp(y\mid x)} +  (\alpha_L\gamma - \beta_L) \pz{\sum_{x,y}\mu(x,y)    \log \frac{1}{\mu(y \mid x)} } \right] - \gamma \pz{\H(\mu)} \\
+		&= \sum_{ X \xrightarrow{\!\!L} Y}  \left[   \beta_L\sum_{x,y}\pz{\mu(x,y)}  \log \frac{1}{\bp(y\mid x)} +  (\alpha_L\gamma - \beta_L) \pz{\H(Y\mid X) } \right] - \gamma \pz{\H(\mu)} \\
+		= \sum_{ X \xrightarrow{\!\!L} Y} & \left[  \beta_L\sum_{x,y} \Big[\mathbbm1[X\!Y_v \!=\! xy] - \mu(xy)\Big]  \log \!\!\frac{1}{\bp(y\mid x)} +  (\alpha_L\gamma - \beta_L) \left[ \log\!\! \frac{1}{\mu(Y_v | X_v)} - \H_\mu(Y \mid X)\right] \! \right] \!- \gamma\left[\log\!\!\frac{1}{\mu(v)}- \H(\mu)\right] \\
+		 &= \sum_{ X \xrightarrow{\!\!L} Y}\left[  \beta_L \log \frac{1}{\bp(Y_v \mid X_v)} +  (\alpha_L\gamma - \beta_L) \log \frac{1}{\mu(Y_v | X_v)} \right] \!- \gamma\log\frac{1}{\mu(v)} - \bbr{\sfM}(\mu) \\
+	\end{align*}
+	\def\MM{\mathbf{M}}
+	So if we write $\MM^\mu$ for the random variable indicating the appropriate amount of surprise (given distribution $\mu$), so that $\bbr{\sfM}(\mu) = \E_{w \sim \mu} \MM^\mu(w)$, then 
+	\[ \pz{\bbr{\sfM}(\mu)} = \MM^\mu(v) - \E_{\mu}\Big[ \MM^\mu \Big] \]
+	and therefore
+	\[ \nabla_\mu{\bbr{\sfM}(\mu)} = \MM^\mu - \E_{\mu}\Big[ \MM^\mu \Big]
+		= \MM^\mu - \bbr{\sf M}(\mu) \]
+%	\mathbbm1[XY(v) \!=\! x,y] - \mu(x,y)
+	
+	\clearpage
+	\section*{OLD}
+	
 	\begin{equation}
 	\begin{aligned}
 		\pz{\bbr{\sfM}(\mu)} &= 

@@ -1,0 +1,1343 @@
+
+
+%joe9*: This section should go.  
+\section{PDGs And The Standard Statistical Physics Analogy}
+We now explain PDG's scoring semantics in more detail, relating it to factor graph's corresponding property, its free energy.
+% and show how by coupling two information theoretic quantities to the same parameter, w 
+
+\subsection{Specifying potentials: Exponential Families}\label{sec:fg-expfam}
+
+%joe6: Pointing to an example that appears 14 pages later is not
+%helpful.  And since I never got the intuition of factors as relative
+%likelihoods, this is not helping me at al.
+As \Cref{ex:fg-exam} illustrates, notions of relative likelihood, while in some sense correct in isolation and for the specific factor graphs which are BNs, are not a very precise way to think of factors in general. 
+For this reason, it is more standard to present them in terms of energy potentials, eliminating the illusion of local control. 
+
+%joe6*: Sorry, Oliver, this is not 
+Consider only factors that are strictly positive,%
+	\footnote{or equivalently, by the Hammersley-Clifford theorem, to Markov Random Fields}
+and define $ \varphi_\alpha := -\log \phi_\alpha$, which is can be thought of the additive component of the energy state of a joint setting $\vec x$ due to factor $\alpha$. 
+Low values of $\varphi_\alpha(x_\alpha)$ indicate settings judged to be low probability, or equivalently, of high energy. 
+To obtain the total energy of a point $\vec x$ we take a sum of the individual factors' energies at $\vec x$. By weighting weight each factor's energy by a positive scalar $\theta_\alpha$, which intuitively corresponds to the importance of the factor $\phi_\alpha$ in the total total energy $\sum_\alpha \theta_\alpha \varphi_\alpha$,
+%This is the total energy of a point $\vec x$; we now ask: what's the total energy of a distribution $\mu$? It will include the average energy 
+and corresponding Boltzmann distribution at inverse temperature $\gamma$:
+\[ \Pr_{\Phi, \vec\theta} (\vec x)  := \exp \left\{ -\gamma \sum_\alpha \theta_\alpha \varphi_\alpha(\vec x_\alpha)  + \ln Z_\Phi(\vec \theta, \gamma) \right\} \] 
+which is the form of an exponential family with parameters $\theta$ (in which it is standard to absorb $\gamma$ into the parameters $\theta$ for compactness).
+
+Why have we chosen this distribution as the most favorable for our reaction, instead of the one with all probability mass on the point $\vec x$ that has minimum energy? Because we imagine that there is a cost to keeping things orderly, so long as there is ambient temperature. Choosing the exponential family distribution, which is equivalent to minimizing the \emph{free energy} of the system---that is, minimizing the average energy, but also imposing an energy cost for putting too much mass in one place. It turns out that a factor graph specifies a free energy landscape
+
+\begin{align*}
+	\mathcal G_\Phi(\mu) &=  \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \varphi_\alpha(\vec x) \right] - \gamma H(\mu) \\
+		&= \E_{\vec x \sim \mu} \left[\sum_\alpha \theta_\alpha \log \frac{1}{\phi_\alpha(\vec x)} \right] - \gamma H(\mu)
+\end{align*}
+For comparison, here is a slightly manipulated version of the energy landscape we defined in \Cref{sec:scoring-semantics}, with an extra scalar $\lambda$ inserted in the second term, intended to lie in $[0,1]$.
+\begin{equation*}
+	\bbr{\dg M}(\mu) \!=\mskip-18mu \sum_{ X \xrightarrow{\!\!L} Y  \in \Ed } \!\!\!\!\E_\mu  \Bigg[\!
+		\underbrace{\beta_L \log \frac{1}{\bp(y\mid x)} \vphantom{\Bigg|}}_{\text{Average Energy (1)}}  - 
+		\underbrace{\beta_L \lambda \log \frac{1}{\mu(y \mid x)}  \vphantom{\Bigg|}}_{\text{Local Uncertainty (2)}}  + 
+		\underbrace{\alpha_L \gamma \frac{\bp(y \mid x)}{\mu(y \mid x)}\log \frac{1}{\bp(y\mid x)}  \vphantom{\Bigg|}}_{\text{Causal Barrier (3)}}\! \Bigg] - 
+		\mskip-31mu\underbrace{\gamma \H(\mu) \vphantom{\Bigg|} }_{\text{Global Uncertainty (4)}}
+\end{equation*}
+
+The first term is the expected surprise information content of seing $\bp$, or the cross entropy. Optimizing this results in a maximum likelihood estimate. The second term is a regularization, which pushes each local distribution towards uncertainty. For $\lambda = 1$, the regularization is perfectly calibrated to ensure that $\bp(y \mid x)$ is the optimal value of $\mu$, yielding the expected divergence $\kldiv{\mu(y\mid x)}{\bp(y\mid x)}$, or after summing each of the edges, the inconsistency $\Inc_{\dg M}( \mu)$. We can also recognize (3) + (4) as the extra information.
+
+For this section, the important thing to note is that if we could set $\lambda = 0$ and $\alpha = 0$, we would have exactly the free energy landscape of the factor graph $\Phi(\dg M)$, thought of as an exponential family with parameters $\vec \theta i:= \vec \beta$. Recalling that for a PDG $\dg M$, $\Phi(\dg M)$ only has edges that originate at $\sf 1$, term (3) is constant, giving us the following theorem.
+
+\begin{theorem}
+	Consider an alternate semantics $\bbr{-, \alpha, \beta, \lambda}^*$ that allows for the setting of the parameter $\lambda$ as described above. Then for any value of $\vec\alpha$, $\Pr_{\Phi(\dg M),\theta} = \bbr{\dg M, \vec{\alpha}, \vec{\theta}, \vec\lambda \!=\! \vec 0 }^*_1$.
+\end{theorem}
+
+Though we find it instructive to see the version of the semantics with a locality paramter $\lambda$ included, we opt not to include it in the presentation of a weighted PDG, for reasons described in the next section.
+
+\vfull{
+    \section{Operations on PDGs}\label{sec:pdg-operations}
+    \subsection{Graph Operations}
+    To model the process of adding information to a PDG, we use a graph union. While clearest in \Cref{ex:grok-union}, we can also view adding the individual cpd $\mat r$, as a union of the original PDG with the single-cpd PDG $[F \smash{\xrightarrow{\mat r}} G]$ as we did in \Cref{ex:guns-and-floomps}; \Cref{ex:smoking} similar, but with an extra endpoint.
+
+    Though it seems to be a natural construction, there is a subtlety that makes this definition non-standard: we take the \emph{ordinary} union of the nodes, but the \emph{disjoint} union of the edges. We need an ordinary union of the vertices so that we can glue the two models together in the right places, but we need the disjoint union of the edges, because if two PDGs share an edge, the tables may not match and the only clear thing to do is to keep both, as we do in \Cref{ex:grok-union}. 
+    We now define the graph union formally. 
+
+    \begin{defn}[union] \label{def:model-union}
+    	If $\dg M, \dg M'$ are PDG s such that $\V^\dg M(N) = \V^{\dg M'}(N)$ for every $N \in  \N^{\dg M} \cap \N^{\dg M'}$, then $\dg M \cup \dg M'$ is a PDG with the ordinary union of their nodes (necessary to align and glue PDGs together), and \emph{disjoint union} of their edges. \notation{Explicitly,
+    	\begin{align*}
+    		\N^{\dg M \cup \dg M'} &= \N^\dg M \cup \N^{\dg M'},  \\
+    		\Ed^{\dg M \cup \dg M'} \!=& \Ed^\dg M \sqcup \Ed^{\dg M'}\!
+    			=  \{ (A, B, \text{inl}(\ell)P) : (A,B,\ell)\in \Ed^\dg M \}  \\
+    				&\qquad\qquad \cup \{ (A, B, \text{inr}(\ell)) : (A,B,\ell)\in \Ed^{\dg M'} \} \\ 
+    		\V^{\dg M \cup \dg M'} (N) &= \begin{cases}
+    				\V^{\dg M}(N) & \text{if }N \in \N^\dg M \\
+    				\V^{\dg M'}(N) &\text{if }N \in \N^{\dg M'} 
+    			\end{cases}\\
+    		\bmu^{\dg M \cup \dg M'}_L &= \begin{cases}
+    			\bmu^{\dg M}_{A, B, \ell} &\text{if } L = (A, B, \text{inl} (\ell)) \\
+    			\bmu^{\dg M'}_{A, B, \ell} &\text{if } L = (A, B, \text{inr} (\ell)) 
+    		\end{cases}
+    	\end{align*}}
+    \end{defn}
+    The condition that $\V^\dg M$ and $\V^{\dg M'}$ agree on the shared variables is necessary for $\V^{\dg M\cup \dg M'}$ or $\bmu^{\dg M \cup \dg M'}$ to be well-defined.%
+    	%oli4: this is commented out, don't worry.
+    	\vfull{\footnote{For those familiar with manifolds, it is analogous to a gluing condition for an atlas of charts}}
+    The restriction from \Cref{ex:grok-ablate} is more straightforward.%
+    %oli4: how much story, vs terseness?
+    %, but we provide it for completeness.
+
+    \begin{defn}[restriction]\label{def:restriction}
+    	The \emph{restriction} of $\dg M = \pdgvars[]$ to a subgraph $(\N' \subseteq \N, \Ed' \subseteq \Ed)$ of $(\N, \Ed)$, is the PDG, $\dg M|_{\N', \Ed'} = (\N', \Ed', \V |_{\N'}, \bmu|_\Ed')$, where 
+    	$\V|_{\N'}$ and $\bmu|_\Ed'$ are the same functions on the their respectively smaller domains $\N$ and $\Ed$. 
+    \end{defn}
+
+
+
+    %oli2: this first sentence I believe to be overkill, but I'm including it because I'm now trying really hard to claim that I've motivated the graph union.
+    %joe3: ``enjoying modularity'' seems like strange wording to me.  What
+    %we've said, in any case, is that PDGs are more modular than other
+    %approaches. 
+    %	We have said repeatedly that PDGs enjoy modularity, and seen
+    %oli3:
+    We have seen
+    	in \cref{ex:guns-and-floomps,ex:grok-union,ex:smoking} cases in
+    	which capturing the relevant information involves taking a
+    %joe3*: as I said, you've never talked about these examples in terms of
+    %union.  I think that there may be a useful discussion to be had about
+    %how modularity corresponds to union, and I understand that once you
+    %have union, youll want multigraphs.  This isn't going to make it to
+    %the abstract, and there's no question that this is the wrong place
+    %for it.  I could imagine a section where you talk about modularity
+    %and union, say that PDGs make sense even if they are multigraphs adn
+    %prove the theorem.
+    %oli3: that's the plan now. BUt it's not that it even makes sense, so
+    % much as that it _only_ makes sense with multi-graphs.
+    	union of two graphs, some of which may include new
+    	concepts. We wish to verify that our semantics are
+    	well-behaved with respect to this composition.	  
+    We therefore ask: what happens if we combine two PDGs $\dg M$
+    	and $\dg M'$ together? Intuitively, the set of distributions
+    	$\SD{\dg M \cup \dg M'}$ consistent with the combined
+    	constraints $\dg M\cup \dg M'$ should be the intersection of the
+    	distributions $\SD{\dg M} \cap \SD{\dg M'}$ consistent
+    	with each PDG separately. This is almost correct, but $\dg M$
+    	and $\dg M'$ may be over different set of variables, in which
+    	case the sets of distributions are automatically disjoint, as
+    	they are over different sets of possible worlds. To address
+    	this, we define a more sophisticated intersection of
+    	distributions that must agree on all overlapping
+    	marginals. %(\cref{def:marginal-dist-intersection}) 
+
+    \begin{defn}[$\dcap$]\label{def:marginal-dist-intersection}
+    	If $R$ and $S$ are sets of distributions, $R \subseteq \Delta X$ over the set $X$ and $S\subseteq \Delta Y$ over the set $Y$, then
+    %oli: remove the coment below to hide the notation.
+    %		\notation[$R \dcap S$~]
+    		{$$R \dcap S := \Big\{ \mu \in  \Delta [X \!\times\! Y] ~\Big|~ (\mu_{X}, \mu_{Y}) \in R \times S \Big\}  $$}%
+    	is the set of distributions over joint settings of $X$ and $Y$, whose marginals $\mu_X$ and $\mu_Y$ are each compatible with some distribution in $R$ and $S$ respectively. 
+    	
+    	This it the natural extension of an intersection to distributions on different, possibly overlapping sets --- in particular, if $X = Y$, then $R \dcap S$ = $R \cap S$ and if \notation[$X$ and $Y$ are disjoint]{$X \cap Y = \varnothing$}, then $R \dcap S = R \times S$. 
+    \end{defn}
+
+
+    %	It is now natural to ask: how does this semantics interact with the PDG union (\Cref{def:model-union})? 	
+    Now that we have the correct definition, we immediately get our desired property:
+
+    \begin{prop}\label{prop:union-set-semantics}
+    	$\SD{M \cup M'} = \SD{M} \dcap \SD{M'}$.
+    \end{prop}
+
+    \Cref{prop:union-set-semantics} can be interpreted as a statement of modularity: we can straightforwardly get the semantics for a combined diagram based only on its counterparts. 
+    >From the two special cases of $\dcap$ discussed above, one can see that adding new edges, (which we will see correspond to observations in \Cref{sec:belief-update}), cuts down the set of possible distributions, just like conditioning, and adding new variables to a consistent model freely increases the number of valid distributions like one would expect. We would like to emphasize that all of this is done through a by combining PDGs.
+
+    \begin{example}\label{ex:sd-compose-unconditional}
+    	Suppose we now have two PDGs with only one edge apiece, $\dg A = {\var 1} \xrightarrow{p} X$ and $\dg B = X \xrightarrow{q} Y$. We would hope that the semantics treat this like composition: that the unconditional distribution on $X$ provided by $p$ would be `plugged in' to the conditional distribution $q(y \mid x)$; indeed, this is what happens:
+    	%
+    	\begin{align*}
+    		&\SD[\Big]{{\dg A \cup \dg B}} = \SD[\Big]{{\var 1} \xrightarrow{p} X \xrightarrow{q} Y} \\
+    			&= \Big\{  \mu \in \Delta(\V(X) \times \V(Y)) : \mu_X = p,~\mu_{Y|X} = q \Big\} 
+    	\end{align*}
+    	where $\mu_X$ is the marginal of $\mu$ on $X$, and $\mu_{Y|X}$ is the cpd of conditional marginals on $Y$ for each setting of $X$.
+    	For any choice of $p$ and $q$ there is exactly one such distribution, given by $\mu(x,y) = p(x) q(y \mid x)$.
+    \end{example}
+
+
+    % we can motivate composition here!
+    \begin{example}[composition]
+    	Consider a slight alteration of \Cref{ex:sd-compose-unconditional} in which $\sf A$, which had an unconditional distribution on $X$, is replaced with $\dg A' := Z \xrightarrow{p'} X$, representing a distribution conditioned on $Z$. 
+    	As before,
+    	\[ \SD[\Big]{{\dg A' \cup \dg B}} = \SD[\Big]{{Z} \xrightarrow{p} X \xrightarrow{q} Y} \]
+    	Suppose we are interested in the conditional marginal of $Y$ given $Z$. In this case, $\SD{{Z} \xrightarrow{p} X \xrightarrow{q} Y} $ contains distributions $\mu$ with varying of $\mu(y \mid z)$, and so we can no longer conclude anything uniformly about this conditional marginal for all distributions in $\SD{{\dg A' \cup \dg B}}$. 
+    	
+    	Still, we can get an estimate of this quantity using the maximum entropy semantics, which conveniently turns out to be the composition of $p$ and $q$ as probabilistic functions.
+    	$$ \bbr{{\sf A \cup B}}\MaxEnt(y \mid z) = \sum_{x \in \V(X)}\!\! p (x \mid z)\ q(y \mid x) = q \circ p $$
+    	We claim more is true: if $\dg M$ is \emph{any} PDG that is not over-constrained, and with $\dg M \supseteq \sf A \cup B$, i.e., containing $\sf A \cup B$ as a sub-graph, then
+    	$ \bbr{\dg M}\MaxEnt(y \mid z) = q \circ p$,
+    	suggesting that this composition is in some sense the best guess we have for the conditional marginal. 
+    %		This can be verified directly, but we will instead prove the more general result in our next result (\Cref{thm:maxent-hull}.).
+    	%
+    \end{example}
+
+%This could be interesting to explore in the full paper, but it's definitely not high priority here.
+    \vleftovers{
+        If the intersection of two sets is convex, then 
+        \begin{conj}\label{prop:intersect-set-semantics}
+        	\[ \SD{M \cap M'} = \text{ConvHull}(\SD{M} \mathop{\dot\cup} \SD{M'}).\]
+        \end{conj}
+    }%end{vleftovers}
+}%\end{vfull}
+
+\section{Thermodynamics of PDGs}\label{sec:thermo}
+
+\begin{figure}[htb]
+	\centering
+	\scalebox{0.9}{
+	\begin{tikzpicture}
+		%TODO left hand side of diagram, with worlds and mean parameters
+		\node[ellipse,draw, outer sep=4pt] (DW) at (0,0) {$\Delta W$};
+		\node[ellipse,draw, outer sep=4pt] (EW) at (0,2.4) {$\text{Energy}^W$};
+		\node[ellipse,draw, outer sep=4pt] (DDW) at (4,0) {$\Delta (\Delta W)$};
+		\node[ellipse,draw, outer sep=4pt] (EDW) at (4,2.4) {$\text{Energy}^{\Delta W}$};
+		
+		\node[right=0.5em of EDW, blue] {$\mathcal U_\alpha(\dg M, \cdot)$};
+		\node[right=0.8em of DDW, blue] {$\bbr{\dg M}_{\alpha,\beta}$};
+		\node[left=0.8em of DW, blue] {$\mu$};
+		\node[left=0.5em of EW, blue] {$\log\frac{1}{\mu}$};
+		
+		\draw[->, transform canvas={xshift=3pt}] (DW) -- node[right]{$E_\beta$} (EW);
+		\draw[->, transform canvas={xshift=-3pt}] (EW) -- node[left]{$P_\beta$} (DW);
+		
+		\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
+		\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
+		
+		\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$\thickD({-\Vert~})$} (EDW);
+		
+		\draw[->] (EW) to[bend left=15] node[above] {$\E^*$} (EDW);
+		\draw[->] (EDW) to node[fill=white] {$\E$} (EW);
+
+		\draw[->] (DDW) to node[below] {$\E$} (DW);
+	\end{tikzpicture}}
+	\caption{Energy / Distribution Transformations. 
+		%The nodes are thermodynamic objects, the arrows are ways of constructing one from another
+	}
+	\label{fig:energies-and-dists}
+\end{figure}
+We now look at the weighted distribution semantics of PDGs from a thermodynamic perspective: this will provide better rationale for the parameter choices in \Cref{sec:scoring-semantics}, and draw some more explicit contrasts between PDGs and factor graphs.	Let $W$ be finite set of worlds, on which the distribution is supported, corresponding to a particle's possible ``micro-states''
+
+Our technical starting point will be the Boltzmann distribution \eqref{eq:boltzmann}, which asserts that the probability $P$ of being in a state exponentially decreases as its energy $U$ increases; the rate of exponential decay is related to the ``inverse temperature'', $\beta$; here $Z_U(\beta)$ is a normalization constant. Fixing $\beta$, we can of course, invert the Boltzmann distribution \eqref{eq:invbolz}, obtaining an energy from a probability. A probability distribution over $W$ is called a configuration, or macro-state.
+\begin{align}
+ P_{\beta}(U) &:= w \mapsto  \frac{1}{Z_U(\beta)}\exp\Big(-\beta U(w)\Big) \label{eq:boltzmann} \\
+	E_{\beta}(\mu) &:= w \mapsto \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right) \label{eq:invbolz}
+%joe10*: I'm getting latex complaints again
+\end{align}
+Conversions between the two correspond to going up and down on the left of \Cref{fig:energies-and-dists}. 
+Now $\mathcal U$, as defined in \eqref{eqn:full-score} is an un-normalized badness score, making it like an energy; $W^k_\gamma(\dg M, \mu)$, is a strangely-normalized Boltzmann distribution for this energy. The parameter $\beta$, which we described earlier as a certainty, plays the physical role of an inverse temperature: lower is more chaotic. 
+
+$\mathcal U$ is not just an arbitrary construction either: it is analogous to a free energy. Why is the most favorable configuration not just a point mass as the minimum energy? Because in a world where an ambient temperature makes things more diffuse, doing things would require a lot more energy. Rather than just minimizing the average energy of a configuration $\nu$, you're better off minimizing the Gibbs free energy \eqref{eqn:gibbs-free-energy}. 
+\begin{equation}
+	G_E(\nu) = {\E}_\nu( E )  - T \H(\nu) \label{eqn:gibbs-free-energy}
+\end{equation}
+Analogously, why not put all of your weight on the one distribution you think is most likely? Because in a slightly chaotic world, doing so could actually incur a lot more inconsistency. Instead, we're better off minimizing $\cal U$. $\alpha$ is more transparently a temperature here, with higher values indicating higher preparedness for background chaos. 
+% The higher order expectation we take in \eqref{eqn:higher-expectation} corresponds to the bottom edge of \Cref{fig:energies-and-dists}, and the diagonal, which is the natural way to construct free energies from a distribution, is a KL divergence. This can be seen directly, as well, in \Cref{ex:energy-from-distrib}.
+%
+See \ref{sec:thermo-background}, and
+	\cite{bethe,friston2009free} for more comprehensive background
+	on free energy 
+%oli8
+in graphical models.
+%and \cite{} for weighted probability distributions.
+
+A very weak version of this can already be seen in un-normalized factor graphs: by multiplying a factor $\phi$ by a constant $\alpha$, one obtains a free energy $G' = - \ln \alpha + G$, i.e., with a mere additive shift. However, this shift doesn't really distinguish belief states, which is part of why we're so eager to normalize the distribution.
+There is also an opportunity to modify $\beta$, but in standard graphical model literature, people set $\beta = 1$ and forget about it.%
+	\footnote{A similar complaint, is lodged in \cite{fixing-broken-elbo}, in which many information theoretic trade-offs are hidden by assuming $\beta = 1$}
+
+
+\begin{example}%[continues=ex:worldsonly]
+	\label{ex:energy-from-distrib}
+	For the PDG $\dg M$ that encodes just a probability
+			distribution $\mu$ over $W$,  $\Inc_{\dg M}(\nu) = \kldiv{\nu}{\mu}$. This quantity is also equal to $\mathcal G_{E(\mu)}$, the Gibbs free energy for the potential landscape associated to $\mu$ at temperature $\beta = 1$.
+\end{example}
+
+
+%oli8: modifications for correctness and to preserve references
+%	A priori, \Cref{thm:free-energy-strictly-more-expressive} might be thought of as merely a novel function we came up with, but in fact this is not the case--- when the PDG is a Bayesian network, this is just the normal Gibbs free energy.
+When the PDG corresponds to a Bayesian network, this is just variational Gibbs free energy of a distribution in the energy well constructed by the distribution specified by the BN.
+
+\begin{prop}\label{prop:bn-free-energy}
+	For any Bayesian Network $B$, 
+	\[ \bbr{\PDGof{B}} = D(- || \Pr\nolimits_B) = \mathcal G_{E(\Pr_B)} \]
+\end{prop}
+
+By playing with thermodynamic parameters, the weighted distribution semantics coincide with the notions of free energy on standard graphical models; we therefore can view PDGs as implicitly providing a more expressive class of free energies, corresponding to weighted distributions, which in turn can be naturally adapted to be distributions themselves.
+
+%	\begin{prop}
+%		The Bethe free energy is equivalent to the Gibbs free energy of $M$ iff $M$ is strongly consistent.
+%	\end{prop}
+
+
+%	\begin{conj}\label{thm:free-energy-strictly-more-expressive}
+%		The weighted distributions generated by PDGs are strictly more expressive than those generated by BNs, Factor Graphs, or directed factor graphs.
+%	\end{conj}
+%	\begin{proof}
+%		The first two parts come from \Cref{thm:fg-free-energy,prop:bn-free-energy}. Since 
+%	\end{proof}
+%	\begin{coro}
+%		Local minima of the Bethe free energy are fixed points of loopy belief propagation in PDGs		
+%	\end{coro}
+
+
+%joe7*: all the material after this will be cut, so you can focus
+%(after we clean up the main part of the paper) on making the earlier
+	%pat of the appendix comprehensible
+%oli9: uncommenting so I can read this material, and reorganize slightly --- we'll need to shuffle around and cut a lot of appendix things in a bit but some of the good stuff is at the end.
+% \commentout
+{        
+\section{Alternate Presentations}
+%I think we finally covered this.
+\commentout{\subsection{Random Variables}
+If $\mathcal W = (W, \mathcal F, \mu)$ is a measure space, and $\mathcal X = \{ X_i: W \to \mathcal V(X_i) \}_{i \in I} $ is a collection of measurable random variables on $W$,\footnote{that is: $\mathcal V(X_i)$ is a measurable space, taking the form $(D, \mathcal D)$, and $X_i : W \to D$ is a set function such that for every $B \in \mathcal D$, the set $X_i^{-1}(B) \in \mathcal F$} and 
+{\color{gray}$\Ed \subseteq I \times I$ is a collection of pairs of variables such that the agent is prepared to give  } 
+\todo{what is a way of phrasing this that doesn't sound like it's shoehorned in? $\Ed$ really can represent anything an agent knows. Any subjective conditional probability distribution $\mu'$ such that the only measurable subsets are ``axis aligned'', in that they involve queries on only one variable, can be represented by $\Ed$, and for other queries we can simply change variables.}, we call $(\cal W, X)$ an \emph{ensemble}.
+%and $(W, \mathcal F', p)$ is a subjective probability representing an agent's belief 
+
+
+\begin{prop}
+	There is a natural correspondence between strict PDGs as defined in \Cref{def:model}, and ensembles such that \todo{spell this out explicitly to avoid vague categorical intuition} \ldots $\mu$'s are defined on same set and produce same values.
+\end{prop}
+\begin{proof}
+	\textit{/outline:}
+	On the one hand, $(\prod_{N \in \cal N} \mathcal V(N).\text{set}, \bigotimes_{N \in \cal N} \mathcal V(N).\text{algebra}, \bmu)$ is a measure space, with $\{X_N = \pi_N : \left(\prod\mathcal V(N')\right) \to  \mathcal V(N) \}_{N \in \cal N}$ a set of random variables
+	
+	and  on the other, $(I, \Ed, \mathcal X', \mu|_{\cal L})$ is a strict PDG.
+\end{proof}
+
+This is the technical underpinning of our flippant, noncommittal treatment of possible worlds: any time we are thinking in terms of random variables or probability distributions on a fixed set $W$, we can instead reduce
+
+
+The complexity of the representation is $O(XV + L V^2)$, compared to $O(XW)$}
+
+\subsection{Hyper Graph Conversion}\label{sec:hyper-convert}
+We have mentioned that the direct definition in terms of hyper-edges is possible; we give it below.
+
+\begin{defn}[PDH]\label{def:hypermodel}
+	A \emph{Probabilistic Dependency Hypergraph} is a tuple $\pdgvars[]$ where
+	\begin{itemize}[nosep]
+		\item $\N$~~is a finite collection of nodes
+		\item $\Ed \subseteq 2^{\N} \times 2^{\N} \times \mathrm{Label}$~~is a set of directed edges, each of which has a source and target subset of $\N$.
+		\item $\V$ associates each node $N \in \mathcal N$ with a set $\V(N)$ or $\V_N$, representing the values that node $N$ can take.
+		\item $\bp$
+		 % $\colon\!\big(\!({\bf A,B})\colon \! \Ed \big) \to \prod\limits_{A\in \bf A} \!\! \V(A) \to \underline\Delta\left[\prod\limits_{B \in \bf B}\!\!\V(B)\right]$
+		%%% Above is the type of $\bmu$. I think it's important to have it there.
+		associates conditional probability (sub)-distributions on the joint settings of $\bf B$ indexed by the joint settings of variables in $\bf A$ for every edge $({\bf A,B}) \in \Ed$. %
+		% \note{The type of $\bmu$ is $\big(\!({\bf A,B})\colon \! \Ed \big) \to \V(A) \to \underline\Delta\V(B)$. It doesn't take up much space and answers lots of questions about the words above.}
+	\end{itemize}
+\end{defn}
+
+	
+The choice to formalize PDGs this way is a design consideration that makes some things cleaner, but we can just as well formalize multi-tailed edges directly, as follows:
+
+\begin{defn}[PDH]\label{def:modelhyper}
+A \textit{Probabilistic Dependency Hypergraph} (PDH) is tuple $(\N,
+\mathbdcal{E}, \V, \bp)$ where $\N$ and $\V$ are as before, $\mathbdcal{E}
+\subseteq 2^\N \times 2^\N \times \mathrm{Label}$ is a set of `hyperedges',
+i.e., edges whose source and target are sets of nodes, and for each edge $L
+= ({\bf A, B}, \ell) \in \mathbdcal{E}$, we have a table of distributions
+$\bp$ on \emph{joint settings} of the variables in the set $\bf B$ for each
+joint setting of the variables in $\bf A$.
+\end{defn}
+
+\Cref{thm:hyperequiv} shows PDGs and PDH s to be equivalent, though in different cases one may seem more natural than the other, as illustrated in the following theorem.
+
+\begin{theorem}[restate=thmhyperequiv]\label{thm:hyperequiv}
+	Every PDH $H$ is equivalent to a PDG $\dg M$ with additional variables. That is, for each semantics $\bbr{-}$ we define, $\bbr{H} = \bbr{\dg M}$.
+\end{theorem}
+\begin{proof}
+	\todo{}
+\end{proof}
+
+This theorem justifies taking the PDG as primary, an ordinary collection of nodes and edges, which makes it cleaner to define and compose paths. 
+
+
+\section{Formalism for other Graphical Models}
+\begin{defn}
+	A Baysian network (BN) is a tuple
+	\[
+	\mathcal B = \left(\mathcal N : \mathbf{FinSet}, ~~\mathrm{Par}: \mathcal N \to 2^{\mathcal N},~~ \mathcal S: \mathcal N \to \mathbf{FinSet},~~\Pr: \prod_{N : \mathcal N}  \left[ \mathcal S_N \times \left(\prod_{P : \mathrm{Par}(N)} \mathcal S_P\right)  \to [0,1] \right] \right)
+	\]
+	such that
+	\begin{itemize}[nosep]
+		\item the graph $\bigcup_{N, P \in \mathrm{Par}(N)}(N, P)$ is acyclic, i.e., there exists no cycle of nodes $N_0, N_1, \cdots, N_k = N_0$ in $\mathcal N^k$ such that $N_{i+1} \in \mathrm{Par}(N_i)$ for each $i \in \{0, 1, \cdots, k\}$.
+		\item For all $N \in \mathcal N$, $\Pr(N)$ is a probability distribution on $\mathcal S_N$, i.e., 
+		\[ \forall N\in \mathcal N.~\forall \vec{p} \in {\prod_{P : \mathrm{Par}(N)} \mathcal S_P}.~~ \sum_{n \in \mathcal S_{N}} \Pr_N(\vec{p}, n) = 1\]
+	\end{itemize}
+\end{defn}
+
+
+\begin{defn} \label{def:bnconvert-formal}
+	If $B = (\mathcal N, \mathrm{Par}, \mathcal S, \Pr)$ is a Bayesian Network, then let $\PDGof (B)$ denote the corresponding PDG given by the procedure in \Cref{sec:bn-convert}. Explicitly, 
+	\[ \PDGof{{\mathcal B}} :=  (\mathcal N', \Ed, \mathcal V,
+			\bp) \] 
+	where % $\mathcal N'$ is the original nodes, plus
+	\begin{align*}
+	\mathcal N' &=  \left\{ \Big.\{N\} \mid N \in \mathcal N\right\} \cup \left\{ \mathrm{Par}(N) ~\middle|~ N \in \cal N \right\} \\%
+	\Ed &= \left\{ \vphantom{\Big|}(\mathrm{Par}(N), \{N\}) \mid N \in \mathcal N \right\} \cup 
+	\left\{\vphantom{\Big|} (P, \{X\}) \mid X \in P, P = \mathrm{Par}(N) \text{ for some }N \in \mathcal N \right\} \\
+	\mathcal V_N &= \prod_{X \in N} \mathcal S_X \\
+	%					{\color{gray}\Sigma_N = \bigotimes_{X \in N} 2^{\mathcal S_X}, \text{the product algebra of discrete $\sigma$-algebras}} \\
+	\mathbf p &= \begin{cases}
+	(\mathrm{Par}(N), \{N\}) &\mapsto \lambda(p, B).~ \displaystyle\sum_{b \in  B} \Pr(b \mid p) \\
+	(P, X) &\mapsto, \lambda (p, B).~ \displaystyle \mathbbm 1_{\displaystyle\pi_X(p) \in B}
+	\end{cases}
+	\end{align*}
+	%\cpm p(\frac{a}{z}|b)
+\end{defn}
+All we've done is explicitly add parent nodes and projection edges to our graph, and also subtly (by adding curly braces in the right places and taking unions rather than disjoint unions) eliminated the duplicate nodes arising from edges in the original BN which only have a single parent.
+
+\section{Thermodynamics}\label{sec:thermo-background}
+Let $W$ be a finite set of states.
+
+\textbf{From Potentials to Distributions.}
+Suppose $U: W \to \mathbb R$ is a potential function, assigning an energy to each state. Imagine there's a particle that could be in any number of states, that the only consideration in transitioning from one state $w$ to another $w'$ is the energy of each state,%
+	\footnote{The thermodynamics, of course, ignore the kinetics of the system. Thought of an Ising model, the edges form a complete graph, and the edge weights are uniform. Thought of as a stochastic matrix, it is rank one, whose latent variable is just the energy of a state.}
+and that low-energy states are more exponentially more likely,\footnote{this can also be replaced by weaker assumptions; see the thermodynamics literature for more motivation}
+the unique stationary state is the Boltzmann distribution:
+\begin{equation}
+	 \mu(w) \propto \exp( - U(w) / kT ) \label{eq:boltzmann-appendix}
+\end{equation}
+
+where $k$ is the Boltzmann constant and $T$ is the thermodynamic temperature. Note that at unboundedly high temperatures, the differences between potentials don't matter (all states are equally likely), whereas at as the temperature approaches zero, the Boltzmann distribution puts zero mass on anything that's not a global minimum, and otherwise splits the mass equally. Therefore, if $U$ achieves a unique global minimum $w^*$, the corresponding $\mu(w) = \delta_{w,w^*}$ is a point mass on the minimum energy world $w^*$.
+
+It is standard and notationally useful to re-parameterize with the inverse temperature $\beta := 1/kT$ -- and we will refer to the Boltzmann distribution associated to a given potential $U$ (and inverse temperature $\beta$) as 
+\[ P_{\beta}(U) := w \mapsto  \frac{1}{Z_U(\beta)}\exp\Big(-\beta U(w)\Big) \]
+Where $Z_U(\beta) = \sum_{w \in W} \exp(-\beta U(w))$ is a normalizing factor, sometimes called the ``partition function''.	
+
+\textbf{From Distributions to Potentials}.	
+On the other hand, under similar assumptions, if given a probability distribution $\mu$ over $W$, there is a natural potential energy that resulted in it, 
+\[ E_{\beta}(\mu) := w \mapsto \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right)  \]
+which might be recognizable as negative log liklihood or the ``surprise'' of an event happening. By construction, $P_\beta \circ E_\beta$ is the identity on probability distributions:
+\begin{align*}
+	 \Big(P_\beta \circ E_\beta(\mu)\Big) (w) &= \frac{1}{Z_{ E_\beta (\mu) }} \exp \left( - \ln \left(\frac{1}{\mu(w)}\right) \right) \\
+	 &= \left(\frac{1}{\sum\limits_{w' \in W} \mu(w')}\right)\mu(w) \\
+	 &= \mu(w)
+\end{align*}
+and $E_\beta \circ P_\beta$ is the identity on potential functions (up to a constant factor):
+\begin{align*}
+	\Big(E_{\beta}\circ P_\beta(U)\Big)(w) &= \frac{1}{\beta} \ln \left(\frac{1}{\frac{1}{Z_U(\beta)}\exp(-\beta U(w))}\right) \\
+	&=  \frac{1}{\beta} \Big[\ln Z_U(\beta) - (-\beta U(w)) \Big]\\
+	&= U(w) + \frac{1}{\beta} \ln Z_U (\beta)
+\end{align*}
+The constant factor $-\frac{1}{\beta} \ln Z_U(\beta)$ coincides with the Heimholtz free energy of the system. Note that at constant temperature, this quantity is a durable feature of either a distribution or its associated energy landscape. 
+%	
+%	\begin{align*}
+%		 0 = -\frac{1}{\beta} \ln Z_U(\beta) &= - \frac{1}{\beta} \ln \sum_{w \in W} \exp(-\beta U(w)) \\
+%		 \iff 1 = \sum_{w \in W} \exp(-\beta U(w))
+%%		 	&= -\frac{1}{\beta} \mathop{\mathrm{LSE}}_{w \in W}(-\beta U(\beta))
+%	\end{align*}
+
+\textbf{Free Energy and Favorability.} Given a potential $U$, corresponding to a distribution $\mu$ as above, we now turn the question of how thermodynamically favorable a new distribution $\nu$ would be.%
+	\footnote{From a statistical mechanics perspective, $W$ are the micro-states of the system, and a distribution over them is a configuration, or a macro-state.}
+For which we use the Gibbs free energy, $G_U(\nu) := {\E}_\nu( U ) - \frac{1}{\beta} H(\nu)$, which we think of a system as minimizing. The intuition here is that our new distribution $\nu$ is favorable if it has low average energy. However, at higher temperatures it also costs energy to compress the distribution: while a point mass at the minimum value of $U$ may be the lowest energy distribution, tightly controlling it to that degree also costs energy, when there's some ambient temperature causing randomness. From an epistemic perspective, even if a belief distribution $p$  is the one that best fits constraints, one might want to temper this by other possible configurations, and more so when there's higher ambient macroscopic uncertainty (temperature). Note also that the Gibbs Free Energy is a weighted probability distribution: it assigns a `favorability' score to distributions.
+
+If $U$ was generated by a probability distribution $\mu$, we then have
+
+\begin{align*}
+	G_\mu(\nu) &= {\E}_\nu( E_\beta(\mu) )  - T S(\nu) \\
+	&= \sum_{w \in W}\nu(w) \frac{1}{\beta} \ln \left(\frac{1}{\mu(w)}\right) - T \left[k \sum_{w \in W} \nu(w) \ln \left(\frac{1}{\nu(w)}\right)\right]\\
+	&=  \frac{1}{\beta}\left[\sum_{w \in W}\nu(w) \ln \left(\frac{1}{\mu(w)}\right) - \sum_{w \in W} \nu(w) \ln \left(\frac{1}{\nu(w)}\right)\right]\\
+	&=  \frac{1}{\beta}\left[\sum_{w \in W}\nu(w) \left(\ln \frac{1}{\mu(w)} - \ln \frac{1}{\nu(w)}\right)\right]\\
+	&= \frac{1}{\beta} D \left(\nu || \mu \right)
+\end{align*}
+
+Where $D(\nu || \mu)$ is the relative entropy from $\nu$ to $\mu$. 
+
+Note that by Gibbs inequality, the $D(\nu || \mu) \geq 0$, and equal to zero precisely when $\nu = \mu$, and so the free energy of a configuration $\nu$ in a potential that was designed for $\mu$ is minimized by $\mu$ itself.	
+
+
+
+\textbf{Free Energy as a Design Tool.}
+
+This connection between thermodynamics and probability theory is already well utilized:
+\begin{enumerate}
+	\item A Markov Random Field is specified with potentials $U_e$ for each edge; a factor graph is specified with potentials for a subset of cliques.
+	\item The belief propagation algorithm computes local minima of the Bethe free energy, an approximation to the true Gibbs free energy.
+\end{enumerate}
+
+
+The dominant representation tool for mental states is the probability distribution, rather sets or weighted sets of them. % This is partly because they are easier to compute with, and because when faced with decisions at gun point, they are the most
+One issue with this is that there are distinct mental states that collapse to the same probability distribution (e.g., the coin flip: being uncertain about a process vs its outcome). The second one is that one might not have the right space for the distribution
+
+The insight here is that these are related: one can simply internalize the structure of the uncertainty. This some precedent for this: Pearl's rule, for instance, prescribes a new random variable to describe the uncertainty.	
+%%%
+
+%	Consider a factor graph on a set of variables $\{ X_i \}$, with only a single factor $\phi$ which connects to every variable. The free energy is $G_\phi(U)$
+%	
+%	\[ \frac{1}{\sum_{\vec x} \phi(\vec x)} \phi(u) \]
+%	
+%%	The normalization constant $Z = \sum_{\vec x} \phi(\vec x)$
+%	
+%	Any factor graph defines a free energy by \todo{finish}
+%	
+%	The Bethe approximation to the free energy is an estimate based only on the marginals on single pairs of nodes.
+%		
+%	With a PDG, the free energy becomes
+%	\[ \sum \]
+%	\todo{Write out $\Inc$, proofs of theorems}
+
+\section{Overview And Conversions Between Graphical Models}
+\label{sec:many-relations-graphical-models}
+
+\usetikzlibrary{decorations.markings}	
+\begin{figure*}[t]
+	\centering
+	\tikzset{attn/.style={draw, fill=magenta, fill opacity=0.3, font=\Large\slshape\color{blue}, inner sep=4pt}}
+	\scalebox{0.75}{
+		\begin{tikzpicture}
+		\begin{scope}[every node/.style={ellipse, fill, fill opacity=0.05,text opacity=1,
+				outer sep=3pt,font=\slshape\color{blue}}, xscale=2.5,yscale=1.2]
+			\node (KB) at (-3, 0.5) {KB};
+			\node (CG) at (-3, 1.5) {CG};
+			
+			\node (CRF) at (-1.2, 0.4) {CRF}; % CFG
+			%				\node (CRF) at (-2, 0) {CRF};
+			
+			\node (MRF) at (-2, 1) {MRF};
+			\node[draw, attn] (FG) at (-1,1.35) {FG};
+			\node (SDFG) at (0,1.5) {FG$^\rightharpoonup$};
+			\node[attn] (DFG) at (1,1.35) {FG$^\rightarrow$};
+			\node[attn] (BN) at (2,1) {BN};
+			
+			\node (CBN) at (2,0) {CBN};
+			\node (DN) at (1.3, 0.6) {DN}; 
+			
+			\node (sPDGH) at (0,0.5) {sPDG$_{\text{hyper}}\!\!$};
+			\node (PDGH) at (-0.8,-.5) {PDG$_{\text{hyper}}\!\!\!$};
+			\node (PDG) at (0,-.85) {PDG};
+			\node[attn, fill=black, fill opacity=0.9, text=white] (sPDG) at (0.8,-.5) {sPDG};
+			
+			\node (prog) at (3, -0.2) {PProgSet};
+			
+			\node (CPS) at (1, -1.4) {CPS};	
+			\node (PlateBN) at (-2.5, -1.2) {PlateBN};
+			\node (LPS) at (-1,-1.4) {$\underline {\mathcal P}$};
+		\end{scope}
+		
+		% lossless		
+		\begin{scope}[every edge/.append style={->}]%right hook->
+			\draw (BN) edge (DFG) (DFG) edge (SDFG);
+			\draw (MRF) edge (FG) (FG) edge (SDFG);
+			%				\draw[->] (DFG) -- (FG);
+			\draw (CBN) edge[bend left = 5, shorten >=7pt] (sPDGH);
+			\draw (CG) edge[bend left=10] (FG);
+			\draw (KB) edge (CG);
+			
+			\draw (sPDGH) edge (PDGH) (sPDG) edge (PDG);
+			
+			\draw (BN) edge (DN) (DN) edge (sPDGH);
+			\draw (DFG) edge (sPDGH);
+			
+			\draw (MRF) edge (CRF);% (CRF) edge (CFG);
+			\draw (BN) edge (CBN);
+			\draw (FG) edge (CRF); %crf
+			
+			\draw (CG) edge[out=-55, in=195, looseness=1.5, shorten >=7pt] (sPDGH);
+			\draw (prog) edge[bend left=5] (sPDG);
+			\draw (CPS) edge[out=180,in=-30] (PDG);
+			\draw (PlateBN) edge[bend right=5] (PDGH);
+			\draw (LPS) edge[out=0, in=-150] (PDG);
+		\end{scope}
+		
+		% PDG Equivalences
+		%			\draw[->, transform canvas={yshift=2pt}] (PDGH) -- (PDG);
+		%			\draw[->, transform canvas={yshift=-2pt}] (PDG) -- (PDGH);
+		%			
+		%			\draw[->, transform canvas={yshift=2pt}] (sPDGH) -- (sPDG);
+		%			\draw[->, transform canvas={yshift=-2pt}] (sPDG) -- (sPDGH);
+		
+		\draw[double equal sign distance, shorten <=0pt, shorten >=0pt] (PDGH) -- (PDG);
+		\draw[double equal sign distance] (sPDGH) -- (sPDG);
+		
+		
+		% Projections. Lose information but preserve something.
+		\begin{scope}[every edge/.append style={densely dashed, orange, ->}]
+			\draw (sPDGH) edge[bend left=10, out=10] (FG) (sPDGH) edge[bend right=10, out=-5] (FG);
+			\draw (SDFG) edge[bend right=20] (FG);
+		\end{scope}
+		% Inefficient conversions.
+		\begin{scope}[every edge/.append style={ultra thick, dotted, line cap=round, shorten >=2pt,
+				decoration={markings,mark=at position 1 with {\arrow[xshift=0pt,scale=.8]{>}}},
+				postaction={decorate}}]
+			\draw (CRF) edge (sPDGH);
+			\draw (SDFG) edge (sPDGH);
+		\end{scope}
+		
+		%			\draw[->, transform canvas={xshift=-3pt}] (DDW) -- node[left]{$E_\beta$} (EDW);
+		%			\draw[->, dashed, transform canvas={xshift=3pt}] (EDW) -- node[right]{$P_\beta$} (DDW);
+		%			
+		%			\draw[->] (DW) to[bend left=10] node[sloped,fill=white]{$D({-\Vert})$} (EDW);
+		%			
+%joe10: I get latexerors from the subfiglabelcolor
+%oli12: I did a poor find-and-replace to replace blue with this earlier and it broke when you commented out my figure. 
+			\end{tikzpicture}
+	}
+	\caption{Transformations Between Graphical and Epistemic Models. Solid arrows indicate a model being a special case of another. Orange dashed transformations lose information, and the thick arrows are inefficient translations. For a full description, check \Cref{sec:many-relations-graphical-models}. }
+	\label{fig:model-transformations}
+\end{figure*}
+\todo{There is a ton to do here.}
+
+\subsection{The Details: Factor Graphs and PDGs} \label{sec:factor-graphs-long}
+% What I want to see is a serious discussion of the advantages and disadvantages of factor graphs vs. PDGs, illustrated by examples. This is critical.
+
+
+We now compare PDGs with factor graphs, a general class of \emph{undirected} graphical models, often described as a generalization of BNs and Markov Networks.
+%todo: hint at MN relation in beginning. 
+%PDGs can simulate them (\cref{def:fg-convert}), but not without large cpds and sneaky use of inconsistency. 
+
+
+%% informal, unclear.
+\commentout{
+	A \emph{factor graph} is a collection of random variables $\mathcal X = \{X_i\}$ and a collection of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of $\mathcal X$.
+}
+\begin{defn}
+%oli6: I have removed my "intuitive" cavalier version of the definition 
+% that you disliked (which has often been given in technical
+% overviews I've read, but bugs me by leaving things undefined so I
+% expanded it, but left a short version for people who aren't interested
+% in following the technical details closely).
+	% A \emph{factor graph} on variables $\{X_j\}$ is a set of \emph{factors} $\{\phi_\alpha\colon X_\alpha \to \mathbb R_{\geq0}\}_{\alpha \in \mathcal I }$ over subsets $\alpha$ of the variables.
+	% 
+	% More precisely, a
+	A factor graph $ (\{\phi_\alpha\}_{\alpha \in \cal I})$ on an indexed set of random variables $\mathbf X = \{ X_j \}_{j \in J}$, 
+%oli6:
+% I know the \iota bothers you, but I did think about this for a long
+% time, and think this is the cleanest presentation that can be
+% perfectly formalized without relying on any notions of equality
+% between natural objects, or lack of formality when constructing
+			% them.
+%joe6: Most people don't use it, right?  There's a good reason...
+%Why would it hurt to do things the way Koller and Friedman do?                
+%Since I think that ultimately factor graphs will play only a small
+%role in the paper, we should use the simplest possible presentation
+%of them.  I don't mind being slightly informal.
+	is a pair $((\mathcal I,\iota), \boldsymbol\phi)$, where $\cal I$ is a set,
+	each element $\alpha\notation{\in \mathcal I}$ of which determines a selection $\iota(\alpha) \subseteq J$ of the variable indices, and
+	$\boldsymbol\phi$ is an indexed collection of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, 
+	where each factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R_{\geq 0}$ assigns a non-negative score to joint settings $\vec x_\alpha \notation{\in \mathcal X_\alpha}$ of every variable in $\iota(\alpha)$, all values of which we denote by $\mathcal X_\alpha\notation{ := \prod_{j \in \iota(\alpha)} \mathcal V(X_j)}$. 
+\end{defn}
+\commentout{
+	A \emph{factor graph} $(\mathcal I, \phi)$ on an indexed set of random variables $X : \Sigma_{}$, where each $X_i$ can take values $\V(X_i) =: \mathcal X_i$, consists of  
+	% technically, a dependent sum \mathbb X : \Sigma_{j : J} X_j
+	%		a set $\cal I$, where each $\alpha \in \cal I$ is a
+	% technically a multi-subset of 2^J...
+	a set of \emph{factors} $\{\phi_\alpha\}_{\alpha \in \mathcal I }$, where each $\alpha$ determines a selection $\iota(\alpha) \subseteq 2^J$ of the variable indices, and the associated factor $\phi_\alpha \colon \mathcal X_\alpha \to \mathbb R^{\geq 0}$ assigns a non-negative score to a setting
+	$\vec x_\alpha \in \mathcal X_\alpha := \prod_{j \in \iota(\alpha)} \mathcal X_j$ of the variables corresponding to $\iota(\alpha)$.
+}
+
+% $(J, \mathcal I)$
+While the qualitative structure $(\mathbf X, \mathbf{Pa})$ of a BN on variables $\mathbf X$ is a directed acyclic graph, the qualitative structure $(\mathbf X, \mathcal I)$ of a factor graph on $\mathbf X$ is
+%		technically an undirected \emph{multi-hyper-graph}
+%	 		\footnote{That is, a set of ``nodes'' $\N$ and
+%a collection (possibly containing multiple copies) of ``hyper edges''
+	%$\Ed$, each of which corresponds to a subset of $\N$}
+%joe4*: what is a multi-hypergraph?   Is this by analogy to a
+%multigraph, there can be multiple hyperedges joining the same set of
+%nodes? Either explain the ``multi'' or remove it.
+%oli5: This is correct. I think this might actually be standard for a hyper-graph though, so I don't feel bad about removing it; just wanted to be precise.
+a hypergraph $(\mathbf X, (\cal I, \iota))$ where
+	$\alpha \in \cal I$ is an undirected hyperedge, drawn as a
+	square, connecting the vertices in the set $\iota(\alpha)$.  
+%	a bipartite graph $((\mathbf X, \cal I), \iota)$ with extra vertices (drawn as squares) corresponding to the factors. 
+
+%	\note{Though easier to define in terms of MRFs, and this obscures the relationship to BNs and MRFs; this  paper in particular is an attempt to claim that adding and removing nodes is not something to sweep under the rug.}
+
+
+
+%	The important thing about 
+A factor graph $\Phi = (\{\phi_\alpha\}_{\alpha \in \cal I})$ on $\mathbf X$ defines a probability distribution over $\V(\mathbf X)$ by 
+\begin{align*}
+%joe6: I have never seen the :\alpha notation before.  Unless it's
+%standard, just use \alpha.  It also doesn't make sense to have both
+%\alpha and =.  Let's just simplyify it
+%		\Pr\nolimits_\Phi(\vec x) &:\propto \prod_{\alpha \in
+	  %                  \cal I} \phi_\alpha(\vec x_{\alpha})
+%          		~~= \frac{1}{Z_\Phi} \prod_{\alpha \in \cal I}
+			\Pr\nolimits_\Phi(\vec x) 
+	= \frac{1}{Z_\Phi} \prod_{\alpha \in \cal I}
+							\phi_\alpha(\vec x_{\alpha}), 
+\end{align*}
+where $\vec{x}$ is a joint setting on all of the variables, $\vec{x}_\alpha$ is the restriction of $\vec{x}$ to only the variables selected by $\alpha$, and $Z_\Phi$ is the constant required to normalize the distribution. 
+%joe4
+%	There are several ways of parameterizing factor graphs; we
+%        start with the most explicit one. 
+	
+%joe4*: I'm missing the big picture here.  What's the goal?  You've
+%defined factor graphs.  What more do you need.  (I don't mean to
+%imply that there isn't more that you might want/need, just that I
+%don't know what it is.)
+%joe4: I don't understand what it means that ``the particular setting of
+%which matter''.  And I'm not sure what global/local would mean here.
+%This is a fair complaint, this is not very well-explained.
+%even though the
+%        particular settings of which do matter, the interactions are
+%        global and it's hard to see how they will play out. Still,
+%joe4: I don't see how factor graphs are excellent desriptions of
+%independencies  This has to be explained better.
+%        they are excellent descriptions of independencies. 
+%	 David's score is independent of everything else in the picture, and though the other three are a clique, we can see different interactions
+
+%joe4
+%Any BN $\mathcal B = (\N, \Pa, \V, p)$ can be seen naturally
+A BN $\mathcal B = (\N, \Pa, \V, p)$ can be viewed
+as a factor graph, which we denote $\Phi(\mathcal B)$.
+%joe4: while the next line is true, do we need it?  Why not just
+%explain directly how a BN can be viewed as a factor graph.
+%oli5: I'm not sure what you're asking for. Writing down the global
+% semantics is a clear demonstration that it's a product of factors. 
+% I'm reinstating what I had, plus some minor modifications to clarify
+%joe6: are there also local semantics?
+%By the global semantics of BNs, we have that
+By the semantics of BNs, we have that
+\begin{align*}
+% joe4: to get the \B to be positions right relative to the \Pr.  But I think that we should cut this anyway
+  % \Pr\nolimits_{\cal B}(\vec x) = \prod_{N \in \N} p_N( \vec x_N
+  {\Pr}_{\cal B}(\vec x) = \prod_{N \in \N} p_N( \vec x_N
+	 \mid \mathbf{Par}_N(\vec x)). 
+\end{align*} 
+%joe4: please fill in the blank below, and avoid using \iota
+%oli5: \iota is part of my definition, but it's a pretty obvious
+% identification so I can just not mention it if that's better...
+%	 Factors can be read off directly: set $\cal I = \N$, connect every
+% 	variable $X$, and all of its parents $\Pa_X$, to the factor
+% 	corresponding to $X$, by $\iota(X) := \{X\} \cup \Pa_X$. Finally,
+%	define the function $\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid
+%	\Pa_X \!\!=\!\! \vec y)$ to simply be the cpd at $X$.
+%
+%joe6: Is this what you meant?
+%Factors can be read off directly: set $\cal I = \N$, connect every
+%variable $X$, and all of its parents $\Pa_X$, to the factor
+%corresponding to $X$%
+In the factor graph correponding to ${\cal B}$, 
+we set $\cal I = \N$, and have a factor for every variable $X$, which
+consists of $X$ and all its parents in ${\cal B}$.
+%oli5: it's still intelligable without this line, just not complete. 
+%, by $\iota(X) := \{X\} \cup \Pa_X$
+%joe6
+%Finally,
+%define the function $\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid
+We define $\phi_X$ by taking
+$\phi_X(x, \vec{y}) := p_X( X \!\!=\!\! x \mid
+%joe6
+%\Pa_X \!\!=\!\! \vec y)$ to simply be the cpd at $X$.
+\Pa_X \!\!=\!\! \vec y)$; that is, $\phi_X$ is determined by the cpd of $X$.
+%joe6: this seems redundant
+%The corresponding factor graph has the same set of variables, and a
+%hyperege corresponding to each node, which connects a node $X$ to its
+%parents.
+The factor $\phi_X$ correspond to the node $X$ is given by the cpd of
+$X$; that is, $\phi_X(x,
+\vec{y}) := p_X( X \!\!=\!\! x \mid 
+\Pa_X \!\!=\!\! \vec y)$.
+%joe4:
+%Examples of this can be seen in the solid components of
+%\Cref{subfig:fg-gf,subfig:fg-smoking}, which correspond to the initial
+%
+\Cref{subfig:fg-gf,subfig:fg-ablate,subfig:fg-smoking} give the factor graphs corresponding  to
+the BNs in \Cref{ex:guns-and-floomps,ex:grok-ablate,ex:smoking}, respectively.  
+%\Cref{subfig:fg-gf,subfig:fg-smoking}, which correspond to the initial
+%to BNs in \Cref{ex:guns-and-floomps,ex:smoking}, respectively. 
+
+
+\begin{figure}[htb]
+	\centering
+	\begin{subfigure}[b]{0.22\linewidth}
+		\scalebox{0.8}{
+			\begin{tikzpicture}[center base]
+				\node[fgnode] (F) at (-1.5,0) {$F$};
+				\node[fgnode] (G) at (1.5,0) {$G$};
+				\node[factor, above=0.5 of F] (f) {$\phi_F$};
+				\node[factor, above=0.5 of G] (g) {$\phi_G$};
+				
+				\draw[thick] (F) -- (f) (G) -- (g);
+				\draw[thick, dashed] (F) -- node[factor, fill=white]{$T$} (G);
+		\end{tikzpicture} }
+		\caption{}\label{subfig:fg-gf}
+	\end{subfigure}%
+	\hspace{1.5em}\vline\hspace{1.5em}%
+	\begin{subfigure}[b]{0.3\linewidth}
+		\scalebox{0.8}{
+			\begin{tikzpicture}[center base, scale=0.9]
+				\node[fgnode] (S) at (-0.4, 2) {$S$};
+				\node[fgnode] (C) at (3, 2) {$C$};
+				\node[fgnode] (L) at (1.3,0) {$L$};
+				\node[fgnode, dashed] (W) at (-2,0) {$W$};
+				
+				\node[factor] (f1) at (1.3, 1.3){$\phi_1$};
+				\node[factor, dashed] (f2) at (-0.3, 0){$\phi_2$};
+				
+				\draw[thick] (S) -- (f1) -- (C) (f1) -- (L);
+				\draw[thick, dashed] (W) -- (f2) -- (L);
+		\end{tikzpicture} }
+		\caption{}\label{subfig:fg-ablate}
+		
+	\end{subfigure}%
+	\hspace{1.5em}\vline\hspace{1.5em}%
+	\begin{subfigure}[b]{0.3\linewidth}%
+		%			\vspace{-1em}
+		\scalebox{0.72}{
+			\begin{tikzpicture}[center base, xscale=1.4,
+				fgnode/.append style={minimum width=3em}]
+				\node[factor] (prior) at (1.65,-1) {};
+				\node[factor] (center) at (3.95, 0){};
+				
+				\node[fgnode] (PS) at (1.65,0.5) {$\mathit{PS}$};
+				\node[fgnode] (S) at (3.3, 0.8) {$S$};
+				\node[fgnode] (SH) at (3.0, -0.8) {$\mathit{SH}$};
+				\node[fgnode] (C) at (4.8,0) {$C$};
+				
+				\draw[thick] (prior) -- (PS);
+				\draw[thick] (PS) --node[factor, fill=white](pss){} (S);
+				\draw[thick] (PS) --node[factor, fill=white](pssh){} (SH);
+				\draw[thick] (S) -- (center) (center) -- (SH) (C) -- (center);
+				
+%					\node[dpadded, fill=blue] (1) at (2.5,-2) {1};
+%					
+%					\draw[blue!50, arr] (1) -- (prior);
+%					\draw[blue!50, arr] (1) -- (center);
+%					\draw[blue!50, arr] (1) -- (pss);
+%					\draw[blue!50, arr] (1) -- (pssh);
+				
+				
+				\node[fgnode, fill opacity=0.02,dashed] (T) at (4.8, -2) {$T$};
+				\draw[thick,dashed] (T) -- node[factor, fill=white]{}  (C);	
+		\end{tikzpicture}}
+		\caption{}\label{subfig:fg-smoking}
+	\end{subfigure}%
+	\caption{Candidate factor graphs for \Cref{ex:guns-and-floomps,ex:grok-ablate,ex:smoking}.
+%oli10: no light blue here anymore
+%The light blue arrows illustrate \Cref{def:fg2PDG}.
+	}
+	\label{fig:fg-intro-examples}
+\end{figure}
+
+%joe6: I couldn't parse your English, so I wrote what I thought you meant:
+%	This suggests an obvious way to view an arbitrary collection
+%        of cpds in the form of a PDG $\dg M$ as a factor graph
+%        $\Phi(\dg M)$: just like for a BN, ignore the directions of the
+	%        edges and use the cpds as factors.
+We can apply this way of viewing BNs as factor graphs to arbitrary
+PDGs: we take the factors to be defined by the cpds.
+\begin{defn}[PDG to factor graph]
+	If $\dg M = \pdgvars[]$ is a PDG, define 
+%joe6*: Sorry, I don't undestand this notation.  Is ((\Ed,\in), \mat
+%p)$ supposed to be a factor graph? So you're somehow identify \in
+%with \iota?  This shows that the use of \iota is making life worse
+%...  I think that you have to spell this out better.
+	$ \Phi(\dg M) := ((\Ed,\in), \mat p)$
+	to be the associated factor graph on the random
+			variables $(\N, \V)$. 
+\end{defn}
+%joe6*: I didn't follow this remark.  I think that you want here is a
+%simple theorem about how the PDG and the associated factor graph
+%define the same distribution.  Is that even true?  If so according
+%to what semantics.  If not, then in what sense are the two related.
+%I an unhappy about this story.
+\begin{remark}
+	It is easy to verify that this construction yields the 
+			same product of factors, whether one thinks of a PDG
+			as a hypergraph directly, or translates it to a graph
+			first, as formalized in \Cref{sec:formal+syntax}. 
+\end{remark}
+
+%joe6*: Why do I care about inverting this process.  Again, I think
+%that this is not a good story.  I'm not reading the rest of this
+%carefully, since  I don't think we'll want to keep it.      
+In order to faithfully invert this process, converting a
+	factor graph to a PDG, we would need to arbitrarily chose a
+	direction for each edge and normalize; the different
+	directions may result in wildly different distributions, none of
+	which are necessarily related to the distribution determined
+	by the original factor
+	graph. We can do much better by giving up on creating
+%joe4*: I don't understand what the figure is showing me.  Ae we
+%getting different graphs?  It looks like we're getting just one PDG.
+%Moreover, Definition 4.4 also seems to get one PDG.
+%oli5: It is just one PDG. They're all one PDG. This paragraph was
+%intended to show that choosing a direction is NOT a tenable way to
+%construct a PDG from a factor graph, thereby explaining why we can't
+%totally invert the process we used to get there, and explaining why
+%they're all connected to \sf 1. 
+	the \emph{same} graph, as illustrated in \Cref{fig:fg2PDG} and
+	defined below.  
+
+\begin{figure}[htb]
+	\centering
+%		\begin{subfigure}{0.5\linewidth}\centering
+%			\scalebox{0.72}{
+%				\begin{tikzpicture}[center base, xscale=1.4,
+%					fgnode/.append style={minimum width=3em}]
+%					\node[factor] (prior) at (1.65,-1) {};
+%					\node[factor] (center) at (3.95, 0){};
+%					
+%					\node[fgnode] (PS) at (1.65,0.5) {$\mathit{PS}$};
+%					\node[fgnode] (S) at (3.3, 0.8) {$S$};
+%					\node[fgnode] (SH) at (3.0, -0.8) {$\mathit{SH}$};
+%					\node[fgnode] (C) at (4.8,0) {$C$};
+%					
+%					\draw[thick] (prior) -- (PS);
+%					\draw[thick] (PS) --node[factor, fill=white](pss){} (S);
+%					\draw[thick] (PS) --node[factor, fill=white](pssh){} (SH);
+%					\draw[thick] (S) -- (center) (center) -- (SH) (C) -- (center);
+%					
+%					%					\node[dpadded, fill=blue] (1) at (2.5,-2) {1};
+%					%					
+%					%					\draw[blue!50, arr] (1) -- (prior);
+%					%					\draw[blue!50, arr] (1) -- (center);
+%					%					\draw[blue!50, arr] (1) -- (pss);
+%					%					\draw[blue!50, arr] (1) -- (pssh);
+%					
+%					
+%					\node[fgnode, fill opacity=0.02,dashed] (T) at (4.8, -2) {$T$};
+%					\draw[thick,dashed] (T) -- node[factor, fill=white]{}  (C);	
+%			\end{tikzpicture}}
+%		\end{subfigure}
+%		\begin{subfigure}{0.5\linewidth}\centering
+		\scalebox{1}{
+			\begin{tikzpicture}[center base, xscale=1.6,
+				fgnode/.append style={minimum width=3em}]
+				\node[dpadded] (prior) at (1.65,-1) {};
+				\node[dpadded] (center) at (4.05, 0.2){};
+				
+				\node[fgnode] (PS) at (1.65,0.5) {$\mathit{PS}$};
+				\node[fgnode] (S) at (3.3, 0.8) {$S$};
+				\node[fgnode] (SH) at (3.3, -0.8) {$\mathit{SH}$};
+				\node[fgnode] (C) at (4.9,0.5) {$C$};
+				
+				\draw[arr, <<-] (prior) -- (PS);
+				\draw[arr, <<->>] (PS) --node[factor, fill=white](pss){} (S);
+				\draw[arr, <<->>] (PS) --node[factor, fill=white](pssh){} (SH);
+				\draw[arr, <<-] (S) -- (center); 
+				\draw[arr, <<-] (SH)-- (center); 
+				\draw[arr, <<-] (C) -- (center);
+				
+				\node[dpadded, fill=blue] (1) at (2.5,-2) {1};
+				
+				\draw[blue!50, arr] (1) -- (prior);
+				\draw[blue!50, arr] (1) to[bend right=30] (center);
+				\draw[blue!50, arr] (1) to[bend right = 10] (pss);
+				\draw[blue!50, arr] (1) to[bend left = 10] (pssh);
+
+				
+				\node[fgnode] (T) at (4.8, -2) {$T$};
+				\draw[arr, <<->>] (T) -- node[factor, fill=white](tc){}  (C);	
+
+				\draw[blue!50, arr] (1) to[bend right = 10] (tc);
+		\end{tikzpicture}}
+%		\end{subfigure}
+	
+	\caption{A graphical illustration of the conversion from a factor graph (the one shown in \Cref{subfig:fg-smoking}) to a PDG, as defined in \Cref{def:fg2PDG}. The blue edges carry the cpds corresponding to the original factors, and the structure is turned into the double headed deterministic black arrows.}
+	\label{fig:fg2PDG-original}
+\end{figure}
+
+\begin{defn}[factor graph to PDG] % \label{def:fg2PDG}
+	If $(\{\phi_\alpha\}_{\alpha \in \cal I})$ is a factor graph, then let $\PDGof{\Phi}$ be the PDG generated by inserting joint variable node $X_\alpha = \prod_{j \in \iota(\alpha)} X_j$ for every factor node $\alpha \in \mathcal I$ (as done in \Cref{def:bn2PDG}), and an edge $\sf 1 \to X_\alpha$ whose associated cpd $\bp[\alpha]$ is the joint distribution on the variables corresponding to $\alpha$ obtained by normalizing $\phi_\alpha$ across all of their possible values.%
+\end{defn}
+
+
+\begin{prop}\label{prop:fg-pdg-lossless}
+	$\Phi \circ \PDGof = \mathrm{Id}_{\text{FG}}$. That is, if $F$ is a factor graph, then $\Phi(\PDGof{F}) = F$.
+\end{prop}
+\begin{proof}
+%joe4: what's a local normalization?      
+%oli5: we are required to normalize each cpd 1->X because they are
+%distributions. It's local because it's done for each cpd, and these
+%normalizations are unlikely to ultimately be compatible with the
+%joint distributions on these variables.    
+	Because each local normalization results in a local joint
+			distribution $\bp[\alpha] = \frac{1}{Z\alpha}
+%joe4*: I'm confused.  What differs from what?  is this what you meant
+%                \phi_\alpha$, which only differs by a multiplicative
+%               constant, their product will only differ by a
+%oli5: You're right, this was super unclear. I rewrote to clarify.
+			\phi_\alpha$ on the variables associated with $\alpha$, and these distributions differ from the original factors $\phi_\alpha$ by only a multiplicative 
+		   constant, the product of these locally normalized factors differs from the product of the factors by only a constant, and so 
+	\[ \Pr_F(\vec x) \propto \prod_\alpha \phi_\alpha(\vec x) \propto \prod_\alpha \left(\frac{\phi_\alpha(\vec x)}{Z_\alpha}\right) \propto \Pr_{\Phi(\PDGof{F})}(\vec x) \]
+	and since the two distributions are normalized, they must be equal.
+\end{proof}
+
+%oli6: expanding a lot here to tell the story better.
+% 	This suggests that the PDG has all of the information we need
+% 	to interpret the factor graph.
+% However, the distribution $\UD{\PDGof{F}}$ that PDG semantics prescribe may
+% look nothing like $\Pr_F$ (cf.~\Cref{ex:fg-exam}). 
+
+It may be surprising that a factor graph can be \emph{losslessly} converted to a PDG in a reasonable way, given that PDGs are directed models.
+This fact suggests that $\PDGof{F}$ contains all of the same information as $F$. Knowing also that BNs are a kind of factor graph, it is natural to wonder if the unique distribution $\bbr{\PDGof{F}}^*$ given by our semantics, is the same as $\Pr_F$.		
+
+
+% For the time being, it is important just to note that the
+% distribution $\UD{\PDGof{F}}$ that PDG semantics prescribe may
+% look nothing like $\Pr_F$ (cf.~\Cref{ex:fg-exam}). 
+	
+However, it is closely related---it turns out that by merely providing different weights for the terms in \Cref{eqn:full-score}, we can recover the probability distribution. Better still, this construction will litterally match the factor graph of equivalent of the scoring function $\mathcal U_\gamma(\dg M)$ (called the free energy, for reasons detailed in \Cref{sec:thermo}).
+%oli6: When should I get people thinking about U being a free energy? 
+% Ideally I want to point to the connection between them here, and I want to get people thinking
+% thinking of "free energy" this way as soon as possible without losing them. 
+%oli6: end of expansion, remove paragraph break.
+%
+%oli6: completely rewrote paragraph.
+% In \Cref{sec:fg-expfam}, we break down the full semantics $\bbr{-}$
+% of a PDG to show exactly how
+% the factor graph can be given by a different weighting of the
+% terms we have already given.
+% they differ from factor graphs, how one could add a parameter
+	In \Cref{sec:fg-expfam}, we further analyze the PDG scoring semantics to explain how this works.
+%oli6: This rhetorical question... good framing or a waste of space? 
+	If this is the case, why is there no clear choice of $\alpha,\beta,\gamma$ which results in the factor graph distribution?  
+	We have made a deliberate choice to \emph{not} reproduce the semantics of general factor graphs, to avoid the their drawbacks, which 
+	we now examine.
+
+%	\begin{coro}
+%		$\Pr_{\mathcal B}  = \Pr_{\Phi(\mathcal B)} = \Pr_{\Phi(\PDGof{{\mathcal B}}}$
+%	\end{coro}
+
+
+
+
+%	\begin{example}\label{ex:planet-fg}
+%		In our planet example, we treat each edge as a factor, the product of which gives the correct relative likelihoods for each of $S \times C \times W \times L$. Our initial knowledge, consisting only of the cpd, we have 
+%		\[ \Pr(s, c, w, l) \propto \phi_1(s,c,l)  \]
+%		where $\phi_1(s,c,l) = p(l \mid s,c)$, and no normalization is required.
+%		
+%		
+%		In contrast with BNs, there is no structural barrier to adding a new node, and factor $\phi_2(w,l) \!=\! \Pr(L\!=\!l\mid W\!=\!w)$ --- though to make sense of this as a probability we have to re-compute the normalization constant. The combination of the two factors is represented graphically in \Cref{subfig:fg-planet}, in which circles represent variables, and the boxes represent factors that depend on variables they connect to. 
+%		\todo{compute two different distributions}
+%	\end{example}
+
+	
+%	\[ \Pr{} (\vec x)  = \frac{1}{Z(\vec\theta)} \exp \left\{ \sum_\alpha \theta_\alpha \varphi_\alpha(\vec x) \right\} \] 
+
+%joe6*: Yet again, I think that this is the wrong story.  We're not
+%writing a paper about factor graphs, but about PDGs.  You could
+%perhaps talk about the advantages of PDGs over factor graphs, but I'm
+%not sure that that's what we should be focused on.
+		\subsubsection{Shortcomings of Factor Graphs}\label{sec:fg-issues}
+%joe7*: while this is inappropriate -- we are not wriiting a critique
+%of factor graphs -- it would be good to have in the main part of the
+%paper a few sentnces about why PDGs are better than factor graphs in
+%some improtant respects
+				While factor graphs are powerful statistical models, 
+we argue that they are not well suited to 
+%oli6:
+% modeling for epistemic state, for several reasons. 
+modeling a bounded agent's belief state, for the following reasons. 
+
+\begin{enumerate}
+	\item They are undirected, making causal modeling, and intuitions about functions
+		 impossible to capture. This is partially resolved \cite{frey2012extending} by directed factor graphs. 
+	\label{fgproblem:undirected}
+	\item The global normalization process is over-eager in sweeping all inconsistencies. As a result, a local view of a few factors may not provide any information about the distribution. For instance, in  \Cref{ex:fg-exam}, $\phi_2$ suggests a qualitatively different joint distribution on $A,B,C$ than the one obtained after incorporating $\phi_3$. \label{fgproblem:global}
+	\item Factors cannot be re-weighted by importance while still preserving the ratios of likelihoods between alternatives\footnote{The absolute scale is irrelevant, as used in the proof of \Cref{prop:fg-pdg-lossless}, while the weight parameters of the corresponding exponential family used to control importance do so by imposing distortions (\Cref{sec:fg-expfam}).}. \label{fgproblem:reweight}
+%oli6: we're already over, no space for this :(
+	% \item There is no possibility of corroborating evidence \label{fgproblem:corrob}
+	
+%oli6: modified heavily but forgot to comment out the original.
+	\item They are volatile: the addition of a new node can invalidate and arbitrarily distort the semantics \label{fgproblem:volatile} (\Cref{ex:fg-volatile,ex:fg-volatile-2} below). In fact, given a subgraph $F' \subseteq F$ of a factor graph $F$, it is impossible know anything about the semantics $\Pr_F$ of $F$ except that must assign zero mass to anything to any joint setting $w$ where $\Pr_{F'}(w) = 0$. 
+	% We call this a security vulnerability.
+\end{enumerate}
+
+\begin{example}\label{ex:fg-volatile}
+	Add a new factor, not connected to any variable, with $\phi() = 0$. Now the product of the factors is uniformly zero, and so the distribution is not defined. This is not even salvageable locally, and the factor cannot be found by tracing paths.  
+\end{example}
+
+
+In \Cref{ex:fg-volatile}, the designer is lucky in a sense: it is obvious that the model is broken, and the fix is to delete a single suspicious-looking factor.
+%Of course, without trying the NP hard normalization, there's no way to tell that anything is wrong.
+%
+In general, things could be  worse: the failure to normalize could be spread across multiple nodes, in a distributed way; and ruling out this possibility is NP-hard in the number of factors. 
+In addition to causing corruption, a single additional factor can precisely construted to exactly determine the semantics of the entire graph% \Cref{ex:fg-volatile-2}
+.
+
+\begin{example}\label{ex:fg-volatile-2}
+	Let $\Phi$ be any factor graph whose factors all take strictly positive values, and distribution $\mu$ on the same variables. add a new factor $\phi$, connected to every variable, such that $\phi(\vec x) = {\mu(\vec x)}/{\Pr_\Phi(\vec x)}$. Then $\Pr_{\Phi \cup \phi} = \mu$. 
+\end{example}
+
+%oli6: rewritten. I'm actually proud of this paragraph.
+% This global normalization process in some sense is a catch-all fix that ensures that the factor graph is well-defined, but does not preserve any local meanings whatsoever, making it a poor tool for modeling local beliefs.
+If we think of a factor as an assertion of local relative likelihood, as in \Cref{ex:fg-exam}, the global normalization can be seen as a blunt agregation of the data presented by a set of seemingly inconsistent factors into a single consistent probability distribution (and can fail, as in \Cref{ex:fg-volatile})). The price of this consistency is arbitrary distortion of local relative liklihood constraints, making factor graphs also a poor tool for modeling modular beliefs (at least not about relative liklihood). 
+	%over worlds which are truly random.
+%. and even worse for inconsistent ones.
+
+By contrast, PDGs
+\vfull{(see \Cref{sec:pdg-operations})}
+are unaffected by any data that is not connected to the rest of the graph. Raise red flags when something is wrong, and do not have the security vulnerability that their the entire state is precisely controllable by a single new added piece of knowledge.
+\vfull{
+%
+	A PDG clearly encodes more information than just the
+			distribution: this is true for both Bayesian Networks
+			and Factor Graphs as well. In both cases, this is
+			sometimes cast as a flaw, as this makes them poor
+			choices as canonical descriptions of distributions,
+			which is why so much attention is given to I-maps in
+			\cite{koller2009probabilistic}.  
+	
+	However, meaning beyond the distribution has not been empirically damaging. Despite being less expressive and obscuring independence relations, BNs continue to be a more popular modeling tool. The causal picture they can provide, beyond anything in the distribution, is evidently worth a lot.
+}%\end{vfull}
+%oli6: added. Also, the above two paragraphs need more trimming.
+It follows that it is only possible to avoid such issues with PDGs, if the class of factor graphs cannot be efficiently represented as PDGs in a way that preserves semantics.
+In the next section we see that the only reason PDGs do not naturally encompass factor graphs is an intentional coupling of two information theoretic quantities with the same parameter $\beta_L$. 
+	% failing to keep an embedding 
+%
+%	\subsubsection\
+%	If we restrict the factors to have binary output $\phi_\alpha(x_\alpha$ of a constraint graph
+
+\subsubsection{Specifying Factors Directly}
+%
+%	How does one design a distribution with the factors? One way
+%is to specify each $\phi$ directly, reasoning roughly as in
+%\Cref{ex:fg-exam}. 
+
+%	A factor graph is really just an exponential family \cite{wainwright2008graphical}, 
+
+%joe4: this is a useful example even without the preceding story.
+%Moved first sentence out of the example
+%	\begin{example}\label{ex:fg-exam}
+	To contrast with our other examples, which mostly correspond to directed models, we present a more general factor graph that displays some of the stranger features of factor graphs.
+
+\begin{example}\label{ex:fg-exam}		
+		  Suppose that Alice, Bob, Clara, and David each had a
+			take-home exam; let $\mathbf X = \{A, B, C, D\}$ be
+			binary random variables taking $\{1,0\}$,
+			corresponding to whether or not each person passed the
+			exam.  
+	We want a joint distribution over possible outcomes; our knowledge, depicted graphically in \Cref{fig:fg-exam}, is as follows:	
+
+	\begin{figure}[H]
+		\centering
+		\scalebox{0.8}{
+			\begin{tikzpicture}[scale=0.75]					
+				\node[fgnode] (A) at (0, 0) {$A$};
+				\node[fgnode] (B) at (3, -1) {$B$};
+				\node[fgnode] (C) at (3.5, 1.4) {$C$};
+				\node[fgnode] (D) at (6, -1) {$D$};
+				
+				
+				
+				\node[factor] (f1) at (-2, 0){$\phi_1$};
+				\node[factor] (f2) at (1.8,.4){$\phi_2$};
+				\node[factor] (f3) at (1.3, -1.3){$\phi_3$};
+				\node[factor] (f4) at (6, 1){$\phi_4$};
+				
+				
+				\draw[thick] (f1) -- (A) -- (f2) -- (B) -- (f3) -- (A);
+				\draw[thick] (C) -- (f2);
+		\end{tikzpicture} }
+		\caption{Factor Graph: exam scores}
+		\label{fig:fg-exam}
+	\end{figure}
+	
+	
+	\begin{enumerate}[nosep]
+%joe4
+			  %		\item[$\phi_1$.] A. priori., Alice is 4 times
+%                  as likely to pass as not, and so $\phi_1(a)
+	\item[$\phi_1$.] \emph{A priori}, Alice is 4 times
+			  as likely to pass as not, so $\phi_1(a)
+					  = 4$ if $a = 1$, and 1 otherwise. 
+\item[$\phi_2$.] Alice, Bob, and Clara
+					  collaborated. Clara is very persuasive, and
+					  Alice trusts her, so an outcome in which
+					  everyone gets the same score is (a priori) 8 times more
+%joe4: more likely than what?  One where they don't all get the same
+%score?  If so, then Alice and Clara getting the same score can't be 4
+%times more likely than them getting different scores.  I'm confused
+%oli5: we discussed this in our meeting, but the correct interpetation is via energies. The relative likelihood holds locally and works if it doesn't interat with other factors---but the one I'm presenting is the only analogy to local graphical models we have.
+%oli5: addressing "more likely than what"--added                          
+					  likely than when each score is distinct,
+%   
+					  one in which only Alice and Clara
+					  share a score is 4 times as likely, and one
+					  in which only Bob and Clara share a score is
+					  twice as likely. 
+		\[ \phi_2(a,b,c) = \left\{\begin{aligned}
+%joe4: redid layout to make it more standard
+%oli5: That was a premature optimization to save space on my part, but this example is too bulky to make it into the short paper anyway.
+			  %			8 &~~ \text{if~} a = b = c; 
+						8 &~~ \text{if~} a = b = c;\\
+									4 &~~ \text{if~}c = a \neq b; \\
+			2 &~~ \text{if~}c = b \neq a;\\
+			1 &~~ \text{otherwise.}
+		\end{aligned}\right. \]
+%joe4*: This seems inconsistent with the claim above that they're all
+%more like to get the same score as not.  If this is intentional, you
+%need to say someting about it.
+%oli5: Perhaps I should do a better job of this earlier, but I describe below.
+%joe5: I'm not reading that carefully at this point, because I
+%currently think that this is the wrong story.
+		  \item[$\phi_3$.] Alice thinks very poorly of
+					  Bob, and ultimately reverses the answers to
+					  all his questions; she's guarantee to fail
+					  if he passes, and vice versa. $\phi_3(a,b) =
+					  1$ if $a \neq b$ and 0 if $a=b$.
+			%oli5: added. 
+					  Note that this is
+											  incompatible with
+											  $\phi_2$, and so the
+											  factor graph cannot
+											  satisfy both
+											  constraints
+											  exactly. 
+%joe4: I don't undersatnd the meaning of the isolated box \phi_4.  
+%oli5: It's just a factor connected to zero variables. It has a value,
+%but doesn't matter. Part of the point is that factor graphs encode a
+%lot of useless information.
+%joe5: If that's the point, you need to make it.
+											\item[$\phi_4$.] The test is on factor graphs, which was unlikely, so $\phi_4() = 0.25$. This is true independent of anyone's scores, and doesn't bear on the distribution, so it will get normalized out.
+	\end{enumerate}
+	We don't know anything about David. The resulting distribution is given in \Cref{tab:fg-exam-dist}
+	
+	\begin{table}[h!]
+		\renewcommand{\arraystretch}{1.15} 
+		\centering
+		\begin{tabular}{c|cc|cc}
+			\multicolumn{1}{c}{}&\multicolumn{2}{c}{$a_0$} & \multicolumn{2}{c}{$a_1$} \\[-0.3em]
+			&$c_0$ & $c_1$ & $c_0$ & $c_1$ \\\hline
+			$b_0$&0 & 0 & .2667 & .5333 \\
+			$b_1$&.1333 & .0667 & 0 & 0
+		\end{tabular}
+		
+		\caption{The resulting distribution from \Cref{ex:fg-exam}}
+		\label{tab:fg-exam-dist}
+	\end{table}
+	
+	
+	Note some features of this example:
+	\begin{enumerate}[nosep]
+%joe4: this should be mntion earlier (when you define \phi_3)
+%joe4: this too should be mentioned earlier.  I noted it and was onfused.
+%oli5: done.
+			\item $\phi_3$ totally overrides the first case of $\phi_2$: The
+directions of an individual factor are just suggestions that are
+resolved globally. 
+		%The intuition of relative likelihoods, only works locally.
+\item Although $\phi_3$ was symmetric, our
+					  story is not: Alice doesn't trust Bob, and
+					  not the other way around. There is an
+					  important distinction in the story (this
+					  changes Alice's score, and not Bob's), but
+					  this cannot be captured. 
+%			To capture a conditional probability distributions, you need to impose \emph{local} normalization constraints \cite{frey2012extending}. In this case, this means insisting that  $\sum_{a} \phi_3(a,b) = 1$
+		\item To get any marginal distribution such as $\Pr(B)$, you have to take into account every factor, including those such as $\phi_1$ that are not connected to $B$.
+		\item To emphasize that a factor is more important, we cannot simply scale it, as the scaling will be normalized out; the only control available is to changing the variance of its items: setting things (close to) zero is the only way to ensure that the factor matters more than others.
+	\end{enumerate}
+\end{example}
+%joe4: this may be true, but it's irrelevant        
+%	Generally, factor graphs are learned from data or translated
+%        from another model, rather than specified by
+	%        hand.  \Cref{ex:fg-exam} should make it clear why: there is a
+As \Cref{ex:fg-exam} shows, there is a lot of freedom in specifying the factors, 
+%oli5: added
+and very little in the way of locally interpretable semantics. 
+
+
+\subsection{DIRECTED FACTOR GRAPHS}
+
+One solution, by \cite{frey2012extending} is to also enforce some local constraints, in the form of a local normalization.  While this indeed solves issues \cref{fgproblem:undirected,fgproblem:global}, directed factor graphs still leave some bits of issues \cref{%fgproblem:corrob,
+	fgproblem:reweight,fgproblem:volatile} unaddressed.
+
+Directed factor graphs are much more explicit with their factorizations than BNs, are as expected, even more closely related to PDGs. However, they too cannot capture scenarios such as \cref{ex:randomvars}. Consider example \ref{ex:directedfg}
+
+\begin{example}\label{ex:directedfg}
+	\todo{Choose a different directed factor graph example that doesn't rely on sub-stochasticity}
+\end{example}
+
+
+
+
+
+\section{Structure-editing PDG Operations}
+
+While both PDGs and PDH s are equivalent, and despite the fact that dealing with sets of variables is standard, we chose PDGs over PDH s as the face of the paper. One of the primary reasons to do this is that it puts products on equal footing with other equally valid structural modifications we could have done instead, rather than specializing the definitions for products.
+
+\begin{enumerate}
+	\item Latent variable nodes, e.g., through VAEs. Useful for representation learning and modeling bounded agents that just remember the gists of things.
+	
+	\item Sums nodes. For when one is being forced to chose between two options which might otherwise be unrelated, and the basic constructor for variables from points.
+	
+	\item Exponential nodes. Any positive temperature arrow can be reasoned about through expansion into its parameters.
+	
+	\item Compression nodes: e.g., truncation nodes for propositions. It may not matter exactly what proof you have so long as you've proved one exists. That a variable takes a value may be just as important as it.
+\end{enumerate}
+
+
+\section{More Examples}\label{sec:more-examples}
+
+\begin{example}
+	\label{ex:corrob}
+\end{example}
+
+\begin{example}[Maximum Entropy with cpds is not the BN distribution]\label{ex:counterexample}
+	Consider the Bayesian network 
+	\begin{tikzcd}[cramped, sep=small]
+		A \ar[r] & C & B \ar[l]
+	\end{tikzcd}
+	where $A$ and $B$ are binary, and $C$ can take $2^k$ values, including $c_0$. We now give the associated tables: both $A$ and $B$ get prior unconditional probabilities of $\nicefrac12$ apiece, and set $C$'s cpd to be
+	\[
+		\begin{idxmat}{{$a$,$b$},{$\bar a$, $b$},{$a$, $\bar b$},{$\bar a$, $\bar b$}}{$\Delta C$}
+			\mathit{Uniform} \\ \delta_{c,c_0 }\\ \delta_{c,c_0} \\ \mathit{Uniform} \\
+		\end{idxmat}
+	\]
+	where $\delta_{c,c_0}$ is the degenerate distribution that puts all mass on $c_0$. Looking at entropy, the uniform distribution on $C$ gets $k$ bits, and each of $A$ and $B$ we know each give one bit. 
+	The semantics of a BN require that $A$ and $B$ are independent, since neither is a descendent of the other and neither has parents.  However, doing so results in a distribution of entropy $H(p) = 2 + k/2$ (one for each of the independent bits, and an expected k/2 bits from getting the uniform distribution on $C$ half the time), whereas if we correlate $A$ and $B$ so that they are always equal, we get $1 + k$ bits, one total bit from $A$ and $B$, and $k$ from $C | A,B$. For any finite $k$, this is still not the maximum entropy distribution, but it is much higher entropy than the one the BN suggests.
+	
+	Therefore the maximum entropy distribution consistent with the tables does not encode the independece assumption that a BN does. 
+\end{example}
+
+\begin{example}\label{ex:randomvars}
+	Consider random variables $X_1$, $X_2$  on a set
+			$\Omega$ of outcomes (distributed according to $p$),
+			taking values in the set $\mathcal X$. This can be
+			represented as the PDG below. 
+	\begin{center}
+		\scalebox{0.8}{
+			\begin{tikzpicture}
+			\node[dpadded] (1) at (0,0) {$\sf 1$};
+			\node[dpadded] (W) at (2.5,0) {$\Omega$};
+			\node[dpadded] (X1) at (5,1) {$X_1$};
+			\node[dpadded] (X2) at (5,-1) {$X_2$};
+			
+			\draw[arr] (1) to node[fill=white]{$p$} (W);
+			\draw[arr, ->>] (W) to node[fill=white]{$X_1$} (X1);
+			\draw[arr, ->>] (W) to node[fill=white]{$X_2$} (X2);
+			\draw[arr, gray] (X1) to node[right] {$p$} (X2);
+			\end{tikzpicture}}
+	\end{center}
+	The setup so far, in black above, can be captured with a BN, but it is impossible to also articulate conditional probabilistic relations amongst the variables in the same time: in a BN, once we add a variable $\Omega$ which caracterizes all possible worlds as a parent of a variable (e.g., $X_2$), any other dependences will be irrelevant. Given a world $\omega$ and values of other variables, the cpd associated to $X_2$ would simply deterministically return the value of $X_2$ in $\omega$. 
+	
+	As a result, a BN has to choose between encoding conditional probabilistic information, and the knowledge of the complete information from $\Omega$. This is not true with a PDG, which makes it possible to simultaneously model the structure of the random variables around an agent's beliefs, in addition to the beliefs themselves.
+\end{example}
+
+
+\vleftovers{
+	\section{Categorical Presentation}
+	\note{I will not put any time into this, as it's not going in the paper, but it's here as a placeholder, and I'll list some reasons why this is worth thinking about.}
+	One reason this works out so nicely is every construction is universal. We can in fact give a simpler categorical presentation of PDGs for those who already know category theory. The highlights are as follows:
+	\begin{enumerate}
+		\item A PDG is an attention-shaped diagram in the Markov category. That is, functor from the free category generated by the graph $(\mathcal N, \Ed)$ representing attention, to the Markov category. Indeed $\mathcal V$ is the action on objects, assigning each $\mathcal N$ to a measurable set, $\bmu$ is the action on morphisms, sending edges in $\Ed$ to Markov kernels between their associated objects. 
+		\begin{enumerate}
+			\item Composition works out in general as we place no restrictions on anything, but
+			\item If every edge in $\Ed$ represents the causal structure of their relationship, then the image of the resulting diagram will be flat, and so effectively there will only be at most one, belief, and no possibility of conflict.
+			\item Interpreting with a different model of uncertainty (such as the powerset, giving us non-deterministic possibility) is simply an exchange of interpretation. However, for nice interaction with deterministic functions and logic, this notion of uncertainty must be a monad.
+		\end{enumerate}
+		
+		\item This highlights the role of the ``qualitative'' and ``quantitative'' versions of this framework (which work out much more cleanly than for BNs in a categorical sense)
+		
+		\item A limit of this diagram is a space of worlds and all of the random variables as functions. A colimit is a the strongest thing that must be true according to the model (suspicion: this is somehow related to common knowledge). There is some strangeness about how samples work that I have not yet figured out.
+	\end{enumerate}
+	
+	
+	\section{Algebra}\label{sec:algebra}
+	\begin{defn}
+		If $\sigma$ is a signature, a $\sigma$-PDG $M'$ on a PDG $M=(\mathcal N, \Ed, \mathcal V, \mu)$ is a \modelname\ $(\mathcal N', \Ed', \mathcal V', \mu')$ such that
+		\begin{itemize}
+			\item $\mathcal N':= T_\sigma(\mathcal N)$ is the term algebra for the signature $\sigma$ over the alphabet $\Sigma = \mathcal N$.
+			\item $\Ed' = \Ed \cup \Ed^\sigma$ is $\Ed$ extended with extra edges for operations that are 
+		\end{itemize}
+	\end{defn}
+	
+	\begin{example}
+		content
+	\end{example}		
+}%endvleftovers

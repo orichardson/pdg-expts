@@ -1,17 +1,17 @@
-%load_ext autoreload
-%autoreload 2
+# %load_ext autoreload
+# %autoreload 2
+# %pwd
 # should be started in root directory
 import sys; sys.path.append('../')
 
 
-
 import numpy as np
-import pandas as pd
-from matplotlib import pyplot as plt
+# import pandas as pd
+# from matplotlib import pyplot as plt
 
 from dist import RawJointDist, CPT
-from rv import Variable, binvar, Unit
-from pdg import *
+from rv import binvar, Unit
+from pdg import PDG
 
 
 # In[ ] 
@@ -42,11 +42,11 @@ init = RawJointDist.unif(M.varlist).data.reshape(-1)
 
 
 # In[ ]
-import torch
-from torch import optim, autograd, tensor
+# import torch
+# from torch import optim, autograd, tensor
 
 
-optim.
+# optim.
 
 from scipy.optimize import minimize, LinearConstraint, Bounds
 
