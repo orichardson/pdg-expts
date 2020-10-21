@@ -1,0 +1,260 @@
+%no tex program
+% !TeX TXS-program:bibliography = txs:///bibtex
+\documentclass{article}
+
+\usepackage{subfiles}
+\usepackage[utf8]{inputenc}
+% \usepackage[english]{babel}
+\usepackage{import}
+
+
+\input{the-pdg-manual.preamble.tex}
+\usepackage[margin=1in]{geometry}
+
+\newcommand{\commentout}[1]{\ignorespaces} 
+\newif\ifprecompiledfigs
+\precompiledfigsfalse
+% \precompiledfigstrue
+
+\newif\ifexternalizefigures
+\externalizefiguresfalse
+
+\ifexternalizefigures
+	\usetikzlibrary{external}
+	\tikzexternalize[prefix=tikz/]  % activate!
+	\usepackage{etoolbox}
+	 \AtBeginEnvironment{tikzcd}{\tikzexternaldisable} %... except careful of tikzcd...
+	 \AtEndEnvironment{tikzcd}{\tikzexternalenable}
+\fi
+
+%\twocolumn
+\title{The PDG Manual}
+\author{Oliver Richardson  \texttt{oli@cs.cornell.edu}}
+
+\begin{document}
+
+	\maketitle
+	\tableofcontents
+	%\listoffigures
+	% \listoftheorems
+	\clearpage
+	%some day...
+	% \twocolumn 
+	\part{The PDG Representation}
+	\subfile{intro.tex}
+	\subfile{formalism.tex}
+	\subfile{idef.tex}
+
+	\begin{wip} \subfile{trace.tex} \end{wip}
+	
+%	\begin{align*}
+%		 \tau(\mu)(x,y,\mat z) &:= \mu(x,y,\mat z) \frac{\bp(y \mid x)}{\mu(y\mid x)} 
+%			 &  \tau(\mu)(x,y,\mat z) &:= \mu(x,y,\mat z) \frac{\bp(y \mid x)}{\mu(y\mid x, \mathbf z)} \\
+% 			&= \mu(x)\; \bp(y \mid x)\; \mu(\mat z \mid x,y) 
+%			 &   &= \mu(x,\mat z)\; \bp(y \mid x)
+%	\end{align*}
+
+	\part{Capturing Other Modeling Formalisms}
+	PDGs are extremely flexible, and nicely capture 
+
+    \section{Raw Probability Distributions}
+	Probability distributions themselves are a particular kind of PDG; 
+	a  triple $(\Omega, \mathcal F, \Pr)$ is naturally identified with the diagram
+	\begin{center}
+		\begin{tikzpicture}
+			\node[dpadded] (1) at (0,0) {$\var 1$};
+			\node[dpadded] (W) at (3,0) {$\Omega$};
+
+			\draw[arr] (1) to node[fill=white]{$\Pr$} (W);
+		\end{tikzpicture}
+	\end{center}
+
+	% \begin{example}\label{ex:worldsonly}
+	% \end{example}
+		
+    Let $\N$ be a set of variables whose values are given by $\V$. When we use the characterization of PDGs based on directed hyper-graphs, a joint distribution $\mu \in \Delta[\V(\N)]$ is naturally identified with a particular unweighted PDG. Specifically, the data of $\mu$ is given by the PDG $(\N, \{ E_0 \}, \V, \mat p)$ containing a single hyper-edge $E_0$ whose source is empty and whose target is all of $\N$, associated with the cpd $\bp[E](\mat x) := \mu(\mat x)$.
+
+    \begin{example}
+        For a 3-variable
+    \end{example}
+	
+
+
+	\subfile{pgms.tex}
+	\subfile{db.tex}
+	
+	\section{Automata}
+	
+	\part{Applications of PDGs}
+	\part{The Categorical View}
+
+	\part{Misc}
+	\section{Philosophy}
+	\section{Scratch}
+	
+	\begin{inactive}
+		\subsection{}
+		The data of a PDG, alternately put, is the set of nodes + an $\alpha$ matrix for each pair of them, the set of cpts, a $\beta$ for each cpt, and 
+		
+		\begin{prop}
+			% what I want to say: IDef entails the independencies of D, in that 
+			% it causes the region of the information profile
+			% associated with any independence of the DN, to be red. 
+			For any sets of variables $\mat X, \mat Y, \mat Z$, for which $\mat  X \CI_{\mathcal D} \mat Y \mid \mat Z$, we have
+			\[ \frac{\partial \IDef{\cal D}}{\partial \I(\mat X; \mat Y \mid \mat Z)}(\mu) < 0 \]
+			where $\I(\mat X; \mat Y \mid \mat Z)(\mu)$ is the conditional information between $\mat X$ and $\mat Y$ given $\mat Z$, a non-negative quantity which is zero iff $\mat X \CI_{\mu} \mat Y \mid \mat Z$. 
+		\end{prop}
+	\end{inactive}
+
+	\begin{annotating}[frametitle={Matroids}]
+		\subsection{Matroids}
+		Does the set of hyper-edges of a PDG form a matroid?
+		In the case of joint distributions (hyper-edges have only heads and not tails), then clearly it
+		is downward closed, as we can find the marginal on any subspace. 
+		
+		
+		If the PDG is consistent
+	\end{annotating}
+
+
+
+	A probabilistic prgram $\tau_{\dg M} : \Delta\V(\dg M) \to \Delta \V(\dg M)$
+	\begin{algorithmic}
+		\State $i = 3$
+		\For{$t = 1, 2, 3, \ldots$}
+		    \State Choose \texttt{qual} with probability $\nicefrac{\gamma}{1+\gamma}$ and \texttt{quant} otherwise (probability $\nf1{1+\gamma}$).
+			
+			\If{\texttt{quant}}
+				\State {Let} $\hat \beta$ be the normalized vector of $\beta$s, such that $\sum_L\hat\beta_L = 1$.
+				\State \textbf{Draw}  $L \sim \hat\beta$;
+				\State {Let} $X:= \src L;\quad Y := \tgt L;\quad Z:= \N \setminus\{X,Y\}$;
+				\State \textbf{Update} $\mu^{t+1} \gets \mu^t(X) \bp(Y \mid X) \mu^t(Z \mid X,Y)$
+			\ElsIf{\texttt{qual}}
+				\State \textbf{Update} $\mu^{t+1} \gets $
+			\EndIf
+			
+		\EndFor
+	\end{algorithmic}
+
+{
+    % \small
+    \bibliographystyle{aaai21}
+    \bibliography{../allrefs,../z,../joe,../db}        
+}
+
+
+	\part*{Appendix}
+	\addcontentsline{toc}{part}{Appendix}
+	\appendix
+	\section{Background Material}	
+    \subsection{Information Theory}
+
+    \begin{defn}\label{def:entropy}
+        The entropy of a random variable $X : \Omega \to \V(X)$ is with respect to a probability distribution $\mu : \Delta \Omega$ given by
+        \[ \H_\mu(X) = \sum_{x \in \V(X)} \mu_X(x) \log \frac{1}{\mu_X(x)} ,\]
+        where $\mu_X$ is the marginal of $\mu$ on $X$.
+    \end{defn}
+
+    \begin{fact}
+        For all random variables $X,Y$ over the space of outcomes $\Omega$, if there is a function $f$ such that $Y(\omega) = f(X(\omega))$ for all $\omega$ with $\mu(\omega) > 0$, then $\H_\mu(X) \leq \H_\mu(Y)$.
+    \end{fact}
+    One consequence is that entropy is independent of the particular representation.
+    \begin{prop}[invariance with respect to change of variables]
+        If $X : \Omega \to \V(X)$ and $Y : \Omega \to \V(Y)$ are a pair of random variables over $\Omega$ and there exist functions $f : \V(X) \to \V(Y)$ and $g : \V(Y) \to \V(X)$ such that $f(X(\omega)) = Y(\omega)$ and $g(Y(\omega)) = X(\omega)$ for all $\omega \in \Omega$, then $\H_\mu(X) = \H_\mu(Y)$ for all $\mu$.
+%       are a pair of functions that commute with the variables (that is, $f(X(\omega)) = Y(\omega)$ and $g(Y(\omega)) = X(\omega)$ for all $\omega \in \Omega$), then $\H_\mu(X) = \H_\mu(Y)$ for all $\mu$.
+    \end{prop}
+
+    The setting of the above
+    \begin{center}
+        \begin{tikzcd}[column sep=1em]
+            &\Omega\ar[dl, "X"']\ar[dr, "Y"]\\
+            \V(X) \ar[rr, "f"] && \V(Y)
+        \end{tikzcd}
+    \end{center}
+
+    \subsection{Boolean Algebra}
+%   $\mu$ is a measure over $\V(\N) = \prod_{N \in \N}\V(N)$ and if $\N$ and each $\V(N)$ is finite, then every subset of $\V(\N)$ is measurable.
+
+    \begin{defn}[Boolean algebra, atom, natural order, and the free Boolean algebra generated by a set]
+        A \emph{Boolean algebra} $B = (S, \land,\lor,\lnot,0,1)$ is a carrier set $S$, together with interpretations of the binary boolean operations $\land $ and $\lor$ as functions $S\times S \to S$, the unary operation $\lnot$ as a function $S \to S$, and distinguished elements $0, 1 \in S$, such that for all $a, b, c \in S$,
+        \begin{enumerate}[itemsep=0pt, parsep=1pt,label={BA\arabic*.}]
+            \item $\land, \lor$ are associative and commutative,
+            \item $a \lor 0 = s$ and $a \land 1 = a$ for all $a \in S$,
+            \item $a \lor(b \land c) = (a \lor b) \land (a \lor c)$ and $a \land(b \lor c) = (a \land b) \lor (a \land c)$,  and finally
+            \item $a \lor \lnot a = 1$ and $a \land \lnot a = 0$.
+        \end{enumerate}
+        A Boolean algebra $B$ defines a partial order called the \emph{natural order} (which is a partial order) by declaring $a \leq b$ iff $a \lor b = b$, and declaring that $a < b$ iff $a \leq b$ and $a \neq b$.
+        The \emph{atoms} of $B$, denoted $\At B$ are those non-zero elements of $a \in S$ such that there does not exist a nonzero element $x \in S, x \ne 0$ such that $x < a$. Equivalently the atoms of $B$ are those elements $a\in S$ which can only expressed as a disjunction $a = x \lor y$ if either $x = a$ or $y=a$.
+        %       \[ \mathit{At}(B) := \{ \} \]
+        If $G$ is a set, the \emph{free boolean algebra generated by $G$} is the unique smallest Boolean algebra containing $G$ that does not satisfy any additional equations, beyond {BA1-4}.
+    \end{defn}
+    \begin{example}
+        If $G = \{a, b\}$, the free boolean algebra $BG$ generated by $G$ consists of the sixteen elements
+
+        \medskip
+        \begin{minipage}{0.3\textwidth}
+            \begin{center}%{R}{3cm}
+                %           \let\varnames{X,Y,Z}
+                \begin{tikzpicture}
+                    \begin{scope}[scale=0.4]
+                        \begin{scope}[blend group=hard light, opacity=0.5]
+                            \draw[fill=color1!50!white]   ( 0:1.2) circle (2);
+                            \draw[fill=color3!50!white] (-180:1.2) circle (2);
+                        \end{scope}
+
+                        \draw(0:1.2) circle (2);
+                        \draw(-180:1.2) circle (2);
+
+                        \node[yshift=1cm] at (0:2) {$b$};
+                        \node[yshift=1cm] at (-180:2) {$a$};
+                        \node at (-5,0){$\scriptstyle  \lnot a \land \lnot b$};
+                        \node at (0,0){$\scriptstyle a \land b$};
+                        \node at (-180:2){$\scriptstyle a \land \lnot b$};
+                        \node at (0:2){$\scriptstyle  \lnot a \land b$};
+                    \end{scope}
+                \end{tikzpicture}
+                \refstepcounter{figure}\label{fig:ven2BA}
+                %           \caption[a]{B}
+            \end{center}
+        \end{minipage}\begin{minipage}{0.65\textwidth}
+            \begin{equation} \left\{\;
+                \begin{aligned}
+                    a \land b,\; a \land \lnot b,\; \lnot a \land b,\; \lnot a \land \lnot b,\; \\
+                    %           \smash{\overbracket{ a \land b,\; a \land \lnot b,\; \lnot a \lansd b,\; \lnot a \land \lnot b,\;}^{\text{the atoms of $B$}}} \\
+                    (a\land b) \lor(\lnot a \land \lnot b),\; (a\land \lnot b) \lor (\lnot a \land b),\; 0,\; 1,\;\\
+                    a \lor b,\; a \lor \lnot b,\;  \lnot a \lor b,\; \lnot a \lor \lnot b,\; \\
+                    a,\; \lnot a,\; b,\; \lnot b,\;
+                \end{aligned}\;
+                \right\} \label{eq:exba2} \end{equation}
+        \end{minipage}
+        \par\smallskip\noindent
+        corresponding to the $2^{2^2} = 16$ distinct boolean expressions that can be constructed with the two primitve symbols $\{a, b\}$. The atoms of $BG$ are those elements that appear on the first line of \eqref{eq:exba2}, and correspond to the four ``atomic'' regions of the Venn diagram to their left.
+    \end{example}
+
+    \subsection{Hyper-Graphs and Information}
+    We originally formalized the structure of PDGs with regular edges, which have a single source and target. However, $\IDef{}$ is most naturally understood in a setting where PDGs are modeled as hyper-graphs; we now provide an characterization in these terms.%
+        \footnote{For a translation into the original formulation consult \cref{apx:hyper-vs-graph}.}
+    \begin{defn}[hyper graph] \label{defn:hypergraph}
+        A \emph{directed multi-hyper-graph}, (which we abbreviate \emph{hyper-graph}), is a set $\N$ of variables, and a set $\Ed = \{ \mat X \to \mat Y \}$ of hyper edges. Each edge $E \in \Ed$ has a subset of the variables $\src(E) \subseteq \N$ which we call the \emph{source} of $E$, and a second subset of variables $\tgt(E) \subseteq \N$ that we call the \emph{target} of $E$. We will often specify an edge $E$ along with its source $\mat X = \src(E)$ and target $\mat Y = \tgt(E)$ by writing $\ed E{\mat X}{\mat Y}$.
+    \end{defn}
+%   Although this is not always made explicit, any computation involving entropy depends on the values
+%   \begin{defn}[variable hypergraph]
+%       A \emph{variable hypergraph} is a tuple $(\N, \Ed, \V)$ where $(\N, \Ed)$ is a (directed multi-)hyper graph, whose vertices $\N$ correspond to variables with values $\V$. Concretely, $\V(N)$ is the set of possible values that a variable $N \in \N$ can take.
+%   \end{defn}
+
+    \begin{defn}[PDH IDef] \label{defn:idef}
+        If $\Gr = (\N, \Ed)$ is a variable hypergraph, and $\mu {\Delta [ \prod_{N\in\N}\V(N)]}$ is a joint probability distribution over variables $\mathcal X \supseteq \N$, then the $\Gr$-information deficiency of $\mu$ is given by
+        \begin{equation}
+            \IDef{\Gr}(\mu) := \bigg[~\sum_{\ed E{\mat X}{\mat Y}} \H_\mu(\mat Y\mid \mat X)\bigg] - \H_\mu(\N).
+% same but with src/tg instead of arrow notation
+%           \IDef{\Gr}(\mu) := \bigg[~\sum_{\ed E{\mat X}{\mat Y}} \H_\mu(\mat{tgt} E\mid \mat{src} E)\bigg] - \H_\mu(\N).
+            \label{eq:idef}
+        \end{equation}
+%       where $\H(\mat Y \mid \mat X)$ is the conditional entropy of $\mat Y$ given $\mat X$ with respect to $\mu$
+%       (see \cref{apx:info} for more details)
+%       , and $\H_\mu(\N)$, often written simply $\H(\mu)$, is the total entropy of $\mu$ across all variables.
+    \end{defn}
+
+    % Define the signed measure.
+
+\end{document}

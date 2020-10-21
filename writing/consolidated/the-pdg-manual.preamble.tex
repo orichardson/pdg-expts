@@ -11,6 +11,8 @@
 \usepackage[dvipsnames, cmyk]{xcolor} % must be loaded before tikz
 \usepackage{tikz} % setup comes later
 \usepackage{enumitem}
+\usepackage{array} 
+\newcolumntype{L}{>{$}l<{$}} % switch mathmode, a description column
 % \usepackage{trimclip}
 \usepackage{xstring}
 \usepackage{environ}% http://ctan.org/pkg/environ;
@@ -114,7 +116,7 @@
 \newcommand{\N}{\mathcal N}
 \newcommand{\Ed}{\mathcal E}
 \newcommand{\V}{\mathcal V}
-\newcommand{\bp}[1][L]{\mathbf{p}_{\!_#1\!}}
+\newcommand{\bp}[1][L]{\mathbf{p}_{\!_{#1}\!}}
 
 \newcommand{\Gr}{\mathcal G}
 \newcommand\src{\mathbf{src}}
@@ -124,8 +126,14 @@
 \newcommand{\dg}[1]{\mathbdcal{#1}}
 \newcommand{\var}[1]{\mathsf{#1}}
 \newcommand{\none}{\varobslash}
-\newcommand{\ed}[3]{#2%
-	\overset{\smash{\mskip-5mu\raisebox{-1pt}{$\scriptscriptstyle #1$}}}{\rightarrow} #3}
+\newcommand{\ed}[3]{%
+	\mathchoice%
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
+
+	
 \newcommand{\alle}[1][L]{_{\ed {#1}XY}}
 
 \DeclareMathOperator\dcap{\mathop{\dot\cap}}
@@ -136,6 +144,8 @@
 %\newcommand{\PDGof}[1]{{\dg M}_{#1}}
 \makeatletter
 \newcommand{\PDGof}[1]{{\mathbdcal{p\kern-0.05em d\kern-0.125em g}} \ifx#1\@empty\else(#1)\fi}
+\newcommand{\PDHof}[1]{{\mathbdcal{p\kern-0.05em d\kern-0.125em h}} \ifx#1\@empty\else(#1)\fi}
+
 % \newcommand{\UPDGof}[1]{{\dg N}_{#1}}
 \newcommand{\UPDGof}[1]{{\mathbdcal{u\kern-0.05em p\kern-0.05em d\kern-0.125em g}} \ifx#1\@empty\else(#1)\fi}
 \makeatother
@@ -161,14 +171,35 @@
 \newcommand{\Attrs}{\mathdcal A}
 \newcommand{\Idx}{\mathcal J}
 \newcommand{\Doms}{{\mathcal D}}
-\newcommand{\Rels}{{\mathcal R}}
-\newcommand{\sch}{\mathdcal S}%{\sigma}
+% \newcommand{\Rels}{{\mathcal R}}
+\newcommand{\Rels}{{\mathbf R}}
+\newcommand{\Cols}{\mathcal C}%{\sigma}
+\newcommand{\Sch}{\mathdcal S}
+\newcommand{\Keys}{\mathcal K}
+\newcommand{\DBProb}{\mathdcal P}
 \newcommand{\arity}{\mathit{ar}}
 
+\newcommand\Varis{\V\kern-.65pt\mathit{ars}}%
+\newcommand\Bmid{\mathrel{\Big|}}%
+\newcommand\vals{\mathbf{vals}}
+\newcommand\nj{\bowtie}
 
+% before theorems I need this:
+\def\structurelevels{part,section,subsection,subsubsection,paragraph}%	
+\newcommand\nextstructurelevel{%
+	\ifnum\value{section}=0 section\else%
+	  \ifnum\value{subsection}=0 subsection\else%
+	    \ifnum\value{subsubsection}=0 subsubsection\else%
+		paragraph\fi\fi\fi}
 
-
-
+%% The loop didn't work :( burrying it for now...
+% \expandafter\newcommand\nextstructurelevel{%
+% 	{\foreach\strl in \structurelevels{%
+% 		\ifnum\expandafter\value{\strl}=0%
+% 			\strl\breakforeach\fi%
+% 		}%
+% 	}}
+% \newcommand\nextstructurelevel{subsubsection}
 
 %% THEOREMS
 \usepackage{amsthm}
@@ -176,18 +207,21 @@
 \usepackage[framemethod=TikZ]{mdframed}
 
 	\makeatletter\begingroup
+	
 	\@for\theoremstyle:=definition,remark,plain\do{%
 			\expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
 				\addtolength\thm@preskip\parskip}
 			}\endgroup
-	% add theorems to table of contents
-	\def\thmTOCadd{\ifx\thmt@optarg\@empty
-			\addcontentsline{toc}{subsubsection}{
+	% add theorems, examples,etc to table of contents
+	\def\thmTOCadd{
+		\edef\asdffdsa{\nextstructurelevel}
+		\ifx\thmt@optarg\@empty
+			\addcontentsline{toc}{\asdffdsa}{%
 			\texorpdfstring{
 			 	\makebox[3cm][r]{\color{gray}{\it\thmt@thmname}~%
 				\csname the\thmt@envname\endcsname}}%
 			{\thmt@thmname\csname the\thmt@envname\endcsname: \thmt@optarg}}
-		\else\addcontentsline{toc}{subsubsection}{%
+		\else\addcontentsline{toc}{\asdffdsa}{%
 			\texorpdfstring{
 			 	\makebox[3cm][r]{\color{gray}{\it\thmt@thmname}~%
 				\csname the\thmt@envname\endcsname:}\hspace{1em} {\color{black!50!gray}\small\thmt@optarg}}%

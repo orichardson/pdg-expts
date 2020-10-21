@@ -124,10 +124,12 @@
 \newcommand{\Attrs}{\mathdcal A}
 \newcommand{\Idx}{\mathcal J}
 \newcommand{\Doms}{{\mathcal D}}
-\newcommand{\Rels}{{\mathcal R}}
-\newcommand{\sch}{\mathdcal S}%{\sigma}
+\newcommand{\Rels}{{\mathbf R}}
+\newcommand{\Cols}{\mathcal C}%{\sigma}
+\newcommand{\Sch}{\mathdcal S}%{\sigma}
+\newcommand{\Keys}{\mathcal K}
+\newcommand{\DBProb}{\mathbb P}
 \newcommand{\arity}{\mathit{ar}}
-
 
 % PDG SYMBOLS
 \newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
@@ -315,60 +317,58 @@ Though theoretically simple, this presentation requires a  ``universal domain'' 
 It is also common to insist that attribute names are always distinct, and as a pragmatic matter, the diagrams here will be much less convincing. 
 %
 We are therefore more interested in a \emph{typed} definition of a database, of which the previous definition is a special case.
-
 \begin{defn}[database]
-    A (typed) database $\D$ is a tuple $\D = (\Attrs, \Idx, \Doms, \sch, \Rels)$, where
-    
-    
-        \def\oftype#1{{$:#1$}}
-    
-    \renewcommand{\arraystretch}{1.3}
-    \begin{tabular}{@{~~~}r@{}lp{12cm}}
-    	$\Attrs$ & \oftype{\FinSet} & is a finite set of attribute names, \\
-    	$\Idx$ & \oftype{\FinSet} & is a finite set of table names,\\
-    	$\Doms$ & \oftype{\Attrs \to \Set} & gives a domain of possible values for each attribute, and \\
-    	$\sch$ & \oftype{\Idx \to \Attrs \to \two,} & called the \emph{schema} of $\D$, assigns a subset of the attributes $\Attrs$ to each table name (corresponding to the table columns).
- \\[0.5em]\multicolumn{3}{@{}p{\textwidth}@{}}{
- 	In this way, $\sch$ gives the database type structure: it encodes the data necessary to ensure that any cell in column $A$ of the $j^\text{th}$ table comes from the specific domain $\Doms_A$. The arity function can be defined by flattening all of the type information in the schema, and reducing $\sch_j$ to its length: $\arity(j) := | \sch_j |$.
-	Together, $\sch$ and $\Doms$ determine a product domain 
-%	$\mat D_j := \prod_{A \in \sch_j} \Doms_{A}$
-	$\Doms (\sch_j) := \prod_{A \in \sch_j} \Doms_{A}$
-	of valid tuples in the relation $R_j$. With this, we can define the final and most important component of a database, the tables themselves:
-		} \\
-%    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \prod_{i \in \sch_i} \Doms_{j} \to 2}&
+  A (deterministic, relational) database (instance) $\D$ is a tuple $\D = (\Attrs, \Idx, \Doms, \Cols, \Rels)$, where
+  
+  \def\oftype#1{{$:#1$}}
+  \renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{~~~}r@{}lp{12cm}}
+    $\Attrs$ & \oftype{\FinSet} & is a finite set of attribute names, \\
+    $\Idx$ & \oftype{\FinSet} & is a finite set of table names,\\
+    $\Doms$ & \oftype{\Attrs \to \Set} & gives a domain of possible values for each attribute, and \\
+    $\Cols$ & \oftype{\Idx \to \Attrs \to \two,} & associates a subset of attributes $\Cols \subseteq \Attrs$ to each table name, corresponding to the table columns).
+\\[0.5em]\multicolumn{3}{@{}p{\textwidth}@{}}{
+% The arity function can be defined by flattening all of the type information in the schema, and reducing $\Cols_j$ to its length: $\arity(j) := | \Cols_j |$.
+The pair $\Sch = (\Cols,\Doms)$ is known as the database schema. The schema is the static backbone of the database, as it specifies the types of all relation symbols. For each $j \in \Idx$, the schema determines a product domain $\Doms (\Cols_j) := \prod_{A \in \Cols_j} \Doms(A)$
+of valid tuples in the relation $R_j$. 
+%	$\mat D_j := \prod_{A \in \Cols_j} \Doms_{A}$	
+Finally, we capture the tables of $\D$
+    } \\
+%    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \prod_{i \in \Cols_i} \Doms_{j} \to 2}&
 %    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \mat D_j \to \two}&
-    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \Doms(\sch_j) \to \two}&
-    	is an $\Idx$-indexed collection $ \{ R_j \}_{j \in \Idx}$ of relations, where each $R_j \subseteq \Doms(\sch_j)$.
-    \end{tabular}
-    
+     \rule{0pt}{1.3\normalbaselineskip} $\Rels\;$ & \oftype{(j:\Idx) \to \Doms(\Cols_j) \to \two}&
+    as an $\Idx$-indexed collection $ \{ R_j \}_{j \in \Idx}$ of relations, where each $R_j \subseteq \Doms(\Cols_j)$.
+\end{tabular}
+
 %    \def\oftype#1{{\!\!$:#1\qquad$}}
 %    \begin{itemize}[itemsep=-0.8ex]
-%    	\item[$\Attrs$] \oftype{\Set} 
+%    	\item[$\Attrs$] \oftype{\Set}
 %    		is a finite set of attribute names.
-%    	\item[$\Doms$] \oftype{\Attrs \to \Set} 
+%    	\item[$\Doms$] \oftype{\Attrs \to \Set}
 %    		assigns a set of possible values to each attribute name.
-%    	\item[$\Idx$] \oftype{\Set} 
+%    	\item[$\Idx$] \oftype{\Set}
 %    		is a finite set of table names.
-%%    	\item[$\arity$] \oftype{\Idx \to \mathbb N} 
+%%    	\item[$\arity$] \oftype{\Idx \to \mathbb N}
 %%    		is the arity function, so that $\arity(i)$ is the number of columns in the $i^\text{th}$ table.
-%    	\item[$\sch$] \oftype{\Idx \to \Attrs \to 2,}
+%    	\item[$\Cols$] \oftype{\Idx \to \Attrs \to 2,}
 %    		%\oftype{\Idx \to \{1, \ldots, \arity(i)\} \to  N,}
-%    		called the \emph{schema} of $\D$, gives the database type structure by ensuring that the $j^\text{th}$ column ($j < \arity(i)$) of the $i^\text{th}$ table comes from the specific attribute $\sch_{i,j} \in \Attrs$. 
+%    		called the \emph{schema} of $\D$, gives the database type structure by ensuring that the $j^\text{th}$ column ($j < \arity(i)$) of the $i^\text{th}$ table comes from the specific attribute $\Cols_{i,j} \in \Attrs$.
 %    \end{itemize}
-    
-%    $\mathcal D$ is a collection of finite domains (the domain for each attribute), 
-%	again $\arity: I \to \mathbb N$ determines the arity of , but now 
-	
-%	For $i \in I$ and $j \in \{1, \ldots, \arity(i)\}$, we write $A_{i,j}$ for the $j^{\text{th}}$ component of the relation $R_i$, so that the relation $R_i$ 
-	
-%	Once again $\mathcal R =$ is a finite collection of relations, though now their types are determined by $\Att$. Let 
+
+%    $\mathcal D$ is a collection of finite domains (the domain for each attribute),
+%	again $\arity: I \to \mathbb N$ determines the arity of , but now
+
+%	For $i \in I$ and $j \in \{1, \ldots, \arity(i)\}$, we write $A_{i,j}$ for the $j^{\text{th}}$ component of the relation $R_i$, so that the relation $R_i$
+
+%	Once again $\mathcal R =$ is a finite collection of relations, though now their types are determined by $\Att$. Let
 %	$$\mat D_{i} :=  \prod \Att_i = \prod_{j =1}^{\arity(i)} \Att_{i,j}$$
-%	be the possible tuples that could 
-	
+%	be the possible tuples that could
+
 %	$R_i \subseteq \prod \Att_i = \prod_{j =1}^{\arity(i)} \Att_{i,j} $
-	\smallskip	
-	Since $\Idx$, and $\Attrs$ are implicit in the type of $\sch$, and $\Doms$ is implicit in the definition of $\Rels$,
-	we sometimes use the abbreviated form $\D = (\sch, \Rels)$. %where $\sch$ is understood to be packaged with appropriate data for $\Idx, \Attrs$, and $\arity$. 
+\smallskip
+Since $\Idx$, and $\Attrs$ are implicit in the type of $\Cols$, which, together with $\Doms$, is given by $\Sch$, 
+we sometimes use the abbreviated form $\D = (\Sch, \Rels)$.  Or, since $\Sch$ is implicit in the type of $\Rels$, simply by $\Rels$.
+ %where $\Cols$ is understood to be packaged with appropriate data for $\Idx, \Attrs$, and $\arity$.
 \end{defn}
 \medskip
 %\begin{defn}
@@ -380,10 +380,10 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 %\end{remark}
 
 \begin{remark}\label{rem:typed-db-better}
-    The definition of an untyped database with underlying domain $D$ is a special case of a typed database, in which $\Attrs := \mathbb N$ corresponding to the argument index, set every $\Doms_n := D $, and every $\sch_{i,j} = \mathbbm1[j \le \arity(i)]$. 
-    In some sense, the two are equally expressive: we can also simulate a typed database $\D$ with an untyped one. Simply set $D := \uplus_j \mathcal D_j$ to be the disjoint union of all domains, and $\arity(i) := |\sch_i|$. Now any table $R_i \in \Rels^\D$ can be directly used as a table in the untyped database, since
-    \[R_i \subseteq \mat D_i = \prod_{j \in \sch_i} \mathcal D_{j} 
-		\subseteq \prod_{j \in \sch_i} D = \prod_{j = 1}^{\arity(i)} D = 
+    The definition of an untyped database with underlying domain $D$ is a special case of a typed database, in which $\Attrs := \mathbb N$ corresponding to the argument index, set every $\Doms_n := D $, and every $\Cols{i,j} = \mathbbm1[j \le \arity(i)]$. 
+    In some sense, the two are equally expressive: we can also simulate a typed database $\D$ with an untyped one. Simply set $D := \uplus_j \mathcal D_j$ to be the disjoint union of all domains, and $\arity(i) := |\Cols_i|$. Now any table $R_i \in \Rels^\D$ can be directly used as a table in the untyped database, since
+    \[R_i \subseteq \mat D_i = \prod_{j \in \Cols_i} \mathcal D_{j} 
+		\subseteq \prod_{j \in \Cols_i} D = \prod_{j = 1}^{\arity(i)} D = 
         D^{\arity(i)} .\] 
   	The definitions are not equivalent, and the typed version is more expressive, because it disallows some rows by fiat (which has a different meaning from being absent from the relation), encoding type-level constraints. This is nice even within the context of databases, since a ds. By naming $A$, we can explicitly restrict the  allowable collections of attributes, which with which we will be able to define classes of databases which behave like other specific graphical models.
 \end{remark}
@@ -434,7 +434,7 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 		\end{tikzpicture}
 	}
 	\hfill\vline\hfill
-	\subcaptionbox{ Its schema $\sch^\D$, as an undirected hypergraph\label{subfig:schema}}{
+	\subcaptionbox{ Its schema $\Sch^\D$, as an undirected hypergraph\label{subfig:schema}}{
 		\begin{tikzpicture}[baseline=0]
 			\node at (0,1.5) {\textbf{Relational Schema}};
 			\node[dpadded] (A) at (-2,-0.4){$\var A$};
@@ -452,7 +452,7 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 		\end{tikzpicture}
 	}
 	\hfill\vline\hfill
-	\subcaptionbox{ The PDG $\PDGof{\sch^\D}$\label{subfig:indexed}}{
+	\subcaptionbox{ The PDG $\PDGof{\D}$\label{subfig:indexed}}{
 		\begin{tikzpicture}[baseline=0]
 			\node at (1.5,1.5) {\textbf{Explicit Indices}};
 			\node[dpadded] (A) at (-0.6,-1.2){$\var A$};
@@ -494,40 +494,40 @@ We are therefore more interested in a \emph{typed} definition of a database, of 
 %		\arity = \left[\begin{array}{cc}
 %			1 &\mapsto 3 \\ 2 &\mapsto 2 \\ 3 &\mapsto 2
 %		\end{array}\right];	\quad
-		\sch = \left[\begin{array}{rl}
+		\Cols = \left[\begin{array}{rl}
 				1 &\mapsto \{A, B, C\} \\
 				2 &\mapsto \{ B, D \} \\
 				3 &\mapsto \{C, D\}
 			\end{array}\right]
-%	 \sch_1 = \{A, B, C\};\quad \sch_2 = \{ B, D \};\quad \sch_3 = \{ C, D \}, 
+%	 \Cols_1 = \{A, B, C\};\quad \Cols_2 = \{ B, D \};\quad \Cols_3 = \{ C, D \}, 
 \] 
 	as depicted in \cref{fig:sketches}.
 \end{example}
 
 \begin{defn}[keyed database]
-	A \emph{keyed} database is a relational database $(\Attrs, \Idx, \Doms, \sch, \Rels)$, equipped with key rings $\mathcal K : \Idx \to \two^{\sch_j}$ and a function $\textit{lookup} : \prod\Doms(K) \to \{\none\} \cup \V(\sch_j)$. Concretely, each $\mathcal K_j$ is the ``key ring'' for table $j$, and consists of a set of candidate keys --- each key $K \in \mathcal K_j$ of which is itself a subset of attributes which jointly index table $j$. This is captured by the lookup function: for each key $K \in \mathcal K_j$, $\textit{lookup}_K : \prod\Doms(K) \to  \{\none\} \cup \V(\sch_j)$ returns the unique full tuple $t$ in the database that matches the attributes of $K$, if $t \in \mathcal R_j$, and $\none$ otherwise.
+	A \emph{keyed} database is a relational database $(\Attrs, \Idx, \Doms, \Cols, \Rels)$, equipped with key rings $\mathcal K : \Idx \to \two^{\Cols_j}$ and a function $\textit{lookup} : \prod\Doms(K) \to \{\none\} \cup \V(\Cols_j)$. Concretely, each $\mathcal K_j$ is the ``key ring'' for table $j$, and consists of a set of candidate keys --- each key $K \in \mathcal K_j$ of which is itself a subset of attributes which jointly index table $j$. This is captured by the lookup function: for each key $K \in \mathcal K_j$, $\textit{lookup}_K : \prod\Doms(K) \to  \{\none\} \cup \V(\Cols_j)$ returns the unique full tuple $t$ in the database that matches the attributes of $K$, if $t \in \mathcal R_j$, and $\none$ otherwise.
 \end{defn}
 
 We now begin the further classification of databases, by their schemas, as mentioned in \cref{rem:typed-db-better}.  
-By considering databases that have a specific kind of schema $\sch$, we will effectively requiring topological properties of the corresponding PDG, which will clarify the kinds of complexities involved with querying. Specifically, we consider restrictions to database schemas $\sch$ for which:
+By considering databases that have a specific kind of schema $\Sch$, we will effectively requiring topological properties of the corresponding PDG, which will clarify the kinds of complexities involved with querying. Specifically, we consider restrictions to database schemas $\Sch$ for which:
 
 
 \begin{enumerate}[nosep, label={\textbf{Class \arabic*:}},ref={class \arabic*}]
 
 	\item % graph is disconnected (cell independence) 
 		\textit{Every attribute is globally unique.}
-		This occurs iff $\sch$, viewed in uncurried form as a function $\sch : I \times \to \Attrs$, is injective. 
+		This occurs iff $\Cols$, viewed in uncurried form as a function $\Cols : I \times \to \Attrs$, is injective. 
 		In the absence of any other information, such databases are not particularly interesting, because no table any relationship to any other, and one may as well consider them separately. We will see in \cref{sec:usage-of-of-disjoint-table} that this class of database can still be useful if we add additional nodes and links to the resulting PDG.
 		\label{class:guniq}
 				
 	\item % graph is bipartite. 
 		% paths are zig-zags.
 		\textit{Each attribute of a table is unique.}
-		If $\sch$ has a weaker property, namely that each $\sch : [\arity(i)] \to \Attrs$ is a injective, then each local table looks like a component of a larger map, where the cuts happen along attributes $\sch$. The alignment of the values of $\sch$ suggest a ``gluing'' of tables together. This corresponds to a natural join. 
+		If $\Cols$ has a weaker property, namely that each $\Cols : [\arity(i)] \to \Attrs$ is a injective, then each local table looks like a component of a larger map, where the cuts happen along attributes $\Cols$. The alignment of the values of $\Cols$ suggest a ``gluing'' of tables together. This corresponds to a natural join. 
 		\label{class:luniq}
 %	\item 
 %	chordal graph is impossible.
-	\item \textit{No restrictions on $\sch$.} The difference between this class and the previous one is the possibility of self-joins. Self-joins \cite{DS04}.
+	\item \textit{No restrictions on $\Cols$.} The difference between this class and the previous one is the possibility of self-joins. Self-joins \cite{DS04}.
 		\label{class:nuniq}
 \end{enumerate}
 
@@ -819,7 +819,7 @@ Determining join consistency is an NP complete problem \cite{HLY in fagin1986the
 	A database join is consistent if and only if
 \end{defn}
 \begin{theorem}
-	If $\sch$ is acyclic, then a database is join
+	If $\Cols$ is acyclic, then a database is join
 \end{theorem}
 
 \begin{defn}
@@ -1186,7 +1186,7 @@ The original PDG semantics (the score of a joint distribution) may now be recove
 
 %\section{A PDG within a PDG: The Levels Begin}\label{sec:levels}
 %
-%A schema $\sch : \Idx \to \Attrs$
+%A schema $\Cols : \Idx \to \Attrs$
 
 
 

@@ -1,0 +1,751 @@
+\documentclass[the-pdg-manual.tex]{subfiles}
+\begin{document}
+	\section{Introduction to PDGs}
+In this paper we introduce yet another graphical for modeling beliefs,
+\emph{Probabilistic Dependency Graphs} (PDGs). There are already many
+such models in the literature, including Bayesian networks (BNs) and
+factor graphs. (For an overview, see \citeauthor{KF09}.)
+Why does the world need one more?  
+
+Our original motivation for introducing PDGs was to be able capture
+inconsistency. We want to be able to model the process of resolving
+inconsistency; to do so, we have to model the inconsistency itself. But our
+approach to modeling inconsistency has many other advantages. In particular,
+PDGs are significantly more modular than other directed graphical models:
+operations like restriction and union that are easily done with PDGs are
+difficult or impossible to do with other representations.
+
+We start with some examples to motivate PDGs and illustrate some of these properties.  
+
+\begin{example}[the simplest inconsistency] \label{ex:guns-and-floomps}
+Grok is visiting a neighboring district. From prior reading, she thinks it likely (probability
+.95) that guns are illegal here. Some brief conversations with locals lead her to believe believe with
+probility .1, that the law prohibits floomps.
+
+% The obvious way to represent this as a BN involves two binary random variables,
+% $F$ (taking values $\{f, \overline f\}$), indicating the legality of floomps,
+% and $G$ (taking values $g, \overline g$) indicating the legality of guns. 
+The obvious way to represent this as a BN is to use two random variables
+$F$ and $G$ (respectively taking values $\{f, \smash{\overline f}\}$ and $g, \overline g$), indicating the respective legalities of owning floomps and guns.
+%oli12 no paragraph break here.
+The semantics of a 
+%oli12
+% Bayes Net
+BN
+offer her two choices: either assume that $F$ and $G$
+% are independent and give (unconditional) probabilities of $F$ and $G$, or we
+to be independent and give (unconditional) probabilities of $F$ and $G$, or
+choose a direction of dependency, and give one of the two unconditional
+probabilities and a conditional probability distribution. 
+%oli12:
+% As there is no reason
+% to believe that either variable depends on the other, 
+As there is no reason to choose either direction of dependence, the
+natural choice is to 
+assume independence, giving her the 
+%oli12: combining figures
+BN on the left of \Cref{fig:gun-floomp-diagram}.
+%following BN
+
+\begin{figure}[htb]
+%joe11*: why are some parts of the figure in light gray?  I would prefer
+%to make it all black.  If we use a different color, we have to
+%explain why.  
+  \centering
+\ifprecompiledfigs
+	\raisebox{-0.5\height}{\includegraphics[scale=0.8]{figure-pdfs/fg-BN}}
+	% \raisebox{-0.5\height}{\includegraphics[scale=0.8]{fg-BN}}
+~\vrule~
+	\raisebox{-0.5\height}{\includegraphics[scale=0.8]{figure-pdfs/fg-PDG}}
+	% \raisebox{-0.5\height}{\includegraphics[scale=0.8]{fg-PDG}}
+\else
+	% \scalebox{0.8}{
+    \begin{tikzpicture}[center base, scale=0.7, AmpRep]
+        % \def\figtabledist{1.4}
+        % \def\fignodedist{1.2}
+        % \def\figtableheight{0.22}
+        \def\figtabledist{0.2}
+        \def\fignodedist{1.4}
+        \def\figtableheight{0.41} 
+
+        \matrix [table with head, column 1/.style={leftrule}, anchor=south east,
+             column 2/.style={rightrule}, row 2/.style={bottomrule}] at (-\figtabledist,\figtableheight) {
+            \vphantom{$\overline fg$} $f$ \& \vphantom{$\overline fg$}$\overline f$\\
+            .9 \& .1\\
+        };
+        \matrix [table with head, column 1/.style={leftrule}, anchor=south west,
+             column 2/.style={rightrule}, row 2/.style={bottomrule}] at (\figtabledist,\figtableheight) {
+             \vphantom{$\overline fg$}$g$ \& \vphantom{$\overline fg$}$\overline g$\\
+             .05 \& .95\\
+        };
+        \node[dpadded, circle, fill=black!08, fill opacity=1] (floomp) at (-\fignodedist,0) {$F$};
+        \node[dpadded, circle, fill=black!08, fill opacity=1] (gun) at (\fignodedist,0) {$G$};
+    \end{tikzpicture}
+    ~~\vrule~~
+	\begin{tikzpicture}[center base]
+
+        \def\fignodedist{2.1}
+        \def\fignodeheight{1.1}
+        \def\newcptX{-0.3}
+        \def\newcptY{-0.1}
+                     
+		\node[dpadded, fill=white, draw=gray] (true)  at (0,1.8) {$\var 1$};
+		\node[dpadded] (floomp) at (-\fignodedist,\fignodeheight) {$F$};
+		\node[dpadded] (gun) at (\fignodedist,\fignodeheight) {$G$};			
+		
+		\draw[arr] (true) to[bend left=0] coordinate(A) (floomp);
+		\draw[arr] (true) to[bend right=0] coordinate(B) (gun);
+
+		\node[above left=2.0em and 1.5em of A, anchor=center] {
+        %oli14 fix gray.
+			% \begin{idxmat}{\!\!\!$\star$\;\;\;}{$f$, $\overline f$}
+			\begin{idxmat}[\color{black}\smalltext]{\!\!\!$\star$\;\;\;}{$f$, $\overline f$}
+				.90 & .10 \\
+			\end{idxmat}
+		};
+		\node[above right=2.0em and 1.3em of B, anchor=center] {
+        %oli14
+        % \begin{idxmat}{\!\!\!$\star$}{$g$, $\overline g$}
+			\begin{idxmat}[\color{black}\smalltext]{\!\!\!$\star$}{$g$, $\overline g$}
+				.05 & .95 \\
+			\end{idxmat}
+		};
+		\definecolor{heldout}{rgb}{0.6, 0.6, .6}	
+		\draw[heldout, dashed, arr] (floomp.-30) to[bend right=7] node[pos=0.65, fill=white, inner sep=2pt] (C) {$\smash{p}\vphantom{v}$} (gun.210);
+        %oli12: addes reverse arrow, edited the above line with a yshift.
+        \draw[heldout, dashed, arr] (gun.190) to[bend left=5] node[pos=0.668, fill=white, inner sep=2pt] {$\smash{p'}\vphantom{v}$} (floomp.-10);
+		\node[anchor=center] (newcpd) at (\newcptX,\newcptY) {
+			\color{heldout}
+			$\mat p =\!\!\!$\begin{idxmat}[\color{heldout}\smalltext]{$f$,$\overline f$}{$g$, $\overline g$}
+%joe12
+%			  .92 & 0.08 \\ .08 & .92 \\
+			  .92 & .08 \\ .08 & .92 \\
+          \end{idxmat}$~=~{\mat p'^{\textsf T}}$
+		};
+        % \node[below=3pt of newcpd] {\color{heldout}$\mat p' = \mat p^{\textsf T}$};
+	\end{tikzpicture}
+	% }
+\fi
+    %oli12 update caption accordingly.
+    %oli12: note before editing caption: making it fit on one line is not easy.
+	% \caption{An inconsistent PDG, requiring resolution}
+%joe11
+%        \caption{A BN (left), and respective PDG (right), which can
+%oli19: added word "simple" BN
+%joe17: why did you add it?  What is a simple BN?
+%oli20: Nothing technical. It doesn't look very much like a BN and I
+%wanted to assure  
+% readers that nothing strange is going on here. I trust your judgement and gether you
+% think it's negative, and so am pre-emptively reverting it.
+        \caption{A BN (left) and corresponding PDG (right), which can
+        include more cpds; $p$ or $p'$ make it inconsistent.} 
+    \label{fig:gun-floomp-diagram}
+\end{figure}
+
+%oli12
+% Now suppose that you later discover that
+A traumatic experience a few hours later leaves Grok believing that
+%joe11
+%``floomp'' is likely (92\%) to be another word for gun.
+``floomp'' is likely (probability .92) to be another word for gun.
+%oli12: I've removed the directionality by adding arrows in both directions.
+%, and come to believe that if floomps are legal (resp., illegal), then
+% there's a  chance guns are as well, and vice versa. 
+%joe7: r seems like a atrange letter to use, although it's not a big deal
+%oli12: I don't care about the letter. let's use p? Also this notation, while 
+% you might not like it, is the consensus, especially in the conference we're 
+% submitting to. We're already giving them something quite out of the ordinary;
+% I don't want  to push it too far.  It's also expedient here as it lets us 
+% immediately indicate the direction.
+Let $p(G \mid F)$ be the \emph conditional \emph probability \emph
+distribution (cpd) that describes 
+the belief that if floomps are legal (resp., illegal),
+%joe11
+%then with 92\% probability, guns are as well, and $p'(F \mid G)$ be
+then with probability .92, guns are as well, and $p'(F \mid G)$ be
+the reverse. 
+%oli12:
+% A first reaction might be to
+Starting with $p$, Grok's first instinct is to
+simply incorporate the conditional information by adding $F$ as a parent of
+$G$, and then associating
+the cpd
+$p$ with $G$. But then what should she do
+with the original probability she had for $G$?  Should she just discard it?
+It is easy to check that there is no 
+%oli12
+% probability distribution 
+joint distribution
+that is consistent with
+%oli12 inserted
+both
+the two original priors on $F$ and $G$ and also 
+%oli12: already lots of commas in this sentence. saying "the cpd" too often also gets to be a lot....
+%the cpd $\mat r$, so if she
+%joe11
+%$p$---so if she
+$p$.  So if she
+is to represent the information with a BN, which always represents a consistent
+distribution, she must resolve the inconsistency. 
+
+
+
+
+
+However,
+%oli12: rewrote paragraph.
+% it may be better not to sort this out right away. 
+% How to resolve it may be clearer 
+% if you can get confirmation that guns are indeed floomps, or read the
+% laws more carefully.
+sorting this out immediately may not be ideal.
+For instance, if the inconsistency arises from a conflation between
+two definitions 
+of ``gun'', a resolution will have destroyed the original cpds. A
+better use of computation may be to notice the inconsistency and look
+up the actual law. 
+
+By way of contrast, consider the corresponding PDG. In a PDG, the cpds are
+attached to edges, rather than nodes of the graph.
+%oli12: this discussion is a distraction; it has nothing to do with PDGs over BNs.
+ % we don't mention matrices anywhere else anymore, and the matrix representation
+ % in the figure is both a common and inutuitive way of describing this
+%
+% The cpd associated with an
+% edge $e$ from $X$ to $Y$ is a matrix $\mat e$, where the element $\mat e_{x,y}$
+% at row $x$ and column $y$ is the conditional probability $\Pr(Y \!\!=\!\!y \mid
+% X \!\!=\!\! x)$. 
+In order to represent unconditional probabilities, we introduce
+a \emph{unit variable} $\var 1$ which 
+%oli12: no reason to be too verbose here; more important stuff is coming.
+% takes on only one possible value, which we denote
+takes only one value, denoted
+$\star$. 
+%oli12: Thus, we have
+This leads Grok to 
+the PDG depicted in \Cref{fig:gun-floomp-diagram},
+where the edges from $\var 1$ to $F$ and $G$ are associated with the
+unconditional probabilities of $F$ and $G$, and the 
+%oli12
+%edge from $F$ to $G$ is associated with the cpd $p$. 
+edges between $F$ and $G$ are associated with $p$ and $p'$.
+
+
+
+%joe11: if we make everything black, we should get rid of ``black'' in
+%the next line.
+The original state of knowledge consists of all three nodes and the two
+%oli13: the important bit is that they're solid. I'm trying to
+%linguistically  exclude the blue/ dashed lines.
+% black
+solid
+edges from $\var 1$. This is like Bayes Net that we considered above,
+%joe11
+%except we
+except that we 
+no longer
+%oli12! 
+explicitly
+%joe11
+%oli13:  :(  I think "to be" sounds way better. It's shorter, it doesn't expend
+% our limited supply of "and", "that" and "are", which tiring quickly. It sounds
+% cooloer. That's also definitely how I would say it in person; I
+% think the "that 
+% ... are" sounds like you're talking to someone you only trust to know simple 
+% grammar --- but in fact, "to be" often taught earlier when people learn English
+% as a foreign language, so this form is shorter and without an accesibility 
+% cost.
+% I believe the infinitive also strengthens the statement by not implying a 
+% present tense (how is time relevant here?). I'm changing it back. If you have 
+% a reason for your aesthetic preference that you think objectively outweighs this
+% consideration to a significant degree, you can change it back and I will 
+% accept it without argument, but ask you why later.
+%
+% assume that $F$ and $G$ are independent; we merely record the constraints
+%joe12: if you must have ``to be''
+%assume $F$ and $G$ to be independent; we merely record the constraints
+take  $F$ and $G$ to be independent; we merely record the constraints
+imposed by the given probabilities.  
+	
+The key point is that we can incorporate the new information into our original
+representation (the graph in \Cref{fig:gun-floomp-diagram} without the edge from
+$F$ to $G$) simply  by adding the edge from $F$ to $G$ and the associated cpd
+%joe12: I could accept that the new information is in gray but then
+%why are f and \overline{f}, g nad \overline{g}, and * in gray?
+%oli14: Fixed. The reason is because I didn't want to draw focus towards the labels.
+%$\mat r$. Doing so does not change the meaning of the original edges.  
+%oli14:
+% $\mat p$ (the new infromation is shown in gray). 
+$p$ (the new infromation is shown in blue).
+Doing so does not change the meaning of the original edges.   
+%oli12: redundant.
+% This
+% presentation lets us simply include information, and resolve inconsistencies
+% later.
+Unlike a Bayesian update, the operation is even reversible: all we need
+to do recover our original belief state is delete the new edge, 
+%oli12: no need for 'effectively'
+%effectively
+making it possible to mull over and then reject an observation.
+%
+\end{example}
+
+
+The ability of PDGs to model inconsistency, as illustrated in
+\Cref{ex:guns-and-floomps}, appears to have come at a significant cost. We seem
+to have lost a key benefit of BNs: the ease with which they can
+capture
+%joe20: it seems strange to say ``Pearl has argued'', and then
+%reference a paper by Pearl, Geiger, and Verma
+%(conditional) independencies, which, as Pearl \cite{pearl1989conditional} has
+(conditional) independencies, which, as Pearl (\citeyear{pearl}) has
+argued forcefully, are omnipresent.
+%oli12*: it seems like we should add a sentence fragment here, along
+%the lines of "but we will be able to easily recover them".  Also, the
+%above is kind of redundant, so I keep looking at it trying to figure
+%out how to re-word, but it's so well written that I can't figure out
+%what I want to do to it.
+%joe11: how about:
+%As we shall see, we will be able to recover this information.
+%oli13: Most anything we add without cutting down the text before will
+%ultimately cost a line. I'm not sure this particular phrase is worth
+%it, I've commented it out. 
+% Counterproposal:
+%joe12: Looks like you didn't finish this here
+%joe13*: you still didn't finish this sentence.  I'm cutting it.
+%And yet:
+%oli15: The intention was to lead directly to the example. It's a
+%clever but maybe  
+% too-cute transition; it is free (fits on on the line) if you remove a comma. 
+
+
+% most of the time, we do not make the independence
+% assumption in a bn because we know for certain that the
+% variables are independent; rather, we just suspect that the
+% identified edges are by much more important than the
+% others. determining for sure that smoking  and second hand
+% smoke are independent, controlling for parents' smoking
+% habits, would extremely difficult, and would require
+% empiricism to validate. 
+
+
+\begin{example}[emulating a BN]\label{ex:smoking}
+
+We now consider the classic (quantitative) Bayesian network $\cal B$, which has
+four binary variables indicating whether a person ($C$) develops cancer, ($S$)
+smokes, ($\mathit{SH}$) is exposed to second-hand smoke, and ($\mathit{PS}$) has
+parents who smoke, presented graphically in \Cref{subfig:smoking-bn}. We now
+walk through what is required to represent $\cal B$ as a PDG, which we call
+$\PDGof{{\mathcal B}}$, shown as the solid nodes and edges in
+\Cref{subfig:smoking-pdg}. 
+
+
+%oli24: To make the figure appear in the rigght place, we have to move it to
+% be way earlier. Also, some magic \hfils to center it more appropriately...
+\begin{figure}[ht!]
+\addtocounter{figure}{1}
+\centering
+\hfill
+%oli24: tikzexternalize doesn't work on these...
+% \begin{tikzcd}[center base, column sep=1.0em, row sep=0em, dpad={fill opacity=1,fill=black!08, circle, inner sep=3pt, minimum size=2.3em, draw=gray}, 
+% 	ampersand replacement=\&]
+% \& S \ar[dr] \\
+% PS \ar[ur]\ar[dr] \&\& C \\
+% \& SH \ar[ur]
+% \end{tikzcd}
+% }
+% \caption{The Bayesian network $\cal B$}
+\ifprecompiledfigs
+\raisebox{-0.5\height}{\includegraphics{figure-pdfs/smoking-BN}}
+% \raisebox{-0.5\height}{\includegraphics{smoking-BN}}
+\else
+\begin{tikzpicture}[paperfig]
+	\begin{scope}[every node/.style={dpadded, fill opacity=1,fill=black!08, circle, inner sep=2pt, minimum size=2em, draw=gray}]
+		\node (PS) at (0,1.1) {$\mathit{PS}$};
+		\node (SH) at (-0.6,0) {$\mathit{SH}$};
+		\node (S) at (0.6,0) {$\mathit{S}$};
+		\node (C) at (0,-1.1) {$\mathit{C}$};
+	\end{scope}
+	\draw[->] (PS) to (S);
+	\draw[->] (PS) to (SH);
+	\draw[->] (SH) to (C);
+	\draw[->] (S) to (C);
+\end{tikzpicture}
+\fi
+\refstepcounter{subfigure}
+\label{subfig:smoking-bn}
+~~\vline~~
+\ifprecompiledfigs
+\raisebox{-0.5\height}{\includegraphics{figure-pdfs/smoking-PDG}}
+% \raisebox{-0.5\height}{\includegraphics{smoking-PDG}}
+\else
+\begin{tikzpicture}[paperfig]
+	% \colorlet{fillcolor}{blue!80!black}
+	\colorlet{mattfillcolor}{color1}
+	\fill[fill opacity=0.1, mattfillcolor, draw, draw opacity=0.5] (2.73,1.35) rectangle (6.7, -1.35);
+	
+	%oli24: modifying positions to fit things...
+	% \node[dpadded] (1) at (0,0) {$\var 1$};
+	% \node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
+	\node[dpadded] (1) at (1.65,1) {$\var 1$};
+	\node[dpadded] (PS) at (1.65,-0.4) {$\mathit{PS}$};
+	\node[dpadded, fill=black!.16, fill opacity=0.9] (S) at (3.2, 0.8) {$S$};
+	\node[dpadded, fill=black!.16, fill opacity=0.9] (SH) at (3.35, -0.8) {$\mathit{SH}$};
+	\node[dpadded, fill=black!.16, fill opacity=0.9] (C) at (4.8,0) {$C$};
+	
+	\draw[arr1] (1) -- (PS);
+	\draw[arr2] (PS) -- (S);
+	\draw[arr2] (PS) -- (SH);
+	\mergearr{SH}{S}{C}
+	
+	\node[dpadded, fill=black!.16, fill opacity=0.35, dashed] (T) at (6.15,0) {$T$};
+	\draw[arr1,dashed] (T) -- (C);	
+
+	\draw[very thick, |-|, color=mattfillcolor!50!black,text=black] (2.7, 1.35) --coordinate(Q) (6.73,1.35);%(7.13,1.35);
+	\fill[white] (2.6, 1.37) rectangle (6.9,1.55);
+	% \useasboundingbox (current bounding box);
+	\node[above=0.05em of Q]{\small Restricted PDG in \cref{ex:grok-ablate,ex:grok-union}};
+\end{tikzpicture}
+\fi
+	\hfill~
+%oli12: I wasn't really sure what to do with this caption given that it really needs to be 2/3 of a line for the figure to look right.
+% \caption{The PDG $\PDGof{{\mathcal B}}$ corresponding to ${\mathcal B}$, and a restriction of it.} 
+% \caption{The PDG $\PDGof{{\mathcal B}}$, and two alterations of it.} 
+	\refstepcounter{subfigure}
+	\label{subfig:smoking-pdg}
+\addtocounter{figure}{-1}
+% \end{subfigure}
+%oli24*: merging captions together + updating them. SUbfigures are a bother with AAAI...
+% \caption{Graphical models representing conditional relationships in \Cref{ex:smoking,ex:grok-ablate,ex:grok-union}}
+\caption{ (a) The Bayesian Network $\mathcal B$ in \cref{ex:smoking} (left), and
+(b) $\PDGof{\mathcal B}$, its corresponding PDG (right). The shaded box
+indicates a restriction of $\PDGof{\mathcal B}$ to only the nodes and edges it
+contains, and the dashed node $T$ and its arrow to $C$ can be added in the PDG,
+without taking into account $S$ and $SH$.}
+\label{fig:smoking-bn+pdg}
+\end{figure}
+
+We start with the nodes corresponding to the variables in $\cal B$, together
+with the special node $\sf 1$ from \Cref{ex:guns-and-floomps}; we add an edge
+from ${\sf 1}$ to $\mathit{PS}$, to which we associate the unconditional
+probability given by the cpd for $\mathit{PS}$ in $\cal B$. We can also re-use
+the cpds for $S$ and $\mathit{SH}$, assigning them, respectively, to the edges
+$PS \to S$ and $PS \to SH$ in $\PDGof{{\mathcal B}}$.
+There are two remaining problems: (1) modeling the remaining table in $\cal B$,
+which corresponds to the conditional probability of $C$ given $S$ and $SH$; and
+(2) recovering the additional
+%oli12 added
+conditional
+independence assumptions in the BN. 
+
+For (1), we cannot just add the edges $S \to C$ and $SH \to C$ that are present
+%joe11: line shaving
+%in $\cal B$, because, as we saw in \Cref{ex:guns-and-floomps}, this would mean
+in $\cal B$. As we saw in \Cref{ex:guns-and-floomps}, this would mean
+supplying two \emph{separate} tables, one indicating the probability of $C$
+given $S$, and the other indicating the probability of $C$ given
+%joe11: more line shaving
+%$\mathit{SH}$. Doing this would lose significant information that is
+$\mathit{SH}$.  We would lose significant information that is
+present in $\cal B$  about 
+how $C$ depends jointly on $S$ and $SH$. To distinguish the joint dependence on
+$S$ and $\mathit{SH}$, for now, we draw an edge with two tails---a
+\emph{hyperedge}---that completes the diagram in \Cref{subfig:smoking-pdg}. 
+%
+With regard to (2), there are many distributions consistent with the conditional
+marginal probabilities in the cpds, and the independences presumed by $\cal B$
+need not hold for them. 
+%oli12
+% Rather than encoding the extra probabilistic information as cpds,
+Rather than trying to distinguish between them with additional constraints,
+we develop a a scoring-function semantics for PDGs
+%oli12: hmm, the consistency is part of the scoring function. 
+%    , and show that, among all distributions consistent with
+%    $\PDGof{{\mathcal B}}$,
+%joe11: so we're encoding the constraints in the semantics of the
+%scoring function, rather than directly in the PDG.  This makes it a
+%``soft'' constraint.  We could say that somewhere, but this seems
+%like the wrong place.
+%joe11: I don't know what ``emphasis on matching (potentially
+%arbitrary) cpds'' means 
+%which, despite an emphasis on matching (potentially arbitrary) cpds,
+which 
+is in this case uniquely minimized by the distribution 
+%joe8*: I think we need to throw out hints about how we're going to
+%use scoring functions.  I view this as critical
+%oli12: I think the BN result is strong enough that this is too much hedging.
+% for the appropriate scoring function, 
+% the unique distribution with a minimum
+% score is the one
+%
+specified by ${\mathcal B}$ (\Cref{thm:bns-are-pdgs}).
+This allows us to recover the semantics of Bayesian networks without requiring the independencies that they assume.
+
+%But now suppose that we get information beyond that captured by the
+Next suppose that we get information beyond that captured by the original BN.
+Specifically, we read a thorough empirical study demonstrating that people who
+use tanning beds have a 10\% incidence of cancer, compared with 1\% in the
+%joe7: \mat p comes out as a strange symbol in my pdf file.  Why do
+%you need to use nonstandard fonts like \mat?
+%oli12: It's just \mathbf. I'm surprised it comes out strange. In any case, no
+% more \mat for cpds unless they're matrices.
+%joe11: this was an old problem, that got fixed by the other changes
+%you made.  But I prefer the current notation in an case.
+control (call the cpd for this $p$); we would like to add this information to
+$\cal B$. The first step is clearly to add a new node labeled $T$, for ``tanning
+bed use''.  But simply making $T$ a parent of $C$ (as clearly seems appropriate,
+given that the incidence of cancer depends on tanning bed use) requires a
+substantial expansion of the cpd; in particular, it requires us to make
+assumptions about the interactions between tanning beds and smoking.  
+%
+The corresponding PDG, $\PDGof{{\mathcal B}}$, on the other hand, has no
+trouble: We can simply add the node $T$ with an edge to $C$ that is associated
+with $\mat p$.  But note that doing this makes it possible for our knowledge to
+be inconsistent. To take a simple example, if the distribution on $C$ given $S$
+and $H$ encoded in the original cpd was always deterministically ``has cancer''
+for every possible value of $S$ and $H$, but the distribution according to the
+new cpd from $T$ was deterministically ``no cancer'', the resulting PDG would be
+inconsistent.  
+%
+\end{example}
+
+
+We have seen that we can easily add information to PDGs; removing information is
+equally painless.   
+
+\begin{example}[restriction]\label{ex:grok-ablate}
+%oli12
+% After the communist uprising, 
+%joe11
+%  After the communist party came to power,
+  After the Communist party came to power,
+  children were raised communally, and so parents' smoking habits no longer had any impact on them. Grok is reading her favorite book on graphical models, and she realizes that while the node $\mathit{PS}$ in \Cref{subfig:smoking-bn} has lost its usefulness, and nodes $S$ and $\mathit{SH}$ no longer ought to have $\mathit{PS}$ as a parent, the other half of the diagram---that is, the node $C$ and its dependence on $S$ and $\mathit{SH}$---should apply as before.
+%oli4: this next sentence is less useful, and can be
+    %removed; its purpose is to pre-emptively push against
+    %a desire to margnialize and get a new BN.  
+%joe4: let's remove it
+% \begin{edge} 
+% 	The rise of the communist party also came with changes in smoking habits, so a new unconditional distribution on $S$ could not be obtained by eliminating the variable $PS$. 
+% \end{edge}
+Grok has identified two obstacles to modeling deletion of information from a BN
+by simply deleting nodes and their associated cpds. First, this restricted model
+is technically no longer a BN (which in this case would require unconditional
+distributions on $S$ and $\mathit{SH}$), but rather a \emph{conditional} BN
+\cite{KF09}, which allows for these nodes to be marked as observations;
+observation nodes do not have associated beliefs. Second, even regarded as a
+conditional BN, the result of deleting a node may introduce \emph{new}
+independence information, incompatible with the original BN. For instance, by
+deleting the node $B$ in a chain $A \rightarrow B \rightarrow C$, one concludes
+that $A$ and $C$ are independent, a conclusion incompatible with the original BN
+containing all three nodes.   
+%joe7*: shortened significantly.  I don't think it's
+   %worth agonizing this over this.
+%oli12: Your shortening is excellent :)
+%joe11: :-)
+PDGs do not suffer from either problem.  We can easily delete the
+nodes labeled 1 and $PS$ in \Cref{subfig:smoking-pdg} to get the
+restricted PDG shown in the figure, which captures Grok's updated information.
+%oli12: I want to keep some of the material  underneath it for the
+%full paper though. 
+% I have rewritten a lot of it.
+%joe17: I can live with this in the paper
+%\begin{vfull}
+The resulting PDG has no edges leading to $S$ or $\mathit{SH}$, and hence no
+distributions specified on them; no special modeling distinction between
+observation nodes and other nodes are required. Because PDGs do not directly
+make independence assumptions, the information in this fragment is truly a
+subset of the information in the whole PDG. 	
+%\end{vfull}
+% 
+\end{example}
+
+Being able to form a well-behaved local picture and restrict knowledge is
+useful, but an even more compelling reason to use PDGs is their ability to
+aggregate information. 
+	
+\begin{example}[PDG union]\label{ex:grok-union}
+Grok dreams of becoming Supreme Leader ($\it SL$), and has come up with a plan.
+She has noticed that people who use tanning beds have significantly more power
+and than those who don't. Unfortunately, her mom has always told her that
+%joe11
+%tanning beds cause cancer%
+tanning beds cause cancer;
+%oli12 
+%. In particular,
+%joe11: I'm not a fan of dashes; there are better punctuation
+%oli13: I've noticed. I'm not a purist, except about maximizing the entropy
+% of my punctuation :P
+%---specifically, that
+specifically, that
+15\% of people who use tanning beds
+get it, compared to the baseline of 2\%.
+%oli12: shortening
+% Let $q$ be the cpd associated with this belief.
+Call this cpd $q$.
+Grok thinks people will make fun of her if she uses a tanning bed and
+gets cancer, making becoming Supreme Leader impossible. This mental state is
+depicted as  a PDG on the left of \Cref{fig:grok-combine}.
+%oli12 we haven't left out anything more than we have earlier.
+% (where we have left out the cpds, to avoid clutter).
+
+
+Grok is reading about graphical models because she vaguely remembers that the
+variables in \Cref{ex:smoking} match the ones she already knows about. When she
+finishes reading the statistics on smoking and the original study on tanning
+beds (associated to a cpd $\mat p$ in \Cref{ex:smoking}), but before she has
+time to reflect, we can represent her (conflicted) knowledge state as the union
+of the two graphs, depicted graphically on the right of \Cref{fig:grok-combine}.  
+
+
+\begin{figure}
+	\hfill
+	\ifprecompiledfigs
+%oli25: resetting all of these (I'm only marking %oli25 here), though
+% I'll leave the other version commented out just in case. I believe 
+% I fixed the flags so that I'm the only one who has to worry about this.
+\raisebox{-0.5\height}{\includegraphics{figure-pdfs/grok-pre}}
+% \raisebox{-0.5\height}{\includegraphics{grok-pre}}
+\hspace{1.2em}\vline\hspace{1.2em}
+\raisebox{-0.5\height}{\includegraphics{figure-pdfs/grok-post}}
+% \raisebox{-0.5\height}{\includegraphics{grok-post}}
+	\else
+	% \colorlet{colorsmoking}{blue!50!black}
+	% \colorlet{colororiginal}{orange!80!black}
+	\colorlet{colorsmoking}{color2}
+	\colorlet{colororiginal}{color1}
+	\tikzset{hybrid/.style={postaction={draw,colorsmoking,dash pattern= on 5pt off 8pt,dash phase=6.5pt,thick},
+		draw=colororiginal,dash pattern= on 5pt off 8pt,thick}}
+	\centering
+	\begin{tikzpicture}[paperfig, thick, draw=colororiginal, text=black]
+		\node[dpadded] (C) at (0,0) {$C$};
+		\node[dpadded] (T) at (2,0){$T$};
+		\node[dpadded] (SL) at (1,-1.5){$\it SL$};
+		
+		\draw[arr] (T) to[bend right] node[above]{$q$} (C);
+		\mergearr{C}{T}{SL}
+	\end{tikzpicture}
+	\hspace{1.6em}\vline\hspace{1.6em}
+	\begin{tikzpicture}[paperfig]
+		\begin{scope}[postaction={draw,colorsmoking,dash pattern= on 3pt off 5pt,dash phase=4pt,thick}]
+			
+			\node[dpadded,hybrid] (C) at (0,0) {$C$};
+			\node[dpadded,hybrid] (T) at (2,0){$T$};
+		\end{scope}
+		
+		\begin{scope}[thick, draw=colororiginal, text=black]
+			\node[dpadded] (SL) at (1,-1.5){$\it SL$};
+			\draw[arr] (T) to[bend right] node[above]{$q$} (C);
+			\mergearr{C}{T}{SL}
+		\end{scope}
+
+
+		\begin{scope}[thick, draw=colorsmoking, text=black]
+			\node[dpadded] (S) at (-1.4, 0.8) {$S$};
+			\node[dpadded] (SH) at (-1.45, -0.8) {$\mathit{SH}$};
+			\draw[arr] (T) to node[fill=white, fill opacity=1,text opacity=1,inner sep=1pt]{$p$} (C);
+			\mergearr{S}{SH}{C}
+		\end{scope}
+	\end{tikzpicture}
+	\fi
+	\hfill~
+	\caption{Grok's prior (left) and combined (right) knowledge.}
+	\label{fig:grok-combine}
+\end{figure}
+
+The union of the two PDGs, even with overlapping 
+%oli24:
+% nodes and is still a PDG.
+nodes, is still a PDG.
+This is not the case in general
+%oli24:
+% with a BN.
+for BNs.
+Note that the PDG that Grok used to
+represent her two different sources of information (the mother's wisdom and the
+study) regarding the distribution of $C$ is a \emph{multigraph}: there are two
+edges from $T$ to $C$, with inconsistent information. Had we not not allowed
+multigraphs, we would need to choose between the two edges, or represent the
+information some other (arguably less natural) way. As we are already allowing
+inconsistency, merely recording both is much more in keeping with the way we
+have handled other types of uncertainty. 
+%		
+%TODO: I should not say this yet. This is a related story that I haven't told yet. 
+%Moreover, if Grok were to later discover that her mother had been faithfully transmitting the results of an unrelated study, she would be justified in increasing her certainty that a cpd roughly like $\mat p$ and $\mat q$ were correct.
+% This suggests a result that is perhaps obvious in retrospect: the mere \emph{possibility} of inconisistency increases the value of consistency. For an agent that is guaranteed to be consistent by design, corroborating evidence has no value. 
+\end{example}
+
+Not all inconsistencies are equally egregious. For example, even though the cpds
+$p$ and $q$ are different, they are numerically close, so, intuitively, the PDG on the right in
+\Cref{fig:grok-combine} is not very inconsistent.
+Making this precise 
+%oli12:  
+% will be
+is
+the focus of \Cref{sec:scoring-semantics}.
+
+
+%joe4*: While I don't have an intrinsic problem with this paragraph,
+%I'm not sure it belongs in the introduction.  Do we discuss this in
+%more detail elsewhere in the paper?   If so, we have to say more
+%about it.  As it stands, it seems like a letdown, after quite a
+%compelling introduction.  I cut it for now.
+%
+%oli5: I agree with your assessment that it either needs to be followed
+% up by something, or removed---although I'm not sure I agree there needs
+% to be more text here. I strongly prefer to follow it up with something;
+% I think path composition is one of the most important selling point of PDGs, 
+% on par with the ability represent inconsistency, and showcases
+% modularity in a useful, compositional way. To reflect this preference,
+% I'm uncommenting this, but you're welcome to re-comment it in the next iteration.
+%joe5*: commenting out, until you come up with a story for it that
+%fits in the paper.  I strongly suspect that it won't make it into a
+%NIPS submission, so by commenting it out, we'll be able to better
+%judge space.
+\begin{highlight-changes}[]
+While a PDG is in some sense merely a set of constraints (the cpds), these constraints themselves have a useful computational meaning. Regarding cpds as stochastic matrices, we can get cpds corresponding to paths by multiplying them; equivalently, thought of as probabilistic functions, we can compose them.
+	For instance, in \Cref{ex:grok-union}, if we were to give Grok
+        unconditional probabilities in the form of vectors
+        $\smash{(\vec s, \vec h, \vec t)}$ over the possible values of
+        $\mathit{S, SH}$ and $\mathit T$ respectively, she could
+        compute three distinct estimates for $\mathit{SL}$. This is
+        perhaps clearest visually, but for clarity, if $\mat S$ is
+        the cpd for the orange hyperedge that computes $C$ from
+        $\mathit{S, SH}$, and $\mat L$ is the cpd for the
+%joe4: the colors may not come across for some people, so you may want
+%to use some other way of distinguishing them
+%oli5*: Can I rely on colors to distinguish things in general? I've been using it throughout the document. I've seen papers that do this, but I can see why it might be poor taste (e.g., black and white printers). I can add letters to the hyper-edges here.
+%        blue hyper edge, which computes $\mathit{SL}$ from $\mathit{C, T}$, and
+%        $[\vec a; \vec b]$ is a vertical stacking of the vectors $\vec
+    blue hyperedge that computes $\mathit{SL}$ from $\mathit{C, T}$, and we 
+%oli5:
+% use the notation 
+		write
+        $[\vec a; \vec b]$ for the matrix with rows $\vec
+        a$ and $\vec b$, then 
+	\[ \mat L \Big[\mat p \vec t; \vec t\ \Big],
+		\qquad \mat L \Big[\mat q \vec t; \vec t\ \Big], \quad\text{and}
+		\quad \mat L \Big[\mat S \big[\vec s; \vec h\big], \vec t\ \Big]  \]
+	        are all probabilistic estimates of $\mathit{SL}$, which
+                can be used in different circumstances: the first two are
+        applicable even if given only $\vec t$, and the last requires
+        all three values. 
+	This property gives PDGs more useful structure than most
+        collections of constraints.  
+\end{highlight-changes}
+%joe5: \end{commentout}
+        
+These examples give a taste of the power of PDGs.  In the coming sections, we formalize PDGs and relate them to other approaches.		
+% \begin{notfocus}
+%	\begin{enumerate}[nosep]
+%		\item This representation more naturally matches what humans are aware of, encoding small locally consistent models rather than one giant probability distribution
+%		\item It is a strictly more general representation--- we can easily convert BNs to these diagrams (section \ref{sec:convert2bn})
+%		\item This allows composition of arrows to be defined, and gives meanings to paths (section \ref{sec:composition}).
+%		\item Allowing variables to be added and removed makes
+%		\item Changing and partially determining arrows is more reasonable.
+%		\item We can now represent inconsistency, which will allow us to capture mental states which, and . While we agree with the classical picture in that inconsistency is bad, now we can talk about it
+%	\end{enumerate}
+% Redundency is important: types in programming languages, more data in ML systems.
+% Puts gurads
+% Makes it possible to combine knowledge without destroying old knowledge.
+% preference updating
+\end{document}

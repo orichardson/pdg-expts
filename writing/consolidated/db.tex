@@ -1,0 +1,415 @@
+\documentclass[the-pdg-manual.tex]{subfiles}
+\begin{document}
+	\section{Databases}
+    
+	\subsection{The Deterministic Case}
+	
+	In this section, we will define some translations from databases to PDGs,
+	give a query semantics for PDGs, and verify that translation preserves some semantic properties. 
+	But in order to do any of this, we first need to commit to a formal description of a database, a query, and what query semantics looks like before we add PDGs. 
+	\subsubsection{Formalism for Databases}
+	There are many equivalent formalizations of database systems; we have chosen a 
+	particular formulation that highlights the structural correspondence with PDGs.
+	In the classification presented by \cite[\S3.3]{abiteboul1995foundations}, ours 
+	would be considered a presentation of ``named, conventional'' databases.
+	
+	\begin{defn}[database]
+	  A (deterministic, relational) database (instance) $\D$ is a tuple $\D = (\Attrs, \Idx, \Doms, \Cols, \Rels)$, where
+
+      \def\oftype#1{{$:#1$}}
+
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{@{~~~}r@{}lp{12cm}}
+    	$\Attrs$ & \oftype{\FinSet} & is a finite set of attribute names, \\
+    	$\Idx$ & \oftype{\FinSet} & is a finite set of table names,\\
+    	$\Doms$ & \oftype{\Attrs \to \Set} & gives a domain of possible values for each attribute, and \\
+    	$\Cols$ & \oftype{\Idx \to \Attrs \to \two,} & associates a subset of attributes $\Cols \subseteq \Attrs$ to each table name, corresponding to the table columns).
+ \\[0.5em]\multicolumn{3}{@{}p{\textwidth}@{}}{
+	% The arity function can be defined by flattening all of the type information in the schema, and reducing $\Cols_j$ to its length: $\arity(j) := | \Cols_j |$.
+	The pair $\Sch = (\Cols,\Doms)$ is known as the database schema. The schema is the static backbone of the database, as it specifies the types of all relation symbols. For each $j \in \Idx$, the schema determines a product domain $\Doms (\Cols_j) := \prod_{A \in \Cols_j} \Doms(A)$
+	of valid tuples in the relation $R_j$. 
+%	$\mat D_j := \prod_{A \in \Cols_j} \Doms_{A}$	
+	Finally, we capture the tables of $\D$
+		} \\
+%    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \prod_{i \in \Cols_i} \Doms_{j} \to 2}&
+%    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \mat D_j \to \two}&
+    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels\;$ & \oftype{(j:\Idx) \to \Doms(\Cols_j) \to \two}&
+    	as an $\Idx$-indexed collection $ \{ R_j \}_{j \in \Idx}$ of relations, where each $R_j \subseteq \Doms(\Cols_j)$.
+    \end{tabular}
+
+%    \def\oftype#1{{\!\!$:#1\qquad$}}
+%    \begin{itemize}[itemsep=-0.8ex]
+%    	\item[$\Attrs$] \oftype{\Set}
+%    		is a finite set of attribute names.
+%    	\item[$\Doms$] \oftype{\Attrs \to \Set}
+%    		assigns a set of possible values to each attribute name.
+%    	\item[$\Idx$] \oftype{\Set}
+%    		is a finite set of table names.
+%%    	\item[$\arity$] \oftype{\Idx \to \mathbb N}
+%%    		is the arity function, so that $\arity(i)$ is the number of columns in the $i^\text{th}$ table.
+%    	\item[$\Cols$] \oftype{\Idx \to \Attrs \to 2,}
+%    		%\oftype{\Idx \to \{1, \ldots, \arity(i)\} \to  N,}
+%    		called the \emph{schema} of $\D$, gives the database type structure by ensuring that the $j^\text{th}$ column ($j < \arity(i)$) of the $i^\text{th}$ table comes from the specific attribute $\Cols_{i,j} \in \Attrs$.
+%    \end{itemize}
+
+%    $\mathcal D$ is a collection of finite domains (the domain for each attribute),
+%	again $\arity: I \to \mathbb N$ determines the arity of , but now
+
+%	For $i \in I$ and $j \in \{1, \ldots, \arity(i)\}$, we write $A_{i,j}$ for the $j^{\text{th}}$ component of the relation $R_i$, so that the relation $R_i$
+
+%	Once again $\mathcal R =$ is a finite collection of relations, though now their types are determined by $\Att$. Let
+%	$$\mat D_{i} :=  \prod \Att_i = \prod_{j =1}^{\arity(i)} \Att_{i,j}$$
+%	be the possible tuples that could
+
+%	$R_i \subseteq \prod \Att_i = \prod_{j =1}^{\arity(i)} \Att_{i,j} $
+	\smallskip
+	Since $\Idx$, and $\Attrs$ are implicit in the type of $\Cols$, which, together with $\Doms$, is given by $\Sch$, 
+	we sometimes use the abbreviated form $\D = (\Sch, \Rels)$.  Or, since $\Sch$ is implicit in the type of $\Rels$, simply by $\Rels$.
+	 %where $\Cols$ is understood to be packaged with appropriate data for $\Idx, \Attrs$, and $\arity$.
+\end{defn}
+\medskip
+%\begin{defn}
+%	The component $\Att^\D$ of a typed database $\D = (\mathcal D, I, \arity, \Att, \mathcal R)$, is the \emph{schema} of $\D$. %$(I, \Att)$ defines a hypergraph.
+%\end{defn}
+
+%\begin{remark}
+%	$(I, \Att)$ is a hyper-graph, and $D$ assigns
+%\end{remark}
+\begin{inactive}
+\begin{remark}\label{rem:typed-db-better}
+    The definition of an untyped database with underlying domain $D$ is a special case of a typed database, in which $\Attrs := \mathbb N$ corresponding to the argument index, set every $\Doms_n := D $, and every $\Cols_{i,j} = \mathbbm1[j \le \arity(i)]$.
+    In some sense, the two are equally expressive: we can also simulate a typed database $\D$ with an untyped one. Simply set $D := \uplus_j \mathcal D_j$ to be the disjoint union of all domains, and $\arity(i) := |\Cols_i|$. Now any table $R_i \in \Rels^\D$ can be directly used as a table in the untyped database, since
+    \[R_i \subseteq \mat D_i = \prod_{j \in \Cols_i} \mathcal D_{j}
+		\subseteq \prod_{j \in \Cols_i} D = \prod_{j = 1}^{\arity(i)} D =
+        D^{\arity(i)} .\]
+  	The definitions are not equivalent, and the typed version is more expressive, because it disallows some rows by fiat (which has a different meaning from being absent from the relation), encoding type-level constraints. This is nice even within the context of databases, since a ds. By naming $A$, we can explicitly restrict the  allowable collections of attributes, which with which we will be able to define classes of databases which behave like other specific graphical models.
+\end{remark}
+\end{inactive}
+
+\begin{figure}
+	\centering
+		\subcaptionbox{ The three tables of $\D$\label{subfig:tables} }{
+		\begin{tikzpicture}[baseline=0, tablename/.style={inner sep=1pt,circle,text=black,font={}}]
+			%fill=gray!20
+			\node at (1,1.5){\textbf{Database}};
+
+			\node[tablename] (R1) at (-1.3,1.2) {\large$\mathbf R_1$};
+			\node[below right=-0.2em and -1.2em of R1] (table1) {
+				\begin{tabular}{ccc@{}}
+					$\var A$ & $\var B$ & $\var C$\\\hline
+					$a_1$ & $b_1$ & $c_1$ \\ $a_2$ & $b_2$ & $c_2$
+				\end{tabular}
+			};
+			\draw[] ($(R1.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1);
+			\draw[] ($(R1.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1);
+			\fill[white] ($(R1.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1);
+
+
+			\node[tablename] (R3) at (-0.5,-0.8) {\large$\mathbf R_3$};
+			\node[below right=-0.6em and -0.6em of R3] (table1) {
+				\begin{tabular}{cc@{}}
+					$\var C$ & $\var D$\\\hline
+					$c_2$ & $d_1$ \\ $c_1$ & $d_3$
+				\end{tabular}
+			};
+			\draw[] ($(R3.south east)+(.2,.1)$) -- ++(-0.2,-0.2) -- ++(0,-1);
+			\draw[] ($(R3.south east)+(.18,.12)$) -- ++(-0.2,-0.2) -- ++(0,-1);
+			\fill[white] ($(R3.south east)+(.19,.12)+(-0.2,-0.2)$) rectangle ++(-0.1,-1);
+
+			%        \node[draw,circle,inner sep=0.2pt,fill=gray!50] (R2) at (1.3,1) {\large$R\mspace{-3.5mu}R_2$};
+			\node[tablename] (R2) at (1.6,0.7) {\large$\mathbf R_2$};%\mspace{-12.5mu}R
+			\node[below right=-0.2em and -1.2em of R2] (table2) {
+				\begin{tabular}{cc@{}}
+					$\var B$ & $\var D$ \\\hline
+					$b_2$ & $d_1$ \\ $b_3$ & $d_2$ \\
+					$b_4$ & $d_3$
+				\end{tabular}
+			};
+			\draw[] ($(R2.south)+(.3,.1)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
+			\draw[] ($(R2.south)+(.28,.12)$) -- ++(-0.3,-0.15) -- ++(0,-1.6);
+			\fill[white] ($(R2.south)+(.29,.12)+(-0.3,-0.15)$) rectangle ++(-0.1,-1.6);
+		\end{tikzpicture}
+	}
+	\hfill\vline\hfill
+	\subcaptionbox{ Its schema $\Cols^\D$, as an undirected hypergraph\label{subfig:schema}}{
+		\begin{tikzpicture}[baseline=0]
+			\node at (0,1.5) {\textbf{Relational Schema}};
+			\node[dpad0,circle] (A) at (-2,-0.4){$\var A$};
+			\node[dpad0,circle] (B) at (-0.5, 0.5){$\var B$};
+			\node[dpad0,circle] (C) at (-0.5,-1.3){$\var C$};
+			\node[dpad0,circle] (D) at (1.5,0.5){$\var D$};
+
+			\coordinate (ABC) at (barycentric cs:A=1,B=1,C=1);
+			\node[above left=1pt and -4pt of ABC]{$R_1$};
+
+			\draw[arr, -, shorten >=0, shorten <=1.5pt] (A) -- (ABC) (B) -- (ABC) (C) -- (ABC);
+			\draw[arr, -, shorten >=0] (D) -- node[above]{$R_2$} (B);
+
+			\draw[arr, -, shorten >=0] (D) -- node[below right]{$R_3$} (C);
+		\end{tikzpicture}
+	}
+	\hfill\vline\hfill
+	\subcaptionbox{ One translation of $\D$ to a PDG, in which the  \label{subfig:indexed}}{
+		\begin{tikzpicture}[baseline=0]
+			\node at (1.5,1.5) {\textbf{PDG with row variables}};
+			\node[dpadded] (A) at (-0.6,-1.2){$\var A$};
+			\node[dpadded] (C) at (1.4,-1.5){$\var C$};
+			\node[dpadded] (B) at (0.5, 0.5){$\var B$};
+			\node[dpadded] (D) at (3.4,0.5){$\var D$};
+
+			\node[dpadded,inner sep=2pt,outer sep=0pt] (j1) at (barycentric cs:A=1,B=1.5,C=1.2){$\var j_1$};
+			\node[dpadded,inner sep=2pt,outer sep=0pt] (j2) at ($(barycentric cs:B=1,D=1)+(0,-.5)$){$\var j_2$};
+			\node[dpadded,inner sep=2pt,outer sep=0pt] (j3) at ($(barycentric cs:C=1,D=1)+(.4,-.4)$){$\var j_3$};
+			
+			
+			\begin{scope}[draw={blue!50},shorten <=0pt,shorten >=0pt]
+				\coordinate (center-BD2) at (barycentric cs:B=1,D=1,j2=-.2);
+				% \draw[arr,-] plot [smooth, tension=2] coordinates { (B) (BD2) (D)};%{(B),(center-BD2),(D)};
+				% \draw[arr, shorten <=0] (BD2) -- (j2);
+				\cmergearr{B}{D}{j2}{center-BD2}
+				\coordinate (center-CD3) at (barycentric cs:C=1,D=1,j3=-.2);
+				\cmergearr{C}{D}{j3}{center-CD3}
+				\coordinate (center-AB1) at (barycentric cs:A=1,B=1,j1=-.2);
+				\cmergearr{A}{B}{j1}{center-AB1}
+			\end{scope}
+			% \node[above left=1pt and -4pt of ABC]{$R_1$};
+
+			\begin{scope}[->, thick, shorten <=0pt, shorten >=0pt]
+				\draw (j1) -- (A);
+				\draw (j1) -- (B);
+				\draw (j1) -- (C);
+				\draw (j2) -- (B);
+				\draw (j2) -- (D);
+				\draw (j3) -- (D);
+				\draw (j3) -- (C);
+			\end{scope}
+		\end{tikzpicture}
+	}
+
+	\caption{A simple relational database $\D$ \subref{subfig:tables}, its schema \subref{subfig:schema}, and an encoding as a PDG \subref{subfig:indexed} with a hallucinated ``variable'' serving as each index. Note that where multiple arrows are incident an attribute, as in the case of $B$, we interpret them separately and not as a joint dependence: we have a way of getting the value of $B$ from either a row of table 1 or a row of table 2. Therefore this directed representation must be interpreted as a PDG, rather than a BN.} \label{fig:sketches}
+\end{figure}
+
+Although keys are generally not a core part of the formal treatment of databases, we opt to formalize them earlier and use them in some of our translations to PDGs. Although perhaps not strictly necessary, formalizing keys now will leave us in better shape once we move to probabilistic databases. 
+
+\begin{defn}[keyed database]
+	A \emph{keyed} database $(\D, \mathcal K, \mathit{lookup})$ is a relational database $\D$ % $(\Attrs, \Idx, \Doms, \Cols, \Rels)$,
+	equipped with a key shema $\mathcal K : (j:\Idx) \to \two^{\two^{\Cols_j}}$, which for each table $j$ specifies a set of keys (sets of the attributes $\Cols_j$ of $j$), as well as a funtion 
+	$$\textit{lookup}_K : \prod_{A \in K}\Doms(A) \to \{\none\} \cup \prod_{A \in \Cols_j}\Doms(A).$$
+	for each key $K \in \mathcal K_j$. Semantically, $\mathit{lookup}_K(\mat k)$ returns the full row $t = \langle \mat k, \ldots \rangle$ in the table $j$ that matches $\mat k$ if there is such a $t$ in $\Rels_j$, and $\none$ otherwise.
+\end{defn}
+
+A database without keys, may be regarded as keyed database with the trivial ring $\mathcal K_j := \{ S_j \}$ consisting of only a single key: all attributes of the table.
+We now proceed by defining our query language. For ease of comparison with \cite{suciu2011probabilistic}, we formulate queries in terms of relational calculus. This approach does require some careful treatment in the presence of negation \cite[Chapter 5]{abiteboul1995foundations}; for now, we will consider queries without negation.
+
+There are several standard approaches for formalizing queries. We present several: an algebraic account based on relational algebra, a logical account based on fragments of first order logic, tableau queries, and datalog. The different repsresentations will prove useful at different points of the development, and by giving each perspective, we may lean heavily on the equivalence theorems between them, detailed  in \cite{abiteboul1995foundations}.
+
+If $t$ is an assignment of values to a subset of attributes $\mat A \subseteq \Attrs$, and $A \in \mat A$, we write $t_A$ for the value of $t$ at index $A$. 
+\begin{defn}[relational operators and algebras]
+    An operational semantics for query languages can be given by defining (named) operations. 
+
+    \begin{center}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{cl@{\hspace{-1em}}rl}
+        $S$&\textbf{selection.} & $\displaystyle\sigma_{A=a}(R) $&$:= \Big\{ t \mid t_A=a \Big\}_{t \in R}$\\
+        $P$&\textbf{projection.} & $\displaystyle\pi_{\mat A}(R) $&$:= \Big\{ \{ A \mapsto t_A \}_{A \in \mat A \cap \Cols_R} \Big\}_{t \in R }$ \\ 
+        $J$& \textbf{join.} & $\displaystyle\nj(R_1, R_2, \ldots, R_n) $&
+            % $:= \Big\{ \{ A \mapsto t_A \}_{A \in \bigcup_{j =1}^n \Cols_j } \mid \pi_{(\Cols_j)}(t) \in R_j \text{ for every }j=1,\ldots,n \Big\}_{t \in \prod_{A \in \cup_j \Cols_j}\Doms(A)}$ \\
+            % $\displaystyle:= \Big\{ t = \{ A \mapsto a \}_{\substack{A \in \bigcup_{j =1}^n \Cols_i \\ a \in \Doms(A)}} \mid \{ A \mapsto a \} \in R_j \text{ for every }j=1,\ldots,n \Big\}_{t \in \prod_{A \in \cup_j \Cols_j}\Doms(A)}$ \\
+            $\displaystyle:= \Big\{ t \mid t_{(\Cols_i)} \in R_i \text{ for every }i=1,\ldots,n \Big\}_{ t \in \Doms(\cup_j \Cols_j)}$ \\
+        $R$ &\textbf{rename.} & $\displaystyle\rho_{B/B'}(R) $&$:= \Big\{ \{B' \mapsto t_B \} \cup \{ A \mapsto t_A \}_{A \in \Cols_R \setminus \{B\}}\Big\}_{ t \in R}$ \\
+        $U$& \textbf{union.} &$R_1 \cup R_2$ \\
+        $D$& \textbf{difference.} &$R_1 - R_2 $&$:= \Big\{t \mid t \notin R_2 \Big\}_{t \in R_1}$
+    \end{tabular}
+    \end{center}
+    
+    As their names suggest, the SPJR algebra consists of the first four, and the SPJRU algebra consists of the first five. All six operations together are known as the \emph{named relational algebra}.
+\end{defn}
+
+\begin{fact}[\cite{abiteboul1995foundations}]
+\end{fact}
+
+
+Let $\Varis$ be a set of variable symbols.
+
+\begin{defn}[tableau queries]
+    A tableau over a schema $\Sch$ is 
+\end{defn}
+
+\begin{defn}[CQ,UCQ]
+	The \emph{positive existential calculus} $\lang{UCQ}(\Sch)$ over the schema $\Sch$ (which corresponds naturally to \emph Unions of \emph Conjunctive \emph Queries) is the fragment of first order logic generated by the grammar
+	\begin{align*}
+		 Q ::= (u=v) \Bmid R(\mat x)  \Bmid \exists x. Q_1 \Bmid Q_1 \land Q_2 \Bmid Q_2 \lor Q_2  
+	\end{align*}
+	where $u,v \in \Varis \cup \Doms$ are variables
+	%\footnote{or constants, which we model as variables that can take only a single value} 
+	or constants, $x \in \Varis$ is a variable,
+	$R \in \Idx$ is a relation symbol, $\mat x  : \Cols_j \to {\Varis }$ is an assignment of variables to each of $R_j$'s attributes (i.e., $\Cols_j$). We define $\lang{CQ}(\Sch)$ to be the language generated with the first four rules, but not disjunction.
+% We will generally omit the subscripts $(\Varis,\Cols,\Doms)$ and simply refer to $\lang{UCQ}$ or $\lang{CQ}$ --- after all, the appropriate schema $\Sch$   query, while $\Varis$ is generally a fixed infinite set of variables for queries. 
+\end{defn}
+	
+% As the dinstinction is ultimately unimportant, we will blur the distinction between a formula $\varphi$, and
+
+\begin{inactive}
+	For a fixed total ordering $\leq_\Attrs$ on $\Attrs$, assignments $\Cols_j \to \Varis$ are in bijection with vectors over $\Varis$ of arity $\arity(j)$. This allows us to regard $\mat x$ as a vector in $\Varis^{\arity(j)}$. 
+\end{inactive}
+% \begin{prop}
+% 	The conjunctive queries and ... are equally expressiv
+% \end{prop}
+Fix a database $\D = (\Idx,\Attrs,\Sch,\Rels)$ and a let $\vals := \bigcup_{A \in \Attrs}\Doms(A)$. Let $\varphi$ be a formula. 
+Recall from first order logic that the free variables of $\varphi$, denoted $\mathit{free}(\varphi)$, are those variables that occur in $\varphi$ but ar not bound by any quantifier.
+A valuation $\nu$ on a set of variables $S \subseteq \Varis$ is a function $\nu: S \to \mathbf{vals}$. 
+% Let $\varphi[\nu]$ be the formula obtained by substituting . 
+In the context of $\D$ and a valuation $\nu$ on $\mathit{free}(\varphi)$, we write $(D,\nu) \models \varphi$ to indicate that $\varphi$ is true when we replace each free variable $X \in \mathit{free}(\varphi)$ with the value $\nu(X)$. %is a  and we give the usual definition for $\D,\nu \models \varphi$.
+% if the formula $\varphi[\nu]$ is true
+
+\begin{defn}[logical semantics for databases]
+	If $\D$ is a database, and $Q$ is a query over $\D$ corresponding to the a formula $\varphi$, then we define
+	\[ Q(\D) := \Big\{ \text{valuations $\nu$ of $\mathit{free}(\varphi)$} \Bmid (\D,\nu) \models \varphi \Big\} \]
+\end{defn}
+
+\begin{remark}
+	For a query $Q$ corresponding to a formula $\varphi$, $Q(\D)$ is itself a database $(\{Q\}, \mathit{free}(\varphi), \{x \mapsto \mathbf{vals}\}, Q\mapsto \{\mathit{free}(\varphi)\}, Q(\D))$, consisting of a single table with columns $\mathit{free}(\varphi)$.	
+\end{remark}
+% 
+% \begin{defn}[Relational Calculus, RC]
+% 	The language $\lang{RC}_{(\Varis, \Cols, \Doms)}$ consists of first order formulae generated by the BNF
+% 	grammar
+% 	$$ Q ::= (u=v) \Bmid R(\mat x)  \Bmid \exists x. Q_1 \Bmid Q_1 \land Q_2 \Bmid Q_2 \lor Q_2 \Bmid \lnot Q_1 ~, $$
+% \end{defn}
+
+
+\begin{defn}
+	A formula $\varphi$ is \emph{typable} if there exists a function $\tau: \Varis \to \Attrs$ such that, for every relational atom $R(\mat x)$ in $\varphi$, and every $A \in \Cols_R$, we have that $\tau(\mat x(A)) = A$.
+\end{defn}
+\begin{defn}
+    $\varphi$ is \emph{sub-linear} if each relation symbol appears at most once in $\varphi$. 
+\end{defn}
+
+
+\subsubsection{Translations from databases to PDGs}
+
+% \begin{constr}[the tuple translation]\label{def:face-value-translation} \end{constr}
+
+
+\begin{defn}
+	
+\end{defn}
+
+For the rest of our translations, we are going to do something that may seem strange. Even though databases are clearly in some sense ``first-order'' objects (their queries are formulas of first-order logic), and PDGs are graphical models which have semantics in terms of joint distributions over finite sets of variables at the ``popositional level''.
+
+
+\begin{defn}[the expanded relational translation]\label{def:expanded-rel-translation}
+    If $\D = (\Idx,\Attrs,\Doms,\Cols,\Rels,\Keys, \mathit{lookup})$ is a keyed database, we construct $\PDHof\D$ by 
+    including a variable for each attribute and relation, where the variable associated to an attribute $A \in \Attrs$ takes values $\V(\var A) = \Doms(A)$, while the variable associated to a relation $j \in \Idx$ takes values $\V(\var j) = \Doms(\Cols_j) = \prod_{A \in \Cols_j}\Doms(A) \cup \{\none\}$. Intuitively, a value of $j$ is a row of the table, or the special value $\none$. This 
+    
+    More formally, we define
+    \[ 
+    %		\left(
+    \begin{array}{rl}%!{\texttt{/\!\!/ }}L}
+        \PDHof{\D} := \Bigg(\quad	\N &:=  \Attrs \sqcup \{ j? \mid j \in \Idx\},
+        % & Nodes for both rows and columns 
+        \\[-0.5em]
+        \Ed &:= \Big\{ \ed{}{\{j\}}{\{A\}} \text{ for every }(j,A)\text{ satisfying } A\in \Cols_j \Big\}
+            \cup \bigcup\limits_{j \in \Idx}\Big\{ K \to \{ j \} \mid K \in \Keys_j\Big\},  
+        %&  %Label with object path
+         \\[0.5em]
+        \V &:= 
+        \begin{cases}
+            A \mapsto \Doms(A) \\
+            j \mapsto \Doms(\Cols_j) \cup \{\none\}
+        \end{cases}~~, %& Relation variables are rows 
+        \\
+        %			(R_i) &:= R_i = \{ (x_1, \ldots x_n) : (x_1, \ldots x_n) \in R_i \},  \\
+        %			\V(D) &:= D,  \\
+        \bp[\{j\}\to\{A\}] &:= \mat x \mapsto \delta_{x_{A}}
+        %& a point mass on the attribute\\
+        \\[-0.7em]
+        \bp[K\to\{j\}] &:= \mat k \mapsto \delta_{\mathit{lookup}_K(\mat k)}~~\qquad \Bigg)
+
+    \end{array} 
+    \]
+\end{defn}
+
+This translation is
+
+\begin{defn}[the compact relational translation]\label{def:compact-rel-translation}
+	
+\end{defn}
+Some benefits of using \cref{def:expanded-rel-translation}
+\begin{itemize}[nosep]
+	\item We cannot model keys this way
+	\item It corresponds much more closely with 
+	\item As we will see soon, this representation gives us more control over which 
+\end{itemize}
+
+\begin{defn}[the index translation]
+\end{defn}
+
+
+\subsubsection{Query Semantics for PDGs}
+
+% \subsubsection{Query Semantics}
+We now define a binary operation $\qq : \PDG \times \lang{UCQ} \to \PDG$ which executes UCQ.
+\begin{defn}[\texorpdfstring{$\qq$}{>}]
+  If $\dg M$ is a PDG, and $Q \in \lang{UCQ}$ is a UCQ query with free variables $\mat X$, we define the PDG $\dg M \qq Q$ by structural induction, as follows.
+  
+  \begin{itemize}
+  	\item For $\varphi = (u=v)$, we write $\dg M \qq  (u = v) :=  \dg M \cup (\{u,v\}, \{u\shortrightarrow v, v\shortrightarrow u\}, \V(), \delta_{u}, \delta_{v}).$
+	% \item $\dg M \qq  R(\mat x) :=  \dg M \cup \tikz[center base,scale=0.8]{
+	% 	\node[dpad1](uEv) at (0:1){u=v};
+	% 	\node[dpad1](u) at (120:1){u};
+	% 	\node[dpad1](v) at (-120:1){v};
+	% 	\coordinate (up) at (u.south);
+	% 	\coordinate (vp) at (v.north);
+	% 	\mergearr{up}{uEv}{v}
+	% 	\mergearr{vp}{uEv}{u}
+	% 	% \draw (0,0) rectangle (2,1); 
+	% }$.
+  \end{itemize}
+\end{defn}
+
+\begin{inactive}
+\begin{prop}
+  For all PDGs $\dg M$ and all joint distributions $\mu_1, \mu_2 \in \Delta\V(\dg M)$, we have
+  $\bbr{\dg M}(\mu_{1}) \le \bbr{\dg M}(\mu_{2})$ iff $\mu_{1}$
+\end{prop}
+\end{inactive}
+
+\begin{prop}[PDG/DB Query Equivalence]
+  If $\D$ is a typed database, and $Q(\mat X) \in \lang{UCQ}$ is a union of conjunctive queries with free variables $\mat X$,then
+  \begin{enumerate}[label=(\alph*)]
+	\item $\bbr{\PDGof{\D} \qq Q}^{*}(\mat x \mid Q \ne \none) > 0$ iff $\mat x \in Q(\D)$.
+	\item For all $\mu \in \SD{\PDGof{\D} \qq Q}$, $\mu(\mat X = \mat x \mid Q \neq\none) > 0$ iff $\mat x \in Q(\D)$.
+  \end{enumerate}
+\end{prop}
+
+\begin{prop}
+  If $\D$ is a typed database, and $Q(\mat X) \in \lang{UCQ}$ is a union of conjunctive queries with free variables $\mat X$, then
+  for all settings $\mat x \in \V(\mat X)$.
+  $\bbr{\PDGof{\D}}^{*}(\mat x) > 0$ iff $\mat x \in Q(\D)$.
+\end{prop}
+
+
+\begin{prop}
+    If $\D$ is a database and $\mu$ is a joint distribution over $\PDGof{\D}$, then
+    $\mu \in \SD{\PDGof{\D}}$ iff $\mathit{Supp}(\mu\mid \bigwedge_{j \in \Idx}( R_j \ne \none)) $ is a universal relation for $\D$.
+\end{prop}
+\begin{coro}
+    $\PDGof{\D}$ is consistent iff $\D$ is join consistent.
+\end{coro}
+
+\begin{inactive}
+\begin{prop}
+    If $Q$ is a sublinear query, then $Q$ can be written as a conditional probability query
+    on a joint distribution 
+\end{prop}
+\end{inactive}
+
+
+\subsection{The allegory of Constraint Graphs}
+% a
+% \begin{leftbar}
+% 	P
+% 	asd;fk slkdfj asdlkf a;lskdf al;kdf lsk;adj flkasdj flkasdj flksdj aflkdsj fal;dsfj awoei faodsifj ;alfj ;oeifj ;awoijf a;sldifh elkbv lkjvslakdjf aslkdjfskl jdfh sdlkajf halskdjfh sdkljfhklsajd fhksa;djfh s;aldj fl;ksdajf lksdj 
+% \end{leftbar}
+\end{document}
