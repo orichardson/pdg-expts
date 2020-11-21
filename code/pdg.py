@@ -1,7 +1,6 @@
 # %load_ext autoreload
 # %autoreload 2
 
-
 # import pandas as pd
 import numpy as np
 import networkx as nx
@@ -10,6 +9,7 @@ import collections
 from numbers import Number
 
 # import utils
+from utils import dictwo
 from rv import Variable, ConditionRequest, Unit
 from dist import RawJointDist as RJD, CPT #, Dist, CDist,
 from dist import z_mult, zz1_div
@@ -203,7 +203,7 @@ class PDG:
         cpt, or a variable, or a list or tuple of cpts.    
         
         Can be given labels by
-        >>> M: PDG  += "a", p : CPT     
+        >>> M: PDG  += "ℓ", p : CPT     
         """           
         
         if isinstance(data, PDG):
@@ -230,7 +230,39 @@ class PDG:
         elif type(data) in (tuple,list):
             for o in data:
                 self.add_data(o, label)
-        else :
+        elif type(data) is dict:
+            if 'from' in data and 'to' in data:
+                X = data['from'], Y = data['to']
+                if isinstance(X, Variable): XN = X.name
+                if isinstance(Y,Variable):  YN = Y.name
+            if 'cpd' in data:
+                XN = data['cpd'].nfrom.name
+                YN = data['cpd'].nto.name
+            if 'label' in data:
+                label = data['label']
+                
+            self._set_edge(XN, YN, label, **dictwo(data, ('from', 'to', 'label')))
+        
+        elif type(data) is str:
+            idx1 = data.find('->')
+            idx2 = data.find('(', idx1)
+            idx3 = data.find(')', idx2)
+
+            XN = data[0:idx1].strip()
+            YN = data[idx1+2:idx2].strip()
+            parens = data[idx2+1:idx3].strip()
+            
+            def kv(bit): 
+                head, tail = bit.split('=')
+                try:
+                    return (head, float(tail))
+                except: 
+                    return (head, tail)
+                
+            print(kv(parens.split(';')[0]))
+            self._set_edge(XN, YN, label, **(dict( kv(bit) for bit in parens.split(";")) if idx3 > idx2 else {}) )
+        
+        else:
             print("Warning: could not add data", data, "to PDG")
             return -1
                                 
@@ -320,9 +352,10 @@ class PDG:
         for (Xname, Yname, l), data in self.edgedata.items():
             X,Y = self.vars[Xname], self.vars[Yname]
             lookup = dict(src=X,tgt=Y,X=X,Y=Y,Xname=Xname,Yname=Yname, Xn=Xname, Yn =Yname,
-                alpha=1,beta=1,l=l,label=l, L=l,**data)
-            lookup['α'] = lookup['alpha']
-            lookup['β'] = lookup['beta']
+                alpha=1,beta=1,l=l,label=l, L=l)
+            lookup.update(**data)
+            if 'α' not in lookup: lookup['α'] = lookup['alpha']
+            if 'β' not in lookup: lookup['β'] = lookup['beta']
             lookup['P'] = lookup['p'] =  data.get('cpd',None)
 
             # alpha = data.get('alpha', 1)
@@ -343,7 +376,7 @@ class PDG:
         
     
     def _build_fast_scorer(self, weightMods=None, gamma=None, repr="atomic", grad_mode=True):
-        N_WEIGHTS = 4
+        N_WEIGHTS = 5
         if weightMods is None:
             weightMods = [lambda w : w] * N_WEIGHTS
         else:
@@ -358,7 +391,7 @@ class PDG:
             
         weights = np.zeros((N_WEIGHTS, len(self.edgedata)))
         for i,(X,Y,cpd, alpha,beta) in enumerate(self):
-            w_suggest = [beta, -beta + alpha*gamma, 0, 0]
+            w_suggest = [beta, -beta, alpha*gamma, 0, 0]
             for j, (wsug,wm) in enumerate(zip(w_suggest, weightMods)):
                 weights[j,i] = wm(wsug)
 
@@ -396,17 +429,26 @@ class PDG:
                 # muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
                 muxy = Pr(X, Y)
                 muy_x = Pr(Y | X)
-                cpt = mu.broadcast(cpd_df)
-                
                 # eq = (np.closecpt - muy_x
                 if debug:
                     print('\n\n')
                     print("for edge ", X.name, " -> ", Y.name)
                     print('weights', weights[:,i])
-                    print("the cpt is ", cpt)
                     # print('and the μ(%s | %s) = ' %(X.name,Y.name), muy_x)
-                logliklihood = (-np.ma.log(cpt)).filled(PENALTY)
+
                 logcond_info = (-np.ma.log(muy_x)).filled(PENALTY)
+
+                if cpd_df is None:
+                    logliklihood = 0
+                    logcond_claimed = 0
+                else:
+                    cpt = mu.broadcast(cpd_df)
+                    claims = np.isfinite(cpt)
+
+                    if debug: print("the cpt is ", cpt)
+            
+                    logliklihood = np.where(claims, (-np.ma.log(cpt)).filled(PENALTY), 0)
+                    logcond_claimed = np.where(claims, logcond_info, 0)
                 
                 # logextra = z_mult(mux * cpt, logcpt.filled(PENALTY))
 
@@ -417,14 +459,16 @@ class PDG:
                 if debug: print('\# masked elements in log μ:', np.ma.count_masked(np.ma.log(muy_x)),
                     ' and after filling:  ', np.ma.count_masked((-np.ma.log(muy_x)).filled(PENALTY)),
                     "\ngraident between:", gradient.reshape(-1))
-                gradient += weights[1,i] * ( logcond_info )
+                gradient += weights[1,i] * (  logcond_claimed )
+                gradient += weights[2,i] * ( logcond_info )
                 if debug: print("graident after:", gradient.reshape(-1))
 
 
                 # print("masked", np.ma.count_masked(logliklihood), np.ma.count_masked(logcond_info), end='\t')
                                                                             
                 thescore += weights[0,i] * z_mult(muxy, logliklihood).sum()  
-                thescore += weights[1,i] * z_mult(muxy, logcond_info).sum()  
+                thescore += weights[1,i] * z_mult(muxy, logcond_claimed).sum()  
+                thescore += weights[2,i] * z_mult(muxy, logcond_info).sum()  
                 # thescore += weights[2,i] * logextra.filled(PENALTY).sum()  
                     
             gradient += gamma * ( np.ma.log( distvec ))#.filled(PENALTY)
@@ -472,7 +516,7 @@ class PDG:
         if gamma is None:
             gamma = self.gamma
         if weightMods is None:
-            weightMods = [lambda w : w] * 4
+            weightMods = [lambda w : w] * 5
         else:
             weightMods = [
                 (lambda n: lambda b: n)(W) if isinstance(W, Number) else
@@ -489,21 +533,23 @@ class PDG:
             Pr = mu.prob_matrix
             muy_x, muxy, mux = Pr(Y | X), Pr(X, Y), Pr(X)
             cpt = mu.broadcast(cpd_df)            
+            claims = np.isfinite(cpt)
             logcpt = - np.ma.log(cpt) 
                         
             
             ### Liklihood.              E_mu log[ 1 / cpt(y | x) ]
-            logliklihood = z_mult(muxy, logcpt)
+            logliklihood = z_mult(muxy*claims, logcpt)
             ### Local Normalization.    E_mu  log[ 1 / mu(y | x) ]
             logcond_info = z_mult(muxy, -np.ma.log(muy_x) )
+            logcond_claimed = z_mult(muxy*claims, -np.ma.log(muy_x) )
             ### Extra info.         E_x~mu cpt(y|x) log[1/cpt(y|x)]
             logextra = z_mult(mux * cpt, logcpt)
             ### Dependency Network Thing.
             nonXorYs = [Z for Z in self.varlist if Z is not Y and Z is not X]
             dnterm = z_mult(muxy, -np.ma.log(Pr(Y|X,*nonXorYs)))
             
-            weights = [beta, -beta + alpha*gamma, 0, 0]
-            terms = [logliklihood, logcond_info, logextra, dnterm]
+            weights = [beta, -beta, alpha*gamma, 0, 0]
+            terms = [logliklihood, logcond_claimed, logcond_info, logextra, dnterm]
             
             # print(f"Weights for {X.name} -> {Y.name}", weights)
             for term, λ, mod in zip(terms, weights, weightMods):
@@ -519,15 +565,17 @@ class PDG:
         
         return thescore.real if thescore.imag == 0 else thescore
     
-    
+    # TODO: Not sure if these are working properly in the presence of incomplete cpts.. 
     def Inc(self, p, ed_vector=False):
         Prp = p.prob_matrix        
         # n_cpds = len(self.edgedata) # of edges
         Incv = np.zeros((len(self.edgedata),*p.shape),dtype=np.complex_)
         for i,(X,Y,cpd_df,alpha,β) in enumerate(self):
             cpd = p.broadcast(cpd_df)
-            Incv[i,...] = β * p.data * (np.ma.log(  zz1_div(Prp(Y | X ), cpd) )) #.astype(np.complex_)).filled(1j)
-
+            claims = np.isfinite(cpd)
+            Incv[i,...] = β * p.data * (np.ma.where(claims, np.ma.log(  zz1_div(Prp(Y | X ), cpd) ), 0)) \
+                .astype(np.complex_).filled(1j)
+            
         Incv /= np.log(2)
         if ed_vector:
             return Incv.sum(axis=tuple(range(1, Incv.ndim)))
@@ -628,7 +676,8 @@ class PDG:
         for X,Y,cpt,*_ in self:
             if cpt is not None:
                 #hopefully the broadcast works...
-                d.data *=  d.broadcast(cpt)
+                d.data *= np.nan_to_num( d.broadcast(cpt), nan=1)
+            # print(d.data)
                 
         d.data /= d.data.sum()
         return d

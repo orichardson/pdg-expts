@@ -1,0 +1,52 @@
+
+%load_ext autoreload
+%autoreload 2
+import sys; sys.path.append('../')
+
+from dist import RawJointDist, CPT
+from rv import Variable, binvar, Unit
+import numpy as np
+from pdg import PDG
+
+M = PDG()
+
+K = binvar("K")
+X = binvar("X")
+Y = binvar("Y")
+M += X,Y,K
+
+M += CPT.from_matrix(K, X, np.array([[.6,.4],[.4,.6]]) )
+M += CPT.from_matrix(K, Y, np.array([[.6,.4],[.4,.6]]) )
+M += CPT.from_matrix(Unit, K, np.array([[0.55, 0.45]]))
+
+xxorkdict = { (x,k): ('~' if ((x[0]=='~')^(k[0]=='~')) else '')+"x⊕k" for x,k in X&K}
+M += CPT.det(X&K, binvar("X⊕K"), xxorkdict)
+yxorkdict = { (y,k): ('~' if ((y[0]=='~')^(k[0]=='~')) else '')+"y⊕k" for y,k in Y&K}
+M += CPT.det(Y&K, binvar("Y⊕K"), yxorkdict)
+allxordict = { (x,y,k): ('~' if ((y[0]=='~')^(k[0]=='~')^(x[0]=='~')) else '')+"x⊕y⊕k" for x,y,k in Variable.product(X,Y,K)}
+M += CPT.det(Variable.product(X,Y,K), binvar("X⊕Y⊕K"), allxordict)
+M.draw()
+
+μ = M.factor_product()
+
+XxorK = M.vars['X⊕K']
+YxorK = M.vars['Y⊕K']
+μ.H(XxorK)
+μ.H(X)
+μ.H(K)
+
+μ.I(XxorK, YxorK, X)
+
+μ.info_diagram(X,K,Y)
+μ.info_diagram(XxorK&K, K, YxorK&K)
+μ.info_diagram(XxorK, M.vars['X⊕Y⊕K'],YxorK)
+μ.info_diagram(X, M.vars['X⊕Y⊕K'],Y)
+
+
+A,B,C = binvar("A"), binvar("B"), binvar("C")
+# np.array([[[1,1],[1,1]], [[1,1],[1,1]]]).shape
+D = +RawJointDist( np.array([[[.7,.3],[.3,.7]], [[.3,.7],[.7,.3]]]), [A,B,C]);D.info_diagram(A,B,C)
+
+# # For some reason, the interaction information is basically always negative...
+RawJointDist.random([A,B,C]).info_diagram(A,B,C)
+RawJointDist.unif([A,B,C]).info_diagram(A,B,C)

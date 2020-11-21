@@ -153,7 +153,7 @@ class CPT(CDist, pd.DataFrame, metaclass=utils.CopiedABC):
         # return cls.from_matrix(, index=vfrom.ordered, columns=vto.ordered, nto=vto, nfrom= vfrom)
 
     def check_normalized(self):
-        amt = ((np.sum(self, axis=1)-1)**2).sum()
+        amt = np.where(np.all(np.isfinite(self),axis=1), (np.sum(self, axis=1)-1)**2 ,0).sum()
         if amt > 1E-5:
             warnings.warn("%.2f-Unnormalized CPT"%amt)
             
