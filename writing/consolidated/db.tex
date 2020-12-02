@@ -1,20 +1,50 @@
 \documentclass[the-pdg-manual.tex]{subfiles}
 \begin{document}
 	\section{Databases}
-    \subsection{An Analogy}
-	
-	
+    \subsection{An Analogy: Relational Databases, Constraint Graphs, Factor Graphs}
+
+	\begin{defn}
+		A \emph{constraint graph} for a collection $\mathbf X$ of random variables, is a set $\mathcal R = \{R_j \subseteq \mathbf X_j \}_{j \in \mathcal J}$ of relations (indexed by some set $\mathcal J$) of subsets $\mathbf X_j$ of them.
+		$\mathcal R$ defines a universal relation $\mat U \subseteq \prod \V(\mat X)$
+	\end{defn}
+
+	The data of a constraint graph ---a collection of relations between subsets of variables---  clearly constitutes a database (it is isomorphic to the definition in \cref{def:PDG}). However, there are substantial differences between their semantics.
+
+	The semantics of a constraint graph is the set of joint variable asssignments that does not violate any constraints.
+	Let's contrast this with factor-graph semantics. A factor graph
+	$$ \Phi =  \Big\{ \phi_j : X_j \to
+		%\bar {\mathbb R}_{\geq 0}
+		[0,\infty]
+	 	\Big\}$$
+	is a continuous relaxation of a constraint graph, in which the factors $\{\phi_j\}_j$ correspond to (but are more flexible) than the constraint relations $\{R_j\}_j$. For a given setting $\mat x_j \in \V(\mat X_j)$ of the appropriate subset of variables, a relation assignes either 0 or 1 (indicating whether or not the constraint is satisfied), while a factor can output a positive number $\phi(\mat x_j) \in [0, \infty]$ indicating a degree to which a constraint is satisfied. The universal relation is then defined by multiplication
+
+	\begin{example}
+		\[ R^\phi_0 = \begin{idxmat}{a1,a2,a3}{b1,b2}
+			0 & 1  \\
+			1 & 0 \\
+			1 & 1
+		\end{idxmat} \quad\leftrightarrows\quad
+		\phi_0 = \begin{idxmat}{a1,a2,a3}{b1,b2}
+			0 & 0.5 \\
+			1 & 0 \\
+			1 & 1
+		\end{idxmat}\]
+	\end{example}
+
+
+	Query semantics for databases is more complex.
+
 	\subsection{The Deterministic Case}
-	
+
 	In this section, we will define some translations from databases to PDGs,
-	give a query semantics for PDGs, and verify that translation preserves some semantic properties. 
-	But in order to do any of this, we first need to commit to a formal description of a database, a query, and what query semantics looks like before we add PDGs. 
+	give a query semantics for PDGs, and verify that translation preserves some semantic properties.
+	But in order to do any of this, we first need to commit to a formal description of a database, a query, and what query semantics looks like before we add PDGs.
 	\subsubsection{Formalism for Databases}
-	There are many equivalent formalizations of database systems; we have chosen a 
+	There are many equivalent formalizations of database systems; we have chosen a
 	particular formulation that highlights the structural correspondence with PDGs.
-	In the classification presented by \cite[\S3.3]{abiteboul1995foundations}, ours 
+	In the classification presented by \cite[\S3.3]{abiteboul1995foundations}, ours
 	would be considered a presentation of ``named, conventional'' databases.
-	
+
 	\begin{defn}[database]
 	  A (deterministic, relational) database (instance) $\D$ is a tuple $\D = (\Attrs, \Idx, \Doms, \Cols, \Rels)$, where
 
@@ -29,8 +59,8 @@
  \\[0.5em]\multicolumn{3}{@{}p{\textwidth}@{}}{
 	% The arity function can be defined by flattening all of the type information in the schema, and reducing $\Cols_j$ to its length: $\arity(j) := | \Cols_j |$.
 	The pair $\Sch = (\Cols,\Doms)$ is known as the database schema. The schema is the static backbone of the database, as it specifies the types of all relation symbols. For each $j \in \Idx$, the schema determines a product domain $\Doms (\Cols_j) := \prod_{A \in \Cols_j} \Doms(A)$
-	of valid tuples in the relation $R_j$. 
-%	$\mat D_j := \prod_{A \in \Cols_j} \Doms_{A}$	
+	of valid tuples in the relation $R_j$.
+%	$\mat D_j := \prod_{A \in \Cols_j} \Doms_{A}$
 	Finally, we capture the tables of $\D$
 		} \\
 %    	 \rule{0pt}{1.3\normalbaselineskip} $\Rels$ & \oftype{(j:\Idx) \to \prod_{i \in \Cols_i} \Doms_{j} \to 2}&
@@ -65,7 +95,7 @@
 
 %	$R_i \subseteq \prod \Att_i = \prod_{j =1}^{\arity(i)} \Att_{i,j} $
 	\smallskip
-	Since $\Idx$, and $\Attrs$ are implicit in the type of $\Cols$, which, together with $\Doms$, is given by $\Sch$, 
+	Since $\Idx$, and $\Attrs$ are implicit in the type of $\Cols$, which, together with $\Doms$, is given by $\Sch$,
 	we sometimes use the abbreviated form $\D = (\Sch, \Rels)$.  Or, since $\Sch$ is implicit in the type of $\Rels$, simply by $\Rels$.
 	 %where $\Cols$ is understood to be packaged with appropriate data for $\Idx, \Attrs$, and $\arity$.
 \end{defn}
@@ -162,8 +192,8 @@
 			\node[dpadded,inner sep=2pt,outer sep=0pt] (j1) at (barycentric cs:A=1,B=1.5,C=1.2){$\var j_1$};
 			\node[dpadded,inner sep=2pt,outer sep=0pt] (j2) at ($(barycentric cs:B=1,D=1)+(0,-.5)$){$\var j_2$};
 			\node[dpadded,inner sep=2pt,outer sep=0pt] (j3) at ($(barycentric cs:C=1,D=1)+(.4,-.4)$){$\var j_3$};
-			
-			
+
+
 			\begin{scope}[draw={blue!50},shorten <=0pt,shorten >=0pt]
 				\coordinate (center-BD2) at (barycentric cs:B=1,D=1,j2=-.2);
 				% \draw[arr,-] plot [smooth, tension=2] coordinates { (B) (BD2) (D)};%{(B),(center-BD2),(D)};
@@ -191,11 +221,11 @@
 	\caption{A simple relational database $\D$ \subref{subfig:tables}, its schema \subref{subfig:schema}, and an encoding as a PDG \subref{subfig:indexed} with a hallucinated ``variable'' serving as each index. Note that where multiple arrows are incident an attribute, as in the case of $B$, we interpret them separately and not as a joint dependence: we have a way of getting the value of $B$ from either a row of table 1 or a row of table 2. Therefore this directed representation must be interpreted as a PDG, rather than a BN.} \label{fig:sketches}
 \end{figure}
 
-Although keys are generally not a core part of the formal treatment of databases, we opt to formalize them earlier and use them in some of our translations to PDGs. Although perhaps not strictly necessary, formalizing keys now will leave us in better shape once we move to probabilistic databases. 
+Although keys are generally not a core part of the formal treatment of databases, we opt to formalize them earlier and use them in some of our translations to PDGs. Although perhaps not strictly necessary, formalizing keys now will leave us in better shape once we move to probabilistic databases.
 
 \begin{defn}[keyed database]
 	A \emph{keyed} database $(\D, \mathcal K, \mathit{lookup})$ is a relational database $\D$ % $(\Attrs, \Idx, \Doms, \Cols, \Rels)$,
-	equipped with a key shema $\mathcal K : (j:\Idx) \to \two^{\two^{\Cols_j}}$, which for each table $j$ specifies a set of keys (sets of the attributes $\Cols_j$ of $j$), as well as a funtion 
+	equipped with a key shema $\mathcal K : (j:\Idx) \to \two^{\two^{\Cols_j}}$, which for each table $j$ specifies a set of keys (sets of the attributes $\Cols_j$ of $j$), as well as a funtion
 	$$\textit{lookup}_K : \prod_{A \in K}\Doms(A) \to \{\none\} \cup \prod_{A \in \Cols_j}\Doms(A).$$
 	for each key $K \in \mathcal K_j$. Semantically, $\mathit{lookup}_K(\mat k)$ returns the full row $t = \langle \mat k, \ldots \rangle$ in the table $j$ that matches $\mat k$ if there is such a $t$ in $\Rels_j$, and $\none$ otherwise.
 \end{defn}
@@ -205,15 +235,15 @@ We now proceed by defining our query language. For ease of comparison with \cite
 
 There are several standard approaches for formalizing queries. We present several: an algebraic account based on relational algebra, a logical account based on fragments of first order logic, and datalog. The different repsresentations will prove useful at different points of the development, and by giving each perspective, we may lean heavily on the equivalence theorems between them, detailed  in \cite{abiteboul1995foundations}.
 
-If $t$ is an assignment of values to a subset of attributes $\mat A \subseteq \Attrs$, and $A \in \mat A$, we write $t_A$ for the value of $t$ at index $A$. 
+If $t$ is an assignment of values to a subset of attributes $\mat A \subseteq \Attrs$, and $A \in \mat A$, we write $t_A$ for the value of $t$ at index $A$.
 \begin{defn}[relational operators and algebras]
-    An operational semantics for query languages can be given by defining (named) operations. 
+    An operational semantics for query languages can be given by defining (named) operations.
 
     \begin{center}
     \renewcommand{\arraystretch}{1.4}
     \begin{tabular}{cl@{\hspace{-1em}}rl}
         $S$&\textbf{selection.} & $\displaystyle\sigma_{A=a}(R) $&$:= \Big\{ t \mid t_A=a \Big\}_{t \in R}$\\
-        $P$&\textbf{projection.} & $\displaystyle\pi_{\mat A}(R) $&$:= \Big\{ \{ A \mapsto t_A \}_{A \in \mat A \cap \Cols_R} \Big\}_{t \in R }$ \\ 
+        $P$&\textbf{projection.} & $\displaystyle\pi_{\mat A}(R) $&$:= \Big\{ \{ A \mapsto t_A \}_{A \in \mat A \cap \Cols_R} \Big\}_{t \in R }$ \\
         $J$& \textbf{join.} & $\displaystyle\nj(R_1, R_2, \ldots, R_n) $&
             % $:= \Big\{ \{ A \mapsto t_A \}_{A \in \bigcup_{j =1}^n \Cols_j } \mid \pi_{(\Cols_j)}(t) \in R_j \text{ for every }j=1,\ldots,n \Big\}_{t \in \prod_{A \in \cup_j \Cols_j}\Doms(A)}$ \\
             % $\displaystyle:= \Big\{ t = \{ A \mapsto a \}_{\substack{A \in \bigcup_{j =1}^n \Cols_i \\ a \in \Doms(A)}} \mid \{ A \mapsto a \} \in R_j \text{ for every }j=1,\ldots,n \Big\}_{t \in \prod_{A \in \cup_j \Cols_j}\Doms(A)}$ \\
@@ -223,7 +253,7 @@ If $t$ is an assignment of values to a subset of attributes $\mat A \subseteq \A
         $D$& \textbf{difference.} &$R_1 - R_2 $&$:= \Big\{t \mid t \notin R_2 \Big\}_{t \in R_1}$
     \end{tabular}
     \end{center}
-    
+
     As their names suggest, the SPJR algebra consists of the first four, and the SPJRU algebra consists of the first five. All six operations together are known as the \emph{named relational algebra}.
 \end{defn}
 
@@ -234,27 +264,27 @@ Let $\Varis$ be a set of variable symbols.
 \begin{defn}[CQ,UCQ]
 	The \emph{positive existential calculus} $\lang{UCQ}(\Sch)$ over the schema $\Sch$ (which corresponds naturally to \emph Unions of \emph Conjunctive \emph Queries) is the fragment of first order logic generated by the grammar
 	\begin{align*}
-		 Q ::= (u=v) \Bmid R(\mat x)  \Bmid \exists x. Q_1 \Bmid Q_1 \land Q_2 \Bmid Q_2 \lor Q_2  
+		 Q ::= (u=v) \Bmid R(\mat x)  \Bmid \exists x. Q_1 \Bmid Q_1 \land Q_2 \Bmid Q_2 \lor Q_2
 	\end{align*}
 	where $u,v \in \Varis \cup \Doms$ are variables
-	%\footnote{or constants, which we model as variables that can take only a single value} 
+	%\footnote{or constants, which we model as variables that can take only a single value}
 	or constants, $x \in \Varis$ is a variable,
 	$R \in \Idx$ is a relation symbol, $\mat x  : \Cols_j \to {\Varis }$ is an assignment of variables to each of $R_j$'s attributes (i.e., $\Cols_j$). We define $\lang{CQ}(\Sch)$ to be the language generated with the first four rules, but not disjunction.
-% We will generally omit the subscripts $(\Varis,\Cols,\Doms)$ and simply refer to $\lang{UCQ}$ or $\lang{CQ}$ --- after all, the appropriate schema $\Sch$   query, while $\Varis$ is generally a fixed infinite set of variables for queries. 
+% We will generally omit the subscripts $(\Varis,\Cols,\Doms)$ and simply refer to $\lang{UCQ}$ or $\lang{CQ}$ --- after all, the appropriate schema $\Sch$   query, while $\Varis$ is generally a fixed infinite set of variables for queries.
 \end{defn}
-	
+
 % As the dinstinction is ultimately unimportant, we will blur the distinction between a formula $\varphi$, and
 
 \begin{inactive}
-	For a fixed total ordering $\leq_\Attrs$ on $\Attrs$, assignments $\Cols_j \to \Varis$ are in bijection with vectors over $\Varis$ of arity $\arity(j)$. This allows us to regard $\mat x$ as a vector in $\Varis^{\arity(j)}$. 
+	For a fixed total ordering $\leq_\Attrs$ on $\Attrs$, assignments $\Cols_j \to \Varis$ are in bijection with vectors over $\Varis$ of arity $\arity(j)$. This allows us to regard $\mat x$ as a vector in $\Varis^{\arity(j)}$.
 \end{inactive}
 % \begin{prop}
 % 	The conjunctive queries and ... are equally expressiv
 % \end{prop}
-Fix a database $\D = (\Idx,\Attrs,\Sch,\Rels)$ and a let $\vals := \bigcup_{A \in \Attrs}\Doms(A)$. Let $\varphi$ be a formula. 
+Fix a database $\D = (\Idx,\Attrs,\Sch,\Rels)$ and a let $\vals := \bigcup_{A \in \Attrs}\Doms(A)$. Let $\varphi$ be a formula.
 Recall from first order logic that the free variables of $\varphi$, denoted $\mathit{free}(\varphi)$, are those variables that occur in $\varphi$ but ar not bound by any quantifier.
-A valuation $\nu$ on a set of variables $S \subseteq \Varis$ is a function $\nu: S \to \mathbf{vals}$. 
-% Let $\varphi[\nu]$ be the formula obtained by substituting . 
+A valuation $\nu$ on a set of variables $S \subseteq \Varis$ is a function $\nu: S \to \mathbf{vals}$.
+% Let $\varphi[\nu]$ be the formula obtained by substituting .
 In the context of $\D$ and a valuation $\nu$ on $\mathit{free}(\varphi)$, we write $(D,\nu) \models \varphi$ to indicate that $\varphi$ is true when we replace each free variable $X \in \mathit{free}(\varphi)$ with the value $\nu(X)$. %is a  and we give the usual definition for $\D,\nu \models \varphi$.
 % if the formula $\varphi[\nu]$ is true
 
@@ -271,19 +301,19 @@ In the context of $\D$ and a valuation $\nu$ on $\mathit{free}(\varphi)$, we wri
 \begin{fact}[{\cite[Thm 4.4.8]{abiteboul1995foundations}}]
     $\lang{CQ}$, and the SPJR algebra are equivalent.
 \end{fact}
-% 
+%
 % \begin{defn}[Relational Calculus, RC]
 % 	The language $\lang{RC}_{(\Varis, \Cols, \Doms)}$ consists of first order formulae generated by the BNF
 % 	grammar
 % 	$$ Q ::= (u=v) \Bmid R(\mat x)  \Bmid \exists x. Q_1 \Bmid Q_1 \land Q_2 \Bmid Q_2 \lor Q_2 \Bmid \lnot Q_1 ~, $$
 % \end{defn}
 
-There are also several orthogonal restrictions we will place on queries. 
+There are also several orthogonal restrictions we will place on queries.
 % \begin{defn}
 \begin{enumerate}
 \item A formula $\varphi$ is \emph{typable} if there exists a function $\tau: \Varis \to \Attrs$ such that, for every relational atom $R(\mat x)$ in $\varphi$, and every $A \in \Cols_R$, we have that $\tau(\mat x(A)) = A$.
 
-\item $\varphi$ is \emph{repeat-restricted} if each relation symbol appears at most once in $\varphi$. 
+\item $\varphi$ is \emph{repeat-restricted} if each relation symbol appears at most once in $\varphi$.
 \end{enumerate}
 % \end{defn}
 
@@ -294,32 +324,32 @@ There are also several orthogonal restrictions we will place on queries.
 
 
 \begin{defn}
-	
+
 \end{defn}
 
 For the rest of our translations, we are going to do something that may seem strange. Even though databases are clearly in some sense ``first-order'' objects (their queries are formulas of first-order logic), and PDGs are graphical models which have semantics in terms of joint distributions over finite sets of variables at the ``popositional level''.
 
 
 \begin{defn}[the expanded relational translation]\label{def:expanded-rel-translation}
-    If $\D = (\Idx,\Attrs,\Doms,\Cols,\Rels,\Keys, \mathit{lookup})$ is a keyed database, we construct $\PDHof\D$ by 
-    including a variable for each attribute and relation, where the variable associated to an attribute $A \in \Attrs$ takes values $\V(\var A) = \Doms(A)$, while the variable associated to a relation $j \in \Idx$ takes values $\V(\var j) = \Doms(\Cols_j) = \prod_{A \in \Cols_j}\Doms(A) \cup \{\none\}$. Intuitively, a value of $j$ is a row of the table, or the special value $\none$. This 
-    
+    If $\D = (\Idx,\Attrs,\Doms,\Cols,\Rels,\Keys, \mathit{lookup})$ is a keyed database, we construct $\PDHof\D$ by
+    including a variable for each attribute and relation, where the variable associated to an attribute $A \in \Attrs$ takes values $\V(\var A) = \Doms(A)$, while the variable associated to a relation $j \in \Idx$ takes values $\V(\var j) = \Doms(\Cols_j) = \prod_{A \in \Cols_j}\Doms(A) \cup \{\none\}$. Intuitively, a value of $j$ is a row of the table, or the special value $\none$. This
+
     More formally, we define
-    \[ 
+    \[
     %		\left(
     \begin{array}{rl}%!{\texttt{/\!\!/ }}L}
         \PDHof{\D} := \Bigg(\quad	\N &:=  \Attrs \sqcup \{ j? \mid j \in \Idx\},
-        % & Nodes for both rows and columns 
+        % & Nodes for both rows and columns
         \\[-0.5em]
         \Ed &:= \Big\{ \ed{}{\{j\}}{\{A\}} \text{ for every }(j,A)\text{ satisfying } A\in \Cols_j \Big\}
-            \cup \bigcup\limits_{j \in \Idx}\Big\{ K \to \{ j \} \mid K \in \Keys_j\Big\},  
+            \cup \bigcup\limits_{j \in \Idx}\Big\{ K \to \{ j \} \mid K \in \Keys_j\Big\},
         %&  %Label with object path
          \\[0.5em]
-        \V &:= 
+        \V &:=
         \begin{cases}
             A \mapsto \Doms(A) \\
             j \mapsto \Doms(\Cols_j) \cup \{\none\}
-        \end{cases}~~, %& Relation variables are rows 
+        \end{cases}~~, %& Relation variables are rows
         \\
         %			(R_i) &:= R_i = \{ (x_1, \ldots x_n) : (x_1, \ldots x_n) \in R_i \},  \\
         %			\V(D) &:= D,  \\
@@ -328,7 +358,7 @@ For the rest of our translations, we are going to do something that may seem str
         \\[-0.7em]
         \bp[K\to\{j\}] &:= \mat k \mapsto \delta_{\mathit{lookup}_K(\mat k)}~~\qquad \Bigg)
 
-    \end{array} 
+    \end{array}
     \]
 \end{defn}
 
@@ -340,8 +370,8 @@ This translation is
 Some benefits of using \cref{def:expanded-rel-translation}
 \begin{itemize}[nosep]
 	\item We cannot model keys this way
-	\item It corresponds much more closely with 
-	\item As we will see soon, this representation gives us more control over which 
+	\item It corresponds much more closely with
+	\item As we will see soon, this representation gives us more control over which
 \end{itemize}
 
 \begin{defn}[the index translation]
@@ -351,7 +381,7 @@ Some benefits of using \cref{def:expanded-rel-translation}
 \subsubsection{Query Semantics for PDGs}
 
 % \subsubsection{Query Semantics}
-We now define a binary operation $\qq : \PDG \times \lang{UCQ} \to \PDG$ which executes UCQ; we 
+We now define a binary operation $\qq : \PDG \times \lang{UCQ} \to \PDG$ which executes UCQ; we
 start by describing it informally.
 
 We now give the formal definition.
@@ -368,7 +398,7 @@ We now give the formal definition.
 	% 	\coordinate (vp) at (v.north);
 	% 	\mergearr{up}{uEv}{v}
 	% 	\mergearr{vp}{uEv}{u}
-	% 	% \draw (0,0) rectangle (2,1); 
+	% 	% \draw (0,0) rectangle (2,1);
 	% }$.
 \end{description}
 \end{defn}
@@ -390,7 +420,7 @@ We now give the formal definition.
 
 
 \begin{prop}
-    
+
 \end{prop}
 
 \begin{prop}
@@ -411,7 +441,7 @@ We now give the formal definition.
 \begin{inactive}
 \begin{prop}
     If $Q$ is a sublinear query, then $Q$ can be written as a conditional probability query
-    on a joint distribution 
+    on a joint distribution
 \end{prop}
 \end{inactive}
 
@@ -420,6 +450,6 @@ We now give the formal definition.
 % a
 % \begin{leftbar}
 % 	P
-% 	asd;fk slkdfj asdlkf a;lskdf al;kdf lsk;adj flkasdj flkasdj flksdj aflkdsj fal;dsfj awoei faodsifj ;alfj ;oeifj ;awoijf a;sldifh elkbv lkjvslakdjf aslkdjfskl jdfh sdlkajf halskdjfh sdkljfhklsajd fhksa;djfh s;aldj fl;ksdajf lksdj 
+% 	asd;fk slkdfj asdlkf a;lskdf al;kdf lsk;adj flkasdj flkasdj flksdj aflkdsj fal;dsfj awoei faodsifj ;alfj ;oeifj ;awoijf a;sldifh elkbv lkjvslakdjf aslkdjfskl jdfh sdlkajf halskdjfh sdkljfhklsajd fhksa;djfh s;aldj fl;ksdajf lksdj
 % \end{leftbar}
 \end{document}
