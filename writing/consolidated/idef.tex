@@ -1,0 +1,589 @@
+
+\documentclass[the-pdg-manual.tex]{subfiles}
+\begin{document}
+	\section{Details on Joint Distribution Scoring Semantics}\label{sec:details-on-joint-scoring}
+	\subsection{Determination}
+
+	% \begin{annotating}[frametitle={Paths}]
+	Qualitatively, an think of an edge $\ed LXY$ of a PDG $\dg M$ as a claim that the value of $Y$ can be (noisily) computed from
+	$X$ alone.  
+	Therefore, to best match the qualitative structure of $G$, statistical asymmetries and dependencies between variables should
+	be efficiently described by giving the conditional probabilities corresponding to the edges of $G$. After all, to the extent that we believe the world has a causal structure of $G$, then these conditional probabilities describe every possible interaction between variables. 
+
+	To formalize this, we require only the underlying multigraph $G^{\dg M} :=
+	(\N^{\dg M}, \Ed^{\dg M})$ of $\dg M$. 
+	Given $G$ and $\mu$, contrast the amount of
+	information required to 
+	\begin{enumerate}[label=(\alph*)]
+		\item directly describe a joint outcome  $\mat w ~ \sim \mu$
+		drawn from $\mu$, and 
+		\item separately specify, for each edge $\ed LXY$, the value
+		$\mat w_Y$ (the projection of $\mat w$ onto the variable
+		$Y$) given the value $\mat w_X$, in expectation. 
+	\end{enumerate}
+	% (a)  and (b)
+	When these two quantities are equal, the total length (in expectation) of specifying the outcome on each link, is precisely the same length as an optimal description of the joint outcome. That is, $\mu|_G$ carries enough information to precisely resolve all of the randomness of $\mu$. If (b) $>$ (a), then a specification of an outcome along each $L \in \Ed$ is redundant; all of the randomness in the system could have been resolved with this amount of information; we conclude that there are extra correlations in $\mu$ that are not suggested by $G$. The more (b) exceeds (a), the larger the degree of redundancy, and thus the less favorable an agent who believes $G$ to qualitatively correct, will judge $\mu$ to be. Because $\mu$ falls short of the expected level of randomness from this structure given these conditional distributions, we say that $\mu$ has a $G$-entropy deficit.
+
+	On the other hand, if (a) $>$ (b), then a sample of $\mu$ requires additional information to specify, beyond what could be used to encode outcomes of the marginals selected by $G$. This happens, when the structure in $G$ does not fully constrain the distribution, and often happens when there are fewer links than nodes, or cycles present. Whereas before $\mu$ had a defecit of entropy with respect to $G$, it now has a $G$-information \emph{surplus}, as now $\mu$ has more randomness than we could possibly resolve by specifying link outcomes, which reflects a hedging, due to the qualitative lack of information in $G$. For a defense of this preference for higher randomness in the absence of information to the contrary, see \cite{maxent}\cite{adversarial_protection}. The more (a) exceeds (b), the more evenly $\mu$ allocates mass in contexts that $G$ says nothing about, and so the better the qualitative fit of $\mu$ to $G$.
+	%oli17: IDef has two effects:
+	% (Here "wherever" means for every region of the info diagram, i.e., subset
+	% of variables that excludes some other subset.)
+	% (1) to give a max-entropy result wherever G does not specify something
+	% (think: no edges, or a cycle that allows multiple solutions), and 
+	% (2) to give a min-entropy result whenever it is over-specified. For regions
+	% with exactly 2 overlapping variables, this amounts to a statement of
+	% independence.
+	\recall{def:info-deficiency}
+
+	
+	$\IDef{}$ can be thought of as a qualitatively customize-able maximum-entropy \cite{Jaynes57} approach, in which one tries to maximize or minimize the variation with in a subset of the variables, depending on how qualitatively constrained this subset is, given the values outside of it, a notion which naturally leads to the information profile \Cref{info-profile}. We illustrate $\IDef{\dg M}$ with some simple examples.  
+
+
+	\begin{example}[some example descriptions]
+	Suppose that $\dg M$ has two nodes, $X$ and $Y$. If $\dg M$ has no edges, the $\IDef{\dg M}(\mu) = - H(\mu)$.
+	There is no information required to specify, for each edge in ${\dg M}$ from $X$ to $Y$, the value ${\mat w}_Y$ given ${\mat w}_X$, since there are no edges. Since we view smaller numbers as representing a better fit, $\IDef{\dg M}$ in this case will prefer the distribution that maximizes entropy.
+
+	If $\dg M$ has one edge from $X$ to $Y$, then since $H(\mu) = H_{\mu}(Y \mid X) + H_\mu(X)$ by the chain rule, $\IDef{\dg M}(\mu) = -H_{\mu}(X)$. Intuitively, while knowing the conditional probability $\mu(Y \mid X)$ is helpful, to completely specify $\mu$ we also need $\mu(X)$. Thus, in this case, $\IDef{\dg M}$ prefers distributions that maximize the entropy of the marginal on $X$. If $\dg M$ has sufficiently many parallel edges
+	%an edge $1 \to X$, and also
+	from $X$ to $Y$ and $H_{\mu}(Y \mid X) > 0$ (so that $Y$ is not totally determined by $X$) then we have $\IDef{\dg M}(\mu) > 0$, because the redundant edges add no information, but there is still a cost to specifying them. In this case, $\IDef{\dg M}$ prefers distributions that make $Y$ a deterministic function of $X$ will maximizing the entropy of the marginal on $X$. Finally, if ${\dg M}$ has an edge from $X$ to $Y$ and another from $Y$
+	to $X$, then a distribution $\mu$ minimizes $\IDef{\dg M}$ when 
+	$X$ and $Y$ are correlated (so that $H_\mu(Y \mid X) = H_\mu(X \mid Y) = 0$) while
+	maximizing $H(\mu)$, for example, by taking $\mu(0,0) = \mu(1,1) = 1/2$.
+	\end{example}
+	\begin{example}[visualizing the information profile]
+	\definecolor{subfiglabelcolor}{RGB}{0,0,0}
+	\begin{figure}
+		\centering
+	\def\vsize{0.4}
+	\def\spacerlength{0.5em}
+	\scalebox{0.85}{
+	%apparently  I have to manually step the figure number to make subfigures number properly.
+	\stepcounter{figure}
+	\makebox[\textwidth][c]{
+		\refstepcounter{subfigure}
+		\begin{tikzpicture}[center base]\label{subfig:justX-0}
+			\node[dpad0] (X) at (0,1){$X$};
+			\draw[fill=green!50!black]  (0,0) circle (\vsize)  ++(-90:.22) node[label=below:\tiny$X$]{};
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.5, 0.6){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}\!
+	% \hspace{\spacerlength}
+	% \adjustbox{valign=b}{
+	% \renewcommand{\arraystretch}{1.2}
+	\begin{tabular}{c}	
+		\refstepcounter{subfigure}\label{subfig:justX-1}
+		\begin{tikzpicture}[is bn]
+			\node[dpad0] (1) at (-0.4,.85){$\var 1$};
+			\node[dpad0] (X) at (0.4,.85){$X$};
+			\draw[arr1] (1)  -- (X);
+			\draw[fill=white!70!black]  (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+			\node at (-0.6,0.35){};
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.35){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture} \\[0.5em]
+		\refstepcounter{subfigure}\label{subfig:justX-2}
+		\begin{tikzpicture}
+			\node[dpad0] (1) at  (-0.45,.85){$\var 1$};
+			\node[dpad0] (X) at  (0.45,.85){$X$};
+			\draw[arr1] (1) to[bend left=20] (X);
+			\draw[arr1] (1) to[bend right=20] (X);
+			\draw[fill=red!50!black] (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.35){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+	\end{tabular}%}
+	\hspace{\spacerlength}\vrule\hspace{\spacerlength}
+		%% EXAMPLE: X  Y
+		% \adjustbox{valign=b}{
+		\begin{tabular}{c}
+		\refstepcounter{subfigure}\label{subfig:justXY}
+		\begin{tikzpicture}[]  
+			% \node[dpad0] (1) at (0,2){$\var 1$};
+			\node[dpad0] (X) at (-0.45,.85){$X$};
+			\node[dpad0] (Y) at (0.45,.85){$Y$};
+			% \draw[arr] (1) to[] (X);
+			% \draw[arr] (1) to[] (Y);
+			\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+			\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.8, 0.4){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}\\[0.5em]
+		%% EXAMPLE: X -> Y
+		\refstepcounter{subfigure}\label{subfig:XtoY}
+		\begin{tikzpicture}[]
+			% \node[dpad0] (1) at (0,2){$\var 1$};
+			\node[dpad0] (X) at (-0.45,0.85){$X$};
+			\node[dpad0] (Y) at (0.45,0.85){$Y$};
+			\draw[arr1] (X) to[] (Y);
+			% \draw[arr] (1) to[] (Y);
+			\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.8, 0.4){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+	\end{tabular}%}
+	% \hspace{\spacerlength}
+	\begin{tabular}{c}
+		%% EXAMPLE: X <-> Y
+		\refstepcounter{subfigure}\label{subfig:XY-cycle}
+		\begin{tikzpicture}[center base]
+			% \node[dpad0] (1) at (0,2){$\var 1$};
+			\node[dpad0] (X) at (-0.45,0.85){$X$};
+			\node[dpad0] (Y) at (0.45,0.85){$Y$};
+			\draw[arr1] (X) to[bend left] (Y);
+			\draw[arr1] (Y) to[bend left] (X);
+			\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.25) node[label=below:\tiny$X$]{};
+			\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.25) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+	%		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+			\node at (-0.85, 0.4){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}\\[2.5em]
+	% \hspace{\spacerlength}%% EXAMPLE: 1 -> Y;1->X
+	\refstepcounter{subfigure}\label{subfig:XYindep}
+		\begin{tikzpicture}[center base, is bn] 
+			\node[dpad0] (1) at (0,0.75){$\var 1$};
+			\node[dpad0] (X) at (-0.7,0.95){$X$};
+			\node[dpad0] (Y) at (0.7,0.95){$Y$};
+			\draw[arr0] (1) to[] (X);
+			\draw[arr0] (1) to[] (Y);
+			\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+			\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[red!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+			% \draw[ultra thick,white] (0.2,0) circle (\vsize);					
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+	%		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+			\node at (-0.88, 0.4){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+	\end{tabular}
+	\hspace{\spacerlength}
+		 %% EXAMPLE: 1 -> X -> Y
+		 \refstepcounter{subfigure}\label{subfig:1XY}
+		\begin{tikzpicture}[center base, is bn]
+			\node[dpad0] (1) at (0.15,2){$\var 1$};
+			\node[dpad0] (X) at (-0.45,1.4){$X$};
+			\node[dpad0] (Y) at (0.35,1){$Y$};
+			\draw[arr0] (1) to[] (X);
+			\draw[arr1] (X) to[] (Y);
+			\path[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				% \fill[red!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);					\end{scope}
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.6){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+	\hspace{\spacerlength}\hspace{2.5pt}\vrule\hspace{2.5pt}\hspace{\spacerlength}
+		%% EXAMPLE: 1 -> X -> Y -> Z
+		 \refstepcounter{subfigure}\label{subfig:1XYZ}
+		\begin{tikzpicture}[center base,is bn]
+			\node[dpad0] (1) at (-0.5,2.3){$\var1$};
+			\node[dpad0] (X) at (-0.5,1.5){$X$};
+			\node[dpad0] (Y) at (0.35,1.25){$Y$};
+			\node[dpad0] (Z) at (0.25,2.25){$Z$};subfiglabelcolor
+			\draw[arr1] (1) to (X);
+			\draw[arr1] (X) to[] (Y);
+			\draw[arr2] (Y) to[] (Z);
+			\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+			\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+			\begin{scope}
+				\clip (90:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[red!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);	
+				\clip (-30:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\end{scope}
+			\begin{scope}
+				\draw[] (-30:0.22) circle (\vsize);
+				\draw[] (210:0.22) circle (\vsize);		
+				\draw[] (90:0.22) circle (\vsize);
+			\end{scope}
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+		\hspace{3pt}
+	\hspace{\spacerlength}%\vrule\hspace{\spacerlength}
+		%% EXAMPLE: X -> Y -> Z -> X
+		\refstepcounter{subfigure}\label{subfig:XYZ-cycle}
+		\begin{tikzpicture}[center base] 
+			% \node[dpad0] (1) at (-0.5,2.3){$\var1$};
+			\node[dpad0] (X) at (-0.5,1.75){$X$};
+			\node[dpad0] (Y) at (0.35,1.25){$Y$};
+			\node[dpad0] (Z) at (0.25,2.25){$Z$};
+			% \draw[arr0] (1) to (X);
+			\draw[arr1] (X) to[bend right=25] (Y);
+			\draw[arr1] (Y) to[bend right=25] (Z);
+			\draw[arr1] (Z) to[bend right=25] (X);
+			%option: -- either X -> Y -> Z -> X, or <-> Y <-> Z <-> X. For the latter, uncomment the 6 lines below and comment out the next 3.
+			% \draw[arr1] (Z) to[bend left=5] (Y);
+			% \draw[arr1] (Y) to[bend left=5] (X);
+			% \draw[arr1] (X) to[bend left=5] (Z);
+			% \draw[fill=red!50!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+			% \draw[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+			% \draw[fill=red!50!black] (90:0.22) circle (\vsize) ++(140:.31) node[label=above:\tiny$Z$]{};
+
+			% grey filling for one covering.
+			\draw[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+			\draw[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+			\draw[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.31) node[label=above:\tiny$Z$]{};
+
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				% \fill[white!70!black] (-1,-1) rectangle (3,3);
+				\clip (90:0.22) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\draw[] (-30:0.22) circle (\vsize);
+				\draw[] (210:0.22) circle (\vsize);		
+				\draw[] (90:0.22) circle (\vsize);
+			\end{scope}
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}
+	\hspace{3pt}
+	\hspace{\spacerlength}%\vrule\hspace{\spacerlength}
+		%% EXAMPLE: X -> Y <- Z
+		\refstepcounter{subfigure}\label{subfig:XZtoY}
+		\begin{tikzpicture}[center base] 
+			% \node[dpad0] (1) at (-0.5,2.3){$\var1$};
+			\node[dpad0] (X) at (-0.45,1.9){$X$};
+			\node[dpad0] (Y) at (0.3,1.25){$Y$};
+			\node[dpad0] (Z) at (0.4,2.15){$Z$};
+			% \draw[arr0] (1) to (X);
+			\draw[arr0] (X) to[] (Y);
+			\draw[arr1] (Z) to[] (Y);
+			\path[fill=green!50!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+			\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+			\path[fill=green!50!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (90:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+
+				\clip (90:0.22) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);	
+				% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\end{scope}
+			\draw[] (-30:0.22) circle (\vsize);
+			\draw[] (210:0.22) circle (\vsize);		
+			\draw[] (90:0.22) circle (\vsize);
+	%		\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){\slshape\color{subfiglabelcolor}\thesubfigure};
+		\end{tikzpicture}~
+		\hspace{\spacerlength}%\vrule\hspace{\spacerlength}
+			%% EXAMPLE: X <-> Y <-> Z
+			\refstepcounter{subfigure}\label{subfig:XYZ-bichain}
+			\begin{tikzpicture}[center base] 
+				% \node[dpad0] (1) at (0.1,2.4){$\var1$};
+				\node[dpad0] (X) at (-0.3,1.2){$X$};
+				\node[dpad0] (Y) at (0.3,1.9){$Y$};
+				\node[dpad0] (Z) at (-0.35,2.5){$Z$};
+				% \draw[arr1] (1) to (X);
+				% \draw[arr1] (1) to (Y);
+				\draw[arr1] (X) to[bend right=15] (Y);
+				\draw[arr1] (Y) to[bend right=15] (X);
+				\draw[arr1] (Y) to[bend right=15] (Z);
+				\draw[arr1] (Z) to[bend right=15] (Y);
+				\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+				\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+				\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+				\begin{scope}
+					\clip (-30:0.22) circle (\vsize);
+					\clip (90:0.22) circle (\vsize);
+					\fill[white!70!black] (-1,-1) rectangle (3,3);
+				\end{scope}
+				\begin{scope}
+					\clip (90:0.22) circle (\vsize);
+					\clip (210:0.22) circle (\vsize);
+					\fill[red!50!black] (-1,-1) rectangle (3,3);
+				\end{scope}
+				\begin{scope}
+					\clip (-30:0.22) circle (\vsize);
+					\clip (210:0.22) circle (\vsize);
+					\fill[white!70!black] (-1,-1) rectangle (3,3);
+
+					\clip (90:0.22) circle (\vsize);
+					\fill[green!50!black] (-1,-1) rectangle (3,3);
+					% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+					% \draw[ultra thick,white] (90:0.2) circle (\vsize);	
+					% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+					% \draw[ultra thick,white] (210:0.2) circle (\vsize);		
+					% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+				\end{scope}
+				\draw[] (-30:0.22) circle (\vsize);
+				\draw[] (210:0.22) circle (\vsize);		
+				\draw[] (90:0.22) circle (\vsize);
+	%			\useasboundingbox (current bounding box);
+				\node at (-0.7, 0.7){\slshape\color{subfiglabelcolor}\thesubfigure};
+			\end{tikzpicture}
+			}
+	}
+	\addtocounter{figure}{-1} %undo the thing I did to make subfigs work
+	% \captionof{figure}{\label{fig:info-diagram}
+	\caption{
+		\itshape Illustrations of example graph information
+		  functions $\{ \IDef{G_i} \}$, drawn underneath their
+		  associated multigraphs $\{ G_i\}$. Each circle represents a
+		  variable; an area in the intersection of circles $\{C_j\}$
+		  but outside of circles $\{D_k\}$ corresponds to information
+		  that is shared between all $C_j$'s, but not in any
+		  $D_k$. Variation of a candidate distribution $\mu$ in a
+		  green area makes its qualitative fit better (according to
+		  $\IDef{}$), while variation in a red area makes its
+		  qualitative fit worse; grey is neutral. Only the boxed
+		  structures in blue, whose graph information functions can be
+		  seen as assertions of (conditional) independence, are
+		  expressible as BNs.} 
+
+	\label{fig:info-diagram}
+	\end{figure}
+
+	The examples here are in reference to \Cref{fig:info-diagram}.
+	Subfigures \ref{subfig:justX-0}, \ref{subfig:justX-1}, and \ref{subfig:justX-2} show that adding edges makes distriutions more deterministic. 
+	As each edge $\ed LXY$ corresponds to an assertion about the ability to determine $Y$ from $X$, this should make some sense.
+	In particular, \ref{subfig:justX-2} can be justified by the fact that if you can determine X from two different random draws, the draws probably did not have much randomness in them. Thus we can qualitatively encode a double-headed arrow as two arrows, further justifying the notation.
+		%oli11: note that it does not matter for the semantics, because failing to meet the constraint imposed by a double-headed arrow will give infinite cost anyway, for any edge, as \beta > 0.
+	%	
+	Without any edges (e.g., \ref{subfig:justX-0},\ref{subfig:justXY}), the $G$-information rewards distributions with the most uncertainty. Each additional edge adds a penalty for a crescent, as when we move from \ref{subfig:justXY} to \ref{subfig:XtoY} to \ref{subfig:XY-cycle}.
+	%
+	Some graphs (\Cref{subfig:justX-1,subfig:1XY}) are \emph{universal}, in that every distribution gets the same score (so that score must be zero, beause this is the score a degenerate distribution gets). Such a graph has a structure such that \emph{any} distribution can be precisely encoded by the process in (b). 
+	%	
+	The $G$-information can also indicate independencies and conditional independencies, illustrated respectively in \ref{subfig:XYindep} and \ref{subfig:1XYZ}.
+
+	So far all of the behaviors we have seen have been instances of entropy maximization / minimization, or independencies, but $G$-information captres more: for instance, if $G$ has cycles, as in \ref{subfig:XY-cycle} or \ref{subfig:XYZ-cycle}, the $G$-information prioritizes shared information between all variables. 
+
+	In more complicated examples, where both penalties and rewards exist, we argue that the $G$-information still implicitly captures the qualitative structure. In \ref{subfig:XYZ-bichain}, $X$ and $Y$ determine one another, and $Z$ and $Y$ determine one another. It is clear that $X$ and $Z$ should be indpenedent given $Y$; it can also be argued that $Y$ should not have any randomness of its own (otherwise the draws from $X$ or $Z$ would likey not match one another) and that this structure suggests co-variation of all three variables.
+	\end{example}
+		
+	\moveme{The alternative $G$-information deficit is the total uncertainty \emph{actually} result from each table, in the context of distribution $\mu$, minus the total entropy of the distribution. We can think of its negation as the uncertainty in $\mu$, which has not already been specified by the cpds in $\dg M$.}
+	%END_FOLD
+	\subsection{Localizing Uncertainty}
+%   \subsection{}
+    \textbf{What are you Uncertain About?}
+    An idealized probabilist is uncertain only about an outcome. You see, there is some set $\Omega$ of all possible outcomes, and uncertainty takes the form of a probability distribution $\mu : \Delta\Omega$. There may also be ``random variables'' present, but these are merely functions taking an element of $\Omega$ to some set of possible values (which we denote by $\V(X)$, for a variable $X$).
+    Of course, $\mu$ may result in lots of variance for a variable $X$ and none for $Y$ while another distribution on $\Omega$ does the opposite,
+    but at the end of the day, uncertainty is about $\Omega$, and it is merely filtered through the variables.
+
+    While this is indeed the formal account of probability that we share, the characterization of $\Omega$ is prior to variables may be misleading; it is common to define $\Omega$ ``at the last minute'', as the set of all realizable joint settings of the relevant variables, which can only be done after the rest of the modeling.
+
+    \begin{example}
+        For instance, we can formalize the process of including a new variable $Y$ by taking a new set of outcomes $\Omega' := \Omega \times \V(Y)$, formally setting $Y : \Omega \times \V(Y) \to \V(Y)$ to be the projection of the second component, and modifying any other variable $X : \Omega \to \V(X)$ to a variable $X' : \Omega' \to \V(X)$ on the new set of outcomes by pre-composing it with a projection to the first component, as illustrated in the following commutative diagram.
+        \begin{center}
+            \begin{tikzcd}[column sep = 1em]
+                \Omega \ar[rr, "X"] && \V(X) \\ & \Omega \times \V(Y)  \ar[ru, "X':= X \circ \pi_1"description, dashed] \ar[rr, "Y' := \pi_2"'] \ar[lu, "\pi_1"] &&  \V(Y)
+            \end{tikzcd}
+        \end{center}
+
+        We must also extend $\mu$ to a new distribution $\mu'$ on the new set $\Omega'$ of outcomes, in such a way that the marginal on $\Omega$ is preserved -- that is, we set $\mu'(\omega, y) := \mu(\omega) p(y \mid \omega)$, where $p(y \mid \omega)$ is new information not contained in the original probability space.
+    \end{example}
+
+    If the set of outcomes $\Omega$ is built up from variables in this way, then the question of which variables are ``responsible'' for uncertainty remains relevant.
+%    An answer of the form
+%   \[ X \text{ is responsible for 5\% of the uncertainty};\quad Y \text{ is responsible for 10\% of the uncertainty}, \ldots \]
+%   is unlikely to
+
+    \subsubsection{Joint Variables and Variable Commonality }
+    Let $\Omega$ is a set of outcomes. A set of random variables $\mat X = \{ X : \Omega \to \V(X)  \mid X \in \mat X \}$ is itself a random variable, taking values $\V(\mat X) = \prod_{X \in \mat X} \V(X) $ which are joint settings of its elements. As a function $\Omega \to \V(\mat X)$ it is explicitly characterized by $\mat X(\omega) := \{ X(\omega) \}_{X \in \mat X}$.
+    This identification is intuitive, and is made almost everywhere, implicitly if not explicitly (e.g., via the notation $p(x,y)$). It also has the effect of identifying a variable $X$ with the singleton $\{X\}$, and from this perspective the joint variable $\mat X$ may be seen as a union of variables $\mat X = \bigcup_{X \in \mat X} \{ X \}$.
+    This is a trivial restatement of the construction, but highlights a crucial fact: $\mat X$ represents \emph{join} of the information (informally speaking) of the individual variables--- a fact which is obscured when we simply think of joint settings as sets, which do not seem to have this polarity. (In general, of course, sets are just as easily intersected as unioned.) The view of $\mat X$ as a random variable representing the join of its elements serves its purpose well, which is why so many authors, including us, make this identification. When we wish to emphasize that joint settings of $X$ and $Y$ are the join of $X$ and $Y$, or to make the tie to propositional logic explicit, we write $X \lor Y$ for the joint random variable.
+
+
+    The existence of a join (``$\lor$'') makes us wonder about a \emph{meet} (``$\land$''). Does the \emph{intersection} of sets of random variables capture a useful notion of shared information? Unfortunately not.
+    To illustrate, let $A, B, C, D$ be independent random variables, and $A'$ be a fifth variable that happens to take the same value as $A$ at all worlds (but is conceptually different from $A$);%
+        \footnote{Some might object by saying that formally speaking $A = A'$, but we can dismiss this concern by further distinguishing $A$ and $A'$; for instance, by letting them differ slightly on a single outcome $\omega$ which necessarily has probability zero.}
+    suppose further that $\mat X = \{A,B,C\}$ and $\mat Y = \{A', B, D\}$. Now $\mat X \cap \mat Y = \{B\}$, which fails to capture the fact that there is also information about $A$ (or equivalently $A'$) that is shared between $\mat X$ and $\mat Y$. Indeed, $\{A\} \cap \{A'\} = \emptyset$ which is problematic, given that $A$ shares the entirety of its probabilistic behavior with $A'$.
+    Contrast this behavior with that of the union.  The joint variable $\mat X \cup \mat Y$ does not have this problem: a joint setting $(a,b,c,a',d) \in \V(\mat X \cup \mat Y)$ clearly contains precisely the union of any information in $\mat X$ or $\mat Y$. Notice that there is a harmless redundancy: the tuple contains both $a$ and $a'$ even though we know them to be equal. This minor defect of $\cup$ as a join is in some sense a reflection of the fatal flaw of $\cap$ as a meet: in both cases, the issue is that only a very strict notion of variable identity, and none of the variable's behavior, is taken into account.
+
+    For this reason, the sets-of-variables account is brittle in many ways, and leans assumptions that a modeler has divided the world into independent, atomic variables. But what do we do when such assumptions are false? What if concepts aren't always primitive or independent? Entropy offers a compelling answer --- one that does not depend on names or even the number of variables, and is invariant under changes of variables.
+
+    \subsection{The Information Profile: Information as a Signed Measure.}
+
+
+
+
+
+
+    % \subsubsection{Constructing the Information Profile of a Distribution}
+
+%   Some authors simply define $\H(Y \mid X)$ to be a difference of joint entropies $\H(X,Y) - \H(X)$. Similarly, we can write the mutual information as an alternating sum of joint entropies.
+%   \begin{align*}
+%       \I(X \land Y) &:= \H(X,Y) - \H(Y \mid X) - \H(X \mid Y)  & \text{[the Venn diagram without the sides]}\\
+%           &=  \H(X,Y) - \H(X,Y) + \H(X) - \H(X,Y) + \H(Y)  &\text{[expanding conditional entropy]}\\
+%           &= - \H(X,Y) + \H(X) + \H(Y)
+%   \end{align*}
+    Most quantities in information theory can be written as a difference of entropies.
+    For instance, some authors simply define $\H(Y \mid X)$ to be $\H(X,Y) - \H(X)$.
+    We now write the formulas for information shared between 1, 2, and 3 variables in a more suggestive form.
+    \begin{align*}
+        \textit{Information in $X_1$:}  && \I(X_1 &) = \H(X_1) ;\\
+        \textit{Mutual Information between $X_1, X_2$:} && \I(X_1 &\land X_2) = \H(X_1) + \H(X_2)  \\
+             &&&\qquad - \H(X_1, X_2); \\
+         \textit{Interaction Information of $X_1, X_2, X_3$:}&&\I(X_1 \land &X_2 \land X_3) = \H(X_1) + \H(X_2) + \H(X_3) \\
+            &&&\qquad - \H(X_1, X_2) - \H(X_2, X_3) - \H(X_1, X_3) \\
+            &&&\qquad  + \H(X_1, X_2, X_3)  .\\
+    \end{align*}
+    This suggests that we can extend to arbitrary elements of the Boolean algebra by use of an inclusion-exclusion formula. For terms involving 3 and higher conjuncts, it is common to take such a formula to be the definition.
+
+    More formally, let $\N$ be a set of variables, $B[\N]$ be the free Boolean algebra generated by $\N$, and $\mu$ be a joint distribution over $\V(\N)$. As we extend entropy to these new elements, we will change the symbol $\H$ to $\I$, for compatibility with the standard notation, such as the mutual information. The information of a joint variable $\I_\mu(X \lor Y)$ which we have written so far as $\H_\mu(\{X,Y\})$ or simply $\H(X,Y)$, already tells us how to measure the entropy of joins of random variables. We simply convert meets to joins using the inclusion-exclusion rule, so that
+    \begin{equation}\label{eq:inclexcl}
+        \I_\mu\Big(\bigwedge_{X \in S} X\Big) =  \sum_{T \subseteq S} (-1)^{|T|+1} \I_\mu\Big( \bigvee_{X \in T} X \Big) ~,
+    \end{equation}
+    % (and the footsteps of \cite{JakulinBratko,BellCoInformation,})
+    by analogy to the
+    \href{https://en.wikipedia.org/wiki/Inclusion%E2%80%93exclusion_principle}
+        {the inclusion-exclusion rule} for probability and counting measures \cite[eq 2.7]{halpern2017reasoning}.
+
+    One might worry because an element $b \in B[\N]$ of the free Boolean algebra can be represented in more than one way.
+
+    \begin{inactive}
+        In the formal definition that follows, we will first convert every $b$ to its canonical CNF for definiteness, but  afterwards we will show that the normalization is unnecessary, and that \eqref{eq:inclexcl} holds independent of the representation.
+
+        \begin{fact}
+            For every set $S$ and $b \in B[S]$, there exists a unique finite matrix $S = (s_{i,j})$ where each $s_{i,j}$ is a literal equal either $s$ or $\lnot s$, such that
+            $\displaystyle b = \bigwedge_{i} \bigvee_{j} s_{i,j} $
+        \end{fact}
+        \begin{defn}
+            The information $\I_\mu$ with respect to a distribution $\mu$ and a set $\N$ of variables, of an element $b \in B[\N]$,
+            \[          \I_\mu\Big(\bigwedge_{X_x \in S} X_s\Big) =  \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big( T \Big) ~. \]
+            %       \begin{itemize}[itemsep=0pt, parsep=1pt]
+            %           \item If $\varphi = \bigvee_i X_i$, we define $\I^\N_\mu(\varphi) := \H_\mu(X_1, \ldots, X_n)$.
+            %           \item For $\varphi = \bigwedge_i X_i$, we define $\I^\N_\mu(\varphi)
+            %                := \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big(\bigvee_{X \in X} T\Big)$.
+            %       \end{itemize}
+        \end{defn}
+    \end{inactive}
+
+
+\begin{defn}
+    We define the \emph{information} $\I_\mu^\N$ with respect to a distribution $\mu$ and a set $\N$ of variables, of a formula $\varphi \in \lang{prop}$, we inductively define
+%   \[          \I_\mu\Big(\bigwedge_{X_x \in S} X_s\Big) =  \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big( T \Big) ~. \]
+            \begin{itemize}[itemsep=0pt, parsep=1pt]
+                \item For $\varphi = \phi \lor \psi$, we define $\I^\N_\mu(\varphi) := \H_\mu(X_1, \ldots, X_n)$.
+                \item For $\varphi = \bigwedge_i X_i$, we define $\I^\N_\mu(\varphi)
+                     := \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big(\bigvee_{X \in X} T\Big)$.
+            \end{itemize}
+\end{defn}
+
+    \begin{defn}
+        The information $\I_\mu$ with respect to a distribution $\mu$ and a set $\N$ of variables, of an element $b \in B[\N]$,
+    \[          \I_\mu\Big(\bigwedge_{X_x \in S} X_s\Big) =  \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big( T \Big) ~. \]
+%       \begin{itemize}[itemsep=0pt, parsep=1pt]
+%           \item If $\varphi = \bigvee_i X_i$, we define $\I^\N_\mu(\varphi) := \H_\mu(X_1, \ldots, X_n)$.
+%           \item For $\varphi = \bigwedge_i X_i$, we define $\I^\N_\mu(\varphi)
+%                := \sum_{T \subseteq S} (-1)^{|T|+1} \H\Big(\bigvee_{X \in X} T\Big)$.
+%       \end{itemize}
+    \end{defn}
+
+    \begin{prop}
+        $\I_\mu^\N$ is well-defined.
+    \end{prop}
+
+    \begin{defn}
+        The \emph{information profile} of $\mu$ with respect to $\N$, denoted $\mat I_\mu^\N$, is a ($2^{|\N|} -1$) dimensional vector
+    \end{defn}
+
+    \begin{example}
+        content
+    \end{example}
+
+
+
+    \begin{prop}
+        There is a factorization of $\Omega = X_1 \times X_2 \times \ldots \times X_n$
+    \end{prop}
+
+    This formula is given in \cite{}.
+
+%   and the $\mu$-entropy, $\H_\mu$, can be seen as a measure over the variables $\N$, in which every $S \subseteq \N$ is measurable.
+    \subsection{Illustrations and Examples}.
+
+    %   \subsection{}
+    %   Once again, let $\N$ be a set of variables, and $\mu$ be a joint distribution over $\N$.
+    %   The general idea is that for variables $X, Y, Z \in \N$
+
+    \begin{example}
+        Let $\mu$ be a distribution over the three variables $\N = \{X,Y, Z\}$.
+        %       \lipsum[1-4]
+        \begin{center}%{R}{3cm}
+            %           \let\varnames{X,Y,Z}
+            \begin{tikzpicture}
+                \begin{scope}[scale=0.5]
+                    \begin{scope}[blend group=hard light, opacity=0.5]
+                        \draw[fill=color1!50!white]   ( 0:1.2) circle (2);
+                        \draw[fill=color2!50!white] (120:1.2) circle (2);
+                        \draw[fill=color3!50!white] (-120:1.2) circle (2);
+%                       \draw[fill=red!50!white]   ( 0:1.2) circle (2);
+%                       \draw[fill=green!50!white] (120:1.2) circle (2);
+%                       \draw[fill=blue!50!white] (-120:1.2) circle (2);
+                    \end{scope}
+
+                    \draw(0:1.2) circle (2);
+                    \draw(120:1.2) circle (2);
+                    \draw(-120:1.2) circle (2);
+
+                    \node at (0:3.7) {X};
+                    \node at (120:3.7) {Y};
+                    \node at (-120:3.7) {Z};
+                \end{scope}
+            \end{tikzpicture}
+        \end{center}
+        %       \lipsum[1-6]
+    \end{example}
+    \subsection{Paying for structure: a symmetric extension of \texorpdfstring{$\IDef{}$}{IDef}}
+    % Show that it's a special case
+	
+\end{document}

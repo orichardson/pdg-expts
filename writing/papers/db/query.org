@@ -1,0 +1,109 @@
+#+TITLE: PDG Queries
+
+* Queries
+** Draw a distinction between being certain (high β) and caring a lot about a query marginal.
+** Specify a family of algorithms for finiding the margianl.
+
+Figure out the complexity concerns associated with these.
+Do different queries fall into different classes, as in the Vardi paper?
+
+** Figure out how databases work.
+*** Table ↭  PDG Correspondence
+
+| R1 | A  | B  | C  |
+|----+----+----+----|
+| r1 | a1 | b1 | c1 |
+| r2 | a2 | b2 | c2 |
+
+This corresponds to the database schema
+    R1 \to A \times B \times C
+and an instance with
+ - R1 = {1,2},
+ - {a1,a2} \subset A
+ - {b1,b2} \subset B
+ - {c1,c2} \subset C
+
+*** Issues :Issues:
+**** Coherence, Infinite Scores, Wrong Interpretation.
+***** Example: Employee + Department :example:
+Consider the Tables
+
+| Department | secretary | manager |
+|------------+-----------+---------|
+| Sales      | Alice     | Bob     |
+| Marketing  | Carl      | Dianne  |
+
+and
+
+| Employee | first name | last name | SSN | WorksIn   |
+|----------+------------+-----------+-----+-----------|
+| Alice    | Allie      | Smith     |   4 | Sales     |
+| Bob      | Robert     | Baker     |   2 | Sales     |
+| Carl     | Carnelious | Qi        |  11 | Marketing |
+| Dianne   | Dianna     | Jargol    | 333 | Marketing |
+
+There are two employee referenes in department (corresponding to parallel) edges
+in the structure diagram, but any joint distribution over [Employee, Department]
+will not contain this information.
+
+Note: a distribution over (emp, dept, arrow) makes sense to score (for a
+deterministic database, return prior on source, and corresponding posterior on
+target), but it is not clear that a joint distribution of this kind will contain
+exactly the right information. It is unsatisfying, for instance, that we have to
+weigh "Department=Sales" against "Department=Marketing" when clearly both exist.
+
+This can also be interpreted as a feature: it is "self-attention", and
+represents focus. At either extreme, a department with probability \epsilon \approx 0 it is
+unlikely that anyone works in, and an employee with small probability likely is
+not a manager / secretary of any department.
+
+***** Potential Resolutions
+
+Some Resolutions
+
+- Mark certain nodes as "coppied", so that effectively they are duplicated for every edge leading to them.
+- Similarly, mark some arrows as "duplicating".
+- Similarly, mark 2-cells as "commuting" or "non-commuting"
+  (in the above, we have f_name and l_name non-commuting)
+- Use \beta's, to effectively look at only one edge at a time?
+- Have a heirarchy / poset, so that using a reference to a lower-level item duplicates it.
+- [[*Guard Database]]
+
+Reinterpet
+-
+
+** Guard Database
+:LOGBOOK:
+CLOCK: [2020-07-10 Fri 21:07]--[2020-07-10 Fri 21:07] =>  0:00
+CLOCK: [2020-07-10 Fri 13:46]--[2020-07-10 Fri 13:46] =>  0:00
+:END:
+
+The fundamental idea: you only have "local" memory = the number of variables in your PDG. Youc an only look at this many things, at one instance in time. All computations must be done from joint settings (or perhaps distributions...) of the variables of your PDG. But you can do computation, and have sequences of joint settings, and in the links you can store large amounts of information.
+
+
+* Representations of Databases
+** Relational
+R ⊆ A1 × A2 × A3
+or equivalently R: A1 × A2 × A3 → 2
+
+
+** Object path
+R.A1
+**
+
+
+* Scratch
+
+No intersection and hence inconsistent:
+  - isFriend + isEnemy:
+  - The Empty Set
+
+But when we write a table in a database, we don't mean to say any choice of
+domain elements has occured, and even if it has, we do not necessarily want to
+assert that the relationship holds of them.
+
+By representing $f$ in un-curried form, we only need to solve the second
+problem. Specifically, suppose we indeed wanted to assert the truth of each
+predicate. A relation is defined by the set of tupples it contains, and because
+the constraint graph gives a set of admissible tuples, the resulting set of
+joint settings is the set of

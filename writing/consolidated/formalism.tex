@@ -1,0 +1,347 @@
+\documentclass[the-pdg-manual.tex]{subfiles}
+\begin{document}
+	\section{PDG Formalism}
+	\subsection{PDG Syntax}
+	\def\pdgvars[#1]{(\N#1, \Ed#1, \V#1, \mat p#1, \alpha#1,\beta#1)}
+	\begin{defn}[sPDG]\label{def:sPDG}
+		A strict PDG is a tuple $\pdgvars[]$ where
+		\begin{description}[nosep]
+			\item[$\N$]~is a finite collection of nodes, which are identified with variables,
+			\item[$\Ed$]~is a collection of directed edges (arrows), each with a source, target, and a (possibly empty) label.
+			\item[$\V$]~associates each node $N \in \N$ with a set $\V(N)$,
+			representing the values that the variable $N$ can take. 
+			\item[$\mathbf p$] associates, for each edge $L = (X,Y, \ell) \in \Ed$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$, whenever $\beta_L > 0$.
+			\item[$\beta$]~associates to each edge $L$, a number in $[0,\infty]$, indicating certainty in the conditional distribution $\bp(Y \mid X)$ 
+			\item[$\alpha$]~associates to each edge $L$, a number in $[0,1]$, indicating degree of belief that $L$ represents a functional dependence.
+		\end{description}
+		\vspace{-1.4em}
+	\end{defn}
+
+	If $\dg M$ is a PDG, we reserve the names $\pdgvars[^\dg M]$
+	for its components, so that we may reference one (e.g.,
+	$\Ed^\dg M$) without naming them all explicitly. We may further omit the superscript in contexts where only one PDG is present. 
+	We write $\V(S)$ for the set of possible joint settings of a set $S$
+	of variables; in particular, 
+	we write $\V(\dg M)
+	= \prod_{N \in \N^\dg M} \V^\dg M(N)$
+	for all settings of the variables $(\N^\dg M, \V^\dg M)$.
+	
+	Note that we allow multiple edges in $\Ed$ with the same source and
+target; thus $(\N,\Ed)$ is a multigraph.  We occasionally write a PDG
+%joe20
+%as $\dg M = (\Gr,\mat p, \beta,\alpha)$, where $\Gr = (\N,\E,\V)$, and
+%joe21: Note that we have three deifferent font in G-(N,E,V)
+as $\dg M = (\Gr, \mat p, \alpha,\beta)$, where $\Gr = (\N,\Ed,\V)$, and
+%joe21
+%abuse terminology by referring to $\Gr$ as $\Gr$ as a multigraph.
+abuse terminology by referring to $\Gr$ as a multigraph.
+%oli22: added
+%joe20: it's not a partial spefication.  
+%We refer to a partial specification
+We refer to 
+%joe21: I think we have four different fonts here.  This is really not
+%good, although I'm not going to worry about it now
+%oli24: thanks for not worrying; it was an easily identifiable
+% macro confusion that arose when you rewrote this bit.
+${\dg N} = (\Gr, \mat p)$ as an \emph{unweighted} PDG,
+%oli24: 
+% pulled up from where you said this, with slight modification.
+and give it semantics as though it were the (weighted) PDG $(\Gr, \mat p, \mat 1, \mat 1)$, where
+$\bf 1$ is the constant function (i.e., so that $\alpha_L = \beta_L = 1$ for all $L$). 
+
+
+While the definition above is sufficient to represent the class of all legal
+PDGs, we often use two additional bits of syntax to represent common
+constraints:  
+    	
+\begin{itemize}
+    \item A special variable $\sf 1$ whose range consists of only element, which
+    we denote $\star$. It is used to represent unconditional distributions, as
+    in \Cref{ex:guns-and-floomps,ex:smoking}.  
+
+	\item Double-headed arrows, $A \tto
+      B$, which visually indicate the degenerate special
+          case of a cpd that assigns probability 1 to $f(a)$
+          for each $a \in A$ (corresponding to a deterministic
+          function $f : A \to B$). 
+\end{itemize}
+
+\begin{constr}\label{constr:hyperedge-reducton}
+We can now explain how we capture   the multi-tailed edges that 
+were used in 
+\Crefrange{ex:smoking}{ex:grok-union}. 
+That notation can be viewed as shorthand for the graph that results by adding a new node at the junction representing the joint value of the nodes at the tails, with projections going back.  For instance,
+% the diagram of the PDG in the shaded box of \Cref{subfig:smoking-pdg}
+the diagram displaying Grok's prior knowledge in \Cref{ex:grok-union}, on the left of \Cref{fig:grok-combine}
+%joe7: moved up from below, to save a line
+%is really shorthand for the following PDG:
+is really shorthand for the following PDG, where
+where we insert a node labeled $C \times T$ at the junction:
+\smallskip
+	\begin{center}
+	\ifprecompiledfigs
+\raisebox{-0.5\height}{\includegraphics[scale=0.9]{figure-pdfs/widget}}
+% \raisebox{-0.5\height}{\includegraphics[scale=0.9]{widget}}
+	\else
+		\begin{tikzpicture}[paperfig]
+			\node[dpadded] (SL) at (-1.0,0) {$\mathit{SL}$};
+			
+			\node[dpadded,light pad] (CT) at (-2.9, 0){$\scriptstyle C \times T$};
+			\node[dpadded] (C) at (-4.8, -0.6) {$C$};
+			\node[dpadded] (T) at (-4.8, 0.6) {$T$};
+			
+	%				\node[dpadded, dashed,color=violet] (X) at (6.5,0) {$X$};
+	%				\draw[arr, color=violet] (X) -- (S);
+	%				\draw[arr, color=violet] (X) -- (C);
+	%				\draw[arr, dashed, color=violet] (X) -- (SC);
+			
+			\draw[arr, ->>] (CT) -- (C);
+			\draw[arr, ->>] (CT) -- (T);
+			\draw[arr] (CT) -- (SL);
+			\draw[arr] (T) to [bend right=90, looseness=2] (C);
+	\end{tikzpicture}
+	\fi
+	%%%%%%%%%%%%%%%%%  smoking fragment: %%%%%%%%%%%%%%%%%%%%%%
+% 		\scalebox{0.8}{
+% 			\begin{tikzpicture}
+% 				\node[dpadded] (C) at (-1.0,0) {$C$};
+% 				\node[dpadded] (T) at (0.5,0) {$T$};
+% 
+% 				\node[dpadded,light pad] (SSH) at (-2.9, 0){$\scriptsize \mathit{SH} \times S$};
+% 				\node[dpadded] (S) at (-4.8, 0.6) {$S$};
+% 				\node[dpadded] (SH) at (-5.0, -0.6) {$\mathit{SH}$};
+% 
+% %				\node[dpadded, dashed,color=violet] (X) at (6.5,0) {$X$};
+% %				\draw[arr, color=violet] (X) -- (S);
+% %				\draw[arr, color=violet] (X) -- (C);
+% %				\draw[arr, dashed, color=violet] (X) -- (SC);
+% 
+% 				\draw[arr, ->>] (SSH) -- (S);
+% 				\draw[arr, ->>] (SSH) -- (SH);
+% 				\draw[arr] (SSH) -- (C);
+% 				\draw[arr] (T) -- (C);
+% 		\end{tikzpicture}}
+	\end{center}
+	\smallskip
+
+% That is, we inserted a node labeled $SH \times S$ at the junction.  As
+% the notation suggests, $\V( \mathit{SH} \times S) = \V(\mathit{SH}) \times \V(S)$.
+% The cpd for $(h,s) \in \V(\mathit{SH} \times S)$  associated with 
+% the edge from $\mathit{SH} \times S$ to $\mathit{SH}$ gives probability 1 to $h$;
+% similarly, the cpd for $(s,c)$  associated with 
+% the edge from $ C \times C$ to $S$ gives probability 1 to $s$.
+%joe7
+%        That is, we inserted a node labeled $C \times T$ at the junction.
+As the notation suggests, $\V( C \times T) = \V(C) \times \V(T)$.
+%joe2: this is not the time to start talking about matri\mathit{SL}es
+%Thus, $\V(S \times \mathit{SL}) = \V(S) \times \V(\mathit{SL})$; the matrix asso\mathit{SL}iated with
+For any joint setting $(c,t) \in \V(C \times T)$ of both variables, the cpd for
+the edge from $C \times T$ to $C$ gives probability 1 to $c$;
+similarly, the cpd for the edge from $ C \times T$ to $T$ gives probability 1 to $t$.
+\end{constr}
+
+
+	\subsection{Overview of PDG Semantics}
+	\subsubsection{Sets of Distributions}
+	We start by interpreting a PDG as the set of distributions consistent with it.  
+	\begin{defn}[set-of-distribution semantics] \label{def:set-semantics} 
+		If $\dg M\!=\!\pdgvars[]$ is a PDG, let $\SD{\dg M}$ be the \emph{s}et of \emph{d}istributions over the variables in $\dg M$ whose conditional marginals are exactly those given by $\mat p$.
+		That is, $\mu \in \SD{\dg M}$ iff, for all edges $L = (X,Y) \in \Ed$,  $x \in \V(X)$,  and $y \in \V(Y)$, we have that $\mu(Y = \cdot \mid X\!=\! x) = \bp(x)$.
+		{
+			\[ \SD[\Big]{\dg M} = \!\left\{\mu \!\in\! \Delta \V_\none (\dg M) \middle|\!
+			\begin{array}{l}
+				\mu(B\!\! =\!\!b \mid A\!\!=\!\!a) \geq \boldsymbol\mu_L(b \mid a) \\[0.1em]
+				~\text{$\forall (A, B,\ell) \!\in\! \Ed$, $a \!\in\!\mathcal V_A$, $b \!\in\! \mathcal V_B$} \end{array}\!\!\! \right\}\]
+		}
+		$\dg M$ is \emph{consistent} if $\SD{\dg M}$ is inhabited (non-empty), and \emph{inconsistent} otherwise.
+	\end{defn}
+	
+	Note that $\SD{\dg M}$ is independent of the weights $\alpha$ and $\beta$.
+
+%joe17*: This breaks teh flow here.  If it were go anywhere, it should
+%be in the appendix
+%oli20: oops, I don't want it in the AAAI submission either.
+	% It turns out that this semantics only results in convex sets. 
+	\begin{prop}[restate=thmsetconvex] 
+		\label{prop:convex}
+		$\SD{\dg M}$ is convex, for all PDGs $\dg M$.
+	\end{prop}
+		
+	This may provide useful intuition, and we will prove a stronger version of this statement that corresponds to our second semantics.
+	Note that being inconsistent is not the same things as \emph{over-constrained}: 	
+	\begin{defn}
+		$\dg M = (\Gr,\V,\mat p)$ is over-constrained if there exists
+		  \emph{some $\mat p'$} assigning cpds to the same edges as
+		  $\mat p$, such that $(\Gr, \V, \mat p')$ is inconsistent
+		  (i.e., $\SD{\N^\dg M, \Ed^\dg M, \V^\dg M, \mat p}
+			= \emptyset$), and under-constrained if there are
+		  multiple distributions in $(\Gr, \V, \mat p')$ for
+		  \emph{every such $\mat p'$}, making this a property of the
+		  qualitative PDG $(\Gr, \V)$.  
+	\end{defn}
+
+	We know that an under-constrained PDG is consistent without even looking at the tables. However if a we know that an \emph{over-constrained} PDG is actually consistent (when it could have easily contradicted itself), the information provides corroborating evidence, and one can take this as support in favor of the beliefs. 
+
+
+	\subsubsection{Distribution Scoring Functions}\label{sec:scoring-semantics}
+	\begin{defn}[\texorpdfstring{$\Inc$}{Inc}; incompatibility and inconsistency]\label{def:inc}
+		The \emph{incompatibility} of a PDG $\dg M = \pdgvars[]$ with
+		a joint distribution $\mu$, denoted $\Inc_{\dg M}(\mu)$, is  
+		\[
+		\Inc_{\dg M }( \mu) := 
+		\!\!\!\sum\alle \beta_L \Ex_{x \sim \mu_{_X}}
+		\left[\kldiv[\Big]{ \mu(Y\!= \cdot\mid X \!=\! x) }{\bp(x) } \right] ,
+		\]
+		where $\kldiv{\mu}{\nu} = \sum_{w} \mu(w) \log\frac{\mu(w)}{\nu(w)}$ is the 
+		relative entropy from $\nu$ to $\mu$.
+	%	
+				The \emph{inconsistency} of $\dg M$, 
+			denoted $\Inc(\dg M)$, is the
+			minimum possible incompatibility of $\dg M$ with any
+			distribution $\mu$,  
+			\[ \Inc(\dg M) = \inf_{ \mu \in \Delta [W_{\cal V}]} \Inc_{\dg M}(\mu) . \]
+	\end{defn}
+	$\SD{\dg M}$ and $\Inc_{\dg M}$ distinguish only
+	between distributions based on their compatibility with
+	$\dg M$, but even among distributions that match the
+	marginals, some more closely match the qualitative structure
+	of the graph than others.  
+	%New
+	We therefore also give a score for how well a distribution qualitatively fits
+	a PDG, which depends only on $\mu$ and the underlying graph $\Gr^{\dg M}$. 
+		
+	\begthm[\texorpdfstring{$G$}{G}-information deficiency]%
+			{defn}{def:info-deficiency}
+		For a multi-graph $G = (\N, \Ed)$ over a set $\N$ of variables,
+		define the \emph{$G$-information deficiency}
+		of a distribution $\mu$, denoted $\IDef{G}(\mu)$,
+		by considering the difference between (a) and (b), 
+		where we measure the amount of information needed for a description
+		using (conditional) entropy: 
+		\begin{equation}
+			\IDef{G}(\mu) := \sum_{(X\shortrightarrow Y)\in \Ed} \alpha_L \H_\mu(Y\mid X) - \H(\mu). 
+			\label{eqn:idef}
+		\end{equation}
+		%\footnote{Recall that $H_\mu(Y\mid X)$, the
+		Recall that $H_\mu(Y\mid X) = - \sum_{x,y \in \V(\{X,Y\})} \mu(x,y) \log \mu(y\mid x)$ is the
+		\emph{conditional entropy of $Y$ given $X$} with respect to $\mu$.
+		For a PDG ${\dg M}$, is we take $\IDef{\dg M} = \IDef{(\N^{\dg M}, \Ed^{\dg M})}$, the information defecit with respect to its underlying hyper-graph.
+	\end{defn}
+	
+	This construction may seem like an arbitrary choice that we use to make 
+	some corresondences work out, but in \Cref{sec:details-on-joint-scoring} we
+	will argue that $\IDef{}$ both more natural than it seems, and intimately related to 
+	qualitative features of distributions. In the mean time, we simply add the scores together
+	% TODO follow through on this
+
+	
+	We also consider a variant of $\IDef{}$, in which we use $\Ex_{x \sim \mu_X} \H (\bp (x))$ in place of $\H_\mu(Y \mid X)$ to define the $G$-information deficit. We denote this variant with  $\IDef{}^{\mat p}$, and it is given explicitly by 
+	\begin{defn}[$\IDef{}'$, a more concrete $\IDef{}$]
+		\begin{equation*}
+			\IDef{\dg M}^{\mat p}(\mu) := \sum\alle \H_\mu(Y\mid X) - \H_\mu
+			\label{eqn:alt-extra}
+		\end{equation*}
+	\end{defn}
+
+	$\IDef{\dg M}^{\mat p}$ is like $\IDef{\dg M}$ but it uses the cpds in $\dg M$, rather than the marginals of the distribution, for its calculations. This makes it a more natural choice for algorithms in which the cpds are given, but $\mu$ is not. It has the benefit of having a linear first term and enjoying strong convexity for all values of $\gamma$. For distributions $\mu \in \SD{\dg M}$, these quantities are the same; therefore, the difference lies exclusively in the way it scores distributions that are already inconsistent with the edges.
+	
+	We will use this variant to interpret BNs as representing maximum-entropy distributions consistent with the cpds, where we take the information necessary to spceify the cpds into account; this generalizes the result of \cite{williamson2000}.
+	% \end{annotating}
+
+		
+
+	$\Inc({\dg M}, \mu)$ and $\IDef{\dg M},\mu)$ give us two measures of compatibility between ${\dg M}$ and a distribution $\mu$. We take the score of interest to be their sum, with the trade-off
+	controlled by a parameter $\gamma \ge 0$:
+	\begin{equation}
+		\bbr{\dg M}_\gamma(\mu).
+		:= \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu)
+		\label{eqn:full-score}
+	\end{equation}
+	%joe9*: I think the proposition and the following sentence are
+	%worth adding 
+
+	%joe10
+	%        The following just make precise that the scoring semantics
+	The following just makes precise that the scoring semantics
+	generalizes the first semantics.
+	% \begin{prop}[restate=prop:sd-is-zeroset]\label{prop:sd-is-zeroset}
+	\begthm{prop}{prop:sd-is-zeroset}
+	For all PDGs $\dg M$, we have that $\SD{\dg M} = \{ \mu : \bbr{\dg
+		M}_0(\mu) = 0\}$. 
+	\end{prop}
+
+	%%BEGIN_FOLD
+	\subsubsection{PDGs As Unique Distributions}\label{sec:uniq-dist-semantics}
+	%		
+			% shows that PDGS are 
+	Before we provide an interpretation of a PDG as a probability distribution, we stress that this distribution does \emph{not} capture all of the important information in the PDG---for example, a PDG can represent inconsistent knowledge states. Still, by giving a distribution, we enable comparisons with other graphical models. In the process, we will discover 
+	that PDGs are a surprisingly flexible tool for articulating distributions themselves. All we need to do is select the minimizers of our loss function.
+	We thus define 
+			
+	\begin{defn}[opt score joint distribution]
+		% \begin{equation}
+		$\bbr{\dg M}_\gamma^* = \arg\min_{\mu \in
+			\Delta\V(\dg M)} \bbr{\dg M}_\gamma(\mu).$
+		%\end{equation}   
+	\end{defn}
+
+	In general, $\bbr{\dg M}_\gamma^*$ does not give a unique distribution.  But if $\gamma$ is sufficiently small, then it does:
+
+	\begthm[unique opt if \texorpdfstring{$\gamma$}{g} small]
+			{prop}{prop:sem3}%\begin{prop}
+		If $\dg M$ is a PDG and $0 < \gamma \leq \min_L \beta_L^{\dg M}$, then $\bbr{\dg M}_\gamma^*$ is a singleton. 
+	\end{prop}
+			
+	We are especially interested in the case where $\gamma$ is small; this amounts to emphasizing the accuracy of the probability distribution as a description of probabilistic information, rather than the independence structure of the PDG.  This is what was going on in all the examples in the introduction.  This motivates us to consider what happens as $\gamma$ goes to 0.  If $S_\gamma$ is a set of probability distributions for all $\gamma \in [0,1]$, we define $\lim_{\gamma \rightarrow 0} S_\gamma$ to consist of all distributions $\mu$ such that there is a sequence $(\gamma_i, \mu_i)_{i \in \mathbb N}$ with $\gamma_i \to 0$ and $\mu_i \to \mu$ such that $\mu_i \in S_{\gamma_i}$ for all $i$. It can be further shown that
+
+	\begthm[unique opt as \expandafter\texorpdfstring{$\gamma\to0$}{g->0}]{prop}{prop:limit-uniq}
+		For all $\dg M$, $\lim_{\gamma\to0}\bbr{\dg M}_\gamma^*$ is a singleton. 
+	\end{prop} 
+
+	Let $\bbr{{\dg M}}^*$ be the unique element of $\smash{\lim\limits_{\gamma \rightarrow 0}} \bbr{{\dg M}}_\gamma^*$. 
+	The semantics has an important property: 
+
+	\begthm{prop}{prop:consist}
+		$\bbr{\dg M}^* \in \bbr{\dg M}_0^*$, so if $\dg M$ is consistent,
+		then $\bbr{\dg M}^* \in \SD{\dg  M}$.
+	\end{prop}
+	
+	\moveme{In contrast with the other two semantics, $\bbr{\dg M_1 \cup
+	\dg M_2}^*$ cannot be eaily calcualted from $\bbr{\dg M_1}_\gamma^*$ and
+	$\bbr{\dg M_2}_\gamma^*$. We will see that it is nonetheless effectively the semantics used by other graphical models.}
+
+	\begin{defn}
+		Let $\bbr{M}'(\mu) := \Inc{\dg M}(\mu) + \IDef{\dg M}^{\mat p}(\mu)$ be the altered version of the information definition.
+	\end{defn}
+	\begin{prop}\label{prop:u-convex}
+	$\bbr{\dg M}'_\gamma(\mu)$ is $\gamma$-strongly convex.% in $\mu$.
+	\end{prop}
+	\begin{proof}
+		$\Inc_{\dg M}( \mu)$ is convex in $\mu$
+		(\Cref{thm:inc-convex}), and $\gamma\sum\alle \Ex_{x\sim \mu_X}
+		\H(\bp(x))$ is linear in $\mu$.  
+		Negative entropy is $1$-strongly convex
+		(\Cref{prop:neg-ent-convex}), so $- \gamma \H(\mu)$ is $\gamma$-strongly convex.
+		The sum of a $\gamma$-strongly convex, linear, and
+		convex functions must be $\gamma$-strongly convex. 
+		%		, and strongly so when the coefficient on $-\H$ ($\gamma$) is positive. 
+		%(see \cite{Rockafellar1970ConvexA})
+	\end{proof}
+	
+	% \subsubsection{Probabilistic Automata}
+	\subsection{Operation on PDGs}
+	\subsection{Lax PDGs}
+	% \begin{defn}[PDG]\label{def:PDG}
+	% 	A (lax) PDG is a tuple $\pdgvars[]$ where
+	% 	\begin{description}[nosep]
+	% 		\item[$\N$]~is a finite collection of nodes, which are identified with variables
+	% 		\item[$\Ed$]~is a collection of directed edges (arrows), each with a source, target, and a (possibly empty) label.
+	% 		\item[$\V$]~associates each node $N \in \N$ with a set $\V(N)$,
+	% 		representing the values that the variable $N$ can take. 
+	% 		\item[$\mathbf p$] associates, for each edge $L = (X,Y, \ell) \in \Ed$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$, whenever $\beta_L > 0$.
+	% 		\item[$\beta$]~associates to each edge $L$, a number in $[0,\infty]$, indicating certainty in the conditional distribution $\bp(Y \mid X)$ 
+	% 		\item[$\alpha$]~associates to each edge $L$, a number in $[0,1]$, indicating degree of belief that $L$ holds causally.
+	% 	\end{description}
+	% 	\vspace{-1.4em}
+	% \end{defn}
+\end{document}
