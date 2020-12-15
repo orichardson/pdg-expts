@@ -1,61 +1,73 @@
 #+TITLE: Outline of Inference And Dynamics
 
-* TYPES OF QUERIES
-** Inference Queries (no side effects, inference)
-*** Unconditional Queries, e.g,. =Pr( Y=y )=
+* An Overview / Outline of the Paper
+:LOGBOOK:
+CLOCK: [2020-12-12 Sat 17:52]--[2020-12-12 Sat 19:33] =>  1:41
+:END:
+We have introduced PDGs, a powerful graphical model that subsume other graphical models, such as factor graphs and Bayesian Networks. They have semantics in terms of a funnctional on distributions.
+
+But how do we query them? How does this interact with the distribution-scoring semantics?
+e
+**
+
+
+
+
+* Previous Outline
+
+** TYPES OF QUERIES
+*** Inference Queries (no side effects, inference)
+**** Unconditional Queries, e.g,. =Pr( Y=y )=
 Gives an estimate of the unconditional probability of  Y. A specific case of the below, but arguably easier to answer.
 
-**** VARIANT: Give an answer and score it, without requiring that it correspond to the best distribution.
+***** VARIANT: Give an answer and score it, without requiring that it correspond to the best distribution.
 This should be a direct application of the semantics we already have.
-
-*** Conditional Queries, e.g.,  =Pr( Y=y | X=x )=
+**** Conditional Queries, e.g.,  =Pr( Y=y | X=x )=
 The given data can be represented by introducing an edge represnting the observation that X=x (purely dynamics), and then querying the unconditional probability (purely inference).
-
-*** Counter-factual Queries,  e.g., =Pr( Y=y | do(X₁=x₁, X₂=x₂) )=
+**** Counter-factual Queries,  e.g., =Pr( Y=y | do(X₁=x₁, X₂=x₂) )=
 If given data (the argument of the ~do~) is added in the form of edges with α=1, then we are instead representing causal information; I believe that our semantics actually give the right answers in this case also, though this should be posed and verified properly. To make this work, we need to also qualitatively sever other edges going into the variables that are intervened on (here, X₁ and X₂), which is done by setting their α to zero.
-
-*** Probabilistic Logic Queries, e.g., =Pr( ∃ x . R(x) )=
+**** Probabilistic Logic Queries, e.g., =Pr( ∃ x . R(x) )=
 + context :: When X → R is a link in the PDG, and R can take two different kinds of values (e.g., if it is binary, or can take either a value of NONE). fs
 + returns :: The probability that R, is true (not none) for at least one value of x ∈ X.
 
 This may be related to the counter-factutal queries (previous bullet).  I think the example in the title can be reframed as =Pr( R=true | do(X=x*))= where =x*= (which may depend on the values of other variables) maximizes the probability that R is true.
 
 NOTE: by appling the variant in which we do not answer the query but merely give a (suboptimal) answer and a score, representing quantifiers becomes easier (we can see how damaging adding the quantifier is to the score even if we can't compute probabilities nicely)
-
-*** Traversal Queries, e.g., = john.manager.manager.department.secretary=
+**** Traversal Queries, e.g., = john.manager.manager.department.secretary=
 + returns :: a distribution over possible outputs of the path
 
   This should be related to the section [[*PDGs as Probabilistic Automata]].
 
-*** Sampling Queries, e.g,.  =Draw x ~ ⟦M⟧*(X | Y=y, Z=z, do(X₃ = x₃))=
-** Dynamics (modification of the PDG)
-*** Structural Updates
-**** PDG Restrictions
+**** Sampling Queries, e.g,.  =Draw x ~ ⟦M⟧*(X | Y=y, Z=z, do(X₃ = x₃))=
+
+*** Dynamics (modification of the PDG)
+**** Structural Updates
+***** PDG Restrictions
 Forgetting things is important for learning, and being finite. Dropping information if not useful, and put on blinders are important things that bounded agents must do.
 
 At this point, I view our account of PDG restriction as missing:
  + Coherence theorems :: restriction to some variables is possible in a probability distribution, by integrating them out; it would be nice to show some relationship between the natural notion of restriction in PDGs, and the natural notion of restriction in their semantics.
     + Aside: the analog of integration if we use nondeterministic functions instead of cpds (see my [[*Swapping out the Probability Monad Δ for other Monads][final point]]), is the the projection operator, which implements existential quantifiers. Combined with the fact that a distribution can encode any non-empty set via its support, suggests that there's something important that I'm still missing.
 
-**** PDG Unions
+***** PDG Unions
 PDG unions are even more interesting. For example, merging two PDGs may  make them more inconsistent, and increase confidence.
 
-***** add edges corresponding to new observations
+****** add edges corresponding to new observations
 (including noisy operations). We should show that we can recover Jeffrey's Rule.
 
-*** Parameter Updates
-**** Consistency Updates
+**** Parameter Updates
+***** Consistency Updates
 This is the most crutial part of dynamics.
 
-**** Database Updates (INSERT, UPDATE queries)
+***** Database Updates (INSERT, UPDATE queries)
 If we use the "active domain" semantics (taken by Sucieu et. al), so that the set of values of an attribute is taken to be the set of values that are currently represented in the database, then an INSERT query is an addition of items to the set of values.
 
 If we suppose that the attributes are fixed, then instead INSERT updates correspond to various
 
 In both cases, UPDATE queries are
 
-* Algorithms
-** PDGs as  Probabilistic Automata
+** Algorithms
+*** PDGs as  Probabilistic Automata
 There is a nice notion of computation on a PDG. At first, there is a random edgein which edges "fire" one at a time, with a mean visiting time proportional to β. This firing event 
 
 For α=1, we re-write the value of Y when a link X → Y is selected, after having re-rolled it based on the value of X. For α=0, firing corresponds to the "observation" primitive in a probabilistic programming language: an assertion made true by destroying the world if it is false (eiminating that trace and re-normalizing the remaining probability mass).
@@ -69,31 +81,31 @@ There is some relation between this process, and our existing semantics in terms
  + A Bayesian Network :: The forward computation of probabilities in a BN (called Variable Elimination in Koller&Friedman) is an example of this process, in which edges are chosen in an order topologically compatible with the BN. (because it is acyclic, though, the results of the computation do not depend on the schedule.)
  + Execution of a Causal Model :: A SEM with causal  equations may be viewed as a degenerate collection of (deterministic) CPDs, and hence may be viewed as PDGs also. For the same reasons that a BN's forward computation is an example of this process, so too should a schedule compatible with the topological dependencies of the SEM compute the values of all variables in the causal model.
  + A Markov process :: the result of executing this firing algorithm when all dicts are rstricted to be of size equal to 1 (on the state space).
-** TODO More efficient ways of directly computing features of the best distribution
+*** TODO More efficient ways of directly computing features of the best distribution
 
-** Variable Elimination
+*** Variable Elimination
 (a specific case of the above)
-** Full Belief Propagation
+*** Full Belief Propagation
 (Kind of complicated in both forms; I'll have to look a lot closer to be able to see anything concrete)
 
-* Some Results I'm looking for
-** Coherence theorems between the answers to related queries.
+** Some Results I'm looking for
+*** Coherence theorems between the answers to related queries.
 If the different semantics and questions don't line up enough, the line of work feels ad-hoc. We might begin to wonder if PDGs have any real meaning, or if they're just a common data-structure that can be used to implement things.
 
-* Further (important) things I want to use PDGs for
-** Using PDG updating to model preference dynamics
+** Further (important) things I want to use PDGs for
+*** Using PDG updating to model preference dynamics
 This is of course the reason we started lookign at PDGs in the first place. We know how to update beliefs, but standard theory doesn't say anything about preference updates. PDGs do: if you have values about differenet concepts, say, manifesting as edges X → U and Z → U, where U is a utility domain, then changes in beliefs and observations can alter the distributions on X and Z, making the two edges incompatible, and thus requiring a value update.
 
 At a higher level, I continue to believe that microeconomists and computer scientists have a bad habbit of dramatically mischaracterizing values as being simple, generally unchanging, and detatched from reason. Lots of computation can go into forming values, and some argue that the right way to use computation is to become ok with what already is there, rather than act to optimize according to your current values. Most people do both. I find it bizare and problematic that this widely held piece of existential wisdom is essentially missing from the technical discourse of how preference satisfaction works.
 
-** Agent factorization: taking a PDG, and representing the its traces as a multi-agent system
+*** Agent factorization: taking a PDG, and representing the its traces as a multi-agent system
 In general I can imagine more than one way to factor an interaction. I think that  people take the agent boundaries they're used to much too seriously; rather, there are things that happen, and events can be viewed as a nice story with more than one partition of partitions into characters.
 
 It is not unreasonable to understand the internal processes within a person as coming from an agent factorization between emotions (such as in the movie /Inside Out/). Descriptions in terms of political factions with agency seems equally permissible.
 
 I see that this can be equally read as support for your work on abstracting causal models. I think that your  work may apply here, but I think the agentive flavor makes the task particularly interesting. I also think that developing a tool to generating (even silly) alternate naratives could be a valuable tool for fighting the mindset of the conspiracy-theorist, in which the characters are fixed and the data all points to a single story that has far too much confidence in its framing.
 
-** Swapping out the Probability Monad Δ for other Monads
+*** Swapping out the Probability Monad Δ for other Monads
 
 A surprising amount of what we've proved about PDGs for cpds also holds when we swap out Probability for other monadic structures, such as binary possibilty, and possibly other modes of uncertainty.
 
