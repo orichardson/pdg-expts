@@ -1,0 +1,700 @@
+
+	\colorlet{hypergraphcolor}{benchcolor1!85!black}
+	\colorlet{simplegraphcolor}{structurecolor}
+% Hypergraphs and Graphs
+\begin{frame} %%%%%         HYPER-GRAPHS AND GRAPHS      %%%%%%
+	\frametitle{{\color{hypergraphcolor}Hyper-graphs?} Or merely {\color{simplegraphcolor!85}graphs}?}
+	\hfill
+	\begin{tikzpicture||precompiled}[center base,draw=hypergraphcolor]{grok-pre}
+		\fill[fill opacity=0.07,hypergraphcolor, draw, draw opacity=0.2]
+			(-0.6,0.6) rectangle (2.1, -2.1);
+
+		\node[dpadded] (C) at (0,0) {$\mathit C$};
+		\node[dpadded] (T) at (1.5,0){$\mathit T$};
+		\node[dpadded] (SL) at (.75,-1.5){$\it SL$};
+
+		\draw[arr] (T) to[bend right]  (C);
+		\alert<2>{ \mergearr{C}{T}{SL} }
+		% \drawbb
+		\end{tikzpicture||precompiled}
+	\onslide<2->{
+		\hfill
+		\begin{tikzpicture||precompiled}[center base]{widget}%[center base]
+		\fill[fill opacity=0.07,simplegraphcolor, draw, draw opacity=0.2]
+			(-2.1,-1.85) rectangle (2.1, 1.6);
+
+			\node[dpadded] (SL) at (0,-1.3) {$\mathit{SL}$};
+
+			\node[dpadded] (C) at (-1.5,1) {$\mathit C$};
+			\node[dpadded] (T) at (1.5,1) {$\mathit T$};
+
+			\alert<2>{
+				\node[dpadded,light pad] (CT) at (0, 0){$\scriptstyle C \times T$};
+				\draw[arr1, ->>] (CT) -- (C);
+				\draw[arr1, ->>] (CT) -- (T);
+				\draw[arr1] (CT) -- (SL);
+				}
+			\draw[arr] (T) to [bend right=15] (C);
+			% \drawbb
+			\end{tikzpicture||precompiled}
+		}
+		\hfill~
+	\onslide<3->{
+		\vspace{1em}
+		\begin{itemize}
+			\item<3-|alert@+> This widget expands state space, but graphs are simpler.
+			\item<4-> \alert<4>{There is a natural correspondence}
+			\[ \text{\color{hypergraphcolor} joint distributions}\quad\leftrightarrows\quad\parbox{15em}{\color{simplegraphcolor}\centering expanded joint distributions\\ satisfying coherence constraints} \]
+		\end{itemize}
+		}
+	\onslide<5->
+		{\small\color{gray} (working directly with hypergraphs is also possible)}
+	\end{frame} %----------
+
+% Details of PDG definition componnets & subsets
+\begin{frame} %%%%%%%%%%%%% Definition of PDG, details (removed for AAAI) %%%%%%%%%%%
+	\colorlet{notationcolor}{benchcolor2!40!alertcolor}
+	\setbeamercolor{block body}{bg=structurecolor!5!black}
+	\setbeamercolor{block title}{bg=structurecolor!80!black,fg=structurecolor!30!white}
+	\setlength{\pdgdefnwidth}{0.7\textwidth}
+	
+	\vspace{-0.5em}
+	\begin{columns}[t]
+		\hfill
+		\column{\pdgdefnwidth}
+		\begin{defn}[PDG]\label{def:model}
+			\begin{description}%
+				\item[$\N$]<alert@1-5> \notation{$:\Set$}%
+					\hfill (node set)
+					\begin{description}
+						\item[$\V$]<hideme@2,3> \notation{$:\N \to \Set$}<1,4-5>%
+							\hfill (node values)%
+						\end{description}
+
+				\item[$\Ed$]<hideme@1 |alert@2-5> \notation{$\subseteq \N \times \N \times \mathit{Label}~~~$}<2->%
+					\hfill (edge set)\\[0.14em]
+					{\color{gray}For $\ed LXY \in \Ed$,}
+					%, each with a source $X$ and target $Y$ in $\N$;
+					\begin{description}%[<+-| alert@+>]
+						\item[$\bp$]<hideme@1-3 | alert@4-5> %:\big(\!(X,Y,\ell)\in\!\Ed \big) \to
+							\notation{$:\V(X) \to \Delta\V(Y)$}<4-5>%
+							\hfill (edge cpd)
+						\item[$\alpha\ssub L$]<hideme@1-2,4-5> \notation{$: [0,1]$}<3>%
+							\hfill(qual. edge  confidence)
+						\item[$\beta\ssub L$]<hideme@1-5> \notation{$: \mathbb R^+$}<0>%
+							\hfill(quant. edge confidence)
+						\end{description}
+				\end{description}
+			\end{defn}
+			% \column{\textwidth-\pdgdefnwidth}
+			\hfill
+		\end{columns}
+		
+	\vspace{-0.5em}
+	\begin{itemize}
+		\onslide<1>{\item<1-|alert@+> $(\N, \V) \cong $ \texttt{Set<Variable>}\\[-1em]}
+		\item<2-|alert@+> $(\N, \Ed) \cong $ \texttt{MultiGraph}
+		\item<3-|alert@+> $(\N, \Ed, \alpha)$ is a qualitative PDG.
+		\item<4-> \alert<+>{We call $(\N, \Ed, \V, \mat p)$ an \emph{unweighted} PDG}
+			\begin{itemize}
+					\item and give it semantics as though $\alpha_L = \beta_L = 1$.
+					% \item $(\N, \Ed, \V)$ are (mostly) implicit in $\mat p$,
+					% 	and so \\ ``collection of cpds'' $\cong$ \texttt{UnweightedPDG}.
+				\end{itemize}
+		\end{itemize}
+	
+	\begin{alertblock}<5>{Aside}
+		An unweighted PDG is a functor
+		$\langle \mat p, \V\rangle\colon \mathit{Free}(\N, \Ed) \to \mathbf{Mark}$
+		\end{alertblock}
+	\end{frame}
+
+% Scoring function breakdown
+\begin{frame} %%%%%%%      SCORING FUNCTION BREAKDOWN       %%%%%%
+	% \begin{prop}\label{prop:nice-score}%
+		Letting $x^{\mat w}$ and $y^{\mat w}$ denote the values of
+		$X$ and $Y$, respectively, in $\mat w \in \V(\dg M)$,
+		we have
+		\begin{equation*}\label{eq:semantics-breakdown}
+			\begin{split}
+				\bbr{\dg M}(\mu) =  \Ex_{\mat w \sim \mu}\! \Bigg\{
+				 \sum_{ X \xrightarrow{\!\!L} Y  }
+				\bigg[\,
+				    {\color{benchcolor1}\overbrace{\color{black}
+				      \beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})}
+					}^{\color{benchcolor1}\smash{\mathclap{\text{log likelihood / cross entropy}}}}}~+
+					 \qquad\qquad\qquad\\[-0.7em]\qquad\qquad
+				    {\color{benchcolor2}\underbrace{\color{black}
+				({\alpha_L}\gamma - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}
+					}_{\color{benchcolor2}\smash{\mathclap{\text{local regularization ($\beta_L >
+					\alpha_L
+					\gamma$)}}}}}~\bigg] - \color{structurecolor!70!blue}\underbrace{\color{black}
+				\gamma \log \frac{1}{\mu(\mat w)}
+					}_{\color{structurecolor!70!blue}\smash{\mathclap{\text{~~~~global
+				        regularization}}}}\color{black} \Bigg\} .
+				\end{split}
+			\end{equation*}
+		% \end{prop}
+	\end{frame}
+
+% Illustrations of IDef
+\begin{frame}\frametitle{Illustrations of $\IDef{}$}
+	\def\vsize{0.4}
+	\def\bnslide{4}
+	\def\spacerlength{0.5em}
+	\begin{tikzpicture}[center base]\label{subfig:justX-0}
+		\node[dpad0] (X) at (0,1){$X$};
+		\draw[fill=green!50!black]  (0,0) circle (\vsize)  ++(-90:.22) node[label=below:\tiny$X$]{};
+		\useasboundingbox (current bounding box);
+		\node at (-0.5, 0.6){};
+		\end{tikzpicture}
+	\begin{tabular}{c}
+	\begin{tikzpicture}[onslide=<\bnslide>{is bn}]\label{subfig:justX-1}
+		\node[dpad0] (1) at (-0.4,.85){$\!\pdgunit\!$};
+		\node[dpad0] (X) at (0.4,.85){$X$};
+		\draw[arr1] (1)  -- (X);
+		\draw[fill=white!70!black]  (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+		\node at (-0.6,0.35){};
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.35){};
+		\end{tikzpicture} \\[0.5em]
+	\begin{tikzpicture}\label{subfig:justX-2}
+		\node[dpad0] (1) at  (-0.45,.85){$\!\pdgunit\!$};
+		\node[dpad0] (X) at  (0.45,.85){$X$};
+		\draw[arr1] (1) to[bend left=20] (X);
+		\draw[arr1] (1) to[bend right=20] (X);
+		\draw[fill=red!50!black] (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.35){};
+		\end{tikzpicture}
+	\end{tabular}%}
+	\hspace{\spacerlength}\pause\vrule\hspace{\spacerlength}
+	%% EXAMPLE: X  Y
+	% \adjustbox{valign=b}{
+	\begin{tabular}{c}
+	\begin{tikzpicture}[]  \label{subfig:justXY}
+		% \node[dpad0] (1) at (0,2){$\pdgunit$};
+		\node[dpad0] (X) at (-0.45,.85){$X$};
+		\node[dpad0] (Y) at (0.45,.85){$Y$};
+		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+		\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+		\begin{scope}
+			\clip (-0.2,0) circle (\vsize);
+			\clip (0.2,0) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+		\end{scope}
+		\draw (-0.2,0) circle (\vsize);
+		\draw (0.2,0) circle (\vsize);
+		\useasboundingbox (current bounding box);
+		\node at (-0.8, 0.4){};
+		\end{tikzpicture}\\[0.5em]
+	%% EXAMPLE: X -> Y
+	\begin{tikzpicture}[]\label{subfig:XtoY}
+		% \node[dpad0] (1) at (0,2){$\pdgunit$};
+		\node[dpad0] (X) at (-0.45,0.85){$X$};
+		\node[dpad0] (Y) at (0.45,0.85){$Y$};
+		\draw[arr1] (X) to[] (Y);
+		% \draw[arr] (1) to[] (Y);
+		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+		\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+		\begin{scope}
+			\clip (-0.2,0) circle (\vsize);
+			\clip (0.2,0) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+		\end{scope}
+		\draw (-0.2,0) circle (\vsize);
+		\draw (0.2,0) circle (\vsize);
+		\useasboundingbox (current bounding box);
+		\node at (-0.8, 0.4){};
+		\end{tikzpicture}
+	\end{tabular}%}
+	% \hspace{\spacerlength}
+	\begin{tabular}{c}
+	%% EXAMPLE: X <-> Y
+	\begin{tikzpicture}[center base]\label{subfig:XY-cycle}
+		% \node[dpad0] (1) at (0,2){$\pdgunit$};
+		\node[dpad0] (X) at (-0.45,0.85){$X$};
+		\node[dpad0] (Y) at (0.45,0.85){$Y$};
+		\draw[arr1] (X) to[bend left] (Y);
+		\draw[arr1] (Y) to[bend left] (X);
+		\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.25) node[label=below:\tiny$X$]{};
+		\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.25) node[label=below:\tiny$Y$]{};
+		\begin{scope}
+			\clip (-0.2,0) circle (\vsize);
+			\clip (0.2,0) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+		\end{scope}
+		\draw (-0.2,0) circle (\vsize);
+		\draw (0.2,0) circle (\vsize);
+		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+		\node at (-0.85, 0.4){};
+		\end{tikzpicture}\\[2.5em]
+	% \hspace{\spacerlength}%% EXAMPLE: 1 -> Y;1->X
+	\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:XYindep}
+		\node[dpad0] (1) at (0,0.75){$\!\pdgunit\!$};
+		\node[dpad0] (X) at (-0.7,0.95){$X$};
+		\node[dpad0] (Y) at (0.7,0.95){$Y$};
+		\draw[arr0] (1) to[] (X);
+		\draw[arr0] (1) to[] (Y);
+		\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+		\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+		\begin{scope}
+			\clip (-0.2,0) circle (\vsize);
+			\clip (0.2,0) circle (\vsize);
+			\fill[red!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+		% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+		\end{scope}
+		\draw (-0.2,0) circle (\vsize);
+		\draw (0.2,0) circle (\vsize);
+		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+		\node at (-0.88, 0.4){};
+		\end{tikzpicture}
+	\end{tabular}
+	\hspace{\spacerlength}
+	 %% EXAMPLE: 1 -> X -> Y
+	\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}]\label{subfig:1XY}
+		\node[dpad0] (1) at (0.15,2){$\!\pdgunit\!$};
+		\node[dpad0] (X) at (-0.45,1.4){$X$};
+		\node[dpad0] (Y) at (0.35,1){$Y$};
+		\draw[arr0] (1) to[] (X);
+		\draw[arr1] (X) to[] (Y);
+		\path[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+		\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+		\begin{scope}
+			\clip (-0.2,0) circle (\vsize);
+			\clip (0.2,0) circle (\vsize);
+			% \fill[red!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+			% \draw[ultra thick,white] (0.2,0) circle (\vsize);					\end{scope}
+		\end{scope}
+		\draw (-0.2,0) circle (\vsize);
+		\draw (0.2,0) circle (\vsize);
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.6){};
+		\end{tikzpicture}
+	% \hspace{\spacerlength}\hspace{2.5pt}\vrule\hspace{2.5pt}\hspace{\spacerlength}
+
+	\pause
+	%% EXAMPLE: 1 -> X -> Y -> Z
+	\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:1XYZ}
+		% \node[dpad0] (1) at (-0.5,2.3){$\!\pdgunit\!$};
+		% \node[dpad0] (X) at (-0.5,1.5){$X$};
+		% \node[dpad0] (Y) at (0.35,1.25){$Y$};
+		% \node[dpad0] (Z) at (0.25,2.25){$Z$};
+		\node[dpad0] (1) at (-1,0.8){$\!\pdgunit\!$};
+		\node[dpad0] (X) at (-0.6,1.6){$X$};
+		\node[dpad0] (Y) at (0.35,1.6){$Y$};
+		\node[dpad0] (Z) at (1.0,0.9){$Z$};
+		\draw[arr0] (1) to (X);
+		\draw[arr1] (X) to[] (Y);
+		\draw[arr1] (Y) to[] (Z);
+		\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+		\path[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+		\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+		\begin{scope}
+			\clip (90:0.22) circle (\vsize);
+			\clip (210:0.22) circle (\vsize);
+			\fill[red!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\clip (-30:0.22) circle (\vsize);
+			\fill[white!70!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+		\end{scope}
+		\begin{scope}
+			\draw[] (-30:0.22) circle (\vsize);
+			\draw[] (210:0.22) circle (\vsize);
+			\draw[] (90:0.22) circle (\vsize);
+		\end{scope}
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.7){};
+		\end{tikzpicture}
+	%% EXAMPLE: X -> Y -> Z -> X
+	\hspace{\spacerlength}
+	\begin{tikzpicture}[center base] \label{subfig:XYZ-cycle}
+		% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
+		\node[dpad0] (X) at (-0.5,1.75){$X$};
+		\node[dpad0] (Y) at (0.35,1.25){$Y$};
+		\node[dpad0] (Z) at (0.25,2.25){$Z$};
+		% \draw[arr0] (1) to (X);
+		\draw[arr1] (X) to[bend right=25] (Y);
+		\draw[arr1] (Y) to[bend right=25] (Z);
+		\draw[arr1] (Z) to[bend right=25] (X);
+		%option: -- either X -> Y -> Z -> X, or <-> Y <-> Z <-> X. For the latter, uncomment the 6 lines below and comment out the next 3.
+		% \draw[arr1] (Z) to[bend left=5] (Y);
+		% \draw[arr1] (Y) to[bend left=5] (X);
+		% \draw[arr1] (X) to[bend left=5] (Z);
+		% \draw[fill=red!50!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+		% \draw[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+		% \draw[fill=red!50!black] (90:0.22) circle (\vsize) ++(140:.31) node[label=above:\tiny$Z$]{};
+
+		% grey filling for one covering.
+		\draw[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+		\draw[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+		\draw[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.31) node[label=above:\tiny$Z$]{};
+
+		\begin{scope}
+			\clip (-30:0.22) circle (\vsize);
+			\clip (210:0.22) circle (\vsize);
+			% \fill[white!70!black] (-1,-1) rectangle (3,3);
+			\clip (90:0.22) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+		\end{scope}
+		\begin{scope}
+			\draw[] (-30:0.22) circle (\vsize);
+			\draw[] (210:0.22) circle (\vsize);
+			\draw[] (90:0.22) circle (\vsize);
+		\end{scope}
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.7){};
+		\end{tikzpicture}
+	%% EXAMPLE: X -> Y <- Z
+	\hspace{\spacerlength}
+	\begin{tikzpicture}[center base] \label{subfig:XZtoY}
+		% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
+		\node[dpad0] (X) at (-0.45,1.9){$X$};
+		\node[dpad0] (Y) at (0.3,1.25){$Y$};
+		\node[dpad0] (Z) at (0.4,2.15){$Z$};
+		% \draw[arr0] (1) to (X);
+		\draw[arr0] (X) to[] (Y);
+		\draw[arr1] (Z) to[] (Y);
+		\path[fill=green!50!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+		\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+		\path[fill=green!50!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+		\begin{scope}
+			\clip (-30:0.22) circle (\vsize);
+			\clip (90:0.22) circle (\vsize);
+			\fill[white!70!black] (-1,-1) rectangle (3,3);
+		\end{scope}
+		\begin{scope}
+			\clip (-30:0.22) circle (\vsize);
+			\clip (210:0.22) circle (\vsize);
+			\fill[white!70!black] (-1,-1) rectangle (3,3);
+
+			\clip (90:0.22) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+		\end{scope}
+		\draw[] (-30:0.22) circle (\vsize);
+		\draw[] (210:0.22) circle (\vsize);
+		\draw[] (90:0.22) circle (\vsize);
+		\useasboundingbox (current bounding box);
+		% \node at (-0.7, 0.7){};
+		\end{tikzpicture}
+	%% EXAMPLE: X <-> Y <-> Z
+	\hspace{\spacerlength}
+	\begin{tikzpicture}[center base] \label{subfig:XYZ-bichain}
+		% \node[dpad0] (1) at (0.1,2.4){$\pdgunit$};
+		\node[dpad0] (X) at (-1,1.2){$X$};
+		\node[dpad0] (Y) at (0,1.7){$Y$};
+		\node[dpad0] (Z) at (1,1.4){$Z$};
+		% \draw[arr1] (1) to (X);
+		% \draw[arr1] (1) to (Y);
+		\draw[arr1] (X) to[bend right=15] (Y);
+		\draw[arr1] (Y) to[bend right=15] (X);
+		\draw[arr1] (Y) to[bend right=15] (Z);
+		\draw[arr1] (Z) to[bend right=15] (Y);
+		\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+		\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+		\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+		\begin{scope}
+			\clip (-30:0.22) circle (\vsize);
+			\clip (90:0.22) circle (\vsize);
+			\fill[white!70!black] (-1,-1) rectangle (3,3);
+		\end{scope}
+		\begin{scope}
+			\clip (90:0.22) circle (\vsize);
+			\clip (210:0.22) circle (\vsize);
+			\fill[red!50!black] (-1,-1) rectangle (3,3);
+		\end{scope}
+		\begin{scope}
+			\clip (-30:0.22) circle (\vsize);
+			\clip (210:0.22) circle (\vsize);
+			\fill[white!70!black] (-1,-1) rectangle (3,3);
+
+			\clip (90:0.22) circle (\vsize);
+			\fill[green!50!black] (-1,-1) rectangle (3,3);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+		\end{scope}
+		\draw[] (-30:0.22) circle (\vsize);
+		\draw[] (210:0.22) circle (\vsize);
+		\draw[] (90:0.22) circle (\vsize);
+		\useasboundingbox (current bounding box);
+		\node at (-0.7, 0.7){};
+		\end{tikzpicture}
+
+\end{frame}
+
+% A half-baked table comparing PDGs, BNs
+\begin{frame}<0> %%%%%%%%%         PDGs and BNs           %%%%%%%%%%
+    \frametitle{What a PDG is}
+    % \begin{columns}
+    % 	\column{0.5\textwidth}
+    % 	{\Large Bayesian Networks (BNs)}
+    % 	\begin{itemize}
+    % 		\item<1-> Qualitative Structure: a hyper-graph generated by a DAG
+    % 		\item<2-> Contains a CPD at each node
+    % 	\end{itemize}
+    %
+    % 	\column{0.5\textwidth}
+    % 	{\Large PDGs}
+    % 	\begin{itemize}
+    % 		\item<1-> Qualitative Structure may be an arbitrary hypergraph
+    % 		\item<2-> Contains a CPD for every edge.
+    % 	\end{itemize}
+    % \end{columns}
+
+    {\renewcommand{\arraystretch}{1.25}
+    \begin{tabular}{r|p{0.3\textwidth}p{0.3\textwidth}}
+                % this is a "\ctoprule"
+                \addlinespace[-\aboverulesep]
+                \cmidrule[\heavyrulewidth]{2-3}
+            & BNs & PDGs \pause \\ \cmidrule{2-3}
+        Qualitative Structure
+            & Hyper-Graph generated by a DAG
+            & Arbitrary hyper-graphs  \pause \\[1em]
+        CPDs attached to
+            & Nodes
+            & Edges
+            \\ \bottomrule
+    \end{tabular}}
+
+
+    \ifbool{precompiledfigs}{}{
+    \begin{center}\begin{tikzpicture}
+        \node[dpadded] (X) at (-2,2) {$X$};
+        \node[dpadded] (Y) at (0,0) {$Y$};
+        \node[dpadded] (Z) at (2,2) {$Z$};
+        \draw[arr] (X) -> (Y);
+        \draw[arr] (Z) -> (Y);
+    \end{tikzpicture}\end{center}}
+    \end{frame}%------------%
+	
+% Intro to factor graphs
+\begin{frame} \frametitle{Factor Graphs}
+		
+	\begin{center}
+		\begin{tikzpicture}
+			\node [fgnode] (A) {$A$};
+			\node [fgnode, right=1 of A] (B) {$B$};
+			\node [fgnode, above=0.6 of B] (C) {$C$};
+			\node [fgnode, right=1 of C] (D) {$D$};
+			\node [fgnode, right=1 of B] (E) {$E$};
+			
+			\node[factor, left=0.5 of A, label={below:$\phi_1$}] (phi1) {};
+				\draw[thick] (phi1) -- (A);
+			
+			\node[factor,label={below:$\phi_2$}] at ($(A)!.5!(B)$) (phi2) {};
+				\draw[thick] (phi2) -- (A);
+				\draw[thick] (phi2) -- (B);
+			
+			\node[factor,above=0.5 of phi2,label={above:$\phi_3$}] (phi3){};
+				\draw[thick] (phi3) -- (A);
+				\draw[thick] (phi3) -- (B);
+				\draw[thick] (phi3) -- (C);				
+
+			\node[factor,label={above:$\phi_4$}] at ($(C)!.5!(D)$) (phi4) {};
+				\draw[thick] (phi4) -- (C);
+				\draw[thick] (phi4) -- (D);
+			\end{tikzpicture}
+		\end{center}
+
+	\begin{defn}
+		 A \emph{factor graph} $\Phi$ is a set of random variables
+		        $\mathcal X = \{X_i\}$ and \emph{factors}
+		       $\{\phi_J\colon \V(X_J) \to \mathbb R_{\geq0}\}_{J \in
+		\mathcal J }$,
+		where $X_J \subseteq \mathcal X$; define 
+		\[ {\Pr}_{\Phi}(\vec x) = \frac{1}{Z_{\Phi}}
+		 	\prod_{J \in \cal J} \phi_J(\vec x_J), \]
+	 	where $Z_{\Phi}$ is the normalization constant.
+		\end{defn}
+	\end{frame}
+
+% PDGs as factor graphs
+\begin{frame} \frametitle{PDGs as Factor Graphs}
+	\begin{center}
+	\begin{tikzpicture||precompiled}[center base]{smoking-PDG}
+		\node[dpadded] (1) at (1.65,-1.1) {$\pdgunit$};
+		\node[dpadded] (PS) at (1.65,0.4) {$\mathit{PS}$};
+		\node[dpadded] (S) at (3.2, 0.8) {$\mathit S$};
+		\node[dpadded] (SH) at (3.35, -0.8) {$\mathit{SH}$};
+		\node[dpadded] (C) at (4.8,0.4) {$\mathit C$};
+		\node[dpadded] (T) at (4.8,-1.1) {$\mathit T$};
+
+		\draw[arr1] (1) -- (PS);
+		\draw[arr2] (PS) -- (S);
+		\draw[arr2] (PS) -- (SH);
+		\mergearr{SH}{S}{C}
+		\draw[arr1] (T) -- (C);
+		\end{tikzpicture||precompiled}
+	~{\Large$\rightsquigarrow$}~
+	\begin{tikzpicture}[center base, xscale=1.2]
+		\node[factor] (prior) at (1.65,-1) {};
+		\node[factor] (center) at (3.75, 0.1){};
+
+		\node[fgnode] (PS) at (1.65,0.5) {$\mathit{PS}$};
+		\node[fgnode] (S) at (3.1, 0.8) {$\mathit S$};
+		\node[fgnode] (SH) at (3.0, -0.8) {$\mathit{SH}$};
+		\node[fgnode] (C) at (4.8,0.5) {$\mathit C$};
+
+		\draw[thick] (prior) -- (PS);
+		\draw[thick] (PS) --node[factor](pss){} (S);
+		\draw[thick] (PS) --node[factor](pssh){} (SH);
+		\draw[thick] (S) -- (center) (center) -- (SH) (C) -- (center);
+
+
+		\node[fgnode] (T) at (4.8, -1.3) {$T$};
+		\draw[thick] (T) -- node[factor]{}  (C);
+		\end{tikzpicture}
+		\end{center}
+
+
+	\pause
+	The cpds of a PDG are essentially factors. Are the semantics different?
+
+	\pause
+	{Not for $\gamma = 1$.}
+
+
+	\begin{theorem}
+		$\bbr{\dg N}_{1}^* = \Pr_{\FGof{\dg N}}\;$ for all unweighted
+		PDGs $\dg N$.
+	\end{theorem}
+	\pause
+	{\setbeamercolor{block body}{bg=structurecolor!50!white}
+	 \setbeamercolor{block title}{bg=structurecolor!70!black,fg=white}
+	\begin{theorem}\label{thm:pdg-is-wfg}
+		For all unweighted PDGs $\dg{N}$ and non-negative vectors $\mat v$
+		over the edges of $\dg N$, and all $\gamma > 0$, we have that
+		$\bbr{(\dg N, \mat v, \gamma \mat v)}_{\gamma}
+		= \gamma\,\GFE_{(\Phi_{\dg N}, \mat v)} $; consequently,
+		$\bbr{(\dg N,  \mat v,  \gamma\mat v)}_{\gamma}^*
+				= \{\Pr_{(\Phi_{\dg N}, \mat v)} \}$.
+	\end{theorem}
+	 }
+	\end{frame}
+
+% Why use PDGs over factor graphs
+\begin{frame}\frametitle{Why not use factor graphs, then?}
+	\begin{center}
+		$\dg M := $
+		\begin{tikzpicture}[center base]
+			\node[dpadded, inner sep=0.4em] (1){$\pdgunit$};
+			\node[dpadded, inner sep=0.4em, below=1 of 1] (X) {$X$};
+			\draw[arr] (1) to[bend left=30] node[right]{$p$} (X);
+			\draw[arr] (1) to[bend right=30] node[left]{$q$} (X);
+			\end{tikzpicture}
+		$\qquad$ \vrule $\qquad$
+		\begin{tikzpicture}[center base]
+			\node[fgnode, below=1 of 1] (X){$X$};
+
+			\node[factor, above left= 0.5 and 0.5 of X] (phi1) {};
+			\node[factor, above right=0.5 and 0.5 of X] (phi2) {};
+
+			\draw[thick] (phi1) -- (X);
+			\draw[thick] (phi2) -- (X);
+		\end{tikzpicture}$\quad=: \Phi$
+	\end{center}
+	\pause
+	\medskip
+	\begin{itemize}[<+-|alert@+>]
+		\item If $p = q$, then $\bbr{\dg M}^* = p = q$\textellipsis
+		\item \textellipsis but $\Pr_{\Phi} \propto p^2$
+		\item More generally, (positive) factors individually have \emph{no meaning},
+		\item a factor graph can fail to normalize, in which case it has no global semantics either. 
+	\end{itemize}
+	\end{frame}
+
+% Factor graphs as PDGs
+\begin{frame} \frametitle{Factor Graphs as PDGs}
+	\begin{center}
+		\begin{tikzpicture}[center base, xscale=1.3,
+			fgnode/.append style={minimum width=2.4em, inner sep=0.2em}]
+			\node[factor] (prior) at (1.65,-1) {};
+			\node[factor] (center) at (3.75, 0.1){};
+
+			\node[fgnode] (PS) at (1.65,0.5) {$\mathit{PS}$};
+			\node[fgnode] (S) at (3.1, 0.8) {$\mathit S$};
+			\node[fgnode] (SH) at (3.0, -0.8) {$\mathit{SH}$};
+			\node[fgnode] (C) at (4.8,0.5) {$\mathit C$};
+
+			\draw[thick] (prior) -- (PS);
+			\draw[thick] (PS) --node[factor](pss){} (S);
+			\draw[thick] (PS) --node[factor](pssh){} (SH);
+			\draw[thick] (S) -- (center) (center) -- (SH) (C) -- (center);
+
+
+			\node[fgnode] (T) at (4.8, -1.3) {$\mathit T$};
+			\draw[thick] (T) -- node[factor]{}  (C);
+			\end{tikzpicture}
+		~{\Large$\rightsquigarrow$}~
+		\pause
+		\begin{tikzpicture}[center base, xscale=1.5,
+	        newnode/.style={rectangle, inner sep=5pt, fill=gray!30, rounded corners=3, thick,draw}]
+			\node[newnode] (prior) at (1.65,-1) {};
+			\node[newnode] (center) at (4.1, 0.25){};
+
+			\node[dpadded] (PS) at (1.65,0.5) {$\mathit{PS}$};
+			\node[dpadded] (S) at (3.3, 0.8) {$\mathit S$};
+			\node[dpadded] (SH) at (3.3, -0.6) {$\mathit{SH}$};
+			\node[dpadded] (C) at (4.9,0.5) {$\mathit C$};
+
+			\draw[arr, ->>, shorten <=0pt] (prior) -- (PS);
+			\draw[arr, <<->>] (PS) --node[newnode](pss){} (S);
+			\draw[arr, <<->>] (PS) --node[newnode](pssh){} (SH);
+			\draw[arr, <<-, shorten >=0pt] (S) -- (center);
+			\draw[arr, <<-, shorten >=0pt] (SH)-- (center);
+			\draw[arr, <<-, shorten >=0pt] (C) -- (center);
+
+			\node[dpadded, fill=blue] (1) at (2.7,-1.8) {$\pdgunit$};
+
+			\draw[blue!50, arr] (1) -- (prior);
+			\draw[blue!50, arr] (1) to[bend right=30] (center);
+			\draw[blue!50, arr] (1) to[bend right = 5] (pss);
+			\draw[blue!50, arr] (1) to[bend left = 10] (pssh);
+
+
+			\node[dpadded] (T) at (4.8, -1.7) {$T$};
+			\draw[arr, <<->>] (T) -- node[newnode](tc){}  (C);
+
+			\draw[blue!50, arr] (1) to[bend right = 10] (tc);
+			\end{tikzpicture}
+		\end{center}
+	\pause
+
+	\begin{theorem}
+		$\Pr_{\Phi} = \bbr{\UPDGof{\Phi}}_{1}^*\;$ for all factor graphs $\Phi$.
+	\end{theorem}
+	\pause
+	{\setbeamercolor{block body}{bg=structurecolor!50!white}
+	 \setbeamercolor{block title}{bg=structurecolor!70!black,fg=white}
+	\begin{theorem}
+	For all weighted factor graphs $\Psi = (\Phi,\theta)$ and all $\gamma > 0$,
+	we have that
+	$\GFE_\Psi
+	= \nicefrac1{\gamma} \bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}
+	+ C$
+	for some constant $C$, so
+	$\Pr_{\Psi}$ is the unique element of
+	$\bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}^*$.
+	\end{theorem}
+	}
+	\end{frame}

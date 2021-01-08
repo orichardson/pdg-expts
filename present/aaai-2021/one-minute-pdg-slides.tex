@@ -1,0 +1,397 @@
+%  Beamer Style
+\documentclass[xcolor={dvipsnames,rgb}]{beamer}
+% \includeonlyframes{current}
+
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usetheme{Boadilla}% Beamer Theme Customization...
+	\setbeamersize{description width=0.57cm}
+	\usefonttheme[stillsansserifsmall]{serif}
+		% \usefonttheme{structuresmallcapsserif}
+	\usefonttheme[onlylarge]{structuresmallcapsserif}
+		% \usefonttheme[onlymath]{serif}
+		% \usefonttheme[onlysmall]{structurebold}
+	\setbeamerfont{item}{series=\bfseries}
+	\setbeamerfont{block title}{series=\bfseries}
+	% \setbeamerfont{title}{family=\rmfamily}
+
+	\relax%%% color definitions %%...
+		\colorlet{structurecolor}{RoyalPurple!50!black}
+		\colorlet{alertcolor}{YellowOrange}
+			% \colorlet{alertcolor}{structurecolor>wheel,1,3}
+		\colorlet{benchcolor1}{Emerald!85!black}
+			% \colorlet{benchcolor1}{structurecolor>wheel,2,3}
+		\colorlet{benchcolor2}{YellowOrange!25!magenta}
+	\usecolortheme[named=structurecolor]{structure}
+		% \usecolortheme{beaver}
+		% \setbeamercolor*{palette primary}{bg=color1, fg = green}
+		% \setbeamercolor*{palette secondary}{bg=color2, fg = green}
+		% \setbeamercolor*{palette tertiary}{bg=color3, fg = green}
+		% \setbeamercolor*{palette quaternary}{bg=color4, fg = green}
+		% \makeatletter
+		% \definecolor{beamer@blendedblue}{rgb}{0.2,0.2,0.7}
+		% \colorlet{beamer@blendedblue}{color2}
+		% \makeatother
+	\setbeamercolor{description item}{bg={structurecolor!20!white}}
+	\setbeamercolor{alerted text}{fg=alertcolor}
+
+	\newbool{precompiledfigs}% ...
+		\setbool{precompiledfigs}{false}
+		% the etoolbox way, which works with beamer.
+	% \setbeamercovered{dynamic}
+
+\relax %%%%%%%%  Beamer and slide-specific macros  %%%%%%%%%%%%%%%%%%%
+	\newcommand<>{\hl}[2][alertcolor]{\begingroup%
+		\setbeamercolor{alerted text}{fg=#1}\alert#3{#2}\endgroup}
+	\colorlet{notationcolor}{structurecolor!40}
+	\def\notation#1{\!\hl[notationcolor]{#1$\quad$}}
+	\def\notation#1{\!\hl[notationcolor]{#1$\quad$}}
+	% \newcommand<>{\alertwith}[2]{\begingroup\only#3{\setbeamercolor{alerted text}{fg=#1}}#2\endgroup} % DOESN'T WORK THIS WAY
+	\newenvironment{localfocusenv}{\only{\setbeamercolor{local structure}{fg=alertcolor}}}{}
+	\newenvironment<>{hidemeenv}{%
+		\only#1{\setbeamercolor{alerted text}{fg=black!60}}%
+		\begingroup\begin{alertenv}#1%
+		}{\end{alertenv}\endgroup}
+	\newenvironment<>{tikzpicture||precompiled}[2][]{
+			\ifbool{precompiledfigs}{\includegraphics[width=0.8\linewidth]{figure-pdfs/#2}
+				}\begingroup\only#3\begingroup\begin{tikzpicture}[#1]
+		}{\end{tikzpicture}\endgroup\endgroup}
+	\newcommand<>{\extra}[2][]{%
+		\only#3{%
+			% \tikzmark{call point};%
+			\tikzro \node[inner sep=0pt,outer sep=0pt] (call point) {};%
+			\begin{tikzpicture}[overlay,remember picture]
+				\node[anchor=north west, inner sep=0.8em,
+				 			fill=alertcolor!30!structurecolor!30!white,
+							draw=structurecolor!70!black, draw opacity=0.5,
+							below=1em of call point, #1]{#2};
+			\end{tikzpicture}%
+		}}
+	\newcommand{\tikzro}[1][]{\tikz[remember picture, overlay,#1]}
+	\def\Set{\mathbf{Set}}
+	\makeatletter
+	\newcommand{\shorteq}{%
+	  \settowidth{\@tempdima}{-}% Width of hyphen
+	  \resizebox{\@tempdima}{\height}{=}%
+	}
+	\makeatother
+	% \newcommand{\tikzmark}[1][last mark]{\tikzro \node (#1){};}
+
+%%%%%%%            Relevant part of PDG Preamble        %%%%%%%%%%%%%%%%
+\usepackage{tikz}
+	\usetikzlibrary{positioning,calc, arrows, shapes}
+
+	\tikzset{AmpRep/.style={ampersand replacement=\&}}
+	\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+	\tikzset{paperfig/.style={center base,scale=0.9, every node/.style={transform shape}}}
+
+	\tikzset{dpadded/.style={rounded corners=2, inner sep=0.6em, draw, outer sep=0.2em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
+	\tikzset{arr0/.style={draw, ->, thick, shorten <=0pt, shorten >=0pt}}
+	\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
+	\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
+
+	\newcommand{\drawbb}%
+		{\draw (current bounding box.south west) rectangle (current bounding box.north east);}
+	\ifbool{precompiledfigs}{}{
+		\usetikzlibrary{fit, decorations,shapes.geometric}
+		\usetikzlibrary{tikzmark}
+		\usetikzlibrary{backgrounds}
+		\pgfdeclarelayer{foreground}
+		\pgfsetlayers{background,main,foreground}
+
+		\pgfdeclaredecoration{arrows}{draw}{
+			\state{draw}[width=\pgfdecoratedinputsegmentlength]{%
+				\path [every arrow subpath/.try] \pgfextra{%
+					\pgfpathmoveto{\pgfpointdecoratedinputsegmentfirst}%
+					\pgfpathlineto{\pgfpointdecoratedinputsegmentlast}%
+				};
+		}}
+
+		\tikzset{dpad0/.style={outer sep=0.05em, inner sep=0.3em, draw=gray!75, rounded corners=4, fill=black!08, fill opacity=1}}
+		\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
+		\tikzset{is bn/.style={background rectangle/.style={fill=blue!35,opacity=0.3, rounded corners=5},show background rectangle}}
+		% \usetikzlibrary{backgrounds}
+		% \usetikzlibrary{patterns}
+		\usetikzlibrary{cd}
+
+		\tikzset{fgnode/.style={dpadded,inner sep=0.2em, circle,minimum width=2.3em},
+				 factor/.style={light pad, fill=black, outer sep=0pt,draw=none}}
+
+
+		\newcommand\cmergearr[4]{
+			\draw[arr,-] (#1) -- (#4) -- (#2);
+			\draw[arr, shorten <=0] (#4) -- (#3);
+			}
+		\newcommand\mergearr[3]{
+			\coordinate (center-#1#2#3) at (barycentric cs:#1=1,#2=1,#3=1.2);
+			\cmergearr{#1}{#2}{#3}{center-#1#2#3}
+			}
+		\newcommand\cunmergearr[4]{
+			\draw[arr,-, , shorten >=0] (#1) -- (#4);
+			\draw[arr, shorten <=0] (#4) -- (#2);
+			\draw[arr, shorten <=0] (#4) -- (#3);
+			}
+		\newcommand\unmergearr[3]{
+			\coordinate (center-#1#2#3) at (barycentric cs:#1=1.2,#2=1,#3=1);
+			\cunmergearr{#1}{#2}{#3}{center-#1#2#3}
+			}
+
+
+		\usetikzlibrary{matrix}
+		\tikzset{toprule/.style={%
+		        execute at end cell={%
+		            \draw [line cap=rect,#1]
+		            (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east);%
+		        }
+		    },
+		    bottomrule/.style={%
+		        execute at end cell={%
+		            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+		        }
+		    },
+		    leftrule/.style={%
+		        execute at end cell={%
+		            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west);%
+		        }
+		    },
+		    rightrule/.style={%
+		        execute at end cell={%
+		            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+		        }
+		    },
+		    table with head/.style={
+			    matrix of nodes,
+			    row sep=-\pgflinewidth,
+			    column sep=-\pgflinewidth,
+			    nodes={rectangle,minimum width=2.5em, outer sep=0pt},
+			    row 1/.style={toprule=thick, bottomrule},
+	  	    }
+			}
+		\input{labelmatrix.tex}
+		\tikzset{onslide/.code args={<#1>#2}{%
+		  \only<#1>{\pgfkeysalso{#2}} % \pgfkeysalso doesn't change the path
+			}}
+		}
+
+\usepackage{booktabs,microtype}
+\usepackage{mathtools, amsfonts, nicefrac, amssymb, bbm} % mathtools loads amsmath
+\usepackage{amsthm,thmtools}
+
+	% \theoremstyle{plain}
+	% \let\theorem\relax
+	% \newtheorem{theorem}{Theorem}%[section]
+	% \newtheorem{coro}{Corollary}[theorem]
+	\newtheorem{prop}[theorem]{Proposition}
+	% \newtheorem{lemma}[theorem]{Lemma}
+	% \newtheorem{fact}[theorem]{Fact}
+
+	\theoremstyle{definition}
+	\declaretheorem[name=Definition%,qed=$\square$,numberwithin=section
+		]{defn}
+	% \declaretheorem[name=Construction,qed=$\square$,sibling=defn]{constr}
+	% \declaretheorem[qed=$\square$]{example}
+	\theoremstyle{remark}
+	\newtheorem*{remark}{Remark}
+\relax % Macros (\relax is for folding)
+	\let\Horig\H
+	\let\H\relax
+	\DeclareMathOperator{\H}{\mathrm{H}} %
+	\DeclareMathOperator{\I}{\mathrm{I}} %
+	\DeclareMathOperator*{\Ex}{\mathbb{E}} %
+	\DeclareMathOperator*{\argmin}{arg\;min}
+	\newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}} %
+	\newcommand\mat[1]{\mathbf{#1}}
+	\newcommand\Pa{\mathbf{Pa}}
+
+	\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{#1\;\delimsize\|\;#2}
+	\newcommand{\thickD}{I\mkern-8muD}
+	\newcommand{\kldiv}{\thickD\infdivx}
+
+	\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
+
+	\newcommand{\ssub}[1]{_{\!_{#1}\!}}
+	\newcommand{\bp}[1][L]{\mat{p}\ssub{#1}}
+	\newcommand{\V}{\mathcal V}
+	\newcommand{\N}{\mathcal N}
+	\newcommand{\Ed}{\mathcal E}
+
+	\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+	\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+
+	\newcommand{\dg}[1]{\mathbdcal{#1}}
+	\newcommand{\pdgunit}{\mathrlap{\mathit 1} \mspace{2.3mu}\mathit 1}
+
+	\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
+	\newcommand\Inc{\mathit{Inc}}
+	\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+	\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
+	\newcommand{\WFGof}[1]{\Psi_{{#1}}}
+	\newcommand{\FGof}[1]{\Phi_{{#1}}}
+	\newcommand{\Gr}{\mathcal G}
+	\newcommand\GFE{\mathit{G\mkern-4mu F\mkern-4.5mu E}}
+
+	\newcommand{\ed}[3]{%
+		\mathchoice%
+		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
+		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
+		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
+		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
+
+	\DeclarePairedDelimiterX{\SD}[1]{\{}{\}}{\,\llap{\delimsize\{}#1\rlap{\delimsize\}}\,}
+	%better version.
+	\DeclarePairedDelimiterX{\bbr}[1]{[}{]}
+		{\mspace{3mu}\mathllap{\delimsize[}#1\mathrlap{\delimsize]}\mspace{3mu}}
+	\DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
+		{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
+	\DeclarePairedDelimiterXPP{\aard}[1]{}{\langle}{\rangle}{_{\!_\downarrow}}
+		{\mspace{-3.5mu}\delimsize\langle#1\delimsize\rangle\mspace{-3.5mu}}
+
+\colorlet{color1}{blue!50!black}
+\colorlet{color2}{Emerald!85!black}
+\tikzset{hybrid/.style={postaction={draw,color1,dash pattern= on 5pt off 8pt,dash phase=6.5pt,thick},
+		draw=color2,dash pattern= on 5pt off 8pt,thick}}
+
+\begin{document}
+	\begin{frame}
+		\frametitle{Probabilistic Dependency Graphs (PDGs)}
+		a new class of probabilistic graphical model, which\textellipsis\pause
+		\vspace{-1em}
+		\begin{columns}[t]
+			\column{0.7\textwidth}
+			\begin{itemize}[<+-|alert@+>]
+				\item capture inconsistency, including conflicting \tikzmark{conflict-anchor}
+					information from multiple sources.
+				\item
+					are especially modular; to combine info from two sources, simply take a PDG union.
+					This merges their information without either affecting the other.
+
+					\only<.>{
+						\begin{center}
+							\color{black}
+							\begin{tikzpicture}[paperfig]
+								\begin{scope}[dpadded/.append style={inner sep=0.5em,outer sep=0.1em}, draw=color1, thick]
+									\node[dpadded] (A) at  (0,1.2) {$A$};
+									\node[dpadded] (B) at (0.4, 0) {$B$};
+									\node[dpadded] (C)  at (2.1, 0){$C$};
+
+									\draw[arr1] (A) to (B);
+									\draw[arr1] (B) to (C);
+								\end{scope}
+								\end{tikzpicture}
+							~{\Large$+$}~
+							\begin{tikzpicture}[paperfig]
+								\begin{scope}[dpadded/.append style={inner sep=0.5em,outer sep=0.1em},draw=color2,thick]
+									\node[dpadded] (B) at (0.4, 0) {$B$};
+									\node[dpadded] (C)  at (2.1, 0){$C$};
+									\node[dpadded] (D) at (1.5,1.2){$D$};
+									\draw[arr1] (B) to (D);
+									\mergearr{D}{C}{B}
+								\end{scope}
+								\end{tikzpicture}
+								~{\Large$=$}~
+								\begin{tikzpicture}[overlay, scale=0.9, every node/.style={transform shape}]
+									\begin{scope}[dpadded/.append style={inner sep=0.5em,outer sep=0.1em},yshift=0.8ex,xshift=1em]
+										\node[dpadded,draw=color1, thick] (A) at  (0,0.6) {$A$};
+										\node[dpadded,hybrid] (B) at (0.4, -0.6) {$B$};
+										\node[dpadded,hybrid] (C)  at (2.1, -0.6){$C$};
+										\node[dpadded,hybrid] (D) at (1.5, 0.6){$D$};
+									\end{scope}
+									\begin{scope}[draw=color1]
+										\draw[arr1] (A) to (B);
+										\draw[arr1] (B) to (C);
+									\end{scope}
+									\begin{scope}[draw=color2]
+										\draw[arr1] (B) to (D);
+										\mergearr{D}{C}{B}
+									\end{scope}
+									\end{tikzpicture}
+							\end{center}
+							\vspace{-4.8em}
+					}
+					
+				\item have (several) natural semantics; one of them allows us to
+					pick out a unique distribution.  Using this distrbution, PDGs
+					can capture BNs and factor graphs.
+					
+					\only<.>{\color{black}
+						\begin{center}
+						\begin{tikzpicture}[paperfig]
+							\node[dpadded] (1) at (0,0) {$\pdgunit$};
+							\node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
+							\node[dpadded]
+								(S) at (3.2, 0.8) {$\mathit S$};
+							\node[dpadded]
+								(SH) at (3.35, -0.8) {$\mathit{SH}$};
+							\node[dpadded]
+								(C) at (4.8,0) {$\mathit C$};
+
+							\draw[arr1] (1) -- (PS);
+							\draw[arr2] (PS) -- (S);
+							\draw[arr2] (PS) -- (SH);
+							\mergearr{SH}{S}{C}
+
+							\end{tikzpicture}
+							\end{center}
+						\vspace{-6em}
+					}
+					% In the latter case, a simple parameter shift in the corresponding PDG eliminates
+					% arguably problematic behavior of a factor graph.
+				\item cleanly separate quantitative info (the cpds) 
+					from qualitative info (the edges), with variable confidence
+					in both. 
+					%This is captured by  the terms terms $\Inc$ and $\IDef{}$ in their semantics.
+				\end{itemize}
+			
+			\column{0.3\textwidth}
+				
+				\onslide<2->{
+					\begin{tikzpicture}[paperfig,scale=0.9]
+						\node[dpadded] (1) {$\pdgunit$};
+						\node[dpadded, right=1 of 1] (X) {$X$};
+						\draw[arr1] (1) to[bend left=30] node[fill=white, inner sep=2pt] {$q$} (X);
+						\draw[arr1] (1) to[bend right=30] node[fill=white, inner sep=2pt] {$p$} (X);
+						\end{tikzpicture}
+				}
+				\bigskip
+				
+				\onslide<4->{\hfill%
+					\begin{tikzpicture}[paperfig]
+						\begin{scope}[dpadded/.append style={inner sep=0.5em,outer sep=0.1em}]
+							\node[dpadded,draw=color1, thick] (A) at  (0,1.2) {$A$};
+							\node[dpadded,hybrid] (B) at (0.4, 0) {$B$};
+							\node[dpadded,hybrid] (C)  at (2.1, 0){$C$};
+							\node[dpadded,hybrid] (D) at (1.5,1.2){$D$};
+						\end{scope}
+						\begin{scope}[draw=color1]
+							\draw[arr1] (A) to (B);
+							\draw[arr1] (B) to (C);
+						\end{scope}
+						\begin{scope}[draw=color2]
+							\draw[arr1] (B) to (D);
+							\mergearr{D}{C}{B}
+						\end{scope}
+						\end{tikzpicture}
+				}
+				
+				\bigskip
+								
+				\onslide<5->{
+					\begin{tikzpicture}[paperfig,dpadded/.append style={inner sep=0.6em,outer sep=0.2em}, scale=0.85]
+						\node[dpadded] (1) at (1.65,1) {$\pdgunit$};
+						\node[dpadded] (PS) at (1.65,-0.4) {$\mathit{PS}$};
+						\node[dpadded] (S) at (3.2, 0.8) {$S$};
+						\node[dpadded] (SH) at (3.35, -0.8) {$\mathit{SH}$};
+						\node[dpadded] (C) at (4.8,0) {$C$};
+
+						\draw[arr1] (1) -- (PS);
+						\draw[arr2] (PS) -- (S);
+						\draw[arr2] (PS) -- (SH);
+						\mergearr{SH}{S}{C}
+					\end{tikzpicture}
+				}
+			 
+			\end{columns}
+		\end{frame}
+\end{document}
