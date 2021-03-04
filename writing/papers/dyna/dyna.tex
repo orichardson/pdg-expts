@@ -1,7 +1,7 @@
 \documentclass{article}
 
 % \input{../model-commands}
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=1in, inner margin=0.7in, outer margin=1.3in]{geometry}
 \usepackage{mathtools,amssymb,amsfonts}
 \usepackage{parskip}
 
@@ -93,46 +93,65 @@
 \usepackage{relsize}
 \usepackage{color}
 %\usepackage{stmaryrd}
+\usepackage{hyperref} % Load before theorems...
+\hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=deepgreen}	
 \usepackage{amsthm,thmtools}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{coro}{Corollary}[theorem]
 \newtheorem{prop}[theorem]{Prop}
-\newtheorem{claim}[theorem]{Claim}
+\newtheorem{claim}[theorem]{Claim}% maybe don't use this.
 \newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{fact}[theorem]{Fact}
+\newtheorem{fact}[theorem]{fact}
 \newtheorem{conj}[theorem]{Conjecture}
+
+% \newcommand{\regugitatethmname}{}
+% \newtheorem{regurgitatethm}[theorem]{\regugitatethmname}% to be defined later
+% \newtheorem*{regurgitatethm*}{\regugitatethmname}% to be defined later
+
+\declaretheorem[name={}]%[numbered=unless unique,name=#1]
+	{namedtheoremINNER}
+\newenvironment{namedthm}[1]
+  {\renewcommand{\thenamedtheoremINNER}{#1}\namedtheoremINNER}
+  {\endnamedtheoremINNER}
+
+\newcounter{proofcntr}
+\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
+\declaretheorem[numberwithin=theorem,name=Claim]{iclaim}
 
 \theoremstyle{definition}
 \declaretheorem[name=Definition,qed=$\square$,numberwithin=section]{defn} %
+\declaretheorem[name=Definition,qed=$\square$,numberwithin=theorem]{idefn} %
 \declaretheorem[name=Construction,qed=$\square$,sibling=defn]{constr}
 \declaretheorem[qed=$\square$]{example}
 
 \theoremstyle{remark}
 \newtheorem*{remark}{Remark}
 
+  
 \usepackage{xstring}
 \usepackage{enumitem}
 
-\usepackage{hyperref}
-\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=magenta, citecolor=deepgreen}	
 \usepackage[noabbrev,nameinlink,capitalize]{cleveref}
 \crefname{example}{Example}{Examples}
 \crefname{defn}{Definition}{Definitions}
-\crefname{prop}{Proposition}{Propositions}
+\crefname{prop}{Prop}{Propositions}
 \crefname{claim}{Claim}{Claims}
+\crefname{iclaim}{Claim}{Claims}
 \crefname{constr}{Construction}{Constructions}
 \crefname{conj}{Conjecture}{Conjectures}
 \crefname{fact}{Fact}{Facts}
 
 
+\newcommand\commentout[1]{}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \let\Horig\H
 \let\H\relax
 \DeclareMathOperator{\H}{\mathrm{H}} % Entropy
 \DeclareMathOperator{\I}{\mathrm{I}} % Information
 \DeclareMathOperator*{\Ex}{\mathbb{E}} % Expectation
+\DeclareMathOperator{\supp}{\mathrm{supp}} % support
 \DeclareMathOperator*{\argmin}{arg\,min}
 \newcommand\mat[1]{\mathbf{#1}}
 \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
@@ -156,8 +175,29 @@
 \newcommand\MAP{\mathrm{MAP}}
 \DeclareMathOperator{\bundle}{\sqcup}
 \newcommand\ado{\mathrm{do}}
-\newcommand\commentout[1]{}
 
+\relax % Short arrows. 
+    \newcommand{\veryshortarrow}[1][3pt]{\mathrel{%
+       \vcenter{\hbox{\rule[-.5\fontdimen8\textfont3]{#1}{\fontdimen8\textfont3}}}%
+       \mkern-4mu\hbox{\usefont{U}{lasy}{m}{n}\symbol{41}}}}
+    \makeatletter
+    \setbox0\hbox{$\xdef\scriptratio{\strip@pt\dimexpr
+        \numexpr(\sf@size*65536)/\f@size sp}$}
+    \newcommand{\scriptveryshortarrow}[1][3pt]{\mathrel{%
+        \vcenter{\hbox{\rule[-.5\fontdimen8\scriptfont3]
+                   {\scriptratio\dimexpr#1\relax}{\fontdimen8\scriptfont3}}}%
+       \mkern-4mu\hbox{\let\f@size\sf@size\usefont{U}{lasy}{m}{n}\symbol{41}}}}
+    \newcommand{\sto}{\scriptveryshortarrow}
+    \makeatother
+
+    
+\newcommand{\grad}{\vec\nabla}
+\DeclareMathOperator{\QC}{\mathrm{QC}}
+\DeclareMathOperator\src{\mathbf{src}}
+\DeclareMathOperator\tgt{\mathbf{tgt}}
+
+
+%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\pdgunit}{\mathrlap{\mathit 1} \mspace{2.3mu}\mathit 1}
 
@@ -169,7 +209,7 @@
 \newcommand{\WFGof}[1]{\Psi_{{#1}}}
 \newcommand{\FGof}[1]{\Phi_{{#1}}}
 \newcommand{\Gr}{\mathcal G}
-
+\newcommand\GFE{\mathit{G\mkern-4mu F\mkern-4.5mu E}}
 % \newcommand\aar[1]{\langle\mskip}
 
 \newcommand{\ed}[3]{%
@@ -207,14 +247,31 @@
    {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
    {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
 
+% \def\onlyaftercolon#1:#2{#2}
 \newcommand{\recall}[1]{\medskip\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
    \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
+\newenvironment{linked}[3][]{%
+	\def\linkedproof{#3}%
+	\def\linkedtype{#2}%
+	\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
+	{\endrestatable%
+	\marginpar{%
+	% \vspace{-0.5em}
+	% \hspace{2em}
+		\raggedright
+		\hyperref[proof:\linkedproof]{%
+		\color{blue!50!white}
+		$\Big[$\,{\small\tt\begin{tabular}{@{}l@{}} proof of \\~\cref*{\linkedtype:\linkedproof}\end{tabular}}\,$\Big]$}
+		}%
+	}
 \makeatother
 %oli16: The extra space was because there was extra space in the paragraph, not
 %because this length was too big. By breaking arrays, everything will be better.
 \allowdisplaybreaks
 
+
 \newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
+
 
 
 \usepackage[framemethod=TikZ]{mdframed}
@@ -222,15 +279,19 @@
 
 \surroundwithmdframed[
    topline=false,
+   linewidth=3pt,
+   linecolor=gray!20!white,
    rightline=false,
    bottomline=false,
-   leftmargin=\parindent,
+   leftmargin=0pt,
+   % innerleftmargin=5pt,
    skipabove=\medskipamount,
    skipbelow=\medskipamount
-]{proof}
+]{lproof}
 
 
 \newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
+\usepackage{subfiles}
 
 \begin{document}
 \begin{center}
@@ -242,26 +303,35 @@
 % PDGs are able to represent an inconsistent collection of local beliefs; we have argued that doing so allows us to represent important states of knowledge, and hinted that it may allow us to make better decisions and
 % save computation.
 
-We have introduced PDGs, a powerful graphical model that subsume other graphical
-models, such as factor graphs and Bayesian Networks. They are essentially 
-collections of conditional probablity distributions (cpds), and have semantics in
-terms of a scoring function on joint distributions over all variables.
-But how can we use them to make predictions? What kinds of queries can we ask a PDG? How does this interact with the distribution-scoring semantics?
+We have introduced PDGs, an extremely expressive class of directed graphical model,
+that subsumes other common graphical models, such as factor graphs and Bayesian Networks.
+Syntactically, PDGs are essentially weighted collections of conditional probablity distributions (cpds), but they also have semantics in terms of a scoring function on joint distributions over all variables, which is the sense in which they generalize these other graphical models.
+So far, we have argued that PDGs are particularly natural modeling tools, which can capture features of epistemic state, but we have not provided more than a glimpse at how to use them for inference.
+How can we use PDGs to make predictions? What kinds of queries can we ask a PDG? How does it coincide with the semantics of a PDG?
 
-The question has some subtleties for a PDG, as a PDG represents somewhat distinct
-from a probability distribution (in general, a PDG may contain no probabilistic
-information at all, or  conflicting information about every variable).
-Still, all PDGs have semantics in terms of probability distributions, and 
-in particular, pick out a \emph{best} distribution (we actually have more: a 
-(small set of) distributions for every $\gamma \ge 0$, which is guaranteed to 
-be unique small $\gamma$ and converge in the limit as $\gamma\to 0$).
-We have argued that this allows them to stand in for Bayesian Networks
-and factor graphs, because they represent the same distributions---but this
-can only happen to the extent we provide algorithms to answer the queries that 
-these other graphical models support. To that end, we now adress the most 
-important queries from : 
+The question has some subtleties, as a PDG is somewhat further from being a representation of a probability distribution (in extreme cases, recall that a PDG may contain no probabilistic information at all, or conflicting information about every variable). 
+One of the primary objectives of the PDG formalism is to model cognitively bounded agents, which might, for instance, have absorbed more information than they have been able to process.  Thus, we view PDG inference algorithms not as ways of getting ``the one true answer'' out of a probablistic model, but rather as ways of:
+\begin{enumerate}[nosep]
+	\item reflecting to identify potential issues with a world-view. 
+	\item making progress towards resolving internal inconsistency; and
+	\item responding to urgent questions without needing to first attain perfect epistemic clarity.
+\end{enumerate}
+% Some queries will be easier to answer than others. 
+
+
+Nevertheless, all PDGs have semantics in terms of probability distributions, and 
+in particular, pick out a \emph{best} distribution---%
+% (we actually have more: a 
+% (small set of) distributions for every $\gamma \ge 0$, which is guaranteed to 
+% be unique small $\gamma$ and converge in the limit as $\gamma\to 0$).
+a feature we have argued allows them to stand in for other graphical models.
+But without also providing algorithms to answer the queries that 
+these other graphical models support.
+
+
+To that end, we start with two of the most important kinds: 
 	conditional probability queries of the form $\Pr(Y \smid X)$, 
-	maximum likelihood queries like $\MAP(Y \mid X)$, 
+	% maximum likelihood queries like $\MAP(Y \mid X)$, 
 	and causal probabilistic queries, such as $\Pr(Y \smid \ado(X))$.
 	
 
@@ -271,9 +341,13 @@ important queries from :
 %	 how we do updating, and variational autoencoders (which you’ll have to
 %	 review, since I’m not familiar with them)."   -- Joe
 
-\section{Preliminaries}
+
+
+
+
+% \section{Preliminaries}
 \subsection*{Notation and PDGs}
-First, a slight change to the notation: we now write $\SD{\dg M}$ to denote
+Before we get to the central material, we first inroduce some new notation and conventions. We now write $\SD{\dg M}$ to denote
 the set of distributions consistent with a PDG $\dg M$, rather than $\bbr{\dg M}_{\textrm{sd}}$. We view a cpd $p(Y \mid X)$ as a special case of a PDG with
 a single edge $X \to Y$ annotated with the cpd $p$, and taking 
 default weights $\alpha_p = 0$, and $\beta_p = 1$. In cases where we wish
@@ -288,9 +362,8 @@ on the values of any variables they have in common --- that is, if
 $\V^{\dg A}(X) = \V^{\dg B}(X)$ for all $X \in \N^{\dg A} \cap \N^{\dg B}$. 
 %
 If $\dg A$ and $\dg B$ are compatible PDGs, we write $\dg A \bundle \dg B$ to indicate the PDG consisting of the disjoint union of all edges, in which each edge $L$ retains its associated parameters $\bp$, $\alpha_L$, and $\beta_L$.
-
-
-\subsection*{Inconsistency}
+\section{Inference and Dynamics by  Inconsistency}
+% \subsection*{Inconsistency}
 We start by introducing a repackaged version of PDG semantics,
 	% \footnote{in fact, it is roughly equivalent as far as
 	% expressive power by \cref{prop:sementics-via-inconsistency}}
@@ -329,15 +402,16 @@ $\Inc(\dg M) := \inf_\mu \Inc_{\dg M}(\mu)$, also a property of
 a PDG that is motivated to capture inconsistency. 
 Sice $\Inc(\dg M)$ is simply $\aar{\dg M}$ without the qualitative term,
 it should come at no surprise that $\aar{-}$ reduces to $\Inc(-)$ in the limit
-of small $\gamma$ (though perhaps proving it is not as trivial as it seems).
+of small $\gamma$.
 
-\begthm{prop}{prop:inc-is-inconsistency}
+% \begthm{prop}{prop:inc-is-inconsistency}
+\begin{linked}{prop}{inc-is-inconsistency} \label{prop:inc-is-inconsistency}
 	$\displaystyle \aard{\dg M} = \Inc (\dg M)
 		% \inf_{\mu % \in \Delta[\V(\dg M)]
 		% } \Inc{\dg M}(\mu) 
 	$.
-	\hfill\hyperref[proof:inc-is-inconsistency]{(link to proof)}
-\end{prop}
+\end{linked}
+% \end{prop}
 % We might therefore say that $\Inc(\dg M)$ is in some sense the
 % ``quantitative end'' of $\aar{\dg M}$. 
 
@@ -378,8 +452,7 @@ the semantics of a PDG to be the distribution $\mu$, such that, if combined
 with the data of $\mathcal B$, results in a maximally consistent PDG. 
 
 
-\section{Inference by Gradient Descent}
-
+\subsection{Inference by Gradiant Descent}
 We now return to the task at hand. 
 The most important and standard query is a conditional probability
 query: given a PDG $\dg M$, how do you compute the probability of $Y$ given $X$?
@@ -388,21 +461,378 @@ We use a similar approach as we did in giving PDGs semantics in the first place
 measure the quality of a candidate answer $p(Y\smid X)$.
 Intuitively, a cpd $p(Y\smid X)$ makes for a good answer to the query
 if it is consistent with the other cpds in $\dg M$, and so we propose
-$-\aar{\dg M \bundle p}$ as a measure of quality of the inference $p$.
+$\aar{\dg M \bundle p}$ as a measure of (dis)quality of the inference $p$.
 This is simply a definition, but we now verify that it has nice properties,
 which we might expect from such a measure of inference quality. 
 
 Perhaps most importantly, the best cpd(s) according to this measure
 are the conditional marginals $\mu(Y\mid X)$ of the best distributions $\mu$ for $\dg M$.
 
-\begin{prop}
+\begin{linked}{prop}{optimalYgivenX}
+	\label{prop:optimalYgivenX}
 	For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that 
 	$\displaystyle
 		\argmin_{p : X \to \Delta Y} \aar{\dg M \bundle p}_\gamma = 
 		\Big\{ \mu(Y \smid X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
 	$.
+\end{linked}
+In the limit, of small $\gamma$, since there is only one such distribution,
+the expression beomes simpler. 
+\begin{linked}{prop}{smallgammaopt}
+	$\displaystyle
+		\bbr{\dg M}^*(Y \smid X)
+	$ uniquely minimizes $p \mapsto \aard{\dg M \bundle p}$.
+\end{linked}
+
+
+So $p \mapsto \aar{\dg M \bundle p}$ gives the best scores to the marginals of
+distributions that the scoring semantics of $\dg M$ view as best. Even supposing
+we had oracle access to $\aar{-}$,
+the prospect of having to enumerate all possible conditional probability
+distributions $p$ to find the best one sound prohibitively expensive.
+Fortunately, it is not necessary, as the function $p \mapsto \aar{\dg M \bundle
+p}$ has properties which make for efficient search,
+given oracle access to $\aar{\dg M}$. 
+% Most importantly, it is smooth and 
+% strictly convex
+% in $p$, enabling fast optimization methods \cite{smoothstrictlycvx}. 
+\begin{linked}{prop}{smooth-and-strictly-cvx}
+	The function $p \mapsto \aar{\dg M \bundle p}_\gamma$ is smooth and 
+		strictly convex for small enough $\gamma$%
+	% (concretely: all $\gamma$ less than $\min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$
+	. 
+\end{linked}
+
+\begin{conj}
+	$\aar{\dg M \bundle p}_\gamma$ is Lipshitz in $p$, for any area bounded away from 
+\end{conj}
+So now we've got a way of taking any 
+
+\begin{prop}
+	$\aar{\dg M}_\gamma$ is continuous as a function of $\gamma$, and converges as $\gamma\to 0$. 
 \end{prop}
 \begin{proof}
+	\par
+	\TODO
+\end{proof}
+
+This suggests using a variant of gradient descent in which
+in which $\gamma$ decays to zero during the optimization process, because
+progress towards an optimum for $\gamma_0$ will still be progres towards  
+the optimum for $\gamma_0 - \epsilon$.  
+
+
+% {\centering\Large Further Claims \par}
+
+
+\commentout{%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\begin{defn}[degree of inconsistency]
+		If $\dg M$ is a PDG, let $\aar{\dg M}_\gamma$ denote the \emph{degree of
+		inconsistency} of $\dg M$ at $\gamma$, and be given by
+		$$ \aar{\dg M}_\gamma := \inf_{\mu \in \Delta[\V(\dg M)]} 
+			% \bbr{\dg M}_\gamma(\mu)
+			\sum\alle \beta_L \;\kldiv{\mu_{Y|X}}{\bp} + \alpha_L\;\H_\mu(Y\mid X)
+		$$
+		and let $\aar[\Big]{\dg M} = \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma$.
+	\end{defn}
+
+	\begin{claim}
+		$$\bbr{\dg M}_\gamma(\mu) = $$
+	\end{claim}
+}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% There is an intuitive story to be told here: simply add a guess to the PDG.
+% Sort it out if you have time. 
+% Do not sort it out otherwise. 
+
+
+\subsection{Updating by Gradient Descent}
+
+%%%%%%%%%%%%%%%% VESTIBULE %%%%%%%%%%%%%
+\commentout{
+	If, rather than fixing $\dg M$ and optimizing $p$, we fix $p$ and optimize $\dg M$,
+	this same proces corresponds to an update, rather than an inference. For instance, in
+	the case where $X = \pdgunit$, an observation $Y\!=\!y$  can be added to
+	$\dg M$ in the form of an edge $\ed{\delta_y}{\pdgunit}Y$, getting the
+	(possibly inconsistent) PDG $\dg M'$. The distribution $\bbr{M'}^*$ turns out
+	to be the result of conditioning $\bbr{\dg M}^*$ on $Y\!=\!y$.  
+}
+
+What if we only wanted to know $\Pr(Y \smid X=x)$, for a specific value of $X$, rather than
+the full cpd $\Pr(Y\smid X)$ (including the data for every $X$), in the context of a PDG $\dg M$?
+
+In this case, we could add an edge $\pdgunit \to X$ annotated with the degenerate cpd $\delta_x$ 
+indicating that $X$ always takes the value $x$. 
+
+\begin{claim}
+ 	The cpd $q(Y \mid X) := x \mapsto \bbr{\dg M \bundle (X\!=\!x)}^*_\gamma(Y)$
+	minimizes $\aar{\dg M \bundle q}_\gamma$
+\end{claim} 
+
+\subsection{Complexity of Inconsistency}
+Unfortunately, 
+
+\begin{prop}\label{prop:consistent-NP-hard}
+	Deciding if $\dg M$ is consistent is NP-hard.
+\end{prop}
+\begin{lproof} \label{proof:consistent-NP-hard}
+	We can directly encode SAT problems as PDGs.
+	Specifically, let 
+	$$\varphi := \bigwedge_{j \in \mathcal J} \bigvee_{i \in \mathcal I(j)} (X_{j,i})$$
+	be a CNF formula over binary variables $\mat X := \bigcup_{j,i} X_{j,i}$. Let
+	$\dg M_\varphi$ be the PDG containing every variable $X \in \mat X$ and a binary
+	variable $C_j$ (taking the value 0 or 1) for each clause $j \in \mathcal J$, as well as the following edges, for each $j \in \mathcal J$:
+	%\{$``$\varphi(\mat X)$''$\}$ with $\V(\varphi) = \{0,1\}$, and
+	\begin{itemize}	
+		\item a hyper-edge $\{X_{j,i} : i \in \mathcal I(j)\} \tto C_j$, together with a degenerate cpd
+			encoding the boolean OR function (i.e., the truth of $C_j$ given $\{X_{j,i}\}$);
+		\item an edge $\pdgunit \tto C_j$, together with a cpd asserting $C_j$ be equal to 1.
+	\end{itemize}
+	% We give each edge $\alpha = 0$ and $\beta = 1$.
+	First, note that the number of nodes, edges, and non-zero entries in the cpds are polynomial in the $|\mathcal J|, |\mat X|$, and the total number of parameters in a simple matrix representation of the cpds is also polynomial if $\mathcal I$ is bounded (e.g., if $\varphi$ is a 3-CNF formula). 
+	A satisfying assignment $\mat x \models \varphi$ of the variables $\mat X$ can be regarded as a degenerate joint distribution $\delta_{\mat X = \mat x}$ on $\mat X$, and extends uniquely to a full joint distribution $\mu_{\mat x} \in \Delta \V(\dg M_\varphi)$ consistent with all of the edges, by
+	\[ \mu_{\mat x} = \delta_{\mat x} \otimes \delta_{\{C_j = \vee_i  x_{j,i}\}} \]
+	
+ 	Conversely, if $\mu$ is a joint distribution consistent with the edges above, then any point $\mat x$ in the support of $\mu(\mat X)$ must be a satisfying assignment, since the two classes of edges respectively ensure that $1 =\mu(C_j\!=\! 1 \mid \mat X \!=\! \mat x) = \bigvee_{i \in \mathcal I(j)} \mat x_{j,i}$ for all $j \in \mathcal J$, and so $\mat x \models \varphi$.
+	
+	Thus, $\SD{\dg M_\varphi} \ne \emptyset$ if and only if $\varphi$ is satisfiable, so 
+	an algorithm for determining if a PDG is consistent can also be adapted (in polynomial space and time) for use as a SAT solver, and so the problem of determining if a PDG consistent is NP-hard.
+\end{lproof}
+
+\begin{prop}
+	Computing $\aar{\dg M}_\gamma$ is \#P-hard, for $\gamma > 0$ 
+\end{prop}
+\begin{lproof}
+	We prove this by reduction to \#SAT. Again, let $\varphi$ be some CNF formula over $\mat X$, and construct
+	$\dg M_\varphi$ as in \hyperref[proof:consistent-NP-hard]{the proof} of
+	\Cref{prop:consistent-NP-hard}.
+	Furthemore, let $\bbr{\varphi} := \{ \mat x : \mat x \models \varphi \}$ be the set of  assingments to $\mat X$ satisfying $\varphi$, and $\#_\varphi := |\bbr{\dg M}|$ denote the number such assignments. We now claim that
+	\begin{equation}\label{eqn:number-of-solns}
+		\#_\varphi = \exp \left[- \frac1\gamma \aar{ \dg M_\varphi }_\gamma \right].
+	\end{equation}
+ 	If true, we would have a reduced the \#P-hard problem of computing $\#_\varphi$ to the problem of computing $\aar{\dg M}_\gamma$ for fixed $\gamma$. We now proceed with proof \eqref{eqn:number-of-solns}.
+	By definition, we have 
+	\[ \aar{\dg M_\varphi}_\gamma = \inf_\mu \Big[ \Inc_{\dg M_\varphi}(\mu) + \gamma \IDef{\dg M_\varphi}(\mu) \Big]. \]
+	We start with a claim about first term. 
+	% For the particular PDG $\dg M_\varphi$, the 
+	
+	\begin{iclaim} \label{claim:separate-inc-varphi}
+		% $\Inc(\dg M_\varphi)$ is finite if and only if $\varphi$ is statisfiable.
+		$\Inc_{\dg M_\varphi}\!(\mu) = 
+		% \begin{cases}
+		% 	0 & \text{if}~  \mat x \models \varphi~\text{and}~\mat c = \mat 1
+		% 	 	~\text{for all}~(\mat x, \mat c) \in \supp \mu\\ 
+		% 	\infty & \text{otherwise}
+		% \end{cases}
+		\begin{cases}
+			0 & \text{if}~  \supp \mu \subseteq \bbr{\varphi} \times \{ \mat 1\} \\ 
+			\infty & \text{otherwise}
+		\end{cases}$.
+	\end{iclaim}
+	\vspace{-1em}
+	\begin{lproof}
+		Writing out the definition explicitly, the first can be written as 
+		\begin{equation}
+			\Inc_{\dg M_\varphi}\!(\mu) = \sum_{j} \left[ \kldiv[\Big]{\mu(C_j)}{\delta_1} +
+				\Ex_{\mat x \sim \mu(\mat X_j)} \kldiv[\Big]{\mu(C_j \mid \mat X_j = \mat x)}{\delta_{\lor_i \mat x_{j,i}}} \right], \label{eqn:explicit-INC-Mvarphi}
+				% &= \sum_{j} \left[ 
+				% 	\begin{matrix} \mu(C_j\!=\!0) (\infty) \\
+				% 	 	+ \mu(C_j \!=\! 1) \log \mu(C_j \!=\! 1)
+				% 	\end{matrix} +
+				% 	\Ex_{\mat x \sim \mu(\mat X_j)} \kldiv[\Big]{\mu(C_j \mid \mat X_j = \mat x)}{\delta_{\lor_i \mat x_i}} \right],
+		\end{equation}
+		where $\mat X_j = \{X_{ij} : j \in \mathcal I(j)\}$ is the set of variables that
+		appear in clause $j$, and $\delta_{(-)}$ is the probability distribution placing all mass on the point indicated by its subscript.
+		As a reminder, the relative entropy is given by
+		\[ \kldiv[\Big]{\mu(\Omega)}{\nu(\Omega)} := \Ex_{\omega \sim \mu} \log \frac{\mu(\omega)}{\nu(\omega)}, 
+		\quad\parbox{1.4in}{\centering and in particular, \\ if $\Omega$ is binary,}\quad
+			\kldiv[\big]{\mu(\Omega)}{\delta_\omega} = \begin{cases}
+				0 &  \text{if}~\mu(\omega) = 1 ; \\
+				\infty & \text{otherwise}.
+		\end{cases} \]
+		Applying this to \eqref{eqn:explicit-INC-Mvarphi}, we find that either:
+		\begin{enumerate}[itemsep=0pt]
+			\item Every term of \eqref{eqn:explicit-INC-Mvarphi} is finite (and zero) so $\Inc_{\dg M_\varphi}(\mu) = 0$, which happens when $\mu(C_j = 1) = 1$ and $\mu(C_j = \vee_i~ x_{j,i}) = 1$ for all $j$.  In this case, $\mat c = \mat 1 = \{ \vee_i~x_{j,i} \}_j$ so $\mat x \models \varphi$ for every $(\mat{c,x}) \in \supp \mu$; 
+			\item Some term of \eqref{eqn:explicit-INC-Mvarphi} is infinite, so that $\Inc_{\dg M_\varphi}(\mu) = \infty$, which happens if some $j$, either
+			
+			\begin{enumerate}
+				\item $\mu(C_j \ne 1) > 0$ --- in which case there is some $(\mat{x,c}) \in \supp \mu$ with $\mat c \ne 1$, or
+				\item $\supp \mu(\mat C) = \{\mat 1\}$, but $\mu(C_j \ne \vee_i~ x_{j,i}) > 0$ --- in which case there is some $(\mat{x,1}) \in \supp \mu$ for which $1 = c_j \ne \vee_i~x_{j,i}\;$, and so $\mat x \not\models \varphi$.
+			\end{enumerate}
+		\end{enumerate}
+		Condensing and rearranging slightly, we have shown that
+		\[ 
+			\Inc_{\dg M_\varphi}(\mu) = 
+			\begin{cases}
+				0 & \text{if}~  \mat x \models \varphi~\text{and}~\mat c = \mat 1
+				 	~\text{for all}~(\mat x, \mat c) \in \supp \mu\\ 
+				\infty & \text{otherwise}
+			\end{cases}~. 
+		\]
+		% So if $\mat x \models \varphi$ for all $\mat x \in \supp \mu(X)$, 
+		% 
+		% $\Inc_{\dg M_\varphi}(\mu) = 0$
+		% The first term is infinite if $\mu(C_j = 1) < 1$, and the second is infinite
+		% if $\mu(C_j = \lor_i X_{i,j}) < 1$. Thus, if $\Inc_{\dg M_\varphi}(\mu)$ is finite, then $\mat x \sim \mu(\mat X)$ satisfies $\varphi$ with probability 1, and $\varphi$ must be satisfiable.
+		% Conversely, 
+	\end{lproof}	
+	
+	% Thus, if $\Inc_{\dg M_\varphi}(\mu)$ is finite, then every $\mat x \in \supp \mu$ is a satisfying assignment of $\varphi$. 
+	Because $\IDef{}$ is bounded, it follows immediately that
+ 	$\aar{\dg M_\varphi}_\gamma$, is finite if and only if 
+	there is some distribution $\mu \in \Delta\V(\mat X,\mat C)$ for which $\Inc_{\dg M_\varphi}(\mu)$ is finite, or equivalently, by \Cref{claim:separate-inc-varphi}, iff there exists some $\mu(\mat X) \in \Delta \V(\mat X)$ for which $\supp \mu(\mat X) \subseteq \bbr{\varphi}$, which in turn is true if and only if $\varphi$ is satisfiable.
+	 
+	In particular, if $\varphi$ is not satisfiable (i.e., $\#_\varphi = 0$), then $\aar{\dg M_\varphi}_\gamma = +\infty$, and
+	\[ 
+		\exp \left[ -\frac1\gamma \aar{\dg M_\varphi}_\gamma \right] = 
+	 		\exp [ - \infty ] = 0 = \#_\varphi, 
+	\]
+	so in this case \eqref{eqn:number-of-solns} holds as promised. On the other hand, if $\varphi$ \emph{is} satisfiable, then, again by \Cref{claim:separate-inc-varphi}, every $\mu$ minimizing $\bbr{\dg M_\varphi}_\gamma$, (i.e., every $\mu \in \bbr{\dg M_\varphi}_\gamma^*$) must be supported entirely on $\bbr{\varphi}$ and have $\Inc_{\dg M_\varphi}\!(\mu) = 0$.  As a result, we have 
+	\[ 
+		\aar{\dg M_\varphi}_\gamma = 
+			\inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} \gamma\; \IDef{\dg M_\varphi}(\mu) .
+	\]
+	A priori, by the definition of $\IDef{\dg M_\varphi}$, we have 	
+	\[
+		\IDef{\dg M_\varphi}(\mu) =
+		 	- \H(\mu) + \sum_{j} \Big[ \alpha_{j,1} \H_\mu(C_j \mid \mat X_j)
+						+ \alpha_{j,0} \H_\mu(C_j) \Big],
+	\]
+	where $\alpha_{j,0}$ and $\alpha_{j,1}$ are values of $\alpha$ for the edges of $\dg M_\varphi$, which we have not specified because they are rendered irrelevant by the fact that their corresponding cpds are deterministic. We now show how this plays out in the present case.  
+	Any $\mu \in \Delta\big[\bbr{\varphi} \times \{\mat 1\}\big]$ we consider has a degenerate marginal on $\mat C$. Specifcally, for every $j$, we have $\mu(C_j) = \delta_1$, and since entropy is non-negative and never increased by conditioning, 
+	$$
+		0 \le \H_\mu(C_j \mid \mat X_j) \le \H_\mu(C_j) = 0.
+	$$
+	Therefore, $\IDef{\dg M_\varphi}(\mu)$ reduces to the negative entropy of $\mu$. 
+	Finally, making use of the fact that the maximum entropy distribution $\mu^*$ supported on a finite set $S$ is the uniform distribution on $S$, and has $\H(\mu^*) = \log | S |$, we have
+	\begin{align*}
+		\aar{\dg M_\varphi}_\gamma &= \inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} \gamma\; \IDef{\dg M_\varphi}(\mu) \\
+			&= \inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} -\, \gamma\, \H(\mu) \\
+			&= - \gamma\, \sup\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]}  \H(\mu) \\
+			&= - \gamma\, \log (\#_\varphi),
+	\end{align*}
+	\hspace{1in}giving us
+	$$
+		\#_\varphi = \exp \left[- \frac1\gamma \aar{ \dg M_\varphi }_\gamma \right],
+	$$ 
+	as desired. We have now reduced \#SAT to computing $\aar{\dg M}_\gamma$, for $\gamma \in \mathbb R^{>0}$ and an arbitrary PDG $\dg M$, which is therefore \#P-hard.  
+\end{lproof}
+
+This is just a lower bound on the complexity of estimating $\aar{\dg M}$. 
+
+What shall we make of these results? First, the asymptotic compelxity of exact inference
+is not great, but no worse than for Bayesian Networks or factor graphs. 
+
+There is still hope for approximating it, given that it has such nice properties --- is convex (albeit in an exponentially large space), monotonic ( that additional edges only increase $\aar{\dg M}$).  
+
+\TODO
+
+\subsection{Factor Graphs, Inconsistency, and Thermodynamics}
+For factor graphs, the story is more complex, as it could involve
+inconsistency. The factors of a
+factor graph, which in isolation indicate relative probabilities. 
+Factored exponential families form the mathematical backbone of statistical
+mechanics, in which the normalization constant 
+$Z_{\Psi}$ for the WFG $\Psi = (\phi_j, \theta_j)_j$,
+given by
+$$
+	Z_{\Psi} := \sum_{\mat w} \prod_{j} \phi_j(\mat w_j)^{\theta_j} 
+	,
+$$
+is known as the \emph{partition function}. In this setting, a factor graph 
+Perhaps surprisingly, many thermodynamic quantities 
+(e.g., total energy, free energy, pressure, and entropy) can
+be obtained by taking various partial derivatives of $Z_\Psi$.
+Because both $Z_{\Psi}$ for a factor graph $\Phi$, and $\aar{\dg M}$ are
+both , one might wonder if
+there is some connection between them. Indeed, there is.
+
+\begin{linked}{prop}{fg-inconsistency-is-partition-function}
+	For any weighted factor graph $\Psi$, $Z_{\Psi} = \exp\; \aar{\PDGof{\Psi}}_1$.
+\end{linked}
+
+
+\section{Variational Inference}
+
+\section{Causal Inference}
+To do causal inference, we need only make use of the parameter $\alpha$ when considering
+potentaial answers. As in section 
+
+
+\section{Belief Propogation}
+% \subfile{belief-prop}
+
+
+
+\appendix
+\section{Proofs and Lemmas}
+%%!!! This is false !!!!!!!
+\commentout{
+	\begin{lemma} \label{lem:cvx1}
+		If $f(x,y)$ is bounded below and convex in both $x$ and $y$, then it is jointly convex in
+		$x\otimes y$. 
+	\end{lemma}
+
+	\begin{lproof}
+		By definition, for $f$ to be convex in either variable separately, we have, for all $\lambda \in [0,1]$ and all $x_0, x_1, x_2, y_0, y_1, y_2$, that
+		\begin{align*}
+			f(\lambda x_1 + (1-\lambda) x_2, y_0) &\le \lambda f(x_1, y_0) + (1-\lambda) f(x_2, y_0) \\
+			\text{and}\qquad
+			f(x_0, \lambda y_1 + (1-\lambda) y_2) &\le \lambda f(x_0, y_1) + (1-\lambda) f(x_0, y_2). \\
+		\end{align*}
+		In particular, for $y_0 = \lambda y_1 + (1-\lambda) y_2$ and $x_0 = \lambda x_1 + (1-\lambda) x_2$, we have
+		\begin{align*}
+			f\Big(\lambda x_1 + (1-\lambda) x_2,  \lambda y_1 + (1-\lambda) y_2 \Big)
+				&\le \lambda f(x_1, \lambda y_1 + (1-\lambda) y_2 ) + (1-\lambda) f(x_2, \lambda y_1 + (1-\lambda) y_2 ) \\
+				&\le \lambda \Big( \lambda f(x_1, y_1) + (1-\lambda) f(x_1, y_2) \Big) + (1-\lambda) \Big( \lambda f(x_2, y_1) + (1-\lambda) f(x_2, y_2) \Big) \\
+				&=  \lambda^2 f(x_1, y_1) + \lambda(1-\lambda) \big[ f(x_1, y_2) +  f(x_2,y_1) \big] + (1-\lambda)^2 f(x_2, y_2).
+		\end{align*}
+		Now, supposing that $f$ is positive, then $\lambda^2 f(a,b) \le \lambda f(a,b)$, and so
+		\begin{align*}
+			f\Big(\lambda x_1 + (1-\lambda) x_2,  \lambda y_1 + (1-\lambda) y_2 \Big)
+				&\le  \lambda^2 f(x_1, y_1) + \lambda(1-\lambda) \big[ f(x_1, y_2) +  f(x_2,y_1) \big] + (1-\lambda)^2 f(x_2, y_2) \\
+				&\le  \lambda^2 f(x_1, y_1) + (1-\lambda)^2 f(x_2, y_2) \\
+				&\le  \lambda f(x_1, y_1) + (1-\lambda) f(x_2, y_2),
+		\end{align*}
+		as desired. More generally, if $f$ is not positive but merely bounded below, then $f(a,b) = g(a,b) + C$ for some constant $C$ and positive function $g$, which is convex in its arguments. Our previous argument shows that $g$ is jointly convex in $x,y$, and because a constant shift does not alter the convexity of a function, $f$ must be jointly convex in $x,y$ also.
+	\end{lproof}
+	\begin{lemma} \label{lem:cvx2}
+		If $f(x,y)$ is $m$-strongly convex in $x$ and $y$, then $y\mapsto \inf_x f(x,y)$ is an $m$-strongly convex function of $y$.
+	\end{lemma}
+}
+
+
+\begin{lemma} \label{lem:Dstrongcvx}
+	$\kldiv{\mu}{\nu}$ is a $k_\mu$-strongly in $\nu$, for fixed $\mu$, where $k_\mu >0$ is a constant that depends on $\mu$. 
+\end{lemma}
+\begin{lproof}
+	\begin{align*}
+		\kldiv{\mu}{\nu} &= \Ex_{x\sim\mu} \log \frac{\mu(x)}{\nu(x)} \\
+			&= \Ex_{x \sim \mu}\log \mu(x) +  \Ex_{x\sim\mu}\log \frac{1}{\nu(x)}
+	\end{align*}
+	As the first term depends only on $\mu$, it suffices to consider the behavior
+	of the second term, as a function of $\nu$. Let $F(\nu) = - \Ex_{x \sim \mu} \log \nu(x)$.
+	Then $\nabla F(\nu) = x\mapsto \frac{\mu(x)}{\nu(x)}$. 
+	Let $k^{\mu}_{\nu_1, \nu_2} := \inf_x \frac{\mu(x)}{\nu_1(x)\nu_2(x)}$. 
+	Expanding the inner product of the difference in between $\nu_1$ and $\nu_2$, we have
+	\begin{align*}
+		(\nabla F(\nu_1) - \nabla F(\nu_2) ) \cdot (\nu_1 - \nu_2) 
+			&= \sum_{x} \left( \frac{\mu(x)}{\nu_1(x)} - \frac{\mu(x)}{\nu_2(x)} \right)
+				(\nu_2(x) - \nu_1(x)) \\
+			&= \sum_{x} \mu(x) \left( \frac{\nu_2(x)}{\nu_1(x)\nu_2(x)} - 
+				\frac{\nu_1(x)}{\nu_1(x) \nu_2(x)} \right) (\nu_2(x) - \nu_1(x)) \\
+			&= \sum_{x} \mu(x) \left( \frac{1}{\nu_1(x)\nu_2(x)} \right)
+			 (\nu_2(x) - \nu_1(x))^2
+			% &\ge \sum_{x} \mu(x) 
+ 			%  (\nu_2(x) - \nu_1(x))^2 \\
+		 	% &\le \left(\sum_{x} \frac{\mu(x)}{\nu_1(x)\nu_2(x)} \right)
+			%    \left(\sum_x (\nu_2(x) - \nu_1(x))^2  \right) & \text{[Cauchy-Schwarz]}\\
+	\end{align*}
+\end{lproof}
+
+
+\recall{prop:optimalYgivenX}
+\begin{lproof}\label{proof:optimalYgivenX}
 	Because $\alpha_p = 0$, the new cpd $p$ gives the resulting cpd one 
 	additional term in its scoring function, equal to the expected
 	divergence from $p$ to the appropriate marginal of $\mu$, giving us
@@ -446,39 +876,27 @@ are the conditional marginals $\mu(Y\mid X)$ of the best distributions $\mu$ for
 	$p$ does not minimize $\aar{\dg M \bundle p}_\gamma$. 
 	The contrapositive of this argument gives us the other inclusion, $\big\{\mu(Y\smid X) : \mu \in \bbr{\dg M}_\gamma^* \big\} \supseteq \argmin_p \aar{\dg M \bundle p}$, as desired.
 
-\end{proof}
-In the limit, of small $\gamma$, since there is only one such distribution,
-the expression beomes simpler. 
-\begin{prop}
-	$\displaystyle
-		\bbr{\dg M}^*(Y \smid X)
-	$ uniquely minimizes $p \mapsto \aard{\dg M \bundle p}$.
-\end{prop}
-\begin{proof}
-	The argument above works uniformly for all $\gamma$, and so the limit
+\end{lproof}
+
+\recall{prop:smallgammaopt}
+\begin{lproof}\label{proof:smallgammaopt}
+	The argument used in \hyperref[proof:optimalYgivenX]{the proof} of \autoref{prop:optimalYgivenX} works uniformly for all $\gamma$, and so the limit
 	factors through it (more concretely, the proof remains valid if we insert a limit as $\gamma \to 0$ in front of every $\aar{-}_\gamma$ or $\bbr{-}_\gamma$). Since $\bbr{\dg M}^*$ the unique element of $\lim_{\gamma\to0}\bbr{\dg M}_\gamma^*$, $\bbr{\dg M}_\gamma^*(Y\smid X)$ 
 	is the unique element of $\argmin_p \aard{\dg M \bundle p}$.
 	% $$ \bbr{\dg M}_\gamma(\mu) $$
-\end{proof}
+\end{lproof}
 
-So $p \mapsto \aar{\dg M bundle p}$ gives the best scores to the marginals of
-distributions that the scoring semantics of $\dg M$ view as best. Even supposing
-we had oracle access to $\aar{-}$ (which might already be very hard to compute),
-the prospect of having to enumerate all possible conditional probability
-distributions $p$ to find the best one sound prohibitively expensive.
-Fortunately, it is not necessary, as the function $p \mapsto \aar{\dg M \bundle
-p}$ has properties which make for efficient search,
-given oracle access to $\aar{\dg M}$.  Most importantly, it is smooth and 
-%
-strictly convex
-%
-in $p$, 
+We will make use of the implicit function theorem in the next result.
 
-\begin{prop}
-	The function $p \mapsto \aar{\dg M \bundle p}_\gamma$ is smooth and $\gamma$-strongly convex for all $\gamma$ less than $\min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$. 
-\end{prop}
-\begin{proof}
-	First, we deal with the convexity, for which we make use of \cref{lem:cvx1,lem:cvx2}.
+\begin{namedthm}{Implicit Function Theorem}[Dini]
+	Suppose $Z \subseteq \mathbb{R}^n \times \mathbb{R}^m$ is open, and has coordinates $(y_1, \ldots, y_n, x_1, \ldots, x_n)$. If $\phi : Z \to \mathbb{R}^{m}$ is a $k$-times continuously differentiable function, and $(\mat b, \mat a) \in Z$ is such that $\phi(\mat b, \mat a) = \mat 0$, and if the Jacobian matrix
+	\[ \mat J_{\phi,x}(\mat b, \mat a) = \left[ \frac{\partial \phi_i}{\partial x_j} (\mat b, \mat a) \right]_{i,j} \]
+	is an invertible matrix, then there exists an open set $U \subset Y$ containing $\mat b$ such that there is a unique $k$-times differentiable function $g: U \to X$ such that $g(\mat b) = \mat a$, and $\phi(\mat y, g(\mat y)) = 0$ for all $\mat y \in U$. 
+\end{namedthm}
+
+\recall{prop:smooth-and-strictly-cvx}
+\begin{lproof}\label{proof:smooth-and-strictly-cvx}
+	% First, we deal with the convexity, for which we make use of \cref{lem:cvx2}.
 	\commentout{
 		\def\mw#1{{\mat w}_{\!_{#1}}}
 		\def\ofmw(#1|#2){(\mw{#1} \smid \mw{#2})}
@@ -497,237 +915,134 @@ in $p$,
 			&= \inf_\mu \left[ \bbr{\dg M }_\gamma(\mu)
 				+ \Ex_{x\sim\mu_{\!_X}} \kldiv[\Big]{\mu(Y\mid x)}{p(Y\mid x)} \right]\\
 			&= \inf_\mu \left[ \bbr{\dg M }_\gamma(\mu)
-				+  \kldiv[\big]{\mu_{XY}}{p_{Y \mid X}\; \mu_X} \right].
+				+  \kldiv[\Big]{\mu(X,Y)}{p(Y \mid X)\, \mu(X)} \right].
 	\end{align*}
-	Choose $\gamma < (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$.
-	Since $\bbr{\dg M}_\gamma$ is a $\gamma$-strongly convex function of $\mu$ for all
-	such $\gamma$, and 
-	$\kldiv{\mu_{XY}}{\mu_X \; p_{Y\mid X}}$ is 1-strongly 
-	convex in $p$ for fixed $\mu$ (\cref{lem:cvx3}), 
-	% $\thickD$ is convex in both of its arguments,
-	their sum is $\gamma$-strongly convex in $\mu$ and in $p$.
-	By \cref{lem:cvx2} taking an infemum preserves this convexity,
-	and so
-	$
-	 	\inf_\mu \left[ \bbr{\dg M }_\gamma(\mu)
-		+  \kldiv[\big]{\mu_{XY}}{p_{Y \mid X}\; \mu_X} \right]
-	$, which equals $\aar{\dg M \bundle p}_\gamma$,
-	is $\gamma$-strongly convex in $p$. 
-	% $\aar{\dg M \bundle p}_\gamma$ is smooth
-	% Smoothness.
+	% % Choose $\gamma < \min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$.
+	% Since $\bbr{\dg M}_\gamma$ is a $\gamma$-strongly convex function of $\mu$ for all
+	% such $\gamma < \min_L \beta_L$, and 
+	% $\kldiv{\mu_{XY}}{\mu_X \; p_{Y\mid X}}$ is 1-strongly 
+	% convex in $p$ for fixed $\mu$ (\cref{lem:Dstrongcvx}), 
+	% % $\thickD$ is convex in both of its arguments,
+	% their sum is $\gamma$-strongly convex in $\mu$ and in $p$.
+	% By \cref{lem:cvx2} taking an infemum preserves this convexity,
+	% and so
+	% $
+	%  	\inf_\mu \left[ \bbr{\dg M }_\gamma(\mu)
+	% 	+  \kldiv[\big]{\mu_{XY}}{p_{Y \mid X}\; \mu_X} \right]
+	% $, which equals $\aar{\dg M \bundle p}_\gamma$,
+	% is $\gamma$-strongly convex in $p$. 
+	% % $\aar{\dg M \bundle p}_\gamma$ is smooth
+	% % Smoothness.
 	
-	Smoothness follows from the fact that the infemum of a convex family of smooth
-	convex functions is also smooth (\cref{lem:cvx4}). 
-\end{proof}
+	
+	% Choose $\gamma < \min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$.
+	Fix $\gamma < \min_L \beta_L$. Then we know that $\bbr{\dg X}_\gamma(\mu)$ is a $\gamma$-strongly convex function for every PDG $\dg X$, and hence there is a unique joint distribution which minimizes it. 
+	
+	\textbf{Strict Convexity.}
+	Suppose $p_1(Y \mid X)$ and $p_2(Y\mid X)$ are two cpds on $Y$ given $X$. 
+	Fix $\lambda \in [0,1]$, and set $p_\lambda = (1-\lambda) p_1 + \lambda p_2$. 
+	Let $\mu_1, \mu_2$ and $\mu_\lambda$ be the joint distributions that minimze $\bbr{\dg M \bundle p_1}_\gamma$, $\bbr{\dg M \bundle p_2}_\gamma$ and $\bbr{\dg M \bundle p_\lambda}_\gamma$, respectively.  Then we have
+	\begin{equation*}
+		\aar{\dg M \bundle p_\lambda}_\gamma
+			= \bbr{\dg M}_\gamma(\mu_\lambda) + \kldiv[\Big]{\mu_\lambda(X,Y)}{p_\lambda(Y\mid X) \mu_\lambda( X)}.
+	\end{equation*}
+	By convexity of $\bbr{\dg M}$ and $\thickD$, we have
+	\begin{align}	
+		\bbr{\dg M}_\gamma(\mu_\lambda) 
+		 	&\le (\lambda-1)\bbr{\dg M}_\gamma(\mu_1) + \lambda \bbr{\dg M}_\gamma(\mu_2)
+			 	\label{eqn:score-cvx}\\
+		\text{and}\qquad \kldiv[\Big]{\mu_\lambda(XY)}{p_\lambda(Y\smid X) \mu_\lambda( X)}
+			&\le (1-\lambda)\kldiv[\Big]{\mu_1(XY)}{p_1(Y \smid X) \mu_1( X)} \nonumber \\
+			&\qquad+ \lambda\;\;\kldiv[\Big]{\mu_2(XY)}{p_2(Y\smid X) \mu_2( X)}. 
+				\label{eqn:D-cvx}
+	\end{align}
+	If $\mu_1 \ne \mu_2$ then since $\bbr{\dg M}$ is strictly convex, \eqref{eqn:score-cvx} must
+	be a strict inequality. On the other hand, if $\mu_1 = \mu_2$, then since $\mu_\lambda = \mu_1 = \mu_2$ and $\thickD$ is stricly convex in its second argument when its first argument is fixed (\Cref{lem:Dstrongcvx}), \eqref{eqn:D-cvx} must be a strict inequality.
+	In either case, the sum of the two inequalities must be strict, giving us
+	\begin{align*}
+		\aar{\dg M \bundle p_\lambda}_\gamma &= 
+		\bbr{\dg M}_\gamma(\mu_\lambda) + \kldiv[\Big]{\mu_\lambda(XY)}{p_\lambda(Y\smid X) \mu_\lambda( X)} \\
+		&< 
+		 (\lambda-1) \left[\bbr{\dg M}_\gamma(\mu_1)
+			 	+ \kldiv[\Big]{\mu_1(XY)}{p_1(Y \smid X) \mu_1( X)} \right]
+			 \\[-0.3em]&\qquad\qquad
+			 + \lambda \left[ \bbr{\dg M}_\gamma(\mu_2)
+			 	+ \kldiv[\Big]{\mu_2(XY)}{p_2(Y\smid X) \mu_2( X)} 
+			 	\right] \\
+		 &= (\lambda-1) \aar{\dg M \bundle p_1} + \lambda\,\aar{\dg M \bundle p_2},
+	\end{align*}
+	which shows that $\aar{\dg M \bundle p}$ is \emph{strictly} convex in $p$, as desired.
+	
 
-\begin{prop}
-	$\aar{\dg M}_\gamma$ is continuous as a function of $\gamma$, and converges as $\gamma\to 0$. 
-\end{prop}
-\begin{proof}
-	\par
+	\textbf{Smoothness.}
+	If $\bbr{\dg M \bundle p}_\gamma^*$ is a positive distribution, then by definition $\bbr{\dg M \bundle p}$ achieves its minimum on the interior of the probability simplex $\Delta \V(\dg M \bundle p)$, and so by \Cref{lem:cvx4}, we immediately find that $\aar{\dg M \bundle p}_\gamma$ is smooth in $p$. 
+	
+	Now, suppose that $\bbr{\dg M \bundle p}_\gamma^*(\mat w) = 0$,  for some $\mat w \in \V(\dg M \bundle p)$. 
+	
+	Applying \Cref{lem:cvx4} to the function $f = \bbr{\dg M}_\gamma$
+		
+	Now for the second case.
+	
 	\TODO
-\end{proof}
-
-This suggests using a variant of gradient descent in which
-in which $\gamma$ decays to zero during the optimization process, because
-progress towards an optimum for $\gamma_0$ will still be progres towards  
-the optimum for $\gamma_0 - \epsilon$.  
-
-
-% {\centering\Large Further Claims \par}
-
-
-\commentout{%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-	\begin{defn}[degree of inconsistency]
-		If $\dg M$ is a PDG, let $\aar{\dg M}_\gamma$ denote the \emph{degree of
-		inconsistency} of $\dg M$ at $\gamma$, and be given by
-		$$ \aar{\dg M}_\gamma := \inf_{\mu \in \Delta[\V(\dg M)]} 
-			% \bbr{\dg M}_\gamma(\mu)
-			\sum\alle \beta_L \;\kldiv{\mu_{Y|X}}{\bp} + \alpha_L\;\H_\mu(Y\mid X)
-		$$
-		and let $\aar[\Big]{\dg M} = \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma$.
-	\end{defn}
-
-	\begin{claim}
-		$$\bbr{\dg M}_\gamma(\mu) = $$
-	\end{claim}
-}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% There is an intuitive story to be told here: simply add a guess to the PDG.
-% Sort it out if you have time. 
-% Do not sort it out otherwise. 
-
-
-\subsection{Conditioning, and a Second Approach}
-What if we only wanted to know $\Pr(Y \smid X=x)$, for a specific value of $X$, rather than
-the full cpd $\Pr(Y\smid X)$ (including the data for every $X$), in the context of a PDG $\dg M$?
-
-In this case, we could add an edge $\pdgunit \to X$ annotated with the degenerate cpd $\delta_x$ 
-indicating that $X$ always takes the value $x$. 
-
-\begin{claim}
- 	The cpd $q(Y \mid X) := x \mapsto \bbr{\dg M \bundle (X\!=\!x)}^*_\gamma(Y)$
-	minimizes $\aar{\dg M \bundle q}_\gamma$
-\end{claim} 
-
-\subsection{Complexity}
-
-\begin{prop}
-	Computing $\aar{\dg M}$ is NP-hard.  
-\end{prop}
-\begin{proof}
-	We can directly encode SAT problems as PDGs, which are inconsistent.
-	Specifically, let $\varphi$ be a formula over variables $\mat X$. The PDG
-	whose nodes are $\mat X \cup \{$``$\varphi(\mat X)$''$\}$ with $\V(\varphi) = \{0,1\}$, and
-	two edges:
-	\begin{itemize}	
-		\item an edge $\mat X \tto$``$\varphi(\mat X)$'', together with a degenerate cpd
-			(function) indicating the truth of
-			$\varphi$ for a value of $X$
-		\item an edge $\pdgunit \tto $``$\varphi(\mat X)$'', which asserts that 
-			``$\varphi(\mat X)$'' always takes the value 1.
-	\end{itemize}
-	Such a PDG is consistent if there is a satisfying assignment of variables, and 
-	inconsistent otherwise.
-\end{proof}
-
-There is still hope for approximating it, given that it is convex (but in an exponentially
-large space) and monotonic in that additional edges only increase $\aar{\dg M}$? 
-
-\TODO
-
-\section{Causal Inference}
-To do causal inference, we need only make use of the parameter $\alpha$ when considering
-potentaial answers. As in section 
-
-\section{Variational Inference}
-
-\section{Belief Propogation in a PDG}
-
-\section{General Dyanmics}
-Let $\Theta_\dg M$ be the space of parameters of $\dg M$ (i.e., the parameters for
-every cpd and all of the weights). We propose that we update weights by
-
-$$  $$
-
-%%%%%%%%%%%%%%%% VESTIBULE %%%%%%%%%%%%%
-\commentout{
-	If, rather than fixing $\dg M$ and optimizing $p$, we fix $p$ and optimize $\dg M$,
-	this same proces corresponds to an update, rather than an inference. For instance, in
-	the case where $X = \pdgunit$, an observation $Y\!=\!y$  can be added to
-	$\dg M$ in the form of an edge $\ed{\delta_y}{\pdgunit}Y$, getting the
-	(possibly inconsistent) PDG $\dg M'$. The distribution $\bbr{M'}^*$ turns out
-	to be the result of conditioning $\bbr{\dg M}^*$ on $Y\!=\!y$.  
-}
-
-\section{Misc}
-
-\subsection{Factor Graphs and Inconsistency}
-For factor graphs, the story is more complex, as it could involve
-inconsistency. The factors of a
-factor graph, which in isolation indicate relative probabilities. 
-In physics, factored exponential families form a mathematical backbone of statistical
-mechanics, in which the normalization constant 
-$Z_{\Psi}$ for the WFG $\Psi = (\phi_j, \theta_j)_j$,
-given by
-$$
-	Z_{\Psi} := \sum_{\mat w} \prod_{j} \phi_j(\mat w_j)^{\theta_j} 
-	,
-$$
-is known as the \emph{partition function}. 
-Surprisingly, most aggregate thermodynamic quantities 
-(e.g., the total energy, free energy, pressure, and entropy) can
-be obtained by taking various partial derivatives of $Z_\Psi$.
-Because both $Z_{\Psi}$ for a factor graph $\Phi$, and $\aar{\dg M}$ are
-both real-valued functions of the state of the system, one might wonder if
-there is some connection between them. Indeed, there is.
-
-\begin{conj}
-	$\log Z_{\Psi} = \aar{\PDGof{\Psi}}_1$
-\end{conj}
-
-\appendix
-\section{Proofs and Lemmas}
-
-\begin{lemma} \label{lem:cvx1}
-	If $f(x,y)$ is bounded below and convex in both $x$ and $y$, then it is jointly convex in
-	$x\otimes y$. 
-\end{lemma}
-\begin{proof}
-	By definition, for $f$ to be convex in either variable separately, we have, for all $\lambda \in [0,1]$ and all $x_0, x_1, x_2, y_0, y_1, y_2$, that
-	\begin{align*}
-		f(\lambda x_1 + (1-\lambda) x_2, y_0) &\le \lambda f(x_1, y_0) + (1-\lambda) f(x_2, y_0) \\
-		\text{and}\qquad
-		f(x_0, \lambda y_1 + (1-\lambda) y_2) &\le \lambda f(x_0, y_1) + (1-\lambda) f(x_0, y_2). \\
-	\end{align*}
-	In particular, for $y_0 = \lambda y_1 + (1-\lambda) y_2$ and $x_0 = \lambda x_1 + (1-\lambda) x_2$, we have
-	\begin{align*}
-		f\Big(\lambda x_1 + (1-\lambda) x_2,  \lambda y_1 + (1-\lambda) y_2 \Big)
-			&\le \lambda f(x_1, \lambda y_1 + (1-\lambda) y_2 ) + (1-\lambda) f(x_2, \lambda y_1 + (1-\lambda) y_2 ) \\
-			&\le \lambda \Big( \lambda f(x_1, y_1) + (1-\lambda) f(x_1, y_2) \Big) + (1-\lambda) \Big( \lambda f(x_2, y_1) + (1-\lambda) f(x_2, y_2) \Big) \\
-			&=  \lambda^2 f(x_1, y_1) + \lambda(1-\lambda) \big[ f(x_1, y_2) +  f(x_2,y_1) \big] + (1-\lambda)^2 f(x_2, y_2).
-	\end{align*}
-	Now, supposing that $f$ is positive, then $\lambda^2 f(a,b) \le \lambda f(a,b)$, and so
-	\begin{align*}
-		f\Big(\lambda x_1 + (1-\lambda) x_2,  \lambda y_1 + (1-\lambda) y_2 \Big)
-			&\le  \lambda^2 f(x_1, y_1) + \lambda(1-\lambda) \big[ f(x_1, y_2) +  f(x_2,y_1) \big] + (1-\lambda)^2 f(x_2, y_2) \\
-			&\le  \lambda^2 f(x_1, y_1) + (1-\lambda)^2 f(x_2, y_2) \\
-			&\le  \lambda f(x_1, y_1) + (1-\lambda) f(x_2, y_2),
-	\end{align*}
-	as desired. More generally, if $f$ is not positive but merely bounded below, then $f(a,b) = g(a,b) + C$ for some constant $C$ and positive function $g$, which is convex in its arguments. Our previous argument shows that $g$ is jointly convex in $x,y$, and because a constant shift does not alter the convexity of a function, $f$ must be jointly convex in $x,y$ also.
-\end{proof}
-\begin{lemma} \label{lem:cvx2}
-	If $f(x,y)$ is $m$-strongly convex in $x$ and $y$, then $y\mapsto \inf_x f(x,y)$ is an $m$-strongly convex function of $y$.
-\end{lemma}
-
-
-\begin{lemma} \label{lem:cvx3}
-	$\kldiv{\mu}{\nu}$ is a 1-strongly in $\nu$, for fixed $\mu$. 
-\end{lemma}
-\begin{proof}
-	\begin{align*}
-		\kldiv{\mu}{\nu} &= \Ex_{x\sim\mu} \log \frac{\mu(x)}{\nu(x)} \\
-			&= \Ex_{x \sim \mu}\log \mu(x) +  \Ex_{x\sim\mu}\log \frac{1}{\nu(x)}
-	\end{align*}
-	As the first term depends only on $\mu$, it suffices to consider the behavior
-	of the second term, as a function of $\nu$. Let $F(\nu) = - \Ex_{x \sim \mu} \log \nu(x)$.
-	Then $\nabla F(\nu) = x\mapsto \frac{\mu(x)}{\nu(x)}$. 
-	Let $k^{\mu}_{\nu_1, \nu_2} := \inf_x \frac{\mu(x)}{\nu_1(x)\nu_2(x)}$. 
-	Expanding the inner product of the difference in between $\nu_1$ and $\nu_2$, we have
-	\begin{align*}
-		(\nabla F(\nu_1) - \nabla F(\nu_2) ) \cdot (\nu_1 - \nu_2) 
-			&= \sum_{x} \left( \frac{\mu(x)}{\nu_1(x)} - \frac{\mu(x)}{\nu_2(x)} \right)
-				(\nu_2(x) - \nu_1(x)) \\
-			&= \sum_{x} \mu(x) \left( \frac{\nu_2(x)}{\nu_1(x)\nu_2(x)} - 
-				\frac{\nu_1(x)}{\nu_1(x) \nu_2(x)} \right) (\nu_2(x) - \nu_1(x)) \\
-			&= \sum_{x} \mu(x) \left( \frac{1}{\nu_1(x)\nu_2(x)} \right)
-			 (\nu_2(x) - \nu_1(x))^2
-			% &\ge \sum_{x} \mu(x) 
- 			%  (\nu_2(x) - \nu_1(x))^2 \\
-		 	% &\le \left(\sum_{x} \frac{\mu(x)}{\nu_1(x)\nu_2(x)} \right)
-			%    \left(\sum_x (\nu_2(x) - \nu_1(x))^2  \right) & \text{[Cauchy-Schwarz]}\\
-	\end{align*}
-	\TODO[incomplete; may require weakening]
-\end{proof}
+	
+	If $x^*_b \in \partial X$, then we claim that either
+	\begin{enumerate}[nosep]
+		\item There is a subspace $T \subseteq \mathbb R^{m}$ with 
+			$\SD{}$
+	 	\item There is a subspace $S \subseteq \mathbb R^{n}$ with 
+			$x^*_b \in S \cap \partial X$ such 
+	
+	\end{enumerate} 
+	
+\end{lproof}
 
 \begin{lemma}\label{lem:cvx4}
-	If $X$ and $Y$ are compact real manifolds (with boundary), and
-	If $f : X \times Y \to \mathbb R$ is strictly convex and smooth,
-	then $y\mapsto \inf_x f(x, y)$  is smooth.
+	Let $X$ and $Y$ be convex sets, and
+	$f : X \times Y \to \mathbb R$ be a smooth $(C^\infty)$, convex function.
+	If $f$ is strictly convex in $X$, and for some $y_0 \in Y$, $f(x, y_0)$ achieves its infemum on the interior of $X$.
+	then $y\mapsto \inf_x f(x, y)$ is smooth $(C^\infty)$ at the point $y_0$.
 \end{lemma}
-\begin{proof}
-	Let $f_y(x) = f(x,y)$. 
-	Since $f$ is smooth and stritly convex, each restriction $f_y$ of $f$ to a 
-	particular $y$ is also smooth and strictly convex. 
-	As a result, each $f_y$ has a unique minimum $m_y := \inf_{x} f_y(x)$.
-	As it is smooth, $m_y$ is either a boundary point, or
-	at a point where $\nabla f = 0$. In the latter case, 
-			
-	\TODO
-\end{proof}
+
+\begin{lproof}%[Proof of \Cref{lem:cvx4}]
+	% Let $f_y(x) = f(x,y)$. 
+	% Since $f$ is smooth and stritly convex, each restriction $f_y$ of $f$ to a 
+	% particular $y$ is also smooth and strictly convex. 
+	% As a result, each $f_y$ has a unique minimum $m_y := \inf_{x} f_y(x)$.
+	% As $f_y$ is smooth, $m_y$ is either a boundary point, or
+	% at a point where $\nabla f_y = 0$. 
+	% 
+	% Moreover, it is a constrained optimization problem, so 
+	% $\nabla_{x,y,\lambda} [ f(x,y) + \lambda (y_0 - y)] = 0$.
+	% 
+	% \TODO
+	Let $x_0^* := \arg\min_x f(x,y_0)$, which is achieved by assumption, and is unique because $f(-,y_0)$ is strictly convex. 
+	
+	We will ultimately apply the implicit function theorem to give us a smooth function which is equal to this infemum, but to do so we must deal with the technicality that it requires an open set; the boundary is the most complicated part of this result.
+	Here we have essentially required that the domain be open by fiat for $X$, but for $Y$ (which is a possibly non-open subset of $\mathbb R^m$), we use the Extension Lemma for smooth functions \cite[Lemma 2.26]{Lee.SmoothManifolds}. In our context, it states that
+	for every open set $U$ with $\overline{Y} \subseteq U \subseteq \mathbb R^m$,
+	there exists a function $\tilde f : X \times \mathbb R^m \to \mathbb R$, such that $\tilde f |_{Y} = f$ (and $\supp \tilde f \subseteq U$).
+	We only need a small fraction of this power: that we can smoothly extend $f$ to \emph{some} open set of $\mathbb R^m$, which we fix and call $\tilde Y$.
+	
+	% Similarly, for other $y \in Y$, let $x^*_y$ be the unique value of $x$ which minimizes $f(x,y)$.
+	
+	% \textbf{Smoothness.}
+	% By assumption, $x^*_b$ is not a boundary point of $X$. 
+	%
+	We claim that now all conditions for the Implicit Function Theorem are met if invoked with
+		$\phi(y,x) := \vec\nabla_x \tilde f(x,y)$ and $(\mat b,\mat a) = (y_0, x^*_0)$.
+	Concretely, we have $m = \mathop{dim} X$, $n = \mathop{dim} Y$, and $Z = (\tilde Y \times X)^\circ$, i.e., the interior of $\tilde Y \times X$, which is open and contains $(\mat b, \mat a)$. 
+	 Becuase $\phi$ is smooth, it is $k$-times differentiable for all $k$. We have $\vec\nabla_x \tilde f (y_0, x^*_0) = \vec 0$ because $x^*_0$ is a local minimum of the smooth function $\tilde f(-, y_0)$ which lies on the interior of $X$. 
+	
+	Moreover, the Jacobian matrix 
+	\[ \mat J_{\nabla\!\tilde f, x}(y_0, x_0^*) = \left[ \frac{\partial^2 f}{\partial x_i \partial x_j}(x^*_0, y_0) \right]\]
+	is the Hessian of the strictly convex funtion $f(-, b)$, and therefore positive definite (and in particular non-singular).
+	Therefore, the Implicit Function Theorem guarantees us the existence of a neighborhood $U \subset \tilde Y$ of $y_0$ for which
+	there is a unique $k$-times differentiable function $g: U \to X$ such that $g(y_0) = x^*_0$ and $\vec\nabla_x \tilde f(y, g(y)) = 0$ for all $y \in U$. Of course, this implies $g(y) = \argmin_x f(x,y)$ at every such point, and $\inf_x f(x,y) = f(g(y),y)$ is a composition of the smooth function $f$ with the $k$-times differentiable function $g \otimes \mathrm{id}_Y$.
+	Therefore, $\inf_x f(x,y)$ is itself $k$-times continuously differentiable at $y_0$ for all $k$, or in other words, $\inf_x f(x,y)$ is smooth at $y=y_0$. 
+\end{lproof}
 
 \recall{prop:inc-is-inconsistency}
-\begin{proof}\label{proof:inc-is-inconsistency}
+\begin{lproof}\label{proof:inc-is-inconsistency}
 	Unwrapping the definitions, we have
 	\begin{align*}
 		\aard{\dg M} = \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma 
@@ -774,9 +1089,49 @@ there is some connection between them. Indeed, there is.
 			 = \aard{\dg M}
 			 ,\qquad\text{as desired.}
 	$$
-\end{proof}
-
-
+\end{lproof}
+\recall{prop:fg-inconsistency-is-partition-function}
+\begin{lproof}\label{proof:fg-inconsistency-is-partition-function}
+	\def\theelt{\mathop{\mathrm{the}}}
+	Let $\theelt(\{x\}) := x$ be a function that extracts the unique element singleton set. 
+	We showed in the orignal paper (Corolary 4.4.1) that 
+	\[ \theelt \bbr{(\UPDGof{\Phi}, \theta, \theta)}^*_1 = \Pr\nolimits_{\Phi, \theta}(\mat w) 
+		= \frac{1}{Z_\Psi} \prod_{j} \phi_j(\mat w_j)^{\theta_j} , \]
+	Recall the statement of Prop 4.6 from the original paper,
+	\begin{equation}\label{eqn:nice-score-repeated}
+		\bbr{\dg M}_\gamma(\mu) = \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_{ X \xrightarrow{\!\!L} Y  } \bigg[\,
+		   \!\beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})} + 
+		   {\color{red}(\alpha_L - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}} \bigg] - 
+		\log \frac{1}{\mu(\mat w)}  \Bigg\}, \\
+	\end{equation}
+	but note that since $\alpha$ and $\beta$ are both equal to $\theta$ for our PDG of interest $(\UPDGof\Phi, \theta,\theta)$ and $\gamma = 1$, the middle term disappears, yielding the standard variational Gibbs free energy $\GFE(\mu)$.  
+	Recall also that
+	$\aar{\dg M}_\gamma = \inf_\mu \bbr{\dg M}_\gamma(\mu)$ and $\bbr{\dg M}^*_\gamma = \argmin \bbr{\dg M}_\gamma(\mu)$, so (informally), $\aar{\dg M} = \bbr{\dg M}(\bbr{\dg M}^*)$. We now compute the value of the inconsistency $\aar{(\UPDGof\Phi, \theta,\theta)}_1$.
+	\begin{align*}
+		\aar{(\UPDGof{\Phi}, \theta, \theta)}_1 
+		&= \bbr{(\UPDGof{\Phi}, \theta, \theta)}_1\Big(\Pr\nolimits_{\Phi, \theta}(\mat w) \Big) \\
+		%\frac{1}{Z_\Phi} \prod_j \phi_j(\mat w_j)^{\theta_j}
+		&= 
+		 \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_{X \xrightarrow{\!\!L} Y} \bigg[\,
+	      		\!\beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})}
+				% (\alpha_L - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})} 
+				\bigg] - \log \frac{1}{\Pr\nolimits_{\Phi, \theta}(\mat w) }  \Bigg\}
+			& \Big[	 ~\text{by \eqref{eqn:nice-score-repeated}}~	\Big]\\
+		&= 
+		 \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_j \bigg[\,
+	      		\!\theta_j \log \frac{1}{\phi_j(\mat w_j)}
+				\bigg] - \log \frac{Z_\Psi}{\prod_{j} \phi_j(\mat w_j)^{\theta_j}}  \Bigg\} 
+			& \Big[ \parbox{1.5in}{\centering%
+			 	cpds $\bp$ correspond\\ to factors $\phi_j$}	\Big]\\
+		&= 
+		 \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_j \bigg[\,
+	      		\!\theta_j \log \frac{1}{\phi_j(\mat w_j)}
+				\bigg] - \sum_j \left[\theta_j \log \frac{1}{\phi_j(\mat w_j)} \right]
+				 - \log Z_\Psi \Bigg\} \\
+		&= \Ex_{\mat w \sim \mu} [- \log Z_\Psi] \\
+		&= - \log Z_\Psi & \Big[~\text{$Z_\Psi$ is constant in $\mat w$}~\Big]
+	\end{align*}
+\end{lproof}
 
 
 \end{document}
