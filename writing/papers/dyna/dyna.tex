@@ -7,7 +7,7 @@
 
 \usepackage{tikz}
 	\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
-	
+	\usetikzlibrary{cd}
 	\pgfdeclaredecoration{arrows}{draw}{
 		\state{draw}[width=\pgfdecoratedinputsegmentlength]{%
 			\path [every arrow subpath/.try] \pgfextra{%
@@ -105,6 +105,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{fact}[theorem]{fact}
 \newtheorem{conj}[theorem]{Conjecture}
+\newtheorem{question}[theorem]{Question}
 
 % \newcommand{\regugitatethmname}{}
 % \newtheorem{regurgitatethm}[theorem]{\regugitatethmname}% to be defined later
@@ -196,6 +197,7 @@
 \DeclareMathOperator\src{\mathbf{src}}
 \DeclareMathOperator\tgt{\mathbf{tgt}}
 
+\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
 
 %%%%%%%%%%%%%%%%%%%%
 
@@ -229,8 +231,8 @@
 	{\mspace{3mu}\mathllap{\delimsize[}#1\mathrlap{\delimsize]}\mspace{3mu}}
 \DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
 	{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
-\DeclarePairedDelimiterXPP{\aard}[1]{}{\langle}{\rangle}{_{\!_\downarrow}}
-	{\mspace{-3.5mu}\delimsize\langle#1\delimsize\rangle\mspace{-3.5mu}}
+\DeclarePairedDelimiterXPP{\aarz}[1]{}{\langle}{\rangle}{_{\!_0}} % \downarrow
+	{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
 
 
 %% Theorem Restatement
@@ -288,6 +290,9 @@
    skipabove=\medskipamount,
    skipbelow=\medskipamount
 ]{lproof}
+\newmdenv[roundcorner=5pt, backgroundcolor=gray!20!white, frametitle={$\langle$under construction $\rangle$},frametitlerule=false,
+innertopmargin=2pt, frametitlebelowskip=3pt, frametitleaboveskip=2pt, frametitlebackgroundcolor=gray!70!white, skipabove=1em,skipbelow=1em, frametitlefont={\normalfont\itshape},leftmargin=-10pt, rightmargin=-10pt]
+		{wip}
 
 
 \newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
@@ -303,9 +308,9 @@
 % PDGs are able to represent an inconsistent collection of local beliefs; we have argued that doing so allows us to represent important states of knowledge, and hinted that it may allow us to make better decisions and
 % save computation.
 
-We have introduced PDGs, an extremely expressive class of directed graphical model,
+PDGs are an extremely expressive class of directed graphical model,
 that subsumes other common graphical models, such as factor graphs and Bayesian Networks.
-Syntactically, PDGs are essentially weighted collections of conditional probablity distributions (cpds), but they also have semantics in terms of a scoring function on joint distributions over all variables, which is the sense in which they generalize these other graphical models.
+Syntactically, PDGs are essentially arbitrary weighted collections of conditional probablity distributions (cpds), but they also have semantics in terms of a scoring function on joint distributions over all variables, which is the sense in which they generalize these other graphical models.
 So far, we have argued that PDGs are particularly natural modeling tools, which can capture features of epistemic state, but we have not provided more than a glimpse at how to use them for inference.
 How can we use PDGs to make predictions? What kinds of queries can we ask a PDG? How does it coincide with the semantics of a PDG?
 
@@ -352,9 +357,9 @@ the set of distributions consistent with a PDG $\dg M$, rather than $\bbr{\dg M}
 a single edge $X \to Y$ annotated with the cpd $p$, and taking 
 default weights $\alpha_p = 0$, and $\beta_p = 1$. In cases where we wish
 to indicate other weights, we indicate the modifications with a parameter
-list. For instance, to give a PDG consisting of the cpd $p$, attached to
+assignment. For instance, to give a PDG consisting of the cpd $p$, attached to
 a value of $\alpha_p$ equal to $\alpha_0$, and 
-a value of $\beta_p$ equal to $\beta_0$, we would write
+a value of $\beta_p$ equal to $\beta_0$, we might write
 $ p_{\{\alpha=\alpha_0;\beta = \beta_0\}} $.
 %
 We call two PDGs $\dg A$ and $\dg B$ \emph{compatible} if they agree
@@ -376,7 +381,7 @@ in terms of its degree of ``inconsistency''.
 		\bbr{\dg M}_\gamma(\mu)
 		% \sum\alle \beta_L \;\kldiv{\mu_{Y|X}}{\bp} + \alpha_L\;\H_\mu(Y\mid X)
 		,\qquad\text{which we write as}\qquad
-		\aard{\dg M} := \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma
+		\aarz{\dg M} := \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma
 	$$	
 	in the limiting case for small $\gamma$.
 \end{defn} 
@@ -389,7 +394,7 @@ this new definition is compatible with it.
 
 \begin{prop}
 	$\dg M$ is a \emph{consistent} PDG, in that $\SD{\dg M} \ne \emptyset$,
-	if and only if $\aard{\dg M} = 0$. 
+	if and only if $\aarz{\dg M} = 0$. 
 \end{prop}
 
 % \begin{proof}
@@ -405,8 +410,8 @@ it should come at no surprise that $\aar{-}$ reduces to $\Inc(-)$ in the limit
 of small $\gamma$.
 
 % \begthm{prop}{prop:inc-is-inconsistency}
-\begin{linked}{prop}{inc-is-inconsistency} \label{prop:inc-is-inconsistency}
-	$\displaystyle \aard{\dg M} = \Inc (\dg M)
+\begin{linked}{prop}{inc-is-inconsistency}%\label{prop:inc-is-inconsistency}
+	$\displaystyle \lim_{\gamma\to 0}\aar{\dg M}_\gamma = \Inc (\dg M) = \aarz{\dg M}
 		% \inf_{\mu % \in \Delta[\V(\dg M)]
 		% } \Inc{\dg M}(\mu) 
 	$.
@@ -421,8 +426,8 @@ qualitative information (the parameters $\alpha$ which indicate a qualitative
 dependency structure), against the quantitative information (the data in the
 cpds $\bp{}$ and the parameters $\beta$ expressing its confidence). 
 We will write $\aar{\dg M}$ without a subscript to indicate the function
-$\gamma \mapsto \aar{\dg M}_\gamma$, which we will use when $\gamma$ is not
-relevant and may be supplied arbitrary by a user.
+$\gamma \mapsto \aar{\dg M}_\gamma$, which we will use when a result does not
+depend on $\gamma$.
 
 Although we defined $\aar{-}$ in terms of $\bbr{-}$, 
 we note that it is also possible to do the reverse,
@@ -469,7 +474,7 @@ Perhaps most importantly, the best cpd(s) according to this measure
 are the conditional marginals $\mu(Y\mid X)$ of the best distributions $\mu$ for $\dg M$.
 
 \begin{linked}{prop}{optimalYgivenX}
-	\label{prop:optimalYgivenX}
+	% \label{prop:optimalYgivenX}
 	For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that 
 	$\displaystyle
 		\argmin_{p : X \to \Delta Y} \aar{\dg M \bundle p}_\gamma = 
@@ -481,7 +486,7 @@ the expression beomes simpler.
 \begin{linked}{prop}{smallgammaopt}
 	$\displaystyle
 		\bbr{\dg M}^*(Y \smid X)
-	$ uniquely minimizes $p \mapsto \aard{\dg M \bundle p}$.
+	$ uniquely minimizes $p \mapsto \aarz{\dg M \bundle p}$.
 \end{linked}
 
 
@@ -753,6 +758,258 @@ there is some connection between them. Indeed, there is.
 
 
 \section{Variational Inference}
+Broadly speaking, ``variational inference'' is the practice of optimizing the parameters of an auxilary model to get bounds on a quantity of interest, thereby leveraging optimization to do inference.  
+In modern machine learning, the term usually refers to a specific motivating instance, which we now review in more detail. 
+As we do so, we justify some of the arguably unnatural (but standard) choices made without argument in modern tutorials \cite{}.
+
+\subsection{The Motivation for Variational Bounds}
+	\label{sec:intro-to-variational-inference}
+\def\xsamp{{\underline{\mat X}}}
+
+% \subsubsection{Setup.}
+Suppose we would like to construct a distribution (generative model) $p(X)$ for variable(s) $X$, given samples $\xsamp = \{ x^{(i)} \}_{i=1}^m$. The usual approach is to optimize $p$ so as to minimize some loss function $\ell(p; \xsamp)$, and by far the most common loss function is the negative (log)-likelihood of generating the data $\xsamp$ with independent draws from $p$, or equivalently, the total information content of the samples (according to $p$), which is given by 
+\begin{equation}
+ 	\ell(p; \xsamp) = \sum_{i=1}^m \I_p[ X = x^{(i)}]  % \underbrace{}_{\mathclap{\text{information in the samples}}} 
+	% = - \log p(\xsamp) 
+	= -\sum_{i=1}^m \log p(x^{(i)}). \label{eq:negloglike} \end{equation}
+One intuition is that we want to maximize the probability of seeing our data; another is that we'd like to minimize the model's surprise at seeing these samples.%
+The logarithm may seem extraneous, since the relative ordering on distributions $p$ is the same without it---but the expression as given is strictly convex, factors product distributions into sums, solves numerical issues, and meshes nicely with information theory / statistical mechanics.
+The optimal distribution according to $\ell$ the data distribution 
+$\datadist\xsamp(x) = \frac1m \#\{i : x = x^{(i)}\}$  itself, since
+\[ 
+	\ell(p; \xsamp) =~ m \cdot\!\! \underbrace{\Ex_{x \sim \datadist\xsamp} \Big[ \log \frac1{p(x)}\Big] }_{\text{cross entroy from $\datadist\xsamp$ to $p$}} =\quad \kldiv{\datadist\xsamp}{p} + \underbrace{\H(\datadist\xsamp)}_{\text{constant in $p$}}. 
+\] 
+Given that we already know its optimum ($\datadist\xsamp$) in closed form, it would be reasonable to question the choice of $\ell(p;\xsamp)$ as an optimization objective. Worse still, $\datadist\xsamp$ does not generalize at all to unseen samples, and so we would be quite unhappy if we were to recover it from the optimization process. 
+Still, ``maximizing the probability of your data'' is generally considered the standard way to fit your model; this issue of overfitting is either implicitly dealt with by  restricting to possible classifiers $p$ with nice properties (i.e., not expressive enough to represent $\datadist\xsamp$), or by adding additional terms to $\ell$ to disincentivize complex, ad-hoc models (``regularizers'').
+In recent years, the ML community has realized that adding such terms is not only useful (i.e., for preventing overfitting \cite{} and providing adversairal protection \cite{}), but also natural, as they correspond to prior beliefs \cite{}.
+We will return to this point later, but for now we will continue with our un-regularized log likelihood objective $\ell$.
+
+When working with latent variable models---that is, models involving unobserved variables $Z$---computing the likelihood function is more difficult, as now we only have observations for \emph{part} of our variable. Typically, we have a joint model $p(X,Z)$, but samples only for $X$. Sure, since we have a joint distribution $p(X,Z)$ we implicitly also have the marginal distribution $p(X)$, but computing it could be expensive. To compute the marginal likelihood directly, we would have to sum (or integrate) over all possible values of $z$, as in \eqref{eq:marginal-likelihood}.
+\begin{equation}
+	\ell(p ; \xsamp) = - \log p(\xsamp) = - \sum_{i} \log \left(\sum_z p(x^{(i)}, z) \right) \label{eq:marginal-likelihood}
+\end{equation}
+This may not sound so bad, but in fact it is prohibitively expensive, because the number of terms scales exponentially with the dimension of $Z$ and number of latent variables. 
+
+When confronted with intractable integrals such as this one, a standard trick is to draw samples and average, which is known as a \emph{Monte Carlo} estimate.
+To justify taking samples like this, we have to rewrite the quantity of interest with an expectation of something. To start, let $q(Z)$ be an arbitrary distribution from which we draw samples:  
+\begin{equation*}
+	-\log p(x) = - \log \sum_z p(x, z) 
+		= -\log \sum_z \left[ q(z) \cdot\frac{p(x, z)}{q(z)} \right] 
+		= -\log \Ex_{z\sim q(Z)} \left[\frac{p(x, z)}{q(z)} \right] 
+		% &= -\log \Ex_{z\sim p(Z)} \Big[p(x \mid z) \Big] \\
+		% &\approx - \sum_{i} \log \left(\Ex_{\mat z^{(1)}, \ldots \mat z^{(m)} \sim q(Z)} p(x^{(i)}, z) \right) 
+\end{equation*}
+Note that in order to introduce the expectation, we had to correct for the density of $q$ which we artificially introduced, resulting in a factor of ${1}/{q(z)}$, which can be recognized as \emph{inverse propensity weighting}. 
+Had we not introduced a logarithm at the beginning, this would have given us an unbiased estimator of the desired quantity, but alas $\log \Ex [X] \ne \Ex [\log X]$. Still, since $\log$ is a concave function, Jenson's inequality tells us that 
+% \[ \ell(p; \xsamp) = -\sum_i \log \Ex_{z\sim q(Z)} \left[\frac{p(x^{(i)}, z)}{q(z)} \right]
+%  	\ge - \sum_i \Ex_{z\sim q(Z)}\left[  \log \frac{p(x^{(i)}, z)}{q(z)} \right]. \]
+\[ \log p(x) = \log \Ex_{z\sim q(Z)} \left[\frac{p(x^{(i)}, z)}{q(z)} \right]
+ 	\ge \Ex_{z\sim q(Z)}\left[  \log \frac{p(x, z)}{q(z)} \right] =: \mathrm{ELBO}_{p,q}(x). \]
+This final quantity is known as the ``evidence lower bound'', since it lower bounds the ``evidence'' ($\log p(x)$). As a result,
+\[ \ell(\xsamp; p) = - \sum_{i=1}^m \log p(x^{(i)}) \le - \sum_i \mathrm{ELBO}_{p,q}(x^{(i)}), \] 
+so one approach to minimizing the loss $\ell(p; \xsamp)$, is to minimize this upper bound, simultaneously varying the parameters of both $p$ and $q$, getting successively tighter approximations and smaller losses. 
+At convergence we will have distributions $p^*(X,Z)$ and $q^*(Z)$; the former is the posterior distribution that we wanted (i.e., $p$ conditioned on the $\xsamp$), and $q^*$ is known ``variational posterior''.
+
+\subsection{PDG Inference from Variational Techniques}
+	\label{sec:inference-from-variation}
+
+The relationship between a pdg $\dg M$ and a test distribution $\mu$ is quite similar. 
+In our case, we would like to alter some of our beliefs (some cpds of $\dg M$) to reduce the global inconsistency $\aar{\dg M}$, so $\dg M$ is analogous to the model $p$, while the test distribution $\mu$ corresponds to the variational posterior $q$. 
+Just as any $q$ will give an upper bound $\mathrm{ELBO}_{p,q}(x) \ge \ell(x)$ in the previous section, so too will any $\mu$ give an upper bound 
+\[ \bbr{\dg M}_\gamma(\mu) \ge \aar{\dg M}_\gamma \]
+on the inconsistency of $\dg M$. So by choosing a nice class of test distributions $\mathcal M \subset \Delta(\dg M)$, we can pull the same trick---simultaneously optimize $\mu \in \mathcal M$ and (some parameters of) $\dg M$, so that we modify $\dg M$ to minimize inconsistency via this variational bound.
+
+Moreover, since $\bbr{\dg M}_\gamma(\mu)$ is strictly convex in $\dg M$ and $\gamma$-strongly convex in $\mu$, this procedure gives a family of inference algorithms for PDGs in line with standard algorithms for training neural networks.
+
+\subsection{Variational Inference via PDGs}
+In \Cref{sec:inference-from-variation}, we saw that PDG semantics can be described as a variational inference procedure. 
+Perhaps surprisingly, the converse is also true: variational inference is captured by the internal workings of a PDG. 
+Moreover, PDGs give a concise graphical language for the kind of reasoning in \cref{sec:intro-to-variational-inference}, which can be notoriously difficult to track symbolically. We now illustrate this with examples.
+
+Let's start with the first setting in \cref{sec:intro-to-variational-inference}, where we have observations of all data, and we can compute $\ell$ directly. 
+
+\begin{prop} \label{prop:many-equal-simple}
+	Consider a distribution $p(X)$.
+	The suprise $\I_p(x)$ at seeing a sample $x$ is given by the inconsistency of the pdg containing a point mass on $x$ and $p$, i.e.,
+	\[\I_p(x) = 
+	\aar[\Big] {
+	\begin{tikzpicture}[center base]
+		\node[dpad0] (X) {$X$};
+		\coordinate (A) at ($(X) + (-0.9,0)$);
+		\draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
+%
+		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+	\end{tikzpicture}
+	}.
+	\]
+	
+	Furthermore, given samples $\xsamp$ determining an emperical distribution $D := \datadist\xsamp$,  the following are equal, for all $\gamma \ge 0$:
+	\begin{enumerate}
+	\item The negative log likelihood $\ell(p; \xsamp)$
+	\item The cross entropy of $p$ relative to $D$
+	\item $\bbr{\,p\,}_\gamma(D) + (1+\gamma)\H(D)$
+	% FALSE! \item $\bbr{\,p^{\{\alpha=1\}} \,}_1 (\datadist\xsamp^{\{\alpha=1\}})$
+	
+	\item \(\aar[\Big] {
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (X) {$X$};
+			\coordinate (A) at ($(X) + (-0.9,0)$);
+			\draw[arr1] (A) -- node[above]{$p$}  (X);
+			\draw[arr2, <-] (X) --  node[above,pos=0.6]{$\overset{\{\beta = \infty\}}D$} ++(1.2, 0);
+		\end{tikzpicture}
+		}_\gamma + (1+\gamma) \H(D)
+		\)
+	\item 
+	\(\aar[\Bigg] {
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (X) {$X$};
+			\coordinate (A) at ($(X) + (-1.2,0)$);
+			\draw[arr1] (A) -- node[above,pos=0.4]{$ \overset {\{\alpha = 1\}} p$}  (X);
+	%
+			\draw[arr2, <-] (X) --  node[above,pos=0.6]{$ \overset{\{\beta = \infty,\alpha=\gamma\}}{D}$} ++(1.5, 0);
+		\end{tikzpicture}
+		}\!\bigg._1 \)
+\end{enumerate}
+\end{prop} 
+
+\begin{remark}
+Note that the entropy of the data distribution $\H(D)$ is constant in $p$, and so this additional term in (3, 4) as well as the the qualitative components of the PDGs, are irrelevant if we intend to optimize this objective by varying $p$.	
+\end{remark}
+   
+We argue that the pdgs in \cref{prop:many-equal-simple} are natural. Aside from the weights, this should be uncontrovertial --- we've simply translated the entire problem into a set of probability distributions and included them into the pdg. 
+In the current setting, we argue that the weights are also the ones we would expect. The cross entropy measures the expected code length per sample, when a (possibly incorrect) distribution $p$ is used to design a code, in place of the true one $D$.  So in our corresponding PDG, we should be much more certain of $D$ than of $p$, justifying the choice of $\beta$. 
+Other choices of $\beta$ are more natural in other contexts, and we will see later that they correspond to other losses. (For instance when $\beta_p = \beta_D = \frac12$, the result is the Bhattacharyya distance, rather than the cross entropy; see \cref{thm:bhattacharyya-dist}.)
+Furthermore, $p$ is the qualitative model we have in mind, and so we set $\alpha_p = 1$
+Although the results of \cref{prop:many-equal-simple} are not particularly useful, they do hint at a strong tie between the standard metrics used to train probabilistic models, and the inconsistency of a corresponding PDG. 
+We will now see that this tie extends to latent variable models in a nice way.
+
+
+\begin{linked}{prop}{pdg-elbo-x}%[Capturing the ELBO]
+		% \label{prop:pdg-elbo-x}
+	% If $p(X,Z)$ is a joint probabilistic model of observed variables $X$ and hidden variables $Z$, and $q(Z)$ is any distribution 
+	% That is, 
+	The negative $\mathrm{ELBO}_{p,q}(x)$ is the inconsistency of the PDG containing $p,q$, and $x$, with very high confidence in $q$. 
+	That is,
+	\[ 
+	-\mathrm{ELBO}_{p,q}(x) = 
+		% \lim_{t \to \infty}
+	 \aarz[\Bigg]{
+	 % \Inc\left(
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (Z) {$Z$};
+			\node[dpad0,right=.5 of Z] (X) {$X$};
+			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+%
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
+			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+		\end{tikzpicture}
+		}%_{\!\!0}
+		% \right) 
+		.
+	\]
+\end{linked}
+
+The proof of \Cref{prop:pdg-elbo-x} hinges critically on the fact that we force a single sample $x$; its PDG does not capture the whole context $\xsamp$. 
+Nevertheless, we get a somewhat analogous result when 
+
+\begin{wip}
+\begin{prop}%{prop:pdg-elbo-X}
+	Consider a model $p(X,Z)$, auxiliary distribution $q(Z)$, and samples $\xsamp = \{x^{(i)}\}$ defining a data distribution $d = \datadist\xsamp$. 
+	The following are equal:
+	\begin{enumerate}[label=(\arabic*)]
+		\item $- \Ex_{d} \mathrm{ELBO}_{p,q}(X)$
+		\item $\displaystyle\bbr{\,p\,}(q \otimes d)$
+		\item \(\displaystyle%\lim_{\beta_q, \beta_{\datadist\xsamp} \to \infty}
+			\lim_{t \to \infty}
+		  \aar[\Bigg]{
+		  \begin{tikzpicture}[center base]
+	  		\node[dpad0] (Z) {$Z$};
+	  		\node[dpad0,right=.5 of Z] (X) {$X$};
+	  		\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+	  		\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+	  		\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+	  %
+	  		\draw[arr1, <-] (X) --  node[above,pos=0.2,anchor=south west]{$\scriptstyle d^{\{\beta= t\}}$} ++(0.9, 0); 
+	  			% ^{\{\beta=\beta_0\}} 
+	  		\draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q^{\{\beta= t\}} $} ++(-0.9, 0);
+	  	\end{tikzpicture} } + \H(\datadist\xsamp)\)
+	\end{enumerate}
+
+\end{prop}
+\begin{proof}\label{proof:pdg-elbo-X}
+	
+\end{proof}
+
+\begin{prop}
+		\label{prop:pdg-loglikelihood}
+	The loss $\ell(p,\xsamp)$ is the inconsistency of the PDG containing $p$ and the data distribution $\datadist\xsamp$. 
+	That is,
+	\[ 
+	\ell(p;\xsamp) = 
+	 \aar[\Bigg]{
+	 % \Inc\left(
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (Z) {$Z$};
+			\node[dpad0,right=.5 of Z] (X) {$X$};
+			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+%
+			\draw[arr1, <-] (X) --  node[above,pos=0.8]{$\scriptstyle \datadist\xsamp$} ++(0.9, 0);
+			% \draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q$} ++(-0.9, 0);
+		\end{tikzpicture}
+		}%_{\!\!0}
+		% \right) 
+	\]
+\end{prop}
+\end{wip}
+
+
+
+
+
+
+
+\subsection{Variational Auto-Encoders and PDGs}
+
+An autoencoder is a probabilistic model intended to compress a variable $X$ (e.g., an image) to a compact latent representation $Z$ (a compact vector), and is specified by two conditional distributions: 
+an encoder $e(Z \mid X)$, and a decoder $d(X \mid Z)$.  
+Of course, not all pairs of cpds fill this role equally well. 
+Perhaps most importantly, we would to have low \emph{reconstruction error} \eqref{eq:rec}---when we decode an encoded image, we would like it to be reasonably similar to the original.
+
+\begin{equation}
+ \mathrm{Rec}(x) = \Ex_{z \sim e \mid x} \underbrace{\mathrm I_{d\mid z}[x]}_{\substack{\text{Additional bits to}\\\text{specify $x$ from $d|z$}}} 
+	= \sum_z e(z \mid x) \log \frac1{d(x \mid z)}\label{eq:rec}
+\end{equation}
+
+% Note the similarity to the cross entropy objective from before, except in place of our 
+
+There are other desiderata as well. It would be nice if the distribution on $Z$ had a simple form---perhaps factoring into independent features, which we might use to describe $X$. To deal with this, we can introduce a new distribution $p(Z)$
+
+In this setting, $e$ is our variational approximation to the latent variables, and differs from $q$ in the previous section, in that it can now depend on $X$. The evidence lower bound now becomes
+\begin{align*}
+	\mathrm{ELBO}_{p,e,d}(x) &= \Ex_{z \sim e|x} \left[\log \frac{p(z) d(x\mid z)}{q(z\mid x)} \right] \\
+		&= \Ex_{z \sim e|x}\left[ \log \frac{p(z)}{q(z\mid x)}  \right] - \Ex_{z \sim e|x} \left[\log \frac1{d(x\mid z)} \right] \\
+		&= \kldiv{e(Z|x)}{p} - \mathrm{Rec}(x)
+\end{align*}
+\[ \] 
+
+\begin{prop}
+	\[ 
+	-\mathrm{ELBO}_{p,e,d}(x) = 
+	 \aarz[\Bigg]{
+		\begin{tikzcd}[AmpRep,row sep=1em,column sep=1.5em]
+			\ar[r,"p"] \& Z \ar[r,"d", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+		\end{tikzcd}} 
+	\]
+\end{prop}
+
+
+% The cross entropy term in \eqref{} in this context is known as the \emph{reconstruction error}. 
+
 
 \section{Causal Inference}
 To do causal inference, we need only make use of the parameter $\alpha$ when considering
@@ -856,25 +1113,29 @@ potentaial answers. As in section
 	% Conversely, if $p_0 \in \argmin_p \aar{\dg M \bundle p}_\gamma$, then 
 	Conversely, suppose $p(Y\mid X)$ cannot be expressed as a conditional marginal
 	$\mu_0(Y\mid X)$ for any $\mu_0 \in \bbr{\dg M}_\gamma^*$.
-	For all $\mu$ in $\bbr{\dg M}_\gamma^*$, we have
+	Now, one the one hand, for all $\mu$ in $\bbr{\dg M}_\gamma^*$, we have
 	$$ 
 		\bbr{\dg M \bundle p}_\gamma(\mu) = \aar{\dg M}_\gamma + \Ex_{x \sim
 		\mu_{\!_X}} \kldiv[\big]{\mu(Y \mid x)}{p(Y \mid x)} > \aar{\dg
-		M}_\gamma = \inf_p \aar{\dg M \bundle p}_\gamma,
+		M}_\gamma 
+		%= \inf_p \aar{\dg M \bundle p}_\gamma
+		,
 	$$
 	where the strict inequality follows from the fact that $p(Y\mid X) \ne \mu(Y\mid X)$ and Gibbs' inequality. 
-	Of course, we could also have chosen a different $\nu \notin \bbr{\dg M}_\gamma^*$, but this does not help, since for all $\nu \notin \bbr{\dg M}_\gamma^*$, we have 	
+	But on the other hand, if $\mu \notin \bbr{\dg M}_\gamma^*$, then $\bbr{\dg M}_\gamma(\mu) > \aar{\dg M}_\gamma$, so we have 	
 	% \notin \bbr{\dg M}^*_\gamma$, then
 	$$
-		\bbr{\dg M \bundle p}_\gamma(\nu) \ge \bbr{\dg M}_\gamma(\nu) > \aar{\dg M}_\gamma.
+		\bbr{\dg M \bundle p}_\gamma(\mu) \ge \bbr{\dg M}_\gamma(\mu) > \aar{\dg M}_\gamma.
 		% = \inf_p \aar{\dg M \bundle p}_\gamma.
 	$$
-	Putting the two together, we find that for every joint distribution $\mu$, 
-	we have 
+	Putting the two cases together, we find that for every joint distribution $\mu$, 
 	$\bbr{\dg M \bundle p}_\gamma(\mu) > \aar{\dg M}_\gamma$,
 	and since $\aar{\dg M}_\gamma = \inf_p \aar{\dg M \bundle p}_\gamma$, 
-	$p$ does not minimize $\aar{\dg M \bundle p}_\gamma$. 
-	The contrapositive of this argument gives us the other inclusion, $\big\{\mu(Y\smid X) : \mu \in \bbr{\dg M}_\gamma^* \big\} \supseteq \argmin_p \aar{\dg M \bundle p}$, as desired.
+	we know that $p$ does not minimize $\aar{\dg M \bundle p}_\gamma$. 
+	
+	Summarizing the argument, we have shown that 
+	\[ p \notin \argmin_p \aar{\dg M \bundle p} \implies p \notin \argmin_{p'} \aar{\dg M \bundle p'}. \]
+	Taking the contrapositive gives the desired inclusion $\big\{\mu(Y\smid X) : \mu \in \bbr{\dg M}_\gamma^* \big\} \supseteq \argmin_p \aar{\dg M \bundle p}$.
 
 \end{lproof}
 
@@ -882,7 +1143,7 @@ potentaial answers. As in section
 \begin{lproof}\label{proof:smallgammaopt}
 	The argument used in \hyperref[proof:optimalYgivenX]{the proof} of \autoref{prop:optimalYgivenX} works uniformly for all $\gamma$, and so the limit
 	factors through it (more concretely, the proof remains valid if we insert a limit as $\gamma \to 0$ in front of every $\aar{-}_\gamma$ or $\bbr{-}_\gamma$). Since $\bbr{\dg M}^*$ the unique element of $\lim_{\gamma\to0}\bbr{\dg M}_\gamma^*$, $\bbr{\dg M}_\gamma^*(Y\smid X)$ 
-	is the unique element of $\argmin_p \aard{\dg M \bundle p}$.
+	is the unique element of $\argmin_p \aarz{\dg M \bundle p}$.
 	% $$ \bbr{\dg M}_\gamma(\mu) $$
 \end{lproof}
 
@@ -1045,7 +1306,7 @@ We will make use of the implicit function theorem in the next result.
 \begin{lproof}\label{proof:inc-is-inconsistency}
 	Unwrapping the definitions, we have
 	\begin{align*}
-		\aard{\dg M} = \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma 
+		\aarz{\dg M} = \lim_{\gamma\to 0^+} \aar{\dg M}_\gamma 
 			&= \lim_{\gamma\to 0^+} \inf_{\mu}\;
 				\bbr{\dg M}_\gamma(\mu) \\
 			&= \lim_{\gamma\to 0^+} \inf_{\mu}\; 
@@ -1086,7 +1347,7 @@ We will make use of the implicit function theorem in the next result.
 	$$ 
 		\Inc(\dg M) = \lim_{\gamma\to 0^+} \inf_{\mu}\; 
 			\Big[  \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu)  \Big]
-			 = \aard{\dg M}
+			 = \aarz{\dg M}
 			 ,\qquad\text{as desired.}
 	$$
 \end{lproof}
@@ -1096,17 +1357,18 @@ We will make use of the implicit function theorem in the next result.
 	Let $\theelt(\{x\}) := x$ be a function that extracts the unique element singleton set. 
 	We showed in the orignal paper (Corolary 4.4.1) that 
 	\[ \theelt \bbr{(\UPDGof{\Phi}, \theta, \theta)}^*_1 = \Pr\nolimits_{\Phi, \theta}(\mat w) 
-		= \frac{1}{Z_\Psi} \prod_{j} \phi_j(\mat w_j)^{\theta_j} , \]
+		= \frac{1}{Z_\Psi} \prod_{j} \phi_j(\mat w_j)^{\theta_j}. \]
 	Recall the statement of Prop 4.6 from the original paper,
 	\begin{equation}\label{eqn:nice-score-repeated}
 		\bbr{\dg M}_\gamma(\mu) = \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_{ X \xrightarrow{\!\!L} Y  } \bigg[\,
 		   \!\beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})} + 
-		   {\color{red}(\alpha_L - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}} \bigg] - 
-		\log \frac{1}{\mu(\mat w)}  \Bigg\}, \\
+		   {\color{red}(\gamma\alpha_L - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}} \bigg] - 
+		\gamma \log \frac{1}{\mu(\mat w)}  \Bigg\}, \\
 	\end{equation}
-	but note that since $\alpha$ and $\beta$ are both equal to $\theta$ for our PDG of interest $(\UPDGof\Phi, \theta,\theta)$ and $\gamma = 1$, the middle term disappears, yielding the standard variational Gibbs free energy $\GFE(\mu)$.  
+	but note that since $\gamma = 1$, and $\alpha,\beta$ are both equal to $\theta$ for our PDG 
+	 (since $\PDGof{\Psi} = \PDGof{(\Phi,\theta)} = (\UPDGof\Phi, \theta,\theta)$), the middle term disappears, yielding the standard variational Gibbs free energy $\GFE(\mu)$.  
 	Recall also that
-	$\aar{\dg M}_\gamma = \inf_\mu \bbr{\dg M}_\gamma(\mu)$ and $\bbr{\dg M}^*_\gamma = \argmin \bbr{\dg M}_\gamma(\mu)$, so (informally), $\aar{\dg M} = \bbr{\dg M}(\bbr{\dg M}^*)$. We now compute the value of the inconsistency $\aar{(\UPDGof\Phi, \theta,\theta)}_1$.
+	$\aar{\dg M}_\gamma = \inf_\mu \bbr{\dg M}_\gamma(\mu)$ and $\bbr{\dg M}^*_\gamma = \argmin \bbr{\dg M}_\gamma(\mu)$, so (with a minor abuse of notation), $\aar{\dg M}_\gamma = \bbr{\dg M}_\gamma(\bbr{\dg M}_\gamma^*)$. We now compute the value of the inconsistency $\aar{(\UPDGof\Phi, \theta,\theta)}_1$.
 	\begin{align*}
 		\aar{(\UPDGof{\Phi}, \theta, \theta)}_1 
 		&= \bbr{(\UPDGof{\Phi}, \theta, \theta)}_1\Big(\Pr\nolimits_{\Phi, \theta}(\mat w) \Big) \\
@@ -1133,5 +1395,37 @@ We will make use of the implicit function theorem in the next result.
 	\end{align*}
 \end{lproof}
 
+\subsection{Variational Inference Proofs}
+\recall{prop:pdg-elbo-x}
+\begin{lproof}
+	\label{proof:pdg-elbo-x}
+	Let $\dg M$ be the PDG in the picture. We compute its quantitative semantics by
+	\[ \Inc_{\dg M}(\mu) = \Ex_{x',z \sim \mu} \left[ \infty \log \frac{\mu(z)}{q(z)} + \log \frac{\mu(x',z)}{p(x',z)} + \log \frac{\mu(x')}{\mathbbm 1[x = x']]}\right]. \]
+	If $\mu$ places $\epsilon > 0$ mass on some $x' \ne x$, then the final term will be infinite, since the final term in the expectation will exceed $\epsilon \log [\epsilon / 0]$. 
+	Similarly, this value will also be infinite if $\mu(z) \ne q$, due to the first term. Taken together, this means that the only distribution with a finite score is $\mu(X,Z) = q(Z) \delta_x(X)$, which has an inconsistency of
+	\begin{align*}
+		\Inc_{\dg M}(q \delta_x) &= \Ex_{z \sim q} \left[ \log \frac{q(z)}{p(x,z)}\right] \\
+		 	&= - \Ex_{z \sim q} \left[\log \frac{p(x,z)}{q(z)} \right] 
+			= - \mathrm{ELBO}_{p,q}(x),
+	\end{align*}
+	and so $\Inc(\dg M) = -\mathrm{ELBO}(x)$. 
+	% Moreover, since $\alpha^{\dg M} = \mat 0$, we know $\IDef{\dg M}(\mu) = \H(\mu)$
+	% \begin{align*}
+	% 	- \mathrm{ELBO}(x) &= \Ex_{z \sim q} \log \frac{p(x,z)}{q(z)} \\
+	% 		&= \Ex_{z \sim q} \log \frac{p(z)}{q(z)} + \Ex_{z\sim q} \log \frac{1}{p(x\mid z)}\\
+	% 		&= \kldiv q p + \Ex_{}
+	% \end{align*}
+\end{lproof}
 
+
+\section{Statistical Distances}
+
+% Let $p$ and $q$ be probability distributions over $X$, and let $\dg N = p \bundle q$ be the corresponding unweighted PDG. Then,
+% \begin{enumerate}
+% 	\item The inconsistency of the PDG $\Inc(\dg N, [\frac12,\frac12])$
+% \end{enumerate}	
+
+\begin{theorem}\label{thm:bhattacharyya-dist}
+	The inconsistency of the PDG consisting of $p$ and $q$, each with confidence $\frac12$ is equal to the Bhattacharyya distance $\thickD_B(p,q)$ between $p$ and $q$. 
+\end{theorem}
 \end{document}
