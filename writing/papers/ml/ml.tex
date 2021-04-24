@@ -1,0 +1,629 @@
+\documentclass{article}
+
+% \input{../model-commands}
+\usepackage[margin=1in, inner margin=0.7in, outer margin=1.3in]{geometry}
+\usepackage{mathtools,amssymb,amsfonts}
+\usepackage{parskip}
+
+\usepackage{tikz}
+	\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
+	\usetikzlibrary{cd}
+	\pgfdeclaredecoration{arrows}{draw}{
+		\state{draw}[width=\pgfdecoratedinputsegmentlength]{%
+			\path [every arrow subpath/.try] \pgfextra{%
+				\pgfpathmoveto{\pgfpointdecoratedinputsegmentfirst}%
+				\pgfpathlineto{\pgfpointdecoratedinputsegmentlast}%
+			};
+	}}
+	%%%%%%%%%%%%
+	\tikzset{AmpRep/.style={ampersand replacement=\&}}
+	\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+	\tikzset{paperfig/.style={center base,scale=0.9, every node/.style={transform shape}}}
+
+	% Node Stylings
+	\tikzset{dpadded/.style={rounded corners=2, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+	\tikzset{dpad0/.style={outer sep=0.05em, inner sep=0.3em, draw=gray!75, rounded corners=4, fill=black!08, fill opacity=1}}
+	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
+	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+		
+	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
+	\tikzset{arr0/.style={draw, ->, thick, shorten <=0pt, shorten >=0pt}}
+	\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
+	\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
+	\tikzset{archain/.style args={#1}{arr, every arrow subpath/.style={draw,arr, #1}, decoration=arrows, decorate}}
+
+
+	\tikzset{fgnode/.style={dpadded,inner sep=0.6em, circle},
+	factor/.style={light pad, fill=black}}	
+	
+	\newcommand\cmergearr[4]{
+		\draw[arr,-] (#1) -- (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
+	\newcommand\mergearr[3]{
+		\coordinate (center-#1#2#3) at (barycentric cs:#1=1,#2=1,#3=1.2);
+		\cmergearr{#1}{#2}{#3}{center-#1#2#3}
+	}
+	\newcommand\cunmergearr[4]{
+		\draw[arr,-, , shorten >=0] (#1) -- (#4);
+		\draw[arr, shorten <=0] (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
+	\newcommand\unmergearr[3]{
+		\coordinate (center-#1#2#3) at (barycentric cs:#1=1.2,#2=1,#3=1);
+		\cunmergearr{#1}{#2}{#3}{center-#1#2#3}
+	}
+	
+	\usetikzlibrary{matrix}
+	\tikzset{toprule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] 
+	            (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east);%
+	        }
+	    },
+	    bottomrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+	        }
+	    },
+	    leftrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west);%
+	        }
+	    },
+	    rightrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+	        }
+	    },
+	    table with head/.style={
+		    matrix of nodes,
+		    row sep=-\pgflinewidth,
+		    column sep=-\pgflinewidth,
+		    nodes={rectangle,minimum width=2.5em, outer sep=0pt},
+		    row 1/.style={toprule=thick, bottomrule},
+  	    }
+	}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{mathtools}		%also loads amsmath
+\usepackage{amssymb, bbm}
+\usepackage{relsize}
+\usepackage{color}
+%\usepackage{stmaryrd}
+\usepackage{hyperref} % Load before theorems...
+\hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=deepgreen}	
+\usepackage{amsthm,thmtools}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{coro}{Corollary}[theorem]
+\newtheorem{prop}[theorem]{Prop}
+\newtheorem{claim}[theorem]{Claim}% maybe don't use this.
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{fact}
+\newtheorem{conj}[theorem]{Conjecture}
+\newtheorem{question}[theorem]{Question}
+
+% \newcommand{\regugitatethmname}{}
+% \newtheorem{regurgitatethm}[theorem]{\regugitatethmname}% to be defined later
+% \newtheorem*{regurgitatethm*}{\regugitatethmname}% to be defined later
+
+\declaretheorem[name={}]%[numbered=unless unique,name=#1]
+	{namedtheoremINNER}
+\newenvironment{namedthm}[1]
+  {\renewcommand{\thenamedtheoremINNER}{#1}\namedtheoremINNER}
+  {\endnamedtheoremINNER}
+
+\newcounter{proofcntr}
+\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
+\declaretheorem[numberwithin=theorem,name=Claim]{iclaim}
+
+\theoremstyle{definition}
+\declaretheorem[name=Definition,qed=$\square$,numberwithin=section]{defn} %
+\declaretheorem[name=Definition,qed=$\square$,numberwithin=theorem]{idefn} %
+\declaretheorem[name=Construction,qed=$\square$,sibling=defn]{constr}
+\declaretheorem[qed=$\square$]{example}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+  
+\usepackage{xstring}
+\usepackage{enumitem}
+
+\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
+\crefname{example}{Example}{Examples}
+\crefname{defn}{Definition}{Definitions}
+\crefname{prop}{Prop}{Propositions}
+\crefname{claim}{Claim}{Claims}
+\crefname{iclaim}{Claim}{Claims}
+\crefname{constr}{Construction}{Constructions}
+\crefname{conj}{Conjecture}{Conjectures}
+\crefname{fact}{Fact}{Facts}
+
+
+\newcommand\commentout[1]{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\let\Horig\H
+\let\H\relax
+\DeclareMathOperator{\H}{\mathrm{H}} % Entropy
+\DeclareMathOperator{\I}{\mathrm{I}} % Information
+\DeclareMathOperator*{\Ex}{\mathbb{E}} % Expectation
+\DeclareMathOperator{\supp}{\mathrm{supp}} % support
+\DeclareMathOperator*{\argmin}{arg\,min}
+\newcommand\mat[1]{\mathbf{#1}}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+	#1\;\delimsize\|\;#2%
+}
+\newcommand{\thickD}{I\mkern-8muD}
+\newcommand{\kldiv}{\thickD\infdivx}
+
+\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
+\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal E}
+
+\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+\newcommand{\dg}[1]{\mathbdcal{#1}}
+
+
+\newcommand\smid{\!\mid\!}
+\newcommand\MAP{\mathrm{MAP}}
+\DeclareMathOperator{\bundle}{\sqcup}
+\newcommand\ado{\mathrm{do}}
+
+\relax % Short arrows. 
+    \newcommand{\veryshortarrow}[1][3pt]{\mathrel{%
+       \vcenter{\hbox{\rule[-.5\fontdimen8\textfont3]{#1}{\fontdimen8\textfont3}}}%
+       \mkern-4mu\hbox{\usefont{U}{lasy}{m}{n}\symbol{41}}}}
+    \makeatletter
+    \setbox0\hbox{$\xdef\scriptratio{\strip@pt\dimexpr
+        \numexpr(\sf@size*65536)/\f@size sp}$}
+    \newcommand{\scriptveryshortarrow}[1][3pt]{\mathrel{%
+        \vcenter{\hbox{\rule[-.5\fontdimen8\scriptfont3]
+                   {\scriptratio\dimexpr#1\relax}{\fontdimen8\scriptfont3}}}%
+       \mkern-4mu\hbox{\let\f@size\sf@size\usefont{U}{lasy}{m}{n}\symbol{41}}}}
+    \newcommand{\sto}{\scriptveryshortarrow}
+    \makeatother
+
+    
+\newcommand{\grad}{\vec\nabla}
+\DeclareMathOperator{\QC}{\mathrm{QC}}
+\DeclareMathOperator\src{\mathbf{src}}
+\DeclareMathOperator\tgt{\mathbf{tgt}}
+
+\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
+
+%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\pdgunit}{\mathrlap{\mathit 1} \mspace{2.3mu}\mathit 1}
+
+\newcommand\Pa{\mathbf{Pa}}
+\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
+\newcommand\Inc{\mathit{Inc}}
+\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
+\newcommand{\WFGof}[1]{\Psi_{{#1}}}
+\newcommand{\FGof}[1]{\Phi_{{#1}}}
+\newcommand{\Gr}{\mathcal G}
+\newcommand\GFE{\mathit{G\mkern-4mu F\mkern-4.5mu E}}
+% \newcommand\aar[1]{\langle\mskip}
+
+\newcommand{\ed}[3]{%
+	\mathchoice%
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
+	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
+
+
+\newcommand{\alle}[1][L]{_{\ed {#1}XY}}
+
+
+\DeclarePairedDelimiterX{\SD}[1]{\{}{\}}{\,\llap{\delimsize\{}#1\rlap{\delimsize\}}\,}
+%better version.
+\DeclarePairedDelimiterX{\bbr}[1]{[}{]}
+	{\mspace{3mu}\mathllap{\delimsize[}#1\mathrlap{\delimsize]}\mspace{3mu}}
+\DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
+	{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
+\DeclarePairedDelimiterXPP{\aarz}[1]{}{\langle}{\rangle}{_{\!_0}} % \downarrow
+	{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
+
+
+%% Theorem Restatement
+\usepackage{xpatch}
+\makeatletter
+\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
+   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
+   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
+   {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
+   \else\fi}
+   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure 
+\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
+   {\csname end#2\endcsname}
+   {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
+   {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
+
+% \def\onlyaftercolon#1:#2{#2}
+\newcommand{\recall}[1]{\medskip\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
+   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
+\newenvironment{linked}[3][]{%
+	\def\linkedproof{#3}%
+	\def\linkedtype{#2}%
+	\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
+	{\endrestatable%
+	\marginpar{%
+	% \vspace{-0.5em}
+	% \hspace{2em}
+		\raggedright
+		\hyperref[proof:\linkedproof]{%
+		\color{blue!50!white}
+		$\Big[$\,{\small\tt\begin{tabular}{@{}l@{}} proof of \\~\cref*{\linkedtype:\linkedproof}\end{tabular}}\,$\Big]$}
+		}%
+	}
+\makeatother
+%oli16: The extra space was because there was extra space in the paragraph, not
+%because this length was too big. By breaking arrays, everything will be better.
+\allowdisplaybreaks
+
+
+\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
+
+
+
+\usepackage[framemethod=TikZ]{mdframed}
+\allowdisplaybreaks
+
+\surroundwithmdframed[
+   topline=false,
+   linewidth=3pt,
+   linecolor=gray!20!white,
+   rightline=false,
+   bottomline=false,
+   leftmargin=0pt,
+   % innerleftmargin=5pt,
+   skipabove=\medskipamount,
+   skipbelow=\medskipamount
+]{lproof}
+\newmdenv[roundcorner=5pt, backgroundcolor=gray!20!white, frametitle={$\langle$under construction $\rangle$},frametitlerule=false,
+innertopmargin=2pt, frametitlebelowskip=3pt, frametitleaboveskip=2pt, frametitlebackgroundcolor=gray!70!white, skipabove=1em,skipbelow=1em, frametitlefont={\normalfont\itshape},leftmargin=-10pt, rightmargin=-10pt]
+		{wip}
+
+
+\newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
+\usepackage{subfiles}
+
+\begin{document}
+\begin{center}
+	{\bfseries\Large Inconsistency: The Universal Loss Function}
+\end{center}
+
+\section{Classification}
+\section{Information Content}
+\section{R\'enyi Entropies}
+
+% Let $p$ and $q$ be probability distributions over $X$, and let $\dg N = p \bundle q$ be the corresponding unweighted PDG. Then,
+% \begin{enumerate}
+% 	\item The inconsistency of the PDG $\Inc(\dg N, [\frac12,\frac12])$
+% \end{enumerate}	
+
+\begin{theorem}\label{thm:bhattacharyya-dist}
+	The inconsistency of the PDG consisting of $p$ and $q$, each with confidence $\frac12$ is equal to the Bhattacharyya distance $\thickD_B(p,q)$ between $p$ and $q$. 
+\end{theorem}
+
+\section{Variational Inference}
+Broadly speaking, ``variational inference'' is the practice of optimizing the parameters of an auxilary model to get bounds on a quantity of interest, thereby leveraging optimization to do inference.  
+In modern machine learning, the term usually refers to a specific motivating instance, which we now review in more detail. 
+As we do so, we justify some of the arguably unnatural (but standard) choices made without argument in modern tutorials \cite{}.
+
+\subsection{The Motivation for Variational Bounds}
+	\label{sec:intro-to-variational-inference}
+\def\xsamp{{\underline{\mat X}}}
+
+% \subsubsection{Setup.}
+Suppose we would like to construct a distribution (generative model) $p(X)$ for variable(s) $X$, given samples $\xsamp = \{ x^{(i)} \}_{i=1}^m$. The usual approach is to optimize $p$ so as to minimize some loss function $\ell(p; \xsamp)$, and by far the most common loss function is the negative (log)-likelihood of generating the data $\xsamp$ with independent draws from $p$, or equivalently, the total information content of the samples (according to $p$), which is given by 
+\begin{equation}
+ 	\ell(p; \xsamp) = \sum_{i=1}^m \I_p[ X = x^{(i)}]  % \underbrace{}_{\mathclap{\text{information in the samples}}} 
+	% = - \log p(\xsamp) 
+	= -\sum_{i=1}^m \log p(x^{(i)}). \label{eq:negloglike} \end{equation}
+One intuition is that we want to maximize the probability of seeing our data; another is that we'd like to minimize the model's surprise at seeing these samples.%
+The logarithm may seem extraneous, since the relative ordering on distributions $p$ is the same without it---but the expression as given is strictly convex, factors product distributions into sums, solves numerical issues, and meshes nicely with information theory / statistical mechanics.
+The optimal distribution according to $\ell$ the data distribution 
+$\datadist\xsamp(x) = \frac1m \#\{i : x = x^{(i)}\}$  itself, since
+\[ 
+	\ell(p; \xsamp) =~ m \cdot\!\! \underbrace{\Ex_{x \sim \datadist\xsamp} \Big[ \log \frac1{p(x)}\Big] }_{\text{cross entroy from $\datadist\xsamp$ to $p$}} =\quad \kldiv{\datadist\xsamp}{p} + \underbrace{\H(\datadist\xsamp)}_{\text{constant in $p$}}. 
+\] 
+Given that we already know its optimum ($\datadist\xsamp$) in closed form, it would be reasonable to question the choice of $\ell(p;\xsamp)$ as an optimization objective. Worse still, $\datadist\xsamp$ does not generalize at all to unseen samples, and so we would be quite unhappy if we were to recover it from the optimization process. 
+Still, ``maximizing the probability of your data'' is generally considered the standard way to fit your model; this issue of overfitting is either implicitly dealt with by  restricting to possible classifiers $p$ with nice properties (i.e., not expressive enough to represent $\datadist\xsamp$), or by adding additional terms to $\ell$ to disincentivize complex, ad-hoc models (``regularizers'').
+In recent years, the ML community has realized that adding such terms is not only useful (i.e., for preventing overfitting \cite{} and providing adversairal protection \cite{}), but also natural, as they correspond to prior beliefs \cite{}.
+We will return to this point later, but for now we will continue with our un-regularized log likelihood objective $\ell$.
+
+When working with latent variable models---that is, models involving unobserved variables $Z$---computing the likelihood function is more difficult, as now we only have observations for \emph{part} of our variable. Typically, we have a joint model $p(X,Z)$, but samples only for $X$. Sure, since we have a joint distribution $p(X,Z)$ we implicitly also have the marginal distribution $p(X)$, but computing it could be expensive. To compute the marginal likelihood directly, we would have to sum (or integrate) over all possible values of $z$, as in \eqref{eq:marginal-likelihood}.
+\begin{equation}
+	\ell(p ; \xsamp) = - \log p(\xsamp) = - \sum_{i} \log \left(\sum_z p(x^{(i)}, z) \right) \label{eq:marginal-likelihood}
+\end{equation}
+This may not sound so bad, but in fact it is prohibitively expensive, because the number of terms scales exponentially with the dimension of $Z$ and number of latent variables. 
+
+When confronted with intractable integrals such as this one, a standard trick is to draw samples and average, which is known as a \emph{Monte Carlo} estimate.
+To justify taking samples like this, we have to rewrite the quantity of interest with an expectation of something. To start, let $q(Z)$ be an arbitrary distribution from which we draw samples:  
+\begin{equation*}
+	-\log p(x) = - \log \sum_z p(x, z) 
+		= -\log \sum_z \left[ q(z) \cdot\frac{p(x, z)}{q(z)} \right] 
+		= -\log \Ex_{z\sim q(Z)} \left[\frac{p(x, z)}{q(z)} \right] 
+		% &= -\log \Ex_{z\sim p(Z)} \Big[p(x \mid z) \Big] \\
+		% &\approx - \sum_{i} \log \left(\Ex_{\mat z^{(1)}, \ldots \mat z^{(m)} \sim q(Z)} p(x^{(i)}, z) \right) 
+\end{equation*}
+Note that in order to introduce the expectation, we had to correct for the density of $q$ which we artificially introduced, resulting in a factor of ${1}/{q(z)}$, which can be recognized as \emph{inverse propensity weighting}. 
+Had we not introduced a logarithm at the beginning, this would have given us an unbiased estimator of the desired quantity, but alas $\log \Ex [X] \ne \Ex [\log X]$. Still, since $\log$ is a concave function, Jenson's inequality tells us that 
+% \[ \ell(p; \xsamp) = -\sum_i \log \Ex_{z\sim q(Z)} \left[\frac{p(x^{(i)}, z)}{q(z)} \right]
+%  	\ge - \sum_i \Ex_{z\sim q(Z)}\left[  \log \frac{p(x^{(i)}, z)}{q(z)} \right]. \]
+\[ \log p(x) = \log \Ex_{z\sim q(Z)} \left[\frac{p(x^{(i)}, z)}{q(z)} \right]
+ 	\ge \Ex_{z\sim q(Z)}\left[  \log \frac{p(x, z)}{q(z)} \right] =: \mathrm{ELBO}_{p,q}(x). \]
+This final quantity is known as the ``evidence lower bound'', since it lower bounds the ``evidence'' ($\log p(x)$). As a result,
+\[ \ell(\xsamp; p) = - \sum_{i=1}^m \log p(x^{(i)}) \le - \sum_i \mathrm{ELBO}_{p,q}(x^{(i)}), \] 
+so one approach to minimizing the loss $\ell(p; \xsamp)$, is to minimize this upper bound, simultaneously varying the parameters of both $p$ and $q$, getting successively tighter approximations and smaller losses. 
+At convergence we will have distributions $p^*(X,Z)$ and $q^*(Z)$; the former is the posterior distribution that we wanted (i.e., $p$ conditioned on the $\xsamp$), and $q^*$ is known ``variational posterior''.
+
+\subsection{PDG Inference from Variational Techniques}
+	\label{sec:inference-from-variation}
+
+    The relationship between a pdg $\dg M$ and a test distribution $\mu$ is quite similar. 
+    In our case, we would like to alter some of our beliefs (some cpds of $\dg M$) to reduce the global inconsistency $\aar{\dg M}$, so $\dg M$ is analogous to the model $p$, while the test distribution $\mu$ corresponds to the variational posterior $q$. 
+    Just as any $q$ will give an upper bound $\mathrm{ELBO}_{p,q}(x) \ge \ell(x)$ in the previous section, so too will any $\mu$ give an upper bound 
+    \[ \bbr{\dg M}_\gamma(\mu) \ge \aar{\dg M}_\gamma \]
+    on the inconsistency of $\dg M$. So by choosing a nice class of test distributions $\mathcal M \subset \Delta(\dg M)$, we can pull the same trick---simultaneously optimize $\mu \in \mathcal M$ and (some parameters of) $\dg M$, so that we modify $\dg M$ to minimize inconsistency via this variational bound.
+
+    Moreover, since $\bbr{\dg M}_\gamma(\mu)$ is strictly convex in $\dg M$ and $\gamma$-strongly convex in $\mu$, this procedure gives a family of inference algorithms for PDGs in line with standard algorithms for training neural networks.
+
+    \subsection{Variational Inference via PDGs}
+    In \Cref{sec:inference-from-variation}, we saw that PDG semantics can be described as a variational inference procedure. 
+    Perhaps surprisingly, the converse is also true: variational inference is captured by the internal workings of a PDG. 
+    Moreover, PDGs give a concise graphical language for the kind of reasoning in \cref{sec:intro-to-variational-inference}, which can be notoriously difficult to track symbolically. We now illustrate this with examples.
+
+    Let's start with the first setting in \cref{sec:intro-to-variational-inference}, where we have observations of all data, and we can compute $\ell$ directly. 
+
+    \begin{prop} \label{prop:many-equal-simple}
+    	Consider a distribution $p(X)$.
+    	The suprise $\I_p(x)$ at seeing a sample $x$ (or equivalently, the negative log likelihood of $x$) is given by the inconsistency of the pdg containing a point mass on $x$ and $p$, i.e.,
+    	\[
+            -\log p(x) = 
+            \I_p(x) = 
+    	\aar[\Big] {
+    	\begin{tikzpicture}[center base]
+    		\node[dpad0] (X) {$X$};
+    		\coordinate (A) at ($(X) + (-0.9,0)$);
+    		\draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
+    %
+    		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+    	\end{tikzpicture}
+    	}.
+    	\]
+    \end{prop}
+    
+    
+    \begin{prop}
+    	Given samples $\xsamp$ determining an emperical distribution $D := \datadist\xsamp$,  the following are equal, for all $\gamma \ge 0$:
+    	\begin{enumerate}
+    	\item The negative log likelihood $\ell(p; \xsamp)$
+    	\item The cross entropy of $p$ relative to $D$
+    	\item $\bbr{\,p\,}_\gamma(D) + (1+\gamma)\H(D)$
+    	% FALSE! \item $\bbr{\,p^{\{\alpha=1\}} \,}_1 (\datadist\xsamp^{\{\alpha=1\}})$
+    	
+    	\item \(\aar[\Big] {
+    		\begin{tikzpicture}[center base]
+    			\node[dpad0] (X) {$X$};
+    			\coordinate (A) at ($(X) + (-0.9,0)$);
+    			\draw[arr1] (A) -- node[above]{$p$}  (X);
+    			\draw[arr2, <-] (X) --  node[above,pos=0.6]{$\overset{\{\beta = \infty\}}D$} ++(1.2, 0);
+    		\end{tikzpicture}
+    		}_\gamma + (1+\gamma) \H(D)
+    		\)
+    	\item 
+    	\(\aar[\Bigg] {
+    		\begin{tikzpicture}[center base]
+    			\node[dpad0] (X) {$X$};
+    			\coordinate (A) at ($(X) + (-1.2,0)$);
+    			\draw[arr1] (A) -- node[above,pos=0.4]{$ \overset {\{\alpha = 1\}} p$}  (X);
+    	%
+    			\draw[arr2, <-] (X) --  node[above,pos=0.6]{$ \overset{\{\beta = \infty,\alpha=\gamma\}}{D}$} ++(1.5, 0);
+    		\end{tikzpicture}
+    		}\!\bigg._1 \)
+    \end{enumerate}
+    \end{prop} 
+
+    \begin{remark}
+    Note that the entropy of the data distribution $\H(D)$ is constant in $p$, and so this additional term in (3, 4) as well as the the qualitative components of the PDGs, are irrelevant if we intend to optimize this objective by varying $p$.	
+    \end{remark}
+       
+    We argue that the pdgs in \cref{prop:many-equal-simple} are natural. Aside from the weights, this should be uncontrovertial --- we've simply translated the entire problem into a set of probability distributions and included them into the pdg. 
+    In the current setting, we argue that the weights are also the ones we would expect. The cross entropy measures the expected code length per sample, when a (possibly incorrect) distribution $p$ is used to design a code, in place of the true one $D$.  So in our corresponding PDG, we should be much more certain of $D$ than of $p$, justifying the choice of $\beta$. 
+    Other choices of $\beta$ are more natural in other contexts, and we will see later that they correspond to other losses. (For instance when $\beta_p = \beta_D = \frac12$, the result is the Bhattacharyya distance, rather than the cross entropy; see \cref{thm:bhattacharyya-dist}.)
+    Furthermore, $p$ is the qualitative model we have in mind, and so we set $\alpha_p = 1$
+    Although the results of \cref{prop:many-equal-simple} are not particularly useful, they do hint at a strong tie between the standard metrics used to train probabilistic models, and the inconsistency of a corresponding PDG. 
+    We will now see that this tie extends to latent variable models in a nice way.
+
+
+    \begin{linked}{prop}{pdg-elbo-x}%[Capturing the ELBO]
+    		% \label{prop:pdg-elbo-x}
+    	% If $p(X,Z)$ is a joint probabilistic model of observed variables $X$ and hidden variables $Z$, and $q(Z)$ is any distribution 
+    	% That is, 
+    	The negative $\mathrm{ELBO}_{p,q}(x)$ is the inconsistency of the PDG containing $p,q$, and $x$, with very high confidence in $q$. 
+    	That is,
+    	\[ 
+	    	-\mathrm{ELBO}_{p,q}(x) = 
+	    		% \lim_{t \to \infty}
+	    	 % \aarz[\Bigg]{
+	    	 \Inc\left[
+	    		\begin{tikzpicture}[center base]
+	    			\node[dpad0] (Z) {$Z$};
+	    			\node[dpad0,right=.5 of Z] (X) {$X$};
+	    			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+	    			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+	    			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+				    %
+	    			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+	    			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);
+	                % ^{\{\beta =\infty\}}
+	    			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+	    		\end{tikzpicture}
+	    		\right] 
+	            % }%_{\!\!0}
+	    		.
+	    	\]
+    \end{linked}
+    
+    We now have an intuitive visual proof of the variational bound. 
+    \[
+        - \log p(x) = 
+        \Inc\left[
+           \begin{tikzpicture}[center base]
+               \node[dpad0] (Z) {$Z$};
+               \node[dpad0,right=.5 of Z] (X) {$X$};
+               \coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+               \draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+               \draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+               %
+               \draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+               % ^{\{\beta =\infty\}}
+               % \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+           \end{tikzpicture}
+           \right]
+          \le 
+    	 \Inc\left[
+    		\begin{tikzpicture}[center base]
+    			\node[dpad0] (Z) {$Z$};
+    			\node[dpad0,right=.5 of Z] (X) {$X$};
+    			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+    			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+    			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+                %
+    			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+    			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);
+                % ^{\{\beta =\infty\}}
+    			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+    		\end{tikzpicture}
+    		\right] 
+    \]
+
+    The proof of \Cref{prop:pdg-elbo-x} hinges critically on the fact that we force a single sample $x$; its PDG does not capture the whole context $\xsamp$. 
+    Nevertheless, we get a somewhat analogous result when 
+
+    \begin{wip}
+    \begin{prop}%{prop:pdg-elbo-X}
+    	Consider a model $p(X,Z)$, auxiliary distribution $q(Z)$, and samples $\xsamp = \{x^{(i)}\}$ defining a data distribution $d = \datadist\xsamp$. 
+    	The following are equal:
+    	\begin{enumerate}[label=(\arabic*)]
+    		\item $- \Ex_{d} \mathrm{ELBO}_{p,q}(X)$
+    		\item $\displaystyle\bbr{\,p\,}(q \otimes d)$
+    		\item \(\displaystyle%\lim_{\beta_q, \beta_{\datadist\xsamp} \to \infty}
+    			\lim_{t \to \infty}
+    		  \aar[\Bigg]{
+    		  \begin{tikzpicture}[center base]
+    	  		\node[dpad0] (Z) {$Z$};
+    	  		\node[dpad0,right=.5 of Z] (X) {$X$};
+    	  		\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+    	  		\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+    	  		\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+    	  %
+    	  		\draw[arr1, <-] (X) --  node[above,pos=0.2,anchor=south west]{$\scriptstyle d^{\{\beta= t\}}$} ++(0.9, 0); 
+    	  			% ^{\{\beta=\beta_0\}} 
+    	  		\draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q^{\{\beta= t\}} $} ++(-0.9, 0);
+    	  	\end{tikzpicture} } + \H(\datadist\xsamp)\)
+    	\end{enumerate}
+
+    \end{prop}
+    \begin{proof}\label{proof:pdg-elbo-X}
+    	
+    \end{proof}
+
+    \begin{prop}
+    		\label{prop:pdg-loglikelihood}
+    	The loss $\ell(p,\xsamp)$ is the inconsistency of the PDG containing $p$ and the data distribution $\datadist\xsamp$. 
+    	That is,
+    	\[ 
+    	\ell(p;\xsamp) = 
+    	 \aar[\Bigg]{
+    	 % \Inc\left(
+    		\begin{tikzpicture}[center base]
+    			\node[dpad0] (Z) {$Z$};
+    			\node[dpad0,right=.5 of Z] (X) {$X$};
+    			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
+    			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+    			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
+    %
+    			\draw[arr1, <-] (X) --  node[above,pos=0.8]{$\scriptstyle \datadist\xsamp$} ++(0.9, 0);
+    			% \draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q$} ++(-0.9, 0);
+    		\end{tikzpicture}
+    		}%_{\!\!0}
+    		% \right) 
+    	\]
+    \end{prop}
+    \end{wip}
+
+
+\subsection{Variational Auto-Encoders and PDGs}
+
+    An autoencoder is a probabilistic model intended to compress a variable $X$ (e.g., an image) to a compact latent representation $Z$ (a compact vector), and is specified by two conditional distributions: 
+    an encoder $e(Z \mid X)$, and a decoder $d(X \mid Z)$.  
+    Of course, not all pairs of cpds fill this role equally well. 
+    Perhaps most importantly, we would to have low \emph{reconstruction error} \eqref{eq:rec}---when we decode an encoded image, we would like it to be reasonably similar to the original.
+
+    \begin{equation}
+     \mathrm{Rec}(x) = \Ex_{z \sim e \mid x} \underbrace{\mathrm I_{d\mid z}[x]}_{\substack{\text{Additional bits to}\\\text{specify $x$ from $d|z$}}} 
+    	= \sum_z e(z \mid x) \log \frac1{d(x \mid z)}\label{eq:rec}
+    \end{equation}
+
+    % Note the similarity to the cross entropy objective from before, except in place of our 
+
+    There are other desiderata as well. It would be nice if the distribution on $Z$ had a simple form---perhaps factoring into independent features, which we might use to describe $X$. To deal with this, we can introduce a new distribution $p(Z)$
+
+    In this setting, $e$ is our variational approximation to the latent variables, and differs from $q$ in the previous section, in that it can now depend on $X$. The evidence lower bound now becomes
+    \begin{align*}
+    	\mathrm{ELBO}_{p,e,d}(x) &= \Ex_{z \sim e|x} \left[\log \frac{p(z) d(x\mid z)}{q(z\mid x)} \right] \\
+    		&= \Ex_{z \sim e|x}\left[ \log \frac{p(z)}{q(z\mid x)}  \right] - \Ex_{z \sim e|x} \left[\log \frac1{d(x\mid z)} \right] \\
+    		&= \kldiv{e(Z|x)}{p} - \mathrm{Rec}(x)
+    \end{align*}
+    \[ \] 
+
+    \begin{prop}
+    	\[ 
+    	-\mathrm{ELBO}_{p,e,d}(x) = 
+    	 \aarz[\Bigg]{
+    		\begin{tikzcd}[AmpRep,row sep=1em,column sep=1.5em]
+    			\ar[r,"p"] \& Z \ar[r,"d", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"'] 
+    		\end{tikzcd}} 
+    	\]
+    \end{prop}
+	
+	
+
+
+\appendix
+\section{Proofs}
+\subsection{Variational Inference Proofs}
+\recall{prop:pdg-elbo-x}
+\begin{lproof}
+	\label{proof:pdg-elbo-x}
+	Let $\dg M$ be the PDG in the picture. We compute its quantitative semantics by
+	\[ \Inc_{\dg M}(\mu) = \Ex_{x',z \sim \mu} \left[ \infty \log \frac{\mu(z)}{q(z)} + \log \frac{\mu(x',z)}{p(x',z)} + \log \frac{\mu(x')}{\mathbbm 1[x = x']]}\right]. \]
+	If $\mu$ places $\epsilon > 0$ mass on some $x' \ne x$, then the final term will be infinite, since the final term in the expectation will exceed $\epsilon \log [\epsilon / 0]$. 
+	Similarly, this value will also be infinite if $\mu(z) \ne q$, due to the first term. Taken together, this means that the only distribution with a finite score is $\mu(X,Z) = q(Z) \delta_x(X)$, which has an inconsistency of
+	\begin{align*}
+		\Inc_{\dg M}(q \delta_x) &= \Ex_{z \sim q} \left[ \log \frac{q(z)}{p(x,z)}\right] \\
+		 	&= - \Ex_{z \sim q} \left[\log \frac{p(x,z)}{q(z)} \right] 
+			= - \mathrm{ELBO}_{p,q}(x),
+	\end{align*}
+	and so $\Inc(\dg M) = -\mathrm{ELBO}(x)$. 
+	% Moreover, since $\alpha^{\dg M} = \mat 0$, we know $\IDef{\dg M}(\mu) = \H(\mu)$
+	% \begin{align*}
+	% 	- \mathrm{ELBO}(x) &= \Ex_{z \sim q} \log \frac{p(x,z)}{q(z)} \\
+	% 		&= \Ex_{z \sim q} \log \frac{p(z)}{q(z)} + \Ex_{z\sim q} \log \frac{1}{p(x\mid z)}\\
+	% 		&= \kldiv q p + \Ex_{}
+	% \end{align*}
+\end{lproof}
+\end{document}
