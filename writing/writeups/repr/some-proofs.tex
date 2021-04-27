@@ -1,0 +1,165 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+% \usepackage{parskip}
+
+% \usepckage
+\input{../model-commands.tex}
+
+\usepackage[nameinlink]{cleveref}
+%\crefname{lemma}{lemma}{lemmas}
+\crefname{examplex}{example}{examples}
+\crefname{defn}{definition}{definitions}
+\crefname{prop}{proposition}{propositions}
+\DeclareMathOperator*{\argmin}{arg\;min}
+
+\newcommand{\ed}[3]{#2 \xrightarrow{\!\!\smash{#1}\vphantom{g}} #3}
+\newcommand{\alle}[1][L]{_{ \ed {#1}XY}}
+
+\newcommand{\dg}[1]{\mathfrak{#1}}
+\def\extrsymb{\mathit{Ext}}
+\def\inco{\mathit{Inc}}
+\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal E}
+\def\sheq{\!=\!}
+\DeclarePairedDelimiterXPP{\SD}[1]{}{[}{]}{_{\text{sd}}}{\mspace{-3.5mu}\delimsize[#1\delimsize]\mspace{-3.5mu}}
+\DeclarePairedDelimiterX{\WD}[1]{[}{]}{\mspace{-3.5mu}\delimsize[#1\delimsize]\mspace{-3.5mu}}
+\DeclarePairedDelimiterXPP{\UD}[1]{}{[}{]}{_*}{\mspace{-3.5mu}\delimsize[#1\delimsize]\mspace{-3.5mu}}
+
+\begin{document}
+    \begin{prop}
+        \[ \bbr{M}_\gamma(\mu)= \E_{\mat w \sim \mu} \Bigg\{   \sum_{ X \xrightarrow{\!\!L} Y  } \left[
+            \beta_L \log \frac{1}{\bp(y\mid x)} + (\gamma - \beta_L ) \log \frac{1}{\mu(y \mid x)} \right] - \gamma \log \frac{1}{\mu(\mat w)} \Bigg\}  \]
+    \end{prop}
+    \begin{proof}
+        \begin{align*}
+            \bbr{M}_\gamma(\mu) &:= \inco(\dg M, \mu) + \gamma \extrsymb(\dg M, \mu) \\
+                % Next, replace expressions for Inc and Extra
+                &= \left[\sum\alle \beta_L \E_{x\sim \mu_X}\kldiv[\Big]{ \mu(Y | X \sheq x) }{\bp(x) } \right]  + \gamma \left[\sum\alle \H_\mu(Y\mid X) ~-\H(\mu)\right]\\
+                % Combine the summations and expectations
+                &= \sum\alle 
+                    \E_{x \sim \mu_{\!_X}}  \left[ \beta_L\; \kldiv[\Big]{ \mu(Y \mid x) }{\bp(Y \mid x) } + \gamma \; \H(Y \mid X\sheq x) \right]  - \gamma \H(\mu) \\ 
+                % Now, Expand relative and conditional entropy
+                &= \sum\alle 
+                    \E_{x \sim \mu_{\!_X}}  \left[ \beta_L\; \left(\sum_{y \in \V(Y)} \mu(y \mid x) \log\frac{\mu(y\mid x)}{\bp(y\mid x)}\right) + \gamma \; \left(\sum_{y \in \V(Y)} \mu(y\mid x) \log \frac{1}{\mu(y\mid x)} \right) \right]  - \gamma  \H(\mu) \\ 
+                %combine common \sum \mu(y | x) 
+                &= \sum\alle 
+                    \E_{x \sim \mu_{\!_X}}  \left[ \sum_{y \in \V(Y)} \mu(y \mid x) \left(  \beta_L\; \log\frac{\mu(y\mid x)}{\bp(y\mid x)} + \gamma \; \log \frac{1}{\mu(y\mid x)} \right) \right]  - \gamma  \H(\mu) \\
+                % Expand entropy and reduce sum to expectation
+                &= \sum\alle 
+                    \E_{x \sim \mu_{\!_X}}  \left[ \E_{y \sim \mu(Y \mid X=x)} \left(  \beta_L\; \log\frac{\mu(y\mid x)}{\bp(y\mid x)} + \gamma \; \log \frac{1}{\mu(y\mid x)} \right) \right]  - \gamma \sum_{\mat w \in \V(\dg M)} \mu(\mat w) \log \frac{1}{\mu(\mat w)} \\  
+                % combine expectation.
+                &= \sum\alle 
+                    \E_{x,y \sim \mu_{\!_{XY}}}  \left[ \beta_L\; \log\frac{\mu(y\mid x)}{\bp(y\mid x)} + \gamma \; \log \frac{1}{\mu(y\mid x)}  \right]  - \gamma  \E_{\mat w \sim \mu} \left[ \log \frac{1}{\mu(\mat w)}\right] \\
+                % swap sum and expectation, and use log rule to split kl divergence
+                &= \E_{\mat w \sim \mu} \Bigg\{   \sum_{ X \xrightarrow{\!\!L} Y  } \left[
+                    \beta_L \log \frac{1}{\bp(y\mid x)}   - \beta_L  \log \frac{1}{\mu(y \mid x)}+ \gamma \log \frac{1}{\mu(y \mid x)} \right]\Bigg\}  -  \gamma  \E_{\mat w \sim \mu} \left[\log \frac{1}{\mu(\mat w)}\right] \\
+                % combine
+                &=  \E_{\mat w \sim \mu} \Bigg\{ \sum_{ X \xrightarrow{\!\!L} Y  } \left[
+                    \beta_L \log \frac{1}{\bp(y\mid x)} + (\gamma - \beta_L ) \log \frac{1}{\mu(y \mid x)} \right] - \gamma \log \frac{1}{\mu(\mat w)} \Bigg\} 
+        \end{align*}
+    \end{proof}
+
+    \begin{prop} \label{prop:convex-if-gamma-small}
+        For a PDG $\dg M$, and any $\gamma$ such that $0 < \gamma \leq \min_L \beta_L^{\dg M}$, then $\bbr{\dg M}_\gamma$ is a strictly convex function of $\mu$ .%
+    \end{prop}
+    \begin{proof}
+        We can rewrite the semantics as
+        \begin{align*}
+            \bbr{M}_\gamma(\mu) 
+                &= \E_{\mat w \sim \mu} \Bigg\{   \sum_{ X \xrightarrow{\!\!L} Y  } \left[
+        			\beta_L \log \frac{1}{\bp(y\mid x)} + (\gamma - \beta_L ) \log \frac{1}{\mu(y \mid x)} \right] - \gamma \log \frac{1}{\mu(\mat w)} \Bigg\} \\
+                &= \E_{\mat w \sim \mu} \Bigg\{   \sum_{ X \xrightarrow{\!\!L} Y  } \left[ \gamma \log \frac{1}{\bp(y\mid x)} + 
+                    (\beta_L - \gamma) \log \frac{1}{\bp(y\mid x)} - (\beta_L -\gamma) \log \frac{1}{\mu(y \mid x)} \right] - \gamma \log \frac{1}{\mu(\mat w)} \Bigg\}  \\
+                &= \E_{\mat w \sim \mu} \Bigg\{   \sum_{ X \xrightarrow{\!\!L} Y  } \left[ \gamma \log \frac{1}{\bp(y\mid x)} + 
+                    (\beta_L - \gamma) \log \frac{\mu(y\mid x)}{\bp(y\mid x)} \right] - \gamma \log \frac{1}{\mu(\mat w)} \Bigg\} \\
+                &=  \sum_{ X \xrightarrow{\!\!L} Y  } \left[ \gamma \E_{x,y \sim \mu_{\!_{XY}}} \left[\log \frac{1}{\bp(y\mid x)} \right] + 
+                    (\beta_L - \gamma) \E_{x\sim\mu_X} \kldiv[\Big]{\mu(Y\mid x)}{\bp( x)} \right] - \gamma \H(\mu)
+        \end{align*}
+        The first term, 
+        \( \E_{x,y \sim \mu_{\!_{XY}}} \left[-\log {\bp(y\mid x)}\right] \) 
+        is linear in $\mu$, as $\bp(y\mid x)$ does not depend on $\mu$. As for the second term, it is well-known that KL divergence is convex, in the sense that 
+        \[ \kldiv{\lambda q_1 + (1-\lambda) q_2 }{ \lambda p_1 + (1-\lambda) p_2} \leq \lambda \kldiv {q_1}{ p_1} + (1-\lambda) \kldiv{q_2}{p_2} \]
+        Therefore, for a distribution on $Y$, setting $p_1 = p_2 = \bp(x)$, we discover that for any two conditional marginals $\mu_1(Y \mid X=x)$ and $\mu_2(Y\mid X=x)$,that
+        \[ \kldiv{\lambda \mu_1(Y\mid x) + (1-\lambda) \mu_2(Y\mid x) }{ \bp(x) } \leq \lambda \kldiv {\mu_1(Y\mid x)}{\bp(x)} + (1-\lambda) \kldiv{\mu_2(Y\mid x)}{\bp(x)} \]
+        So $\kldiv*{\mu(Y\mid x)}{\bp( x)}$ is convex. As convex combinations of convex functions are convex, the second term, $\E_{x\sim\mu_X}\kldiv*{\mu(Y\mid x)}{\bp( x)}$, is convex.        Finally, negative entorpy is 1-strongly convex, by (\Cref{prop:neg-ent-convex}).
+    
+        By addition and scaling of the convexity inequalities, any non-negative linear combinations of the three terms is convex, and if this combination applies a positive coefficient $\gamma$ to the negative entropy, it must be $\gamma$-strongly convex. Therefore, so long as $(\beta_L \geq \gamma)$ for every $L \in \Ed^{\dg M}$, $\bbr{\dg M}_\gamma$ is $\gamma$-strongly convex, and in particular, strictly convex.
+    \end{proof}
+    
+    \begin{prop}
+        The limit set
+        \(\displaystyle \smash{\lim_{\gamma\to0}\argmin_{\mu \in \Delta\V(\N^{\dg M})}}  \bbr{\dg M}_\gamma\)
+        is a singleton if every $\beta_L > 0$.
+    \end{prop}
+    \begin{proof}
+        Let $\gamma_0 := \min_{L \in \Ed^{\dg M}} \beta_L$.
+        By \Cref{prop:convex-if-gamma-small}, for any $\gamma < \gamma_0$, $\bbr{\dg M}_\gamma$ is a strictly convex function of $\mu$ and hence has a unique global minimum. 
+
+        It remains to show that the function $f : (0, \gamma_0] \to \Delta(\V(\dg M))$ given by $\gamma \mapsto \argmin_{\mu} \bbr{\dg M}_\gamma(\mu)$, converges as $\gamma \to 0^+$.
+        \todo{}
+
+        
+    \end{proof}
+
+    \begin{prop}\label{prop:sd-is-zeroset}
+        For any PDG $\dg M$, $\SD{\dg M} = \{ \mu : \bbr{\dg M}_0(\mu) = 0\}$.
+    \end{prop}
+    \begin{proof}
+         By taking $\gamma = 0$, the score is just $\inco$. By  definition, any $\mu \in \SD{\dg M}$ satisfies all constraints, hence satisfies $\mu(Y \mid X=x) = \bp(x)$ for any $L \in \Ed^{\dg M}$ and $x$ with $\mu(X=x)>0$. By Gibbs inequality, $\kldiv{\mu(Y|x)}{\bp(x)} = 0$. Since this is true for all edges, we must have $\inco(\dg M, \mu) = 0$. Conversely, if $\mu \notin \SD{\dg M}$, then it fails to marginalize to the cpt $\bp$ on some edge $L$, and so again by Gibbs inequality $\kldiv{\mu(Y|x)}{\bp(x)} > 0$. As relative entropy is non-negative, the sum of these terms over all edges must be positive as well, and so $\inco(\dg M, \mu) \neq 0$. %This is true whether or not $\dg M$ is consistent.
+    \end{proof}
+
+    \begin{prop}\label{prop:consist}
+    	If $\dg M$ is a consistent PDG, then $\UD{\dg M} \in \SD{\dg M} = \{ \mu : \bbr{\dg M}_0(\mu) = 0 \}$
+    \end{prop}
+    \begin{proof}
+        %define upper and lower bounds.
+        \def\lb{m}
+        \def\ub{M}    
+        % \textbf{}Proof that when $\dg M$ is consistent, we have $\UD{\dg M} \in \SD{\dg M}$. 
+        First, note that $\extrsymb$ is a finite sum of entropies and conditional entropies, over the variables $\N^{\dg M}$, which have finite support --- and therefore is bounded. As a result, there exist real constants $\lb$ and $\ub$ depending only on $\N^{\dg M}$ and $\V^{\dg M}$ such that $\lb \leq \extrsymb(\dg M, \mu) \leq \ub$ for all $\mu$.
+
+        % Therefore, for any distribution $\mu \in \Delta(\V(\dg M))$, we have
+        \begin{alignat*}{4}\relax
+            &\forall\gamma,\mu.~&\gamma\lb &~\leq~& \gamma\extrsymb&(\dg M, \mu)  &~\leq~&  \gamma\ub \\
+        % \intertext{\centering Adding $\inco(\dg M, \mu)$ to each quantity}
+        % \implies
+            &\forall\gamma,\mu.~&
+            \inco(\dg M, \mu) + \gamma\lb &~\leq~& \inco(\dg M, \mu) +& \gamma\extrsymb(\dg M, \mu)  &~\leq~&  \inco(\dg M, \mu) + \gamma\ub \\
+            &\forall\gamma,\mu.~&
+            \inco(\dg M, \mu) + \gamma\lb &~\leq~& \bbr{\dg M }_\gamma&(\mu)  &~\leq~&  \inco(\dg M, \mu) + \gamma\ub \\
+        \intertext{Since this holds for every $\mu$, it in particular must hold for the minimum across all $\mu$, which must be achiveved as $\inco$ and $\extrsymb$ are bounded below and continuous, and $\Delta\V(\dg M)$ is compact.}
+        % \implies
+        &\forall\gamma.~&
+            \min_{\mu \in \Delta\V(\dg M)} \Big[ \inco(\dg M, \mu) + \gamma\lb \Big]&~\leq~& 
+                \min_{\mu \in \Delta\V(\dg M)}& \bbr{\dg M }_\gamma(\mu)  &~\leq~&  
+                \min_{\mu \in \Delta\V(\dg M)} \Big[ \inco(\dg M, \mu) + \gamma\ub \Big]\\
+        % \implies
+        &\forall\gamma.~&
+            \min_{\mu \in \Delta\V(\dg M)} \Big[ \inco(\dg M, \mu)\Big] + \gamma\lb &~\leq~& 
+                \min_{\mu \in \Delta\V(\dg M)}& \bbr{\dg M }_\gamma(\mu)  &~\leq~&  
+                \min_{\mu \in \Delta\V(\dg M)} \Big[ \inco(\dg M, \mu) \Big] + \gamma\ub\\
+        % \implies
+        &\forall\gamma.~&
+            \inco(\dg M) + \gamma\lb &~\leq~& 
+                \min_{\mu \in \Delta\V(\dg M)}& \bbr{\dg M }_\gamma(\mu)  &~\leq~&  
+                \inco(\dg M) + \gamma\ub\\
+        \intertext{Since this holds for all $\gamma$, it must hold in the limit as $\gamma \to 0$ from above.}
+        % \implies
+        &&
+            \inco(\dg M) + \lim_{\gamma\to 0} [\gamma\lb ]&~\leq~& 
+                \lim_{\gamma\to 0}\min_{\mu } &\bbr{\dg M }_\gamma(\mu)  &~\leq~&  
+                \inco(\dg M) + \lim_{\gamma\to 0} [\gamma\ub] \\
+        % \implies
+        &&
+            \inco(\dg M) &~\leq~& 
+                \lim_{\gamma\to 0}\min_\mu & \bbr{\dg M }_\gamma(\mu)  &~\leq~&  
+                 \inco(\dg M)\\
+        \end{alignat*}
+        Therefore, we must have
+        \[\lim_{\gamma\to 0}\min_\mu \bbr{\dg M }_\gamma(\mu) = \inco(\dg M) \]
+        and in particular, $\lim_{\gamma\to 0}\min_\mu \bbr{\dg M }_\gamma(\mu) = 0$ when $\dg M$ is consistent, by \Cref{prop:sd-is-zeroset}. Therefore any $\mu_* \in \lim_{\gamma \to 0}\argmin_\mu \bbr{\dg M}_\gamma(\mu)$ must satisfy $\bbr{\dg M}_0(\mu_*) = 0$, and thus $\mu_* \in \SD{\dg M}$.
+    \end{proof}
+\end{document}
