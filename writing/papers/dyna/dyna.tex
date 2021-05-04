@@ -134,6 +134,8 @@
   
 \usepackage{xstring}
 \usepackage{enumitem}
+\usepackage[noend]{algpseudocode}
+\usepackage{algorithm}
 
 \usepackage[noabbrev,nameinlink,capitalize]{cleveref}
 	\crefname{example}{Example}{Examples}
@@ -200,6 +202,8 @@
 	\newcommand\smid{\!\mid\!}
 	\newcommand\MAP{\mathrm{MAP}}
 	\newcommand{\bundle}{\mathbin{\sqcup}}
+	% \newcommand{\bundle}{\mathbin{\oplus}}
+	% \newcommand{\bundle}{\mathbin{+}}
 	\newcommand\ado{\mathrm{do}}
 
 
@@ -396,7 +400,9 @@ to indicate other weights, we indicate the modifications with a parameter
 assignment. For instance, to give a PDG consisting of the cpd $p$, attached to
 a value of $\alpha_p$ equal to $\alpha_0$, and 
 a value of $\beta_p$ equal to $\beta_0$, we might write
-$ p^{\{\alpha=\alpha_0;\beta = \beta_0\}} $.
+$ p^{(\alpha:\alpha_0;\beta : \beta_0)} $.
+Often we will want to describe limiting PDGs with infinite quantitative confidence $\beta$; we will use an explanation point to convey this briefly, so that $p!$ is shorthand for
+$\lim_{t \to \infty} p^{(\beta:t)}$.
 %
 We call two PDGs $\dg A$ and $\dg B$ \emph{compatible} if they agree
 on the values of any variables they have in common --- that is, if
@@ -477,7 +483,9 @@ gets closer to $\mu$.
 \begin{prop} \label{prop:sementics-via-inconsistency}
 	$\displaystyle
 		\bbr{\dg M}_\gamma(\mu) 
-			= \lim_{\beta_0 \to \infty} \aar*{\dg M \bundle \mu^{\{\beta=\beta_0\}}}_\gamma
+			=  \aar*{\dg M \bundle \mu!}_\gamma
+			\qquad\Big(~= \lim_{t \to \infty} \aar[\Big]{\dg M \bundle \overset{(\beta:t)}\mu}_{\!\!\gamma}
+				~\Big)
 	% \qquad\text{and}\qquad
 	% \bbr{\dg M}(\\)
 	$
@@ -620,20 +628,23 @@ where $\delta_x$ is the degenerate distribution on $X$ that places all mass on t
 
 
 \begin{prop}\label{prop:condition-by-inc}
-	Including an observation into a PDG is conditioning. That is, for all variables $B$ and $b \in \V(B)$,
+	Semantically, including an observation into a PDG is conditioning. That is, for all variables $B$ and $b \in \V(B)$,
 	\[ \bbr*{\dg M \bundle (B = b)}_\gamma^* = \bbr{\dg M}_\gamma^* \mathbin{\big|} (B=b) . \]
 \end{prop}
 
 \begin{prop}\label{prop:jeffrey-by-inc}
 	Including a distribution $\pi$, with high confidence, is equivalent to an update with Jeffrey's rule. That is, for all variables $B$, and $\pi \in \Delta B$,	
-	\[ \bbr*{\dg M \bundle \pi^{\{\beta \to \infty\}}}_\gamma^* = \sum_{b \in \V(B)}
+	\[ \bbr[\big]{\dg M \bundle \pi!}_\gamma^* = \sum_{b \in \V(B)}
 	 	\pi(b) \cdot \bbr{\dg M}_\gamma^* \mathbin{\big|} (B=b) . \]
+		
+	%NOTE need to introduce explamation point, or write  ^{\{\beta \to \infty\}}
 	
 	% \[  \left. \middle| \Bigg| \right. \]
 \end{prop}
 
 
 \subsection{Complexity of Inconsistency}
+	\label{sec:complexity}
 
 Taken together, the results in \Cref{sec:inference-by-gd} show that an oracle for the degree of inconsistency is sufficient to efficiently do learn and draw inferences.
 Unfortunately this turns out to be a lot to ask for, in general.
@@ -657,7 +668,7 @@ There is still hope for approximating it, given that it has such nice properties
 
 \TODO
 
-\subsection{Factor Graphs, Inconsistency, and Thermodynamics}
+\subsection{Inconsistency and the Partition Function}
 ~
 \begin{storynote}
 	The story in this section clearly doesn't fit. Still, the partition function $Z_\Psi$ is a quintessential component of inference in factor graphs. See, for instance:
@@ -671,15 +682,13 @@ There is still hope for approximating it, given that it has such nice properties
 	\end{itemize}
 \end{storynote}
 
-For factor graphs, the story is more complex, as it could involve
-inconsistency. The factors of a
-factor graph, which in isolation indicate relative probabilities. 
+The factors of a factor graph, which in isolation indicate relative probabilities. 
 Factored exponential families form the mathematical backbone of statistical
 mechanics, in which the normalization constant 
-$Z_{\Psi}$ for the WFG $\Psi = (\phi_j, \theta_j)_j$,
+$Z_{\Psi}$ for the WFG $\Psi = (\phi_j, \theta_j)_{j \in \cal J}$,
 given by
 $$
-	Z_{\Psi} := \sum_{\mat w} \prod_{j} \phi_j(\mat w_j)^{\theta_j} 
+	Z_{\Psi} := \sum_{\mat w} \prod_{j \in \mathcal J} \phi_j(\mat w_j)^{\theta_j} 
 	,
 $$
 is known as the \emph{partition function}. In this setting, a factor graph 
@@ -739,42 +748,158 @@ For this reason, a variational approach requires emperical validation. In the re
 
 \TODO
 
-\section{Belief Propogation}
+\section{Belief Propogation as local inconsistency reduction}
 % \subfile{belief-prop}
 
+In \cref{sec:complexity}, we saw that the cost of computing the inconsistency of a PDG scales poorly with the size of the PDG.
+% becomes expensive as PDG becomes large. as we add more data to the PDG 
+But do we really need to know the inconsistency of the \emph{whole} PDG, to effectively estimate the marginal on a variable on the fringe of the graph? Might it be enough in practice to approximate the full inconsistency by the inconsistency of a local neighborhood?
+This is the idea behind \cref{algo:LIR}. 
+
+\begin{algorithm}
+	\begin{algorithmic}
+		\Require A PDG $\dg M$
+		\Require A PDG $\dg B$ of inferred beliefs 
+		\Require A sequence $\mathcal R = R_1, R_2, \ldots $ of qualitative PDGs, with each $R_t$ a subgraph of $\Gr^{\dg M \bundle \dg B}$
+		\Require A tradoff parameter $\gamma \ge 0$
+		% \Require A step size $\eta > 0$
+
+		\Statex
+		
+		\Procedure{LIR}{$\dg M, \dg B, \mathcal R, \gamma$}
+		\For{$t = 1, 2, \ldots$}
+			\State Let $\dg L := (\dg M \bundle \dg B) |_{R_t}$ be the restriction of $\dg M \bundle \dg B$ to the subgraph $R_t$
+			% \While{ not converged }
+				% \State Update $\dg L \cap \dg B \gets \dg L \cap \dg B ~ - ~\eta\grad_{\dg L \cap \dg B} \aar*{\dg L}_\gamma$
+			\ForAll{edges $L \in \Ed^{\dg B |_{R_t}}$}
+				\State Update $\bp[L] \gets \bp[L] ~ - ~\eta\grad_{\bp[L]} \aar*{\dg L}_\gamma$
+			\EndFor
+			% \EndWhile
+		\EndFor
+		\State \textbf{return} $\dg B$.
+		\EndProcedure
+		% \While{not converged}
+		% 	\State Choose a sub-PDG $\dg L \subset \dg M \bundle \dg B$
+		% 	\For{$\in \dg L$}
+		% 		\State Update $\dg L \cap \dg B \gets \dg L \cap \dg B - \grad_{\dg L \cap \dg B} \aar*{\dg L}_\gamma$
+		% 	\EndFor
+		% \EndWhile
+	\end{algorithmic}
+	\caption{Local Inconsistency Reduction (LIR) algorithm}	
+	\label{algo:LIR}
+\end{algorithm}
+
+
+\begin{wip}
 \begin{defn}[belief propogation]
     The messages passed are given by:
-    \begin{align*}
+    \begin{align}
         n_{i \sto a}(x_i) &:= \prod_{c \in \partial a\setminus i} m_{c\sto i} (x_i)
             \qquad &
         m_{a \sto i}(x) &:= \sum_{\mat x_{a} \setminus x_i} f_a(\mat x_a) \prod_{j \in \partial a \setminus i} n_{j \sto a} (x_j)
-        \end{align*}
+    \end{align}
 
-        \begin{quotation}\it
-            the message sent from a vertex $v$ on an edge $e$ is the product of the local function at $v$, with all messages recieved at $v$ (other than from $e$),
-            summarized for $e$'s variable node. \cite{kschischang2001sumproduct}
-        \end{quotation}
+    \begin{quotation}\it
+        the message sent from a vertex $v$ on an edge $e$ is the product of the local function at $v$, with all messages recieved at $v$ (other than from $e$),
+        summarized for $e$'s variable node. \cite{kschischang2001sumproduct}
+    \end{quotation}
 
-        the variable beliefs, a function of the messages, are given by
-        \[
-            b_x(x) \propto \prod_f m_{f\sto x}(x)
-            \]
+    The variable beliefs are defined as a function of the messages		
+    \[ 
+		b_X(x) \propto \prod_f m_{f\sto x}(x),
+    \]
+	so that 
+\end{defn}
+\end{wip}
+
+
+We now show that for $\gamma = 1$,  $\Call{LIR}$ corresponds to belief propogation in the usual sense.
+To that end, we now review the presentation of belief propogation given by \cite{kollerfriedman}.
+
+\begin{defn}[cluster graph]
+	A cluster graph $\mathcal U = (V,E,\mat C, \mat S)$ for a colelction of factors $\Phi = \{ \phi_J : \mat X_J \to \mathbb R \}_{J \in \cal J}$ over variables $\mat X$ is
+	\begin{itemize}[nosep]
+		\item an undirected graph $(V,E)$, where the vertices $V$ are a partition of $\cal J$, so that there is a unique vertex $v_J \in V$ for each $J \in \cal J$;
+		\item a subset $\mat C_v \subset \mat X$ of variables (a ``cluster'') for each vertex $v \in V$,
+				such that $\mat X_J \subset \mat C_{v_J}$~; 
+		\item a subset $\mat S_{(u,v)} \subset \mat C_u \cap \mat C_v$ of variables (a ``sepset'') for each edge $(u,v) \in E$.
+	\end{itemize}
 \end{defn}
 
+Two extremal cluster graphs for $\Phi = \{\phi\}_{\cal J}$ include:
+\begin{description}
+	\item[{~$\mathcal U_0 :=$}] the one-node (no-edge) cluster graph  whose lone cluster contains all factors;
+	\item[{~$\mathcal U_{\mathrm{Bethe}} :=$~}] the cluster graph where each factor has its own vertex (i.e., with $V = \cal J$ and $\mat C_J = \mat X_J$) containing every edge between any two vertices sharing a variable, so that with $S_{(J,K)} = \mat X_J \cap \mat X_K$.
+\end{description}
+
+\clearpage
+\begin{prop}
+	If $\Phi$ is a set of factors, $\mathcal U$ is a cluster graph for $\Phi$, and $E_1, E_2, \ldots$ is a sequence of edges of $\mathcal U$, then LIR with parameters:
+	\begin{equation*}
+		\dg M = \PDGof{\Phi},
+		\qquad \dg B = \Big\{ \overset{(\beta :  )}{\bp[X]} \propto 1 ~\Big|~ X \in \N^{\dg M} \Big\} \bundle 
+			\Big\{ \bp[E] \propto \prod_{\phi : v_\phi = v} \phi  ~\Big|~ v \in V^{\mathcal U} \Big\},
+		\qquad \dg L_i = E_i, 
+		\qquad \gamma = 1
+	\end{equation*}
+	is equivalent to belief propogation, in the sense that the cpd $\bp[E]$ of $\dg B$ at timestep $t$ is equal to the cluster belief $b^{(t)}_{E}$ in cluster-graph belief propagation, for every timestep $t$. 
+	% $ = \beta^i_E$ for all $i = 1,2,\ldots$ and $E \in \mathcal U$, where $\tilde\beta_E^{(i)}$ is the belief on cluster $E$ at the $i^\text{th}$ step.
+\end{prop}
+\begin{proof}
+	
+\end{proof}
+
+
+\begin{prop}
+	If $\dg N$ is an unweighted PDG, then 
+	$
+		\textsc{LIR}^*(\dg N, \mathcal U_{\mathrm{Bethe}}) 
+			 = \textsc{BP}( \FGof{\dg N}, \mathcal U_{\mathrm{Bethe}} )
+	$
+\end{prop}
+
+
+
+\begin{wip}
+\begin{prop}
+	If $\Phi$ is a factor graph (as a bipartite graph), and $(u_1, v_1), (u_2, v_2), \ldots$ is a sequence of oriented edges of $\Phi$, then   
+	\begin{align*}
+		\dg M &= \PDGof{\Phi},
+		\qquad \dg B = \Big\{ \bp[X] \propto 1 ~\Big|~ X \in \N^{\dg M} \Big\} \bundle 
+			\Big\{ \bp[\phi] \propto \phi ~\Big|~ \phi \in \Phi \Big\},
+		\qquad \dg L_i = , 
+		\qquad \gamma = 1
+	\end{align*}
+	is equivalent to belief propogation, in the sense that the cpd $\bp[E]$ of $\dg B$ at timestep $t$ is equal to the cluster belief $b^{(t)}_{E}$ in cluster-graph belief propagation, for every timestep $t$. 
+	% $ = \beta^i_E$ for all $i = 1,2,\ldots$ and $E \in \mathcal U$, where $\tilde\beta_E^{(i)}$ is the belief on cluster $E$ at the $i^\text{th}$ step.
+\end{prop}
+\end{wip}
+
+
+\begin{prop}
+
+\end{prop}
+
+
+\textbf{Dampening.}
 
 
 \section{Axiom Systems}
 
 \subsection{MAC axiom system}
-We begin with three simple axioms, central to probabilistic reasoning: \textbf Marginalization, \textbf Application, and \textbf Conditioning.
+We begin with three simple inference rules, central to probabilistic reasoning: \textbf Marginalization, \textbf Application, and \textbf Conditioning.
 
-\textbf{Axiom M.} Given $\Pr(X,Y) = p$, infer $\Pr(X) = \sum_y p(X,Y)$. \\
-\textbf{Axiom A.} Given $\Pr(Y \mid X) = p$ and $\Pr(X) = q$, infer $\Pr(X, Y) = p(Y \mid X) q(X)$. \\
-\textbf{Axiom C.} Given $\Pr(X,Y) = p$ and $\Pr(X) = q$, infer $\Pr(Y \mid X) = p(X,Y) / q(X)$.
+\textbf{M.} Given $\Pr(X,Y) = p$, infer $\Pr(X) = \sum_y p(X,Y)$. \\
+\textbf{A.} Given $\Pr(Y \mid X) = p$ and $\Pr(X) = q$, infer $\Pr(X, Y) = p(Y \mid X) q(X)$. \\
+\textbf{C.} Given $\Pr(X,Y) = p$ and $\Pr(X) = q$, infer $\Pr(Y \mid X) = p(X,Y) / q(X)$.
 
+Each axiom corresponds to a transformer on PDGs. For instance, axiom \textbf{M} corresponds to the function 
+\[ \mathit{infer}^{\textbf{M}}_{X,Y} \big(p(X,Y) \bundle q(X) \bundle \dg R\mathit{est} \big) 
+	:=  p \bundle q \bundle  (X \xrightarrow{\nicefrac pq} Y)~\bundle \dg R\mathit{est}, \]
+which takes a PDG containing data about a joint distribution $p(X,Y)$ and a marginal $q(X)$, and adds a new edge with cpd $\Pr(Y \mid X) = p(X,Y)/ q(X)$. 
 
 \begin{prop}
-	Repeated application of C, A, M on sets of variables corresponding to the edges, is equivalent to belief propogation.
+	The BP algorithm is is repeated application of \textbf{M}, 	
 \end{prop}
 
 
