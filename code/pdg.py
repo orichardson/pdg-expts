@@ -78,6 +78,18 @@ class PDG:
     #         else:
     #             for l in cpds[i,j].keys():
     #                 yield i,j,l
+    
+    def subpdg(self, *descriptors):
+        minime = PDG(self.labeler)
+        for vn, v in self.vars.items():
+            if vn in descriptors:
+                minime._include_var(v,vn)
+        
+        for ftl, attr in self.edgedata.items():
+            if ftl[0] in descriptors and ftl[1] in descriptors:
+                minime._set_edge(*ftl, **attr)
+        
+        return minime
         
     def copy(self) -> 'PDG':
         rslt = PDG(self.labeler)        
