@@ -30,6 +30,6 @@ succ n * m = (m * n) + m
  -- if true then x else y = x
 
 -- Oli attempts dependent function composition on his own
-_∘_ : {A : Set}{B : A → Set}{C : (x : A) →  B x → Set}
-  (f : (a : A) → B a) → (g : {x : A} (b : B x)) →  (x : A) → C B x
+-- _∘_ : {A : Set}{B : A → Set}{C : (x : A) →  B x → Set}
+  -- (f : (a : A) → B a) → (g : {x : A} (b : B x)) →  (x : A) → C B x
 -- (f ∘ g) a = _
