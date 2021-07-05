@@ -21,6 +21,7 @@ succ n + m = succ(n + m)
 _*_ : ℕ → ℕ → ℕ
 zero * m = zero
 succ n * m = (m * n) + m
+
  -- just switches args. Cannot prove.
  -- succ n * m = m * (succ n)
 
