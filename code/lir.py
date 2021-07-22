@@ -1,4 +1,8 @@
 
+def LIR( M : PDG, subgraphs, order = "random" ):
+    for A,C in subgraphs:
+        
+
 
 
 if __name__ == '__main__':
@@ -13,13 +17,13 @@ if __name__ == '__main__':
     from lib import A,B,C # just variables
     M += A, B, C 
     M += CPT.make_random( Unit, A&B  )
-
+    M += CPT.make_random( Unit, B&C  )
+    
+    M.subpdg('A','B','1').draw()
 
     M.draw()
 
-    len([*M.edges()])
-    def LIR( M : PDG, subgraphs, order = "random" ):
-        for edges 
+    subgraphs =  M.subgraph
     
-
-## TODO:  implement LIR
+    len([*M.edges()])
+    
