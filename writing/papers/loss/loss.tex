@@ -268,8 +268,10 @@
 \section{Introduction}
 % -universality
 Many tasks in artificial intelligence can be fruitfully cast as optimization problems, but often the choice of objective is not unique.
-For instance, a loss function is a key component of a machine learning system, but hinge loss, cross entropy, and mean squared error are all popular loss functions motivated by similar intuitions of `distance to ground truth', drawing from different formalisms.
-Each implicitly represents different values, and results in different behavior, and so this choice can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
+%
+For instance, one a key component of a machine learning system is a loss which the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
+All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
+Each implicitly represents different values, and results in different behavior, and so the choice of loss can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
 %We aim to
 Furthermore, there is often something to be gained by fiddling with these loss functions: one can add regularization terms, to incentivize desirable behavior.
 But the process of tinkering with the objective to get desirable behavior, and afterwards spinning a story about why it works, leaves something to be desired:
@@ -298,8 +300,8 @@ Structurally, a VaE for a space $X$ consists of a (smaller) latent space $Z$, a 
 Despite the fact that they are usually introduced by way of a graphical model (the Bayesian Network 
 % $\xrightarrow{p} Z \xrightarrow{d} X$ 
 comprising the prior $p(Z)$ and decoder $d(X|Z)$), a VaE is not considered a ``graphical model'' for two reasons. 
-The first is that the encoder $e(Z|X)$ has the same target variable as $p(Z)$, so a standard directed graphical model cannot model them both (after all, they could be inconsistent with one another). 
-The second reason: it is not a VaE's structure, but rather its loss function which makes a VaE tick. A VaE is typically trained by minimizing a function called the Evidence Lower BOund (ELBO), a particularly difficult-to-motivate function of a sample $x$, borrowed from variational analysis. 
+The first is that the encoder $e(Z|X)$ has the same target variable as $p(Z)$, so a standard directed graphical model cannot simultaneously incorporate them both (after all, they could be inconsistent with one another). 
+The second reason: it is not a VaE's structure, but rather its \emph{loss function} that makes a VaE tick. A VaE is typically trained by minimizing a function called the Evidence Lower BOund (ELBO), a particularly difficult-to-motivate function of a sample $x$, borrowed from variational analysis. 
 We show that $\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$. 
 Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
 So PDG semantics capture not only structured objects such as Bayesian Networks and Factor Graphs \cite{richardson2020probabilistic}, but also in the same stroke grant VaEs legitimate graphical-model-hood, blurring the line between the structure and the objective.
@@ -399,13 +401,12 @@ For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ 
 
 We are primarily concerned with the second term of \eqref{eq:semantics}, which penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge. In this way, violations of high-confidence beliefs are more costly per bit.
 
-The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$
+The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
 % = \arg\min_\mu \bbr{\dg M}(\mu)$
-exists and is unique for small enough $\gamma$, and in the limit as $\gamma \to 0$, which is the intended reading of $\bbr{\dg M}^*$, without a subscript. 
+exists and is unique for small enough $\gamma$, including in the limit as $\gamma \to 0$. We write $\bbr{\dg M}^*$, without a subscript, to indicate the limit of small $\gamma$. 
 This is how PDGs capture other graphical models. 
-The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, is the best possible incompatibility is denoted by $\aar{\dg M}_\gamma$. 
-Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$,
-and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$. 
+The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, and is denoted $\aar{\dg M}_\gamma$. 
+Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$, and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$. 
 Any such formula can be interpreted litterally by setting $\gamma = 0$, and our results can be extended for other values of $\gamma$ with more careful treatmeant of the qualitative half of the picture. 
 % In a select few places, we will point out the qualitative term.
  % := \inf_\mu \bbr{\dg M}(\mu)$.
@@ -434,7 +435,7 @@ This is captured formally in two different (but related) ways by the following l
  	For all pdgs $\dg M$, $\dg M'$, we have that
 	\begin{enumerate}
 		\item  $\aar{\dg M + \dg M'} \ge \aar{\dg M}$.
-		\item If $\dg M$ and $\dg M'$ have respective confdience vectors $\beta$ and $\beta'$, and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
+		\item If $\dg M$ and $\dg M'$ have respective confidence vectors $\beta$ and $\beta'$, and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
 	\end{enumerate}
 
 \end{lemma}
@@ -489,7 +490,7 @@ Why use the surprise $\I_p(x)$, to measure the loss of a model $p(X)$ on sample 
 For this argument to be pesuasive, one needs to accept our definition of inconsistency more broadly. \Cref{prop:pdg-Ix} is a very simple special case. 
 One concern is that it does not model the whole state of affairs; we train probabilstic models models with more than one sample. 
 What if we replce $x$ with an emperical distribution on many samples?
-The first step in the proof of \cref{prop:pdg-Ix}, is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
+The first step in the proof of \cref{prop:pdg-Ix} is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
 
 \begin{linked}{prop}{many-equal-simple}
 	Given a model determining a probability distribution with mass function $p(X)$, and samples $\xsamp = \{ x_i \}_{i=1}^m$ determining an emperical distribution $\datadist\xsamp$,  the following are equal, for all $\gamma \ge 0$:
@@ -591,7 +592,7 @@ In much the same way as \cref{prop:many-equal-simple} generalizes \cref{prop:pdg
 \end{linked}
 
 
-So far we have been considering models of a distribution $p(X)$, which correspond to generative models, or an unsupervised setting. The supervised setting, in which our model predicts $Y$ from $X$, and is trained from joint samples ($X,Y$), cross entropy loss is perhaps even more dominant. And it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data. 
+So far we have been considering models of a distribution $p(X)$ that correspond to generative models, or an unsupervised setting. In the supervised setting, in which our model predicts $Y$ from $X$, and is trained from joint samples ($X,Y$), cross entropy loss is perhaps even more dominant. And it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data. 
 
 \begin{linked}{prop}{supervised-cross-entropy}
 	Consider a probabilistic model $f$ with mass function $f(y\mid x)$. The inconsistency of the PDG containing $p(y \mid x)$ and the emperical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the negative log-liklihood (cross-entropy) loss, plus the emperical uncertainty in $Y$ given $X$ (a constant independent of $f$). That is,
@@ -827,11 +828,13 @@ The equality of the two PDG inconsistencies illustrates an orthogonal point: tha
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%/%%%%%%%%%%%%%%%%%%%%%%
 \section{Statistical Distances as Inconsistencies} \label{sec:statdist}
-Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probabiltiy distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. If $p \ne q$, your mental state will be inconsistent, and moreso, the more $p$ and $q$ differ.
+Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. If $p \ne q$, your mental state will be inconsistent, and more so the more $p$ and $q$ differ.
 As a result, we can view of the inconsistency of a PDG containing only a single varible $X$ and two distributions $p(X)$ and $q(X)$ over it, as a measure of divergence.
 
 Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each edge, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$. 
 It turns out that a surprisingly large classs of statistical distances arise as the inconsistency of such a PDG. 
+
+
 
 \begin{lemma}
     \[
@@ -854,6 +857,61 @@ It turns out that a surprisingly large classs of statistical distances arise as 
     % \qquad\text{where}\qquad \xi:= \beta_p+\beta_q
     \]
 \end{lemma}
+
+
+\begin{figure}
+	\centering
+	\begin{tikzpicture}[scale=1.8]
+		\draw[help lines, color=gray!30, dashed] (-0.9,-1.4) grid (5.9,2.9);
+		\draw[->,thick] (-1,0)--(6,0) node[right]{$\beta_p$};
+		\draw[->,thick] (0,-1.5)--(0,3) node[above]{$\beta_q$} ;
+		
+		
+		% Renyi Entropy Line
+		\draw[blue!40, densely dashed, very thick, opacity=0.8]
+		 	(0,1) -- (5.6,1) (5.6,-1) -- (1,-1);
+		%Chernoff Information Line
+		\draw[red, densely dashed, very thick, opacity=0.9, (-), shorten <=6pt, shorten >=6pt]
+		 	(0,1) -- (1,0);
+		
+		% points
+		\fill (0.5,0.5) circle (0.05) node[above right, align=center]
+			% {Bhattacharya\\distance};
+			% {$\thickD^{\text{Bhattacharya}}$};
+			{$\thickD_{B}(p,q)$};
+		\fill (1,3.2) circle (0.05) 
+			node[below]{$\vdots$}
+			node[above, align=center]{$\kldiv qp$};
+		\fill (6.2,1) circle (0.05)
+			node[left]{$\cdots$}
+			node[right, align=center] {$\kldiv pq$};
+		\fill (2,-1) circle (0.05) node[below right, align=center]
+			{$\chi^2\infdivx pq$};
+		\fill (0,1) circle (0.05) 
+			node[above right, align=center, 
+				% label={[yshift=-1ex]\footnotesize min entropy}
+				]
+			{$\I_q(p > 0)$};
+		\fill[gray, fill opacity=0.2] (-1,1) -- (1.5,-1.5) -- (-1,-1.5) --cycle;
+		\draw[gray, opacity=0.5, thick] (-1,1) -- (1.5,-1.5);
+		
+
+	\end{tikzpicture}
+	\caption{A map of inconsistency 
+	% $\aar[\bigg]{\begin{tikzpicture}[center base]
+	% 	\node[dpad0] (X) {$X$};
+	% 	\draw[arr2, <-] (X) --
+	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$p$} 
+	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : r)}$} 
+	% 		++(-1.1,0);
+	% 	\draw[arr2, <-] (X) --  
+	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$q$} 
+	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : s)}$} 
+	% 		 ++(1.1, 0);
+	% \end{tikzpicture}}$ 
+	as we vary the confidences $r = \beta_p$ and $s = \beta_q$. }
+	\label{}
+\end{figure}
 
 
 \begin{prop}[KL Divergence as Inconsistency]
@@ -907,6 +965,8 @@ The Chernoff information
 \end{prop}
 
 
+
+
 \section{Regularizers and Priors}
 \label{sec:regularizers}
 The picture presented here is compatible with the correspondence between regularization and Bayesian priors; as has been noted by other authors \cite{williams1995bayesian,rennie2003l2,probinterpblogpost,mitcourse}, L2 regularization corresponds to a Gaussian prior \cite{rennie2003l2}, and indeed adding such a distribution to the PDG gives an extra term in the consistency, equal to the L2 regularizer. Similarly, the L1 regularizer corresponds to a Leplacian prior \cite{williams1995bayesian}.
@@ -954,7 +1014,7 @@ And if we lift the restriction that the edge labeled $\theta_0$ is a point mass,
 
 Finally, we remark that there is nothing special here about cross entropy here; such a prior may be added to \eqref{eq:mse} to regularize square loss instead.
 
-\section{Varitaional Objectives and Bounds}
+\section{Variational Objectives and Bounds}
 \label{sec:theory}
 
 
@@ -966,7 +1026,7 @@ The fact that the incompatibility of $\dg M$ with a \emph{specific} joint distri
 Here, we focus on the more surprising converse:  PDG semantics capture many interesting features of variational inference, broadly construed--- and moreover, provide a concise graphical language for this kind of reasoning.
 %, which can be notoriously difficult to track symbolically.
 
-We will demonstrate by showing that the the `Evidence Lower BOund' (ELBO), a common objective for training latent variable models.
+We will demonstrate by showing that the `Evidence Lower BOund' (ELBO), a common objective for training latent variable models.
 Suppose we have a joint distribution $p(X,Z)$, but only have access to observations $X$. Evaluating $p(X)$ requires marginalizing over $Z$, and could be intractable if $Z$ is a complex space. 
 One workaround is as follows. Fix a family of distributions $\mathcal Q$ and assume that $Z$ is distributed according to some $q \in \mathcal Q$; to start, we guess $q_0(Z)$.
 Now it's easy to sample $Z$ (by assumption), but $q_0$ is likely to be inconsistent with $p$. But if, while optimizing $p$ to best fit the data, we also optimize $q$ so that it closly mirrors $p$, (and if $\mathcal Q$ is expressive enough), we can avoid computing the ``evidence''  $\log p(x) = \log \int p(x,z)\, \mathrm d z$. 
@@ -1196,14 +1256,14 @@ This gives us the following results, analogous to \cref{prop:pdg-elbo-x}.
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\draw[arr2, ->] (X) to[bend left=50]
-				node[below]{$\scriptstyle e!$} (Z);
+				node[below]{$e!$} (Z);
 			\draw[arr2, ->] (Z) to[bend left=50]
-				node[above]{$\scriptstyle d$} (X);
+				node[above]{$d$} (X);
 			\draw[arr2, <-] (X) --
-				node[above,pos=0.8]{$\scriptstyle \datadist\xsamp!$}
+				node[above,pos=0.8]{$\datadist\xsamp!$}
 				++(0.9, 0);
 			\draw[arr2, <-] (Z) --
-				node[above,pos=0.6]{$\scriptstyle p$}
+				node[above,pos=0.6]{$p$}
 				++(-0.9, 0);%
 		\end{tikzpicture}} + \H(\datadist\xsamp). \]
 \end{linked}
@@ -1278,7 +1338,8 @@ Here $\Pr(X)$ is the marginal of $p(Z)d(X \mid Z)$ on $X$.
 \end{align*}
 \subsection{\texorpdfstring{$\beta$}{beta}-VaE Objective}
 
-The ELBO is not the only objective to train VaEs. For instance, Higgins et. al. \cite{higgins2016beta} have argued that the one might want to weight the reconstruction loss and KL term differently.  They suggest an objective of the form
+The ELBO is not the only objective that has been considered to train VaEs. 
+In the most common variant, Higgins et. al. \cite{higgins2016beta} have argued that the one might want to weight the reconstruction loss (from \eqref{eq:rec}) and KL term differently.  They suggest an objective of the form
 \[ \beta\text{-}\mathrm{ELBO}_{p,e,d}(x) := \mathrm{Rec}(x) - \beta \kldiv{e(Z|x)}{p}\]
 which for $\beta = 1$ is equivalent to the ELBO from the previous section. The authors view it as a regularization parameter, annd argue that in some cases, you can do better with a stronger prior. Sure enough, this extra parameter corresponds to the confidence of $p$, which also happens go by the same name.\footnote{the two terms actually both share an origin in thermodynamic $\beta$ for inverse temperature.}
 
@@ -1339,7 +1400,7 @@ Nobody likes building broken things, and so those of who build systems commonly 
 
 \textbf{A Universal Objective.}
 Objective functions in machine learning are often quite opaque to new-comers.
-Only a few of them are especially common, and they are often presented in an ad-hoc way; there are many loss functions that have the properties we need to train networks. So why do we lean so heavily on a few select choices (dependent on the problem setup), such as the cross entropy, and the ELBO objective?
+Only a few of them are especially common, and they are often presented in an ad hoc way; there are many loss functions that have the properties we need to train networks. So why do we lean so heavily on a few select choices (dependent on the problem setup), such as the cross entropy, and the ELBO objective?
 PDGs provide one answer to this question.
 
 There is perhaps a more important argument for using PDGs over other models. By designing a model, rather than an objective function, it is easier to understand what the pieces are, what is and is not relevant to the task, and no longer possible to twiddle with the objective until you get the results you want --- you can only twiddle with the model, where hacks are more easily spotted.
