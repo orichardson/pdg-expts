@@ -284,7 +284,7 @@ the tinkering itself can be a tedious game without well-defined rules, while res
 By contrast, a choice of \emph{model} admits more principled discussion, in part because it makes sense to ask if a model is accurate, or of it captures some intuition about reality.
 This observation motivates our proposition: the use of model inconsistency a ``universal'' loss function. In this framework, it is no longer possible to specify an objective directly; rather, one must articulate a situation that gives rise to it, in the (more interpretable) language of probablistic beliefs and certainties. % (concretely, as a PDG \cite{richardson2020probabilistic}).
 Concretely, we use the machinery Probabilistic Dependency Graphs (PDGs), a particularly expressive class graphical models which can can incorporate aribtrary (even inconsistent) probabilistic information in a natural way, and comes equipped with a well-motivated information-theoretic measure of inconsistency  \cite{richardson2020probabilistic}.
-Surprisingly, most standard objective functions (such as cross entropy, KL divergence, Bhattacharyya distance, reny\'i entropies, the ELBO, L1 and L2 regularizers, log partition functions) arise naturally as inconsistencies of the appropriate underlying PDG.
+Surprisingly, most standard objective functions (such as cross entropy, KL divergence, Bhattacharyya distance, R\'enyi entropies, the ELBO, L1 and L2 regularizers, log partition functions) arise naturally as inconsistencies of the appropriate underlying PDG.
 % which surprised us because it was not designed with any of them in mind, but rather from purely information-theoretic considerations.
 Such a scheme of objective specification is more restrictive, but also more intuitive (since knowledge of the objectives listed above is not necessary), and admits more epistemically grounded support and criticism.
 This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
@@ -311,7 +311,7 @@ So PDG semantics capture not only structured objects such as Bayesian Networks a
 %%%%%%%%%%%%%%%%%
 
 Representing objectives as model inconsistencies, in addition to providing a principled way of selecting an objective, also has beneficial pedagogical side effects, because of the relationships between the underlying models.
-For instance, we will be able to use the structure to give rise to very simple and intuitive proofs of otherwise unintuitive results, such as the variational inequalitites to which the ELBO owes its name, and the monotonicity of Reny\'i entropy  in its parameter $\alpha$.
+For instance, we will be able to use the structure to give rise to very simple and intuitive proofs of otherwise unintuitive results, such as the variational inequalitites to which the ELBO owes its name, and the monotonicity of R\'enyi entropy  in its parameter $\alpha$.
 
 % Is there a deeper reason to use one measure of  these terms?
 
@@ -403,8 +403,12 @@ We are primarily concerned with the second term of \eqref{eq:semantics}, which p
 
 The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
 % = \arg\min_\mu \bbr{\dg M}(\mu)$
-exists and is unique for small enough $\gamma$, including in the limit as $\gamma \to 0$. We write $\bbr{\dg M}^*$, without a subscript, to indicate the limit of small $\gamma$. 
-This is how PDGs capture other graphical models. 
+exists and is unique for small enough $\gamma$. 
+This is also true in the limit as $\gamma$ goes to zero;
+we write $\bbr{\dg M}^*$, without a subscript, to indicate this limiting best joint distribution.
+It is via this joint distribution that PDGs generalize other graphical models; here we argue that the scoring function \eqref{eq:semantics} encodes useful information beyond its minimizer. 
+
+
 The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, and is denoted $\aar{\dg M}_\gamma$. 
 Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$, and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$. 
 Any such formula can be interpreted litterally by setting $\gamma = 0$, and our results can be extended for other values of $\gamma$ with more careful treatmeant of the qualitative half of the picture. 
@@ -833,9 +837,31 @@ As a result, we can view of the inconsistency of a PDG containing only a single 
 
 Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each edge, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$. 
 It turns out that a surprisingly large classs of statistical distances arise as the inconsistency of such a PDG. 
+We start with the case in which one confidence becomes arbitrary large.
+
+\begin{prop}[KL Divergence as Inconsistency]
+	The inconsistency of believing $p$ with complete certainty, and also $q$ with some finite certainty $\beta$, is $\beta$ times the KL Divergence (or relative entropy) of $q$ with respect to $p$. That is,
+\[
+    \aar[\bigg]{\begin{tikzpicture}[center base]
+        \node[dpad0] (X) {$X$};
+        \draw[arr, <-] (X) -- node[above]
+            {$p !$}  ++(-1.1,0);
+        \draw[arr, <-] (X) --  node[above,pos=0.6]
+            % {$\overset{\smash{\color{gray}(\beta)}}q$} ++(0.9, 0);
+         	% {$\overset{{\color{gray}(\beta)}}q$} 
+            % {$q~^{{\color{gray}(\beta)}}$} ++(1.1, 0);
+			{$q$}
+			node[below,pos=0.6]{$\scriptstyle{\color{gray}(\beta)}$}++(1.1, 0);
+    \end{tikzpicture}}
+	= \beta\, \kldiv pq
+\]
+\end{prop}
+This result gives us an intuitive interpretation of the asymmetry of relative entropy / KL divergence, and a prescription about when it makes sense to use it.
+$\kldiv p q$ is the inconsistency of a mental state containing both $p$ and $q$, when absolutely certain of $p$ (and not willing to budge on it). 
+This concords with the standard view that $\kldiv pq$ reflects the amount of information required to change $q$ into $p$, which is why we call it the relative entropy ``from $q$ to $p$''.
 
 
-
+In general, we derive the following form for the inconsistency of a PDG whose contents are distributions $p(X)$ and $q(X)$, for arbitrary confidences.
 \begin{lemma}
     \[
         \aar[\bigg]{\begin{tikzpicture}[center base]
@@ -861,88 +887,108 @@ It turns out that a surprisingly large classs of statistical distances arise as 
 
 \begin{figure}
 	\centering
+	\def\ptradius{0.07}
 	\begin{tikzpicture}[scale=1.8]
 		\draw[help lines, color=gray!30, dashed] (-0.9,-1.4) grid (5.9,2.9);
 		\draw[->,thick] (-1,0)--(6,0) node[right]{$\beta_p$};
 		\draw[->,thick] (0,-1.5)--(0,3) node[above]{$\beta_q$} ;
 		
 		
+		%concave part
+		\fill[gray, fill opacity=0.2] (-1,1) -- (1.5,-1.5) -- (-1,-1.5) --cycle;
+		\draw[gray, opacity=0.5, thick] (-1,1) -- 
+		node[below left=3em, anchor=north, rotate=-45,font=\footnotesize,fill=gray!20,fill opacity=0.8, inner sep=1pt, outer sep=3pt] % at (-0.5,-0.5)
+			{Non-convex region} (1.5,-1.5);
+		%axis of symmetry
+		% \draw[color=orange!25, thick] (-1, -1) -- (3,3);
+		% \fill[orange, opacity=0.05] (-1,-1) -- (3,3) -- (-1,3) -- cycle;
+		\draw[color=gray!80!orange!45, densely dashdotted] (-1, -1) -- (3,3);
+		\draw[color=gray!80!orange!45, thick, <->] (2.8, 2.2) -- node[above right, anchor=south, rotate=-45,font=\footnotesize,fill=white,fill opacity=0.8, inner sep=1pt, outer sep=3pt]{Axis of Symmtry}(2.2,2.8);
+		
+		
 		% Renyi Entropy Line
 		\draw[blue!40, densely dashed, very thick, opacity=0.8]
-		 	(0,1) -- (5.6,1) (5.6,-1) -- (1,-1);
+		 	(0,1) -- node[below, align=center, pos=0.8, font=\footnotesize]{R\'enyi divergences\\for $\alpha \in (0,1)$} (5.6,1)
+			(5.6,-1) -- node[above, align=center, pos=0.2, font=\footnotesize]{(negative) R\'enyi divergences\\ for $\alpha \in (1,\infty)$} (1,-1);
 		%Chernoff Information Line
 		\draw[red, densely dashed, very thick, opacity=0.9, (-), shorten <=6pt, shorten >=6pt]
-		 	(0,1) -- (1,0);
+		 	(0,1) -- node[pos=0.5,below left=5pt,anchor=north, rotate=-45, font=\footnotesize, align=center, fill=white,fill opacity=0.8, inner sep=1pt, outer sep=3pt]{Chernoff\\Divergences} (1,0);
+		%alpha divergence line
+		\draw[domain=1.5:5.6, smooth, very thick, variable=\x, blue!50!green!50, opacity=0.8, densely dashed] plot ({\x}, {1/(1-1/\x)}) 
+			node[rotate=-7, font=\footnotesize] at (3.9,1.55){$\alpha$-divergences};
 		
-		% points
-		\fill (0.5,0.5) circle (0.05) node[above right, align=center]
+		%%%% POINTS %%%%
+		%[draw, very thick,fill=magenta!50!black]
+		\fill (0.5,0.5) circle (\ptradius) node[above right, align=center,
+			label={[yshift=0ex,xshift=-1ex,align=left,font=\footnotesize\color{gray!50}]right:Bhattacharya\\distance}]
 			% {Bhattacharya\\distance};
 			% {$\thickD^{\text{Bhattacharya}}$};
 			{$\thickD_{B}(p,q)$};
-		\fill (1,3.2) circle (0.05) 
+		
+		\fill (1,3.4) -- +(0:\ptradius) arc (0:-180:\ptradius) -- +(0:\ptradius)
 			node[below]{$\vdots$}
-			node[above, align=center]{$\kldiv qp$};
-		\fill (6.2,1) circle (0.05)
-			node[left]{$\cdots$}
-			node[right, align=center] {$\kldiv pq$};
-		\fill (2,-1) circle (0.05) node[below right, align=center]
-			{$\chi^2\infdivx pq$};
-		\fill (0,1) circle (0.05) 
+			node[right=1ex, align=center,label={[yshift=1ex,xshift=0ex]below:\footnotesize\color{gray!50}Reverse KL}](revKL){$\kldiv qp$};
+		
+		\fill (6.4,1) -- +(270:\ptradius) arc (270:90:\ptradius) -- +(270:\ptradius)
+			node[above=2pt, align=center,
+				label={[yshift=-1ex,xshift=0ex]\footnotesize\color{gray!50} KL Divergence}] (FwdKL) {$\kldiv pq$}
+			node[left]{$\cdots$};
+
+		\fill (0,1) -- ++(-90:\ptradius) arc (-90:90:\ptradius)
 			node[above right, align=center, 
-				% label={[yshift=-1ex]\footnotesize min entropy}
-				]
-			{$\I_q(p > 0)$};
-		\fill[gray, fill opacity=0.2] (-1,1) -- (1.5,-1.5) -- (-1,-1.5) --cycle;
-		\draw[gray, opacity=0.5, thick] (-1,1) -- (1.5,-1.5);
+				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} Max Entropy}
+			]{$\I_q(p > 0)$};
+		
+		% divergences requiring negative \beta
+		\fill (2,-1) circle (\ptradius) node[below right, align=center,
+				label={[yshift=1ex,xshift=1ex]below:\footnotesize\color{gray!50}$-\chi^2$ divergence}]
+			{$-\chi^2\infdivx pq$};
+		\fill (1,-1) -- ++(-45:\ptradius) arc (-45:135:\ptradius)
+			node[above, align=center, 
+				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} $-$Min Entropy}]
+			{$- \log \sup \frac pq$};
+
 		
 
 	\end{tikzpicture}
-	\caption{A map of inconsistency 
-	% $\aar[\bigg]{\begin{tikzpicture}[center base]
+	\caption{A map of the inconsistency of the PDG containing the distributions $p(X)$ and $q(X)$, as we vary their respective confidences $\beta_p$ and $\beta_q$. }
+	% {A map of inconsistency
+	% \(\aar[\bigg]{\begin{tikzpicture}[center base]
 	% 	\node[dpad0] (X) {$X$};
 	% 	\draw[arr2, <-] (X) --
 	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$p$} 
-	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : r)}$} 
+	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_p)}$} 
 	% 		++(-1.1,0);
 	% 	\draw[arr2, <-] (X) --  
 	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$q$} 
-	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : s)}$} 
+	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_q)}$} 
 	% 		 ++(1.1, 0);
-	% \end{tikzpicture}}$ 
-	as we vary the confidences $r = \beta_p$ and $s = \beta_q$. }
+	% \end{tikzpicture}}\)
+	% as we vary the confidences $(\beta_p, \beta_q)$ in the distributions $p$ and $q$. }
 	\label{}
 \end{figure}
 
 
-\begin{prop}[KL Divergence as Inconsistency]
-	The inconsistency of believing $p$ with complete certainty, and also $q$ with some finite certainty $\beta$, is $\beta$ times the relative entropy (or KL divergence) of $q$ with respect to $p$. That is,
-\[
-    \aar[\bigg]{\begin{tikzpicture}[center base]
-        \node[dpad0] (X) {$X$};
-        \draw[arr, <-] (X) -- node[above]
-            {$p !$}  ++(-1.1,0);
-        \draw[arr, <-] (X) --  node[above,pos=0.6]
-            % {$\overset{\smash{\color{gray}(\beta)}}q$} ++(0.9, 0);
-         	% {$\overset{{\color{gray}(\beta)}}q$} 
-            % {$q~^{{\color{gray}(\beta)}}$} ++(1.1, 0);
-			{$q$}
-			node[below,pos=0.6]{$\scriptstyle{\color{gray}(\beta)}$}++(1.1, 0);
-    \end{tikzpicture}}
-	= \beta\, \kldiv pq
-\]
-\end{prop}
-This result gives us an intuitive interpretation of the asymmetry of the KL divergence, the counter-intuitive naming of itsarguments, and a prescription about when it makes most sense to use it.
-$\kldiv p q$ is the inconsistency of a mental state when absolutely certain of $p$ (and not willing to budge on it), which is why it reflects the amount of information required to change $q$ into $p$, and why we call it the divergence from $q$ to $p$.
 
 
-\begin{prop}[Reny\'i Divergences]
+Of the many generalizations of KL divergence, R\'enyi divergences, first characterized by Alfr\'ed R\'enyi \cite{renyi1961measures} are perhaps the most significant, as few others have found either application or an interpretation in terms of coding theory \cite{van2014renyi}.
+The R\'enyi divergence of order $\alpha$ between two distributions $p(X)$ and $q(X)$ is given by 
+\begin{equation}
+	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}\label{eq:renyi}
+\end{equation}
+R\'enyi introduced this measure in the same paper as the more general class of $f$-divergences, but directs his attention towards those of the form \eqref{eq:renyi}, because satisfy a natural weakening of Fadeev's postulates \cite{Fadeev}, for Shannon entropy.
+Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain `mean-value property', is of this form \cite{renyi1961measures}.
+
+It turns out that the R\'enyi entropies are 
+
+\begin{coro}[R\'enyi Divergences]
     \[ \thickD^{\mathrm{PDG}}_{r, s}(p, q) =
         s \cdot \thickD_{\frac{r}{r+s}}\infdivx{p}{q}
     \qquad \text{and} \qquad
         \thickD_{\alpha}\infdivx{p}{q}
-        = \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q)
+        = \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
     \]
-\end{prop}
+\end{coro}
 
 
 
