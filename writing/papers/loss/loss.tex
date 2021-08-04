@@ -269,8 +269,9 @@
 % -universality
 Many tasks in artificial intelligence can be fruitfully cast as optimization problems, but often the choice of objective is not unique.
 %
-For instance, one a key component of a machine learning system is a loss which the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
-All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
+For instance, one key component of a machine learning system is a `loss' that the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
+%oli: this sentence perhaps unnecessary...
+% All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
 Each implicitly represents different values, and results in different behavior, and so the choice of loss can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
 %We aim to
 Furthermore, there is often something to be gained by fiddling with these loss functions: one can add regularization terms, to incentivize desirable behavior.
@@ -324,19 +325,14 @@ In the coming sections, we will show in more detail how this concept of inconsis
 
 \subsection{Related Work}
 
-This approach naturally extends work in the Bayesian ML community
-\cite{williams1995bayesian,rennie2003l2,probinterptowardsds,probinterpblogpost}
-establishing a correspondence between regularizers and priors.
-We note that a primary benefit of this correspondance is the ability to view (some) regularizers as \emph{prior beliefs}, which are modeling assumptions. We review this in our context in \Cref{sec:regularizers}.
-
-
-In parallel work focusing on PDG inference,
-	we prove some nice properties of $\aar{-}$,
-	and argue that many standard algorithms for inference and updating in other probablisitc models can be viewed as algorithms for reducing inconsistency, in the corresponding PDG.
+Recent work in the Bayesian ML community has established a correspondence between regularizers and priors
+\cite{williams1995bayesian,rennie2003l2,probinterptowardsds,probinterpblogpost}.
+The primary motivation for this correspondance is the ability to view (some) regularizers as \emph{prior beliefs}, which, because they are modeling assumptions, makes them better targets for principled discussion and criticism.
+In \cref{sec:regularizers} we show how our approach is compatible with these results, and can be thought of as a natural extension of them.
 
 
 \section{Preliminaries}
-% Method: What machine learning techniques are you planning to apply or improve upon and how? Make sure to describe them in detail and provide enough context for the reader to understand the methods at least at a high level. Provide any background that is necessary for that.
+
 A PDG, like a Bayesian Network (BN), is a directed graph, to which we attatch a conditional probability distributions (cpds). While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
 Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents---while in a pdg, an edge $\ed LXY$ is associated with a distribution $\Pr(Y \mid X)$.
 As a result, a PDG of shape $[X \to Y \leftarrow Z]$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
@@ -349,7 +345,7 @@ We use letters of both cases for conditional probability distributions (cpds), w
 % For instance, a given a conditional probability measure $\Pr$ on $Y$ given $X$, with a mass function $p$, we write  $p(Y\mid X)$ for the cpd $(x,y) \mapsto p.\text{pmf}(y \mid x)$.
 Depending on context, we write either $\Ex_\mu X$ or $\Ex_{\omega \sim \mu} X(\omega)$ for expectation of $X : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
 $\H(\mu)$ and $\H_\mu(X)$, $\H_\mu(Y \mid X)$ refer respectively to the entropy of a distribution $\mu$, the entropy of the variable $X$ with respect to $\mu$, and the conditional entropy of $Y$ given $X$, with respect to $\mu$.
-We now proceed with the definition.
+We now give the formal definition.
 
 \begin{defn}\label{defn:pdg}
 	A Probabilistic Dependency Graph (PDG) is a tuple $\dg M = (\N,\Ed,\V,\mat p, \alpha, \beta)$ , where
@@ -493,11 +489,11 @@ Why use the surprise $\I_p(x)$, to measure the loss of a model $p(X)$ on sample 
 
 For this argument to be pesuasive, one needs to accept our definition of inconsistency more broadly. \Cref{prop:pdg-Ix} is a very simple special case.
 One concern is that it does not model the whole state of affairs; we train probabilstic models models with more than one sample.
-What if we replce $x$ with an emperical distribution on many samples?
+What if we replce $x$ with an empirical distribution on many samples?
 The first step in the proof of \cref{prop:pdg-Ix} is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
 
 \begin{linked}{prop}{many-equal-simple}
-	Given a model determining a probability distribution with mass function $p(X)$, and samples $\xsamp = \{ x_i \}_{i=1}^m$ determining an emperical distribution $\datadist\xsamp$,  the following are equal, for all $\gamma \ge 0$:
+	Given a model determining a probability distribution with mass function $p(X)$, and samples $\xsamp = \{ x_i \}_{i=1}^m$ determining an empirical distribution $\datadist\xsamp$,  the following are equal, for all $\gamma \ge 0$:
 	\begin{enumerate}
 	\item The average negative log likelihood $\ell(p; \xsamp) = - \frac{1}{m} \sum_{i=1}^m \log p(x_i)$
 	\item The cross entropy of $p$ relative to $\datadist\xsamp$
@@ -596,10 +592,14 @@ In much the same way as \cref{prop:many-equal-simple} generalizes \cref{prop:pdg
 \end{linked}
 
 
-So far we have been considering models of a distribution $p(X)$ that correspond to generative models, or an unsupervised setting. In the supervised setting, in which our model predicts $Y$ from $X$, and is trained from joint samples ($X,Y$), cross entropy loss is perhaps even more dominant. And it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data.
+% So far we have been considering models of a distribution $p(X)$ that correspond to generative models, or an unsupervised setting. 
+So far we have been considering models of an unconditional distribution $p(X)$. 
+Because one can use such a model to generate samples, such models are called \emph{generative}, and their training process is called \emph{unsupervised} learning.
+Contrast this with the (more common) supervised setting, in which we train \emph{discriminative} models to predict $Y$ from $X$, from joint samples ($X,Y$).
+For supervised learning, cross entropy loss is perhaps even more dominant---and it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data.
 
 \begin{linked}{prop}{supervised-cross-entropy}
-	Consider a probabilistic model $f$ with mass function $f(y\mid x)$. The inconsistency of the PDG containing $p(y \mid x)$ and the emperical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the negative log-liklihood (cross-entropy) loss, plus the emperical uncertainty in $Y$ given $X$ (a constant independent of $f$). That is,
+	Consider a probabilistic model $f$ with mass function $f(y\mid x)$. The inconsistency of the PDG containing $p(y \mid x)$ and the empirical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the negative log-liklihood (cross-entropy) loss, plus the empirical uncertainty in $Y$ given $X$ (a constant independent of $f$). That is,
 	\[ \aar**{
 		\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
@@ -652,7 +652,7 @@ In fact, the inconsistency of the PDG in \eqref{eq:accuracy-pdg} is scaled by th
 % TODO: Why should this be the case?
 Why should this be the case? The deterministic nature of $f$ and $h$ encodes extreme confidence (to anthropomorphise: $f$ thinks it impossible that $Y \ne f(X)$, because that event has probability zero), and so the only way to selectively choose samples to make things consistent is to alter the distribution of \emph{inputs} $\Pr(X)$ (so that it is always the case that $f(x) = g(x)$), not to change $\Pr(Y \mid X)$.
 But it is the direction that we want to pull $\Pr(Y\mid X)$ that informs how we should update our predictor $h(Y \mid X)$, which reflects the non-differentiability of the accuracy (or zero-one loss) with respect to $h$.
-Note that this is a the complete opposite of how we captured cross entropy (\cref{prop:supervised-cross-entropy}), in which we are unwilling to budge on the data distribution, but are willing to modify our predictor $h$.
+Note that this is the complete opposite of how we captured cross entropy (\cref{prop:supervised-cross-entropy}), in which we are unwilling to budge on the data distribution, but are willing to modify our predictor $h$.
 
 
 %Confusion matrix costs
@@ -832,10 +832,10 @@ The equality of the two PDG inconsistencies illustrates an orthogonal point: tha
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%/%%%%%%%%%%%%%%%%%%%%%%
 \section{Statistical Distances as Inconsistencies} \label{sec:statdist}
-Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. If $p \ne q$, your mental state will be inconsistent, and more so the more $p$ and $q$ differ.
-As a result, we can view of the inconsistency of a PDG containing only a single varible $X$ and two distributions $p(X)$ and $q(X)$ over it, as a measure of divergence.
+Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.  
+Thus the inconsistency of a PDG comprised of $p$ and $q$ is a measure of divergence.
 
-Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each edge, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$.
+Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each cpd, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$.
 It turns out that a surprisingly large classs of statistical distances arise as the inconsistency of such a PDG.
 We start with the case in which one confidence becomes arbitrary large.
 
@@ -976,7 +976,7 @@ In general, we derive the following form for the inconsistency of a PDG whose co
 Of the many generalizations of KL divergence, R\'enyi divergences, first characterized by Alfr\'ed R\'enyi \cite{renyi1961measures} are perhaps the most significant, as few others have found either application or an interpretation in terms of coding theory \cite{van2014renyi}.
 The R\'enyi divergence of order $\alpha$ between two distributions $p(X)$ and $q(X)$ is given by
 \begin{equation}
-	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}\label{eq:renyi}
+	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \log \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}\label{eq:renyi}
 \end{equation}
 R\'enyi introduced this measure in the same paper as the more general class of $f$-divergences, but directs his attention towards those of the form \eqref{eq:renyi}, because satisfy a natural weakening of Fadeev's postulates \cite{fadeev1957begriff}, for Shannon entropy.
 Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain `mean-value property', is of the form \eqref{eq:renyi}, up to scaling \cite{renyi1961measures}.
@@ -991,10 +991,13 @@ It follows from \cref{lemma:pdgdiv} that varing the confidences of our two-distr
     \]
 \end{coro}
 
-However, the two classes are not exactly identical, because the PDG divergences admit extra limit points. One of the biggest differences is that the reverse KL divergence $\kldiv q p$ is not a Renyi entropy of the form $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$. This lack of symmetry has caused other authors to instead work with a re-scaled symmetric version of the R\'enyi entropy, called $\alpha$-divergence  \cite{cichocki2010families} (although sometimes the term is used for the same quantity without the logarithm).  The relationship between them can be seen in \cref{fig:statdistmap}.
+However, the two classes are not exactly identical, because the PDG divergences admit extra limit points. One of the biggest differences is that the reverse KL divergence $\kldiv q p$ is not a Renyi entropy of the form $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$. This lack of symmetry has caused other authors \cite{cichocki2010families} to instead work with a re-scaled symmetric version of the R\'enyi entropy, called $\alpha$-divergence \eqref{eq:alphadiv}  (although sometimes the term is used for the same quantity without the logarithm).  The relationship between them can be seen in \cref{fig:statdistmap}.
 
+\begin{equation}
+	\tilde \thickD_\alpha\infdivx p q := \frac{1}{(\alpha)( 1- \alpha)} \;{\color{gray}\log} \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha} \label{eq:alphadiv}
+\end{equation}
 
-We submit that viewing these as inconsistencies can clarify things a great deal. Whereas the formula for R\'enyi entropy is mostly symmetric, the leading $\frac1\alpha$ makes it instead \emph{skew}-symmetric, and does not directly reduce to reverse KL divergence. PDG ``divergences'', on the other hand, are symmetric: the semantics do not give special treatment to one edge over the other.
+We submit that viewing these as inconsistencies can clarify things a great deal. Whereas the formula for R\'enyi entropy is mostly symmetric, the leading $\frac1{1-\alpha}$ of \eqref{eq:renyi} makes it instead \emph{skew}-symmetric, and as a result the behavior for $\alpha \in (0, \nicefrac12)$ is qualitatively different from the behavior for $\alpha \in (\nicefrac12, 1)$. The corresponding PDG inconsistencies, on the other hand, are symmetric: the semantics do not give special treatment to one edge over the other.
 
 One consequence of representing divergences as inconsistencies is that we can use \cref{lemma!} to derive relationships between them. The following facts follow immediately, and can be seen in \cref{fig:statdistmap} by inspection.
 \begin{coro}
@@ -1033,7 +1036,7 @@ The picture presented here is compatible with the correspondence between regular
 We now review these findings in the context of our framework, as we show how adding a prior distribution in a PDG results in the corresponding regularization term in the inconsistency.
 
 \begin{linked}{prop}{regularized}
-	Consider a situation where you believe that $Y$ is distributed according to $f_\theta(Y)$  for some parameter $\theta$, and also that you have a prior belief $p(\theta)$ over parameters, and an emperical distribution $D$ over $Y$ which you trust. The inconsistency of also believing that the parameter is some $\theta_0$ is the \emph{regularized}-cross entropy loss, where the regularizer is $\log \frac1{p(\theta_0)}$ times the confidence in the prior $p$.
+	Consider a situation where you believe that $Y$ is distributed according to $f_\theta(Y)$  for some parameter $\theta$, and also that you have a prior belief $p(\theta)$ over parameters, and an empirical distribution $D$ over $Y$ which you trust. The inconsistency of also believing that the parameter is some $\theta_0$ is the \emph{regularized}-cross entropy loss, where the regularizer is $\log \frac1{p(\theta_0)}$ times the confidence in the prior $p$.
 	That is,
 	\begin{equation}\label{eq:regularize}
 		\aar*{\begin{tikzpicture}[center base]
@@ -1397,8 +1400,8 @@ Here $\Pr(X)$ is the marginal of $p(Z)d(X \mid Z)$ on $X$.
 \end{align*}
 \subsection{\texorpdfstring{$\beta$}{beta}-VaE Objective}
 
-The ELBO is not the only objective that has been considered to train VaEs.
-In the most common variant, Higgins et. al. \cite{higgins2016beta} have argued that the one might want to weight the reconstruction loss (from \eqref{eq:rec}) and KL term differently.  They suggest an objective of the form
+The ELBO is not the only objective that has been used to train networks with the a VaE structure.
+In the most common variant, Higgins et. al. \cite{higgins2016beta} have argued that the one might want to weight the reconstruction error \eqref{eq:rec} and KL term differently.  They suggest an objective of the form
 \[ \beta\text{-}\mathrm{ELBO}_{p,e,d}(x) := \mathrm{Rec}(x) - \beta \kldiv{e(Z|x)}{p}\]
 which for $\beta = 1$ is equivalent to the ELBO from the previous section. The authors view it as a regularization parameter, annd argue that in some cases, you can do better with a stronger prior. Sure enough, this extra parameter corresponds to the confidence of $p$, which also happens go by the same name.\footnote{the two terms actually both share an origin in thermodynamic $\beta$ for inverse temperature.}
 
@@ -1428,18 +1431,44 @@ which for $\beta = 1$ is equivalent to the ELBO from the previous section. The a
 \end{linked}
 
 
+\section{More Exotic Loss Functions}
+
+\begin{prop}[Inception Scores and Information Deficiency]
+	\begin{equation}
+	 	\IDef[]{\begin{tikzpicture}
+	 		\node[dpad0] (Z) {$Z$};
+			\node[dpad0,right=.5 of Z] (X) {$X$};			
+		\end{tikzpicture}}
+	\end{equation}
+\end{prop}
+
+\begin{prop}
+\end{prop}
+\begin{prop}
+	The
+\end{prop}
+
+\subsection{GAN minimax Loss and Inconsistency}
+
+
+% Inception Scores
+% Frechet Inception Distance
+
+
+
 
 \section{Log Partition Function as Inconsistency}
 The factors of a factor graph, which in isolation indicate relative probabilities.
 Factored exponential families form the mathematical backbone of statistical
-mechanics, in which the normalization constant
-$Z_{\Psi}$ for the WFG $\Psi = (\phi_j, \theta_j)_{j \in \cal J}$,
-given by
-$$
+mechanics.
+The weighted factor graph (WFG) $\Psi = (\phi_j, \theta_j)_{j \in \cal J}$, where each $\theta_j$ is a real weight, $j$ is associated with a subset of variables $\mathbf X_j$, and  $\phi_j : \mathbf X_j \to \mathbb R$ determines a distribution by 
+\[ \Pr\nolimits_\Psi(\mat x) \propto \prod_{j \in J} \phi_j(\mat x_j)^{\theta_j} \]
+The normalization constant $Z_{\Psi}$, is given by
+\begin{equation*}
 	Z_{\Psi} := \sum_{\mat w} \prod_{j \in \mathcal J} \phi_j(\mat w_j)^{\theta_j}
 	,
-$$
-is known as the \emph{partition function}. If every factor is a cpd, and every variable has at least one incoming edge, then $Z_\Psi$ is at most 1, so $-\log Z_\Psi$ is non-negative, and measures how far away the product of factors is from being normalized. Thus, it is in some sense a measure of inconsistency of a factor graph.
+\end{equation*}
+and is known as the \emph{partition function}. If every factor is a cpd, and every variable has at least one incoming edge, then $Z_\Psi$ is at most 1, so $-\log Z_\Psi$ is non-negative, and measures how far away the product of factors is from being normalized. Thus, it is in some sense a measure of inconsistency of a factor graph.
 It turns out that this intuition coincides with our notion of PDG inconsistency.
 
 \begin{linked}{prop}{fg-inconsistency-is-partition-function}
@@ -1453,19 +1482,19 @@ be obtained by taking various partial derivatives of $Z_\Psi$, and calculating t
 
 \section{Discussion}
 
-\textbf{Inconsistency, in a different light.}
-Nobody likes building broken things, and so those of who build systems commonly try to eliminate it in models by design. But in doing so, we unwittingly sacrifice tools for dealing with it if (and when) it does arise.
-
-
-\textbf{A Universal Objective.}
-Objective functions in machine learning are often quite opaque to new-comers.
-Only a few of them are especially common, and they are often presented in an ad hoc way; there are many loss functions that have the properties we need to train networks. So why do we lean so heavily on a few select choices (dependent on the problem setup), such as the cross entropy, and the ELBO objective?
-PDGs provide one answer to this question.
-
-There is perhaps a more important argument for using PDGs over other models. By designing a model, rather than an objective function, it is easier to understand what the pieces are, what is and is not relevant to the task, and no longer possible to twiddle with the objective until you get the results you want --- you can only twiddle with the model, where hacks are more easily spotted.
-
-\textbf{Semantics for ``Graphical Models''.}
-Often, autoencoder tutorials will include diagrams, and falsely claim that they are standard ``graphical models''. In these cases, among others, people are already reasoning about local probabilistic information in a graph. We have shown here that PDG semantics can sense of these informal diagrams in a way that is deeply connected with the variational reasoning involed.
+% \textbf{Inconsistency, in a different light.}
+% Nobody likes building broken things, and so those of who build systems commonly try to eliminate it in models by design. But in doing so, we unwittingly sacrifice tools for dealing with it if (and when) it does arise.
+% 
+% 
+% \textbf{A Universal Objective.}
+% Objective functions in machine learning are often quite opaque to new-comers.
+% Only a few of them are especially common, and they are often presented in an ad hoc way; there are many loss functions that have the properties we need to train networks. So why do we lean so heavily on a few select choices (dependent on the problem setup), such as the cross entropy, and the ELBO objective?
+% PDGs provide one answer to this question.
+% 
+% There is perhaps a more important argument for using PDGs over other models. By designing a model, rather than an objective function, it is easier to understand what the pieces are, what is and is not relevant to the task, and no longer possible to twiddle with the objective until you get the results you want --- you can only twiddle with the model, where hacks are more easily spotted.
+% 
+% \textbf{Semantics for ``Graphical Models''.}
+% Often, autoencoder tutorials will include diagrams, and falsely claim that they are standard ``graphical models''. In these cases, among others, people are already reasoning about local probabilistic information in a graph. We have shown here that PDG semantics can sense of these informal diagrams in a way that is deeply connected with the variational reasoning involed.
 
 \bibliographystyle{plain}
 \bibliography{refs}
@@ -1605,7 +1634,7 @@ Often, autoencoder tutorials will include diagrams, and falsely claim that they 
 	 	\Ex_{x,y \sim \mu} \log \frac{\mu(y\mid x)}{\delta_{f(x)}} \ge \mu(y,x) \log \frac{\mu(x,y)}{\mu(x) \cdot \delta_{f(x)}(y)} =  \epsilon \log \frac{\epsilon}{0} = \infty.
 	\]
 	The same holds for $h$. Therefore, for any $\mu$ with a finite score, and $x$ with $\mu(x) > 0$, we have $\delta_{f(x)} = \mu(Y\mid x) =  \delta_{h(x)}$, meaning that we need only consider $\mu$ whose support is a subset of those points on which $f$ and $h$ agree.
-	On all such points, the contribution to the score from the edges associated to $f$ and $h$ will be zero, since $\mu$ matches the conditional marginals exactly, and the total incompatibility of such a distribution $\mu$ is equal to the relative entropy $\kldiv{\mu}{D}$, scaled by the confidence $\beta$ of the emperical distribution $D$.
+	On all such points, the contribution to the score from the edges associated to $f$ and $h$ will be zero, since $\mu$ matches the conditional marginals exactly, and the total incompatibility of such a distribution $\mu$ is equal to the relative entropy $\kldiv{\mu}{D}$, scaled by the confidence $\beta$ of the empirical distribution $D$.
 
 	So, among those distributions $\mu(X)$ supported on an event $E \subset \V (X)$, which minimizes is the relative entropy of $\kldiv{\mu}{D}$?
 	It is well known that the conditional distribution
