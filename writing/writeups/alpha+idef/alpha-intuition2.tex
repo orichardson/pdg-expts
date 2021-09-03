@@ -1,0 +1,447 @@
+\documentclass{article}
+
+
+%\input{../papers/model-commands.tex}
+
+\usepackage{amsmath,amssymb}
+\usepackage{mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{bbm}
+\usepackage{enumitem}
+
+\usepackage{xcolor}
+
+\renewcommand{\H}{\mathop{\mathrm H}}
+\newcommand{\E}{\mathop{\mathbb E}}
+\newcommand{\bp}[1][L]{\mathbf{p}_{\!_#1\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal A}
+
+\newcommand{\dg}[1]{\mathsf #1}
+%\def\mnvars[#1]{(\N#1, \Ed#1, \V#1, \bp#1)}
+\newcommand\Pa{\mathbf{Pa}}
+\newcommand\mat[1]{\mathbf #1}
+%\newcommand\SD{_{\text{sd}}}
+
+\usepackage{amsthm,thmtools}
+\begingroup
+\makeatletter
+\@for\theoremstyle:=definition,remark,plain\do{%
+	\expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
+		\addtolength\thm@preskip\parskip
+	}%
+}
+\endgroup
+\makeatother
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{coro}{Corollary}[theorem]
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conj}[theorem]{Conjecture}
+\newtheorem{constr}{Construction}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem*{defn*}{Definition}
+\newtheorem{examplex}{Example}
+\newenvironment{example}
+	{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangle$}\examplex}
+	{\popQED\endexamplex%\vspace{-1.6em}\rule{2cm}{0.7pt}\vspace{0.5em}}
+}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+\newcommand{\alle}[1][L]{_{ X \xrightedge{\!\!#1} Y }}
+\newcommand{\cdo}{\mathop{\mathrm{do}}}
+\newcommand{\evt}[2]{#1\!\!=\!#2}
+
+\begin{document}
+
+
+As requested, I have thought more about the issues you raise and given answers in terms of causal interventions, which I believe are now more coherent, having written them down and eliminated some bugs. I tried to give you something short but was unable to really verbalize my intuition in these terms without a whole lot of math. 
+
+I still want to start with intuition -- though from some directions I am able to actually get some traction.%, though hopefully a familiar one. 
+
+\section{Intuition}
+%TODO intro
+
+In contrast to other models, causal ones included, which focus largely on the variables, PDGs focus on edges. For instance, all of the observational data (the cpds) are attached to edges, the inconsistencies come from being able to have more than one incoming edge, and it is the edges, rather than the variables, which are thought of as deterministic.
+
+For this reason, the standard framework of interventions, in which interventions are performed on variables, is not a particularly clean way to describe a (strict) PDG itself. Perhaps ironically, the way I had envisioned referring to individual elements and events, requires non-strict PDGs, which is why the causal models work out so much better in the general setting. I believe a satisfying description of causality in PDGs must be expressed in terms of PDGs, and I will try to explain why in further in this document when it comes up.
+
+Of course, causal models are nearly always presented in terms of variables rather than edges, and not without good reason (it's usually easier to give variables than edges intuitive meaning)--- and so it is important to work out the correspondence in this language, which we begin in Section 2.
+
+In the mean time, if we were to alternatively think of modeling interventions on edges (i.e., modifying the effect of one variable on another, rather than adding an intervention itself), the analysis would be much more straightforward, as we now suggest. % It may be useful to adopt a view of edges as channels
+
+
+\subsection{Your Concerns}
+
+Below are the concerns you had, I interpreted them --- plus a high level discussion of their resolution.
+
+\begin{enumerate}[itemsep=1em]
+	\item \textit{If a PDG has variables $X$ and $Y$, with $Y$ independent of everything else, is a practitioner obligated to put $\alpha = 1$ on an edge $X \to Y$, and $Z \to Y$, and $X \times Z \to Y$, $\ldots$? This is what is suggested by causal independence alone. The suggested resolution was to adopt something like the minimality (AC3) axiom.}
+	
+	I now think this could be a good idea. 
+	
+	However, it should also be noted that the resolution to the bigger question below partially resolves this one. If we take for granted that supplying a set of $\alpha$'s into a node $Y$ that exceeds 1 is an implicit assumption that $Y$ is deterministic, then if we believe that $Y$ is an independent random variable, at best we could split the weight across multiple links. 
+	
+	Furthermore, placing all of the weight on an edge $1 \to Y$ is now a much stronger assertion that $Y$ is independent of all other variables: additional dependencies do not change this, and would conflict with a non-degenerate distribution attached to the edge as a cpt.
+
+	The kind of reasoning backwards assuming that the sum is 1, might be seen as undesirable, as it makes $\alpha_L$ no longer a property of $\alpha$ itself --- we could always easily resolve the problem by normalizing $\alpha$'s to 1 in the equation dictating PDG semantics, rather than making the practitioner do it. Of course, this would protect them from being inconsistent in a way we are advocating against. More on this in concern 3.
+	 
+	\item \textit{Why should it be the case that once the sum of $\alpha$'s into a node exceeds one, there should be no randomness left?}
+	
+	The majority of the present document is intended to target this question carefully --- but I agree that intuition is more important than technical specifics, so having now worked out more technical details I will try once again to give you an intuitive picture. To avoid the impression that this is an unnatural thing to require, I will give four distinct lines of thought that all lead to this conclusion.
+	\begin{enumerate}[itemsep=1em]
+	\item It is not possible for the output of two distinct probabilistic functions to be necessarily equal. Therefore, if you believe with certainty that the value $Y$ is exactly the output of two functions, no matter how you run them or intervene on other variables, you must believe that conditioned on the value of both inputs, $Y$ must not have any remaining randomness. 
+	
+	If we are imagining $\alpha$ to be a property of the edges, and not of the relationship between the variables, this intuition suggests that it is impossible for both edges (which we might view as ``channels'') to be causes. An agent cannot (without inconsistency) believe that two distinct noisy functions were both the source of a value.  
+	
+	Note, however, that it \emph{is} possible for it to be the output of two functions, one of which is probabilistic:
+	\[ y \sim p(Y \mid X_1 = x_1); \qquad y = \text{first}(y, x_2) \]
+	In some sense, either, or both, could be considered the cause of $Y$: if one were to intervene on the variable $Y \times X_2$, or the variable $X$ (supposing the structural equation for $Y$ is a noisy function of $X$), one would expect the resulting model to change. In further support of this perspective, the projection, too, can be labeled as a ``structural equation'' -- in that it constitutes inviolable structure of the model.%
+		\footnote{There is also another sense in which the first is a much better description of the cause, because it feels like it must necessarily proceed the first. I have some thoughts on this, but we can discuss another time.}
+	
+	\item  Recall my description that of $\alpha_L$ as your belief that the link $L$ in fact represents the structural equation. From this view, the vector $\vec \alpha_{\to Y}$ is a distribution over the possible structural equations you have in mind (plus `none').%
+		\footnote{Why would a person ever say `none' instead of $1/$number of possible edges? --- because (1) PDGs are expected to expand and contract in the \# of variables there are, (2) this sub-distribution allows for an expression of certainty that a normal distribution does not.}
+	I justify my use of the word ``equation'' here by appeal to the fact that a noisy function may as well be a deterministic function that takes an additional argument:
+	\[ y \sim p(Y \mid x) \qquad \rightleftharpoons \qquad y := \tilde p(x, \texttt{random\_seed}) \] 
+	
+	If we consider logical invariants (which are deterministic) as being causal, then if the sum of the $\alpha$'s into some $Y$ from a set $\{X_i\}$ exceeds 1, then you must have believe with strictly positive probability, independent of anything else you believe or any way that the world could work, that $Y$ is a logical invariant of at least one $X_i$ --- and hence when every $\{X_i\}$ is fixed, you expect $Y$ to be a constant.
+	
+	(On the other hand, if you do not view such invariants as being causal, the premise never occurs.) 
+		% The 
+		
+	\item Imagine we build up a PDG by starting with an empty graph, and adding all of the nodes, before the edges. Each node represents a variable, which is kind of like a concept. Each variable expands the space of things we consider possible. 
+	
+	Each edge we add represents an additional belief, which constrains the possible distributions further with each edge.%
+		\footnote{After all, a factor graph (which is now once again a special case of a PDG, because I decided to choose formulation 1 over formulation 2, at the cost of convexity) is often motivated by as the probabilistic generalization of a constraint graph}
+	We have already seen that doing adding too many observational edges over-constrains the graph by making it observationally inconsistent; we now gesture that the same is true for the qualitative/causal half.
+
+	With only the variables, any causal picture is possible; in particular, everything could be independent, which would be the worst in terms of finding a compressed representation of a state of the world, as it would require the most number of bits to specify --- though of course we don't know this, it's just the worst case.  Every causal edge we add counts as an assertion (or at least some level of serious consideration, if $\alpha < 1$) that, because of the causality, there would be less mystery left in the target variable, if we knew the value of the source variable.
+	 
+	%
+	At some point, after adding enough assertions about causality, everything will become one huge causally interlocked mess, so that no modifications to an individual variable can occur without every other variable changing, which also may not be possible because of further conflicts. The entire interlocked mess can also be causally tethered to the node 1, which has no value. Intuitively, each causal edge $X \to Y$ corresponds to an assertion that $Y$ is (roughly) determined by $X$. At some point, $Y$ becomes over-determined that it can only take one value (and be consistent with every causal assertion).
+	
+	\begin{remark}
+	I would like to emphasize that while this representation-first, beliefs-later picture is standard (this is 	required to write down a probability distribution, a probability system, a Markov Network, etc.,), PDGs explicitly facilitate and model dynamic representation changes. 
+	\end{remark}
+	
+	\item Finally, it seems to me that the only time people intuitively view something as having multiple causes (in the stronger sense of ``each one is by itself a cause, independent of the others'') is when that thing is a constant. 
+	
+	The strongest version of this is in mathematical form. A theorem can have multiple proofs. Any one of the proofs, or its premises, could be knocked out and the proof would stand --- each of the causes is entirely responsible for the effect.%
+		\footnote{Part of the reason this example is so natural to think about causally is that we need a non-strict PDG to model it. What is the causal impact on $T$ if $P$ is false? Hard to say, so a joint $\alpha$  may have to be zero even if $\alpha=1$ for this case} 
+%	With this example primed, consider the truth of a statement $T$ with that has three different causal mechanisms $P_1, P_2, P_3$, modeled as three $\alpha=1$ edges in a PDG $P_1 \to T$, $P_2 \to T$, $P_3 \to T$. If all of them are causal justifications for the same result
+	
+	
+	There is also some support for this claim in other modeling contexts. When there is some variance (does smoking cause cancer? does rain mean I'll be wet?) the premise is usually seen as only part of the picture. But relationships for which there is only one outcome, and we want to know why --- we can attribute wholely to any one of several independent causal explanations. For example, ``why is grass green?'' admits botanical, evolutionary, perceptual causes, while  ``why do people eat food'' admits anthropological, evolutionary, and thermodynamic ones --- all of which might seem sufficient to explain the phenomenon on their own.
+	\end{enumerate}
+	
+	\item \textit{A worry that $\alpha_L$ now depends on surrounding variables in the model, and therefore is counter to the spirit of PDGs.}
+		
+	This is also very concerning to me, when I look at it through the lens of interventions. 
+	However, I do think it is the right decision---in some sense I don't think it's possible to avoid this, and I have found several ways of justifying it that I find convincing.
+	
+	First, a direct justification: in some cases, especially if we're allowed to focus on the edges and their associated functions themselves, we can just know this kind of thing --- logical connections are an obvious place to start, as they are all causal with $\alpha=1$. Some non-deterministic causes and effects can also be clearly identified with $\alpha=1$--- consider a value $Y$ which represents the output of a probabilistic program $p$ when run on input $X$. In both cases, further 
+	
+	Note that even if this effect only happens with $\alpha=1$, the result is that until you have certainty about the cause of $Y$, the relative value of different causal links depends on what else exists. This makes sense to me.
+	
+	Second, this issue is already a feature of probability distributions (which we use extensively as an ingredient to build PDGs): if $\Pr(X=x)$ is your subjective degree of belief that $X$ is true, doesn't this depends on other possible values of $X$ including ones that you might not have thought about yet? This is indeed a problem. In some sense, distributions have this problem a lot worse than $\alpha$'s, because distributions cannot be inconsistent, so adding and removing things requires you to have to re-evaluate everything immediately. Here, like in the observational case, you're just temporarily inconsistent, which is business as usual. 
+	
+%	Third, 
+%	As mentioned above, we're still ok on this front if we just record scores for $\alpha$ and normalize.
+		
+	
+	\item \textit{Why should an information profile be relevant to a causal picture? How does the information profile, which is a property of mere distributions, say anything about causality?}
+	
+	I would argue that the notion of information is actually extremely related to causality. It is true that there is information in a causal model that cannot be seen in the distribution, but they're not totally independent. More than that, we're referring to a probabilistic causal model $\Pr$ which supports interventions, then the information in the given distribution $\mu$ is a strict subset of the information in $\Pr$. 
+	
+	Because PDGs can easily (non-strict moreso than strict) simulate interventions by modifying the causal graph (or just adding a new edge for strict PDGs), they are a causal model. When an intervention is performed, the PDG changes and scores distributions differently; the way in which it differs (penalizing / rewarding different independencies etc) are all a property of the information profile.
+	
+	For example, while $A \to B \to C$ and $A \gets B \gets C$ ultimately result in the same scoring based on information profile, they are made of distinct building blocks, which make the interventions different.
+	
+	(Conditional) Independences are a particular assertion made by causal models that can be seen in a distribution. This is the entirety of what is necessary for graph axioms, and correspond to the particular case of 2-cells in the information profile.
+	
+	The information profile says a lot more though: it also simultaneously provides a justification for maximizing entropy when you don't know things, for why too many causal links should leave things over-constrained, why variables in  cycles should have mutual information, and more. 
+	
+%	Finally, the idea that entropy can keep track of a direction of causality in a thermodynamic system is also extremely useful 
+		
+	
+		
+\end{enumerate}
+
+
+
+\section{Preliminaries}
+\subsection{Causal Models}
+
+Throughout this document, when I say ``probabilistic causal model'', I am referring to a probabilistic model that can answer queries about interventions and conditioning. Causal BNs are the prototypical example. I will also refer extensively to Structural Equation Models (SEMs) in this analysis. The relation between them will be useful in understanding $\alpha$.
+% when I say ``causal model'', I am generally referring to a model such as a variant of a SEM, which a structural equation for each variable. 
+
+First, observe that these two notions are related:
+
+\begin{enumerate}
+\item A structural equation model (SEM) $\mathcal M = (\mathcal U, \mathcal V, \mathcal R, \mathcal I), \mathcal F$, together with a distribution $\mu$ over the exogenous variables, is effectively a probabilistic causal model on the endogenous variables, where if $Y$ is dependent on the set of variables $\mathbf X$
+\[ Pr(Y = y \mid \mathbf X = \vec x) := \sum_{\vec u \in \mathcal R(\mathcal U)} \mu(\vec u) f_Y(\vec x, \vec u) \]
+are the tables that ``hold causally'', and more generally we answer queries by the conditional expectation
+\begin{constr}
+	\[ \Pr(Y\!=\!y \mid \cdo(X\!=\!x), Z\!=\!z) = \E_{\vec u \sim \mu}\bigg[ \mathbbm1\Big[ \mathcal M_{A \gets a}, \vec u\models (B\!=\!b) \Big]~\bigg|~Z\!=\!z\bigg] \]
+\end{constr}
+
+\item Conversely, a causal Bayesian Network $\mathcal B$, over the variables $\mathcal X$ is effectively an SEM where $\mathcal X$ are the exogenous variables, and there is an endogenous variable $U_Y$ which determines the randomness for each variable $Y$ --- together with a distribution on each $U$. For instance, if we cheat a little by letting $U$ take values in the interval $[0,1]$, the structural equations could then given by 
+\begin{constr}
+\[ f_Y(\Pa(Y) = \mathbf x, U_Y = u) = \begin{cases}
+	y_1 & \text{if }0 \leq u < \Pr(y_1\mid \mathbf x) \\
+	&\vdots \\
+	y_i & \text{if }\sum_{j < i} \Pr(y_j\mid \mathbf x) \leq u < \sum_{j \leq i} \Pr (y_j\mid \mathbf x)\\
+	&\vdots
+\end{cases} 
+\]
+where $\mu$ independently distributes each $U_Y$ uniformly.
+\end{constr}
+% This is the prototypical example of what we will call a local structural equation model, or LSEM.
+\end{enumerate}
+
+\begin{claim}
+	The two conversions above result in equivalent causal models, in that after the conversion, they give the same answers to any query that makes sense models.
+\end{claim}
+
+
+\begin{defn}
+	We will call a SEM $\mathcal M = ((\mathcal U, \mathcal V, \mathcal R, \mathcal I), \mathcal F)$, together with a 	distribution $\mu$ over its exogenous variables $\mathcal U$, a probabilistic SEM, or pSEM.
+\end{defn}
+\begin{remark}
+Via construction 1, a pSEM is also a probabilistic causal model.
+\end{remark}
+%\begin{defn}
+%	A \emph{multi}-SEM, is an SEM where $\mathcal F$ may contain more than one equation per variable, all of which must hold. More precisely, $f_X$ is now a \emph{set} of structural equations that produce values of $X$, all of which should hold --- that is, 
+%	\[ f_X^{(1)} (\vec u, \vec v) = f_X^{(2)}(\vec u, \vec v) \]
+%	for $f_X^{(1)}, f_X^{(2)} \in f_X$, whenever it is possible for $(\vec u, \vec v)$ to be a state of the model.
+%\end{defn}
+
+\begin{defn} If $S$ is a set, a pSEM is a $S$-\emph{local}, or an $S$-pSEM, if every exogenous variable $U$ is associated with an element of $S$, and such that for distinct elements $x,y \in S$, the corresponding partitions $\mathcal U_{x}$ and $\mathcal U_{y}$, of exogenous variables, are distributed independently according to $\mu$.
+	% claim: equivalent to a PDG.
+\end{defn}
+
+\begin{remark}
+	$S$-pSEMs are clearly a strict subclass of pSEMs, as they assume no confounding / shared information between endogenous variables (i.e., that each $U_i$ is independent). 
+	We will see later that in a PDG representing such a causal model, $\alpha < 1$ can be thought of a relaxation of this requirement, so that confounding is possible, while $\alpha > 1$ can be thought of a strengthening of it, so that the value of $Y$ does not even depend on an implicit noisy variable $U_Y$.
+\end{remark}
+
+\begin{conj}
+	Bayesian Networks, Conditional Bayesian Networks, Dependency Networks, MRFs with interventions, and pure probabilistic programs, can all be viewed as $\mathcal X$-pSEMs where $\mathcal X$ is the set of underlying variables, by construction 2 above; in doing so, any probabilistic causal structure is unchanged.
+\end{conj}
+A strict PDG can be thought of as a mechanism for simultaneously (1) factoring a distribution over possible pSEMs into the same local components as used to factor the distribution itself, (2) allowing a user to express uncertanity by backing off of the locality observation.
+
+
+\subsection{PDGs}
+	\def\mnvars[#1]{(\N#1, \Ed#1, \V#1, \mat p#1, \alpha#1,\beta#1)}
+	\begin{defn}[PDG]\label{def:model}
+	A strict PDG is a tuple $\mnvars[]$ where
+	\begin{description}[nosep]
+		\item[$\N$]~is a finite collection of nodes, corresponding to variables
+		\item[$\Ed$]~is a collection of directed edges (arrows), each with a source, target, and a (possibly empty) label.
+		\item[$\V$]~associates each node $N \in \N$ with a set $\V(N)$,
+		representing the values that the variable $N$ can take. 
+		\item[$\mathbf p$] associates, for each edge $L = (X,Y, \ell) \in \Ed$ and $x \in \V(X)$ a distribution $\bp(x)$ on $Y$, whenever $\beta_L > 0$.
+		\item[$\beta$]~associates to each edge $L$, a number in $[0,\infty]$, indicating certainty in the conditional distribution $\bp(Y \mid X)$ 
+		\item[$\alpha$]~associates to each edge $L$, a number in $[0,1]$, indicating degree of belief that $L$ holds causally.
+\end{description}
+\end{defn}
+
+The definition of a general PDG is the same, except $\mathcal V(X)$ may include a special ``\texttt{null}'' value, on which a cpd $\bp$ for an edge $L$ whose source is $X$ does not need to give a distribution (i.e., $\bp(\texttt{null})$ may be undefined). Non-strict PDGs are strictly more expressive in several important ways, but we generally focus on strict PDGs, and drop the word `strict'; non-strict PDGs are explicitly marked as such.
+
+
+\begin{defn}
+	We define the following additional subclasses of PDGs, based on their parameters $\alpha, \beta$. A PDG $\dg M$ is:
+	\begin{itemize}[nosep]
+		\item \emph{qualitative}, if every $\beta_L = 0$, and $\alpha_L > 0$. Such PDGs consist effectively of only the data $(\N, \Ed, \alpha)$, and we may refer to them QDGs.
+		\item \emph{exact} if every $\alpha_L$ is either $0$ or $1$.
+		\item \emph{over-constrained} (resp. under-constrained, perfectly constrained) at a node $Y$ if the sum $\sum_{\overset{L}{\to}Y} \alpha_L > 1$ (resp. $\sum_{\overset{L}{\to}Y} \alpha_L < 1$, $\sum_{\overset{L}{\to}Y} \alpha_L =1$), and globally so if this is true for every variable $Y$.
+	\end{itemize}
+\end{defn}
+
+
+Many models, both primarily probabilistic and primarily causal including BNs, DNs, and SEMs, can be represented as PDGs in which each node has only one incoming (non-projection) link, each with $\alpha=1$ (making them exact).%
+	% \footnote{which might suggest that the term `PDG' emphasizes the probabilistic bit too strongly; we might want another name}
+In each case, we can encode every cpd or structural equation for a variable $Y$ in the new PDG as the data associated to a new edge $L_Y$, from joint settings of all variables%
+		\footnote{Recall that we also have to expand joint settings as variables themselves and add projections, so that PDGs can be formalized this way; the function $\Gamma$, introduced for BNs, will still work more generally even when there are cycles.}
+that the structural equation / cpd depends on, to $Y$, and associating uniform high weights $\beta \simeq \infty$ and $\alpha = 1$.%
+
+Every PDG produced this way is exact.
+
+From the perspective of PDGs, the difference between the two ways of embedding a causal model (as a BN, or SEM) comes down to whether exogenous variables are explicitly identified with the appropriate connections, with every edge deterministic, or implicit and independent. Making use of the latter allows for a a better separation between implicit noise, and a known conditional dependence, with the qualitative structure alone.
+
+
+%\begin{figure}.
+%	[PDG modeling like an SEM] [PDG modeling like a BN] 
+%	\caption{TODO: figure}
+%\end{figure}
+
+%A member of the more general class of \emph{exact} (but possibly not perfectly constrained) PDGs, $\dg Q = (\N, \Ed)$ should be thought of as a collection $\Ed$ of causal equations with targets in $\N$, that may contain multiple equations that have the same target.
+%\begin{claim}
+%%	If $\Pr_1$ and $\Pr_2$ are causal models for a set of variables $\mathcal X$, then 
+%	If $\dg Q$ is a QDG, that has edges $X_1 \to Y$ and $X_2 \to Y$, then $G$ must have 
+%\end{claim}
+%
+
+
+% {\color{gray}
+% \begin{defn}
+% 	A noisy channel from $X$ to $Y$ is
+% \end{defn}
+% }
+
+\clearpage
+\section{Alpha}
+
+
+
+
+
+
+
+% (1) intervening on $X$ causes a change in $Y$, and also (2) having fixed $X$, further interventions $\cdo(Z=z)$ on nearby variables do not affect the value of $Y$. 
+
+\begin{defn}
+	A cpd $p(Y \mid X)$ holds $\epsilon$-causally in a probabilistic causal model $\Pr$, iff 
+	for every $x$ and intervention $Z=z$ with $\Pr(Z = z) > \epsilon$, it satisfies $p(Y \mid X=x) = \Pr(Y \mid \cdo(X=x,Z=z))$,
+	To say that a cpd holds causally is to say that it holds $0$-causally.	
+\end{defn} 
+
+In the context of an SEM with signature ($\mathcal U, \N, \mathcal R, \mathcal I$), if  $X,Y \in \mathcal V$, $I \subseteq \mathcal I$, and $x,y \in \mathcal R(X,Y)$ then let
+\[ \mathcal U(Y\!=\!y \mid X \!=\!x)_{I} := \bigg\{ \vec u \in \mathcal R(\mathcal U) :
+		(\mathcal M, \vec u) \models [Z \gets z](X \!=\! x \Rightarrow Y \!=\! y)
+	~\text{for all } (Z=z) \in I
+	% ~\bigg|~
+		% (\mathcal M, \vec u) \models 
+	\bigg\}% = p_i(Y_i \!=\! y_i \mid X_i \!=\! x_i)
+ \]
+be the set of settings of exogenous vaiables which ensure that  $Y\!=y$ whenever $X\!=x$, regardless of any interventions.
+
+% {\color{gray}
+% \begin{defn}
+% 	A collection of cpds $\{ p_i (Y_i \mid X_i) \}$ holds causally in a pSEM $\cal M = (U,  V,  R,  I), F, \mu$ with each $X_i,Y_i \in \mathcal V$, iff 
+% 	for all $x_i \in \mathcal R(X_i)$, $y_i \in \mathcal R(Y_i)$, and $(Z=z) \in \mathcal I$,
+% 	$\mu \mathcal U(Y = y \mid X = x)$
+% \end{defn}
+% 
+% \begin{prop}
+% 	If a cpd holds causally in $(\mathcal M,\mu)$ iff it holds causally in $\Pr_{\mathcal M, \mu}$ 
+% \end{prop}
+% }
+
+
+%\begin{defn}
+%	A \emph{causal graph} for a causal model $\Pr$ is a directed (multi-)graph whose nodes correspond to random variables, and whose edges hold causally.
+%\end{defn}
+
+%\begin{defn}
+%	% Equality of two random things. 
+%	An exact QDG $\dg Q = (\N,\Ed,\alpha)$ is \emph{causally consistent} with an SEM $\mathcal M = (\mathcal U, \N, \mathcal R, \mathcal I), \mathcal F$	
+%\end{defn}
+\begin{defn}
+	An exact QDG $\dg Q = (\N, \Ed, \alpha)$ is \emph{$\Ed$-causally consistent} with an $\Ed$-pSEM $\mathcal M = ((\mathcal U, \N, \mathcal R, \mathcal I), \mathcal F,\mu)$
+	if there exist functions $f_L$ for each $L \in \Ed$ such that
+	each $f_L$ depends only the exogenous variables $\mathcal U_L$ and the endogenous variable corresponding to the source of $L$, and 
+	\[\mathcal M, \vec u, \vec x \models [I](Y \!= f_L(\vec u, \vec x)) \land (Y \!= f_R(\vec u, \vec x)) \]
+	 for every pair of edges $L, R \in \Ed$ that have the same target $Y \in \N$, and allowable intervention $I \in \mathcal I$.
+%	
+%	if there exists an assignment $\mat p$ of cpds to every edge in $\dg Q$, such that  $\bp$ holds causally in $\Pr_{\mathcal M, \mu}$ for each $L \in \Ed_M$.
+%		$\dg Q$ is \emph{causally consistent} if there exists such an SEM $\mathcal M$ and distribution $\mu$.
+\end{defn}
+
+\begin{prop}
+	If $\dg Q$ is $\Ed$-causally consistent with $\mathcal M,\mu$, then every cpd in $\dg Q$ holds causally in $\Pr_{\mathcal M, \mu}$, given by Construction 1.
+\end{prop}
+%\begin{defn}
+%	% Equality of two random things. 
+%	An exact QDG $\dg Q = (\N,\Ed,\alpha)$ is \emph{causally consistent} with an SEM $\mathcal M = (\mathcal U, \N, \mathcal R, \mathcal I), \mathcal F$,% and distribution $\mu$ over $\mathcal U$
+%	if for every $X \overset{L}{\to}Y \in \Ed$, 
+%	% Want to say: distribution doesn't change given any interventions
+%	% and moreover that each link always gives same information
+%	% More simply: anything true in SEM
+%	\[ f_Y(x, \vec u) \]
+%	%
+%	% for any $\vec u \in \mathcal U$, we have $f$ 
+%	%
+%	$\dg Q$ is \emph{causally consistent} if there exists such an SEM $\mathcal M$.% and distribution $\mu$.
+%\end{defn}
+
+
+
+\begin{prop}
+	If an exact PDG $\dg Q$ with edges $\Ed$ is causally consistent with an $\Ed$-pSEM $(\mathcal M, \mu)$, and contains two edges $X_1 \overset{L_1}\longrightarrow Y$ and $X_1 \overset{L_2}\longrightarrow Y$, then $\Pr_{\mathcal M, \mu}(Y \mid X_1, X_2)$ is deterministic.
+\end{prop}
+\begin{proof}
+%	Consider the structural equation $f_Y$ in $\mathcal M$.
+%	Because $\mathcal M, \mu$ is causally consistent with the first edge $X_1 \overset{L_1}\longrightarrow Y$, 
+%	we know that conditioned on $X_1 = x_1$, other interventions are 
+%	Because $\dg Q$ is causally consistent with $\mathcal M, \mu$, we know there exist corresponding cpts $\bp$ such that each edge holds causally. %The resulting PDG, $\dg M$, consider Construction 2. 
+
+	Because $\mathcal M,\mu$ is an $\Ed$-pSEM, we know every exogenous variable $U$ that $f_Y$ depends on must be associated to some edge; we also know as it is $\mathcal A$-consistent with $\dg Q$ that there are functions $f_{L_1}$ and $f_{L_2} $ such that
+	\[ f_{L_1}(x_1, u_1) = f_{L_2}(x_2, u_2) = f_Y(\vec x, \vec u). \]
+	As $u_1$ and $u_2$ are independent according to $\mu$. If there is any allowable intervention on both $X_1$ and $X_2$, then we see that at least one of the functions does not depend on its argument.
+%	Consider the two structural equations on Y: $f_1$ and $f_2$. $f_1$ depends only on the values of $X_1$ and $U_1$, while $f_2$ depends only on $X_1$ and $U_2$. We also know $f_1(x_1, u_1) = f_2(x_2, u_2)$ for any values of $(x_1, x_2, u_1, u_2)$ with $\Pr(x_1, x_2, u_1, u_2) > \epsilon$.
+%	and $u_1$ and $u_2$ are independent 
+\end{proof}
+
+\begin{remark}
+	Recall that it is possible for $y$ to be the output of two functions, one of which is probabilistic, as with $y \sim p(Y\mid x)$ and $y = \mathrm{id}(y)$.
+\end{remark}
+
+
+%\begin{claim}
+%	If $Y$ is some variable, and an agent consistently writes $\alpha$ to denote their subjective degree of belief that the associated edge $\sum_{X \overset{L}{\to}Y} > 1$, then any causal model $\Pr$ they consider possible must have strictly positive probability 
+%	If the sum of $\alpha$'s exceeds 1, then 
+%\end{claim}
+
+
+\subsection{(unfinished)}
+Let $L$ be an edge $X \to Y$. We now analyze the relationships between several alternate definitions of $\alpha_L$.
+
+\begin{itemize}
+	\item[\textbf{A1.}] $\alpha_L$ is an agent's subjective degree of belief that the function $f_Y$ which generates $Y$, depends only on $X$ and an endogenous variable $U_L$ that is independent of everything else.
+	\item[\textbf{A2.}] $\alpha_L$ is an agent's subjective degree of belief in the proposition that the edge $L$ could be associated with a cpd that holds causally.
+\end{itemize}
+
+
+
+
+%\section*{Scratch}
+%
+%%\begin{claim}
+%%	Any deterministic edge must hold causally.
+%%\end{claim}
+%	\[ \E_{z \sim \Pr(Z)}\Pr(Y \mid \cdo(X=x,Z=z)) = \Pr(Y \mid X) \]
+%
+%
+%%$\hat Y_L$ from $p(x)$, with probability $\alpha_L$, such that 
+%%
+%%$\Pr(Y | \cdo{\evt Xx,\evt Zz})
+%%
+%%"may as well have been drawn from $p(x)$", independent of the context. 
+%
+%
+%For each edge $L_i : X_i \to Y$ coming into $Y$, draw $x_i \sim X_i$ and $\hat y_i \sim p(Y|x_i)$. 
+%If there exists distribution $q$ on $Y$, such that $q(Y=\hat y_i \mid x_i) \geq \alpha_i$, and $q(Y | x_i) = \Pr(Y | \cdo(\evt{X_i}{x_i}, \evt Zz) $
+%%The vector $\vec \alpha_{\shortto Y}$ consisting of $\alpha_L$ for each edge into $L$ is an agent's subjective belief that each of the 0
+%%\[ p(\evt Yy \mid \evt Xx) = \Pr(Y \]
+%
+%
+%\[  \alpha_L :=  \frac{\Pr_{ z \sim Z} \Big[ p( Y | X=x) = \Pr(Y | \cdo(Z\!=\!z,X\!=\!x)) \Big]}{\Pr_{ z \sim Z} \Big[ p( Y | X=x) = \Pr(Y | \cdo(Z\!=\!z)) \Big]} \] 
+%
+%
+%The primary example we want to have in mind is the following:
+%
+%
+%%Why is it not reasonable to think $\alpha$ is a primitive quantity?
+%
+\end{document}

@@ -1,0 +1,140 @@
+\documentclass{article}
+
+%BEGIN_FOLD
+
+%\usepackage[T1]{fontenc}
+%\usepackage{svg}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{bbm}
+\usepackage{booktabs}
+\usepackage[format=plain,
+            labelfont={sl},
+            textfont={it,small}]{caption}
+\usepackage{tikz}
+	\usetikzlibrary{arrows,positioning, cd}
+	\tikzset{dpadded/.style={rounded corners=5, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+    \tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+	\tikzset{arr/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
+    \tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+
+	\newcommand\cmergearr[4]{
+		\draw[arr,-] (#1) -- (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
+	\newcommand\mergearr[3]{
+		\coordinate (center-#1#2#3) at (barycentric cs:#1=1,#2=1,#3=1.2);
+		\cmergearr{#1}{#2}{#3}{center-#1#2#3}
+	}
+    
+\usepackage{mathtools,amssymb}
+\usepackage{amsthm}
+\usepackage{thmtools} % asmsymb must be loaded also.
+
+	\newtheorem{poss}{Possible Result}
+	\theoremstyle{definition}
+    \definecolor{defncolor}{rgb}{0.3,0.2,0.5}
+	\declaretheorem[name=Definition,qed=$\square$
+%		, preheadhook = \color{defncolor}
+		]{defn}
+	\declaretheorem[name=Def,unnumbered,qed=$\square$,preheadhook = \color{defncolor}]{defn*}
+	\declaretheorem[name=Example,qed=$\square$]{example}
+	\theoremstyle{remark}
+	\newtheorem*{remark}{Remark}
+	
+\usepackage{color}
+
+
+\usepackage[colorlinks=true,linkcolor=blue]{hyperref}
+
+\usepackage{framed}
+
+\usepackage{array} 
+%\newcolumntype{L}{>{\text\begingroup}l<{\endgroup}} % math-mode version of "l" column type
+\newcolumntype{L}{>{$\texttt{/\!\!/ }}l<{$}}
+
+\newcommand{\thickD}{I\mkern-8muD}
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{#1\;\delimsize\|\;#2}
+\newcommand{\kldiv}{\thickD\infdivx}
+
+\newcommand\mat[1]{\mathbf{#1}}
+
+\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal E}
+
+\newcommand{\ed}[3]{\var{#2}
+	\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle
+				#1$}}}{\raisebox{-1pt}{$\xrightarrow{\hphantom{\scriptscriptstyle#1}}$}} \var{#3}} 
+
+\DeclarePairedDelimiterX{\bbr}[1]{[}{]}{\mspace{-3.5mu}\delimsize[#1\delimsize]\mspace{-3.5mu}}
+\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+
+\newcommand{\dg}[1]{\mathbdcal{#1}}
+\newcommand{\var}[1]{\mathsf{#1}}
+\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+\newcommand{\pdgvars}[1][]{(\N#1, \Ed#1, \V#1, \mat p#1, \beta#1)}
+
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage[noabbrev,nameinlink]{cleveref}
+
+\crefname{example}{example}{examples}
+\crefname{defn}{definition}{definitions}
+\crefname{prop}{proposition}{propositions}
+\crefname{constr}{construction}{constructions}
+\crefname{fact}{fact}{facts}
+
+\usepackage{subcaption}
+	\captionsetup[subfigure]{subrefformat=simple,labelformat=simple}
+	\renewcommand\thesubfigure{(\alph{subfigure})}
+
+\newlength\todolength
+\setlength\todolength{\textwidth-5pt}
+\newcommand{\todo}[1]{
+%\textbf{$\smash{\Large\boldsymbol{[}}$
+		\colorbox{red!60!black}{\parbox{\todolength}{\color{white}$\mathrlap{\textbf{todo}}${\hspace{0.12ex}}\textbf{todo}: #1}}
+%	 \!\!\smash{$\Large\boldsymbol{]}$}\!}
+}
+
+
+%END_FOLD
+
+\begin{document}
+\begin{center}
+  \textbf{ \Large PDG Computations} 
+\end{center}
+
+% Right now, I'm going to start by writing down how to give PDGs computational meaning, and investigate when it aligns with algorithms on graphical models. Of particular interest are (1) Heckermann's dependency newtorks, (2) Belief propogation, (3) Noisy OR, (4) If we can recover the full PDG semantics (the free energy, including \alphas), and (5) the image of this in the world of databaases.
+
+Because a PDG is essentially collection of decorated arrows, it may be surprising that we have focused so little on the structure and meanings of paths. We now remedy this, by giving a semantics in terms of sequences of distributions.
+
+
+
+At a high level, we imagine that at every time step, a link $\ed LXY$ is chosen, and the distribution at $\var X$ is used, together with the probabilistic function $\bp[L]$ to compute a new distribution on $\var Y$.  activate overwriting the distribution at the target variable $\var Y$. 
+
+
+\begin{defn}
+	A \emph{probabilistic schedule} $d$ for a PDG $\dg M$ is a sequence of distributions $(d_t)_t =d_1, d_2, \ldots$ over the edges $\Ed^{\dg M}$ of $\dg M$, 
+\end{defn}
+
+Given a probabilistic schedule $d$ for $\dg M$, 
+
+\begin{poss}
+	$\bbr{\dg M}_\gamma^*$ is a fixed point of the static probabilistic schedule
+	\[ d_t(L) = \frac{\beta_L}{\sum_{L \in \Ed^{\dg M}} \beta_L} \text{ for all } t=1,2,\ldots  \]
+\end{poss}
+
+\begin{poss}
+	
+\end{poss}
+
+
+%\begin{defn}
+%	The \emph{free trace} of a PDG $\dg M$ is a sequence of 
+%\end{defn}
+
+
+\end{document}
