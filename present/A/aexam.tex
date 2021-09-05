@@ -274,14 +274,56 @@
 		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
 		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
 
-	\DeclarePairedDelimiterX{\SD}[1]{\{}{\}}{\,\llap{\delimsize\{}#1\rlap{\delimsize\}}\,}
+	% \DeclarePairedDelimiterX{\SD}[1]{\{}{\}}{\,\llap{\delimsize\{}#1\rlap{\delimsize\}}\,}
 	%better version.
-	\DeclarePairedDelimiterX{\bbr}[1]{[}{]}
-		{\mspace{3mu}\mathllap{\delimsize[}#1\mathrlap{\delimsize]}\mspace{3mu}}
-	\DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
-		{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
-	\DeclarePairedDelimiterXPP{\aard}[1]{}{\langle}{\rangle}{_{\!_\downarrow}}
-		{\mspace{-3.5mu}\delimsize\langle#1\delimsize\rangle\mspace{-3.5mu}}
+	% \DeclarePairedDelimiterX{\bbr}[1]{[}{]}
+	% 	{\mspace{3mu}\mathllap{\delimsize[}#1\mathrlap{\delimsize]}\mspace{3mu}}
+	% \DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
+	% 	{\mspace{3mu}\mathllap{\delimsize\langle}#1\mathrlap{\delimsize\rangle}\mspace{3mu}}
+	% \DeclarePairedDelimiterXPP{\aard}[1]{}{\langle}{\rangle}{_{\!_\downarrow}}
+	% 	{\mspace{-3.5mu}\delimsize\langle#1\delimsize\rangle\mspace{-3.5mu}}
+    \usepackage{scalerel}
+    \newcommand{\nhphantom}[2]{\sbox0{\kern-2%
+    		\nulldelimiterspace$\left.\delimsize#1\vphantom{#2}\right.$}\hspace{-.97\wd0}}
+    		% \nulldelimiterspace$\left.\delimsize#1%
+    		% \vrule depth\dp#2 height \ht#2 width0pt\right.$}\hspace{-.97\wd0}}
+    	\makeatletter
+    	\newsavebox{\abcmycontentbox}
+    	\newcommand\DeclareDoubleDelim[5]{
+    	    \DeclarePairedDelimiterXPP{#1}[1]%
+    			{% box must be saved in this pre code
+    				\sbox{\abcmycontentbox}{\ensuremath{##1}}%
+    			}{#2}{#5}{}%
+    		    %%% Correct spacing, but doesn't work with externalize.
+    			% {\nhphantom{#3}{##1}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{##1}}
+    			%%% Fast, but wrong spacing.
+    			% {\nhphantom{#3}{~}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{~}}
+    			%%% with savebox.
+    		    {%
+    				\nhphantom{#3}{\usebox\abcmycontentbox}%
+    				\hspace{1.2pt} \delimsize#3%
+    				\mathopen{}\usebox{\abcmycontentbox}\mathclose{}%
+    				\delimsize#4\hspace{1.2pt}%
+    				\nhphantom{#4}{\usebox\abcmycontentbox}%
+    			}%
+    	}
+    	\makeatother
+    	\DeclareDoubleDelim
+    		\SD\{\{\}\}
+    	\DeclareDoubleDelim
+    		\bbr[[]]
+	% \DeclareDoubleDelim
+	% 	\aar\langle\langle\rangle\rangle
+	\makeatletter
+	\newsavebox{\aar@content}
+	\newcommand\aar{\@ifstar\aar@one@star\aar@plain}
+	\newcommand\aar@one@star{\@ifstar\aar@resize{\aar@plain*}}
+	\newcommand\aar@resize[1]{\sbox{\aar@content}{#1}\scaleleftright[3ex]
+		{\Biggl\langle\!\!\kern0.3pt\!\!\Biggl\langle}{\usebox{\aar@content}}
+		{\Biggr\rangle\!\!\kern0.3pt\!\!\Biggr\rangle}}
+	\DeclareDoubleDelim
+		\aar@plain\langle\langle\rangle\rangle
+	\makeatother
 
 %Information to be included in the title page:
 % \title{Probabilsitic Dependency Graphs, and Inconsistency}
@@ -297,18 +339,117 @@
 
 \begin{frame}[label=current]
     % First few sentences need to be about 
+    % (1) ease of use
+    % (2) 
     % Motivation: 
     %  Suppose you're
-    The usual way of modeling an agent with uncertainty: a probability distribution, a utility function, and infinite computation.
+    The usual way of modeling an agent with uncertainty:
     
-    Interesting behavior arises from interactions with the environment or other agents, tricks to make computation tractable (independencies, approximation algorithms)
+    \begin{itemize}
+        \item a probability distribution $p : \Delta S$,
+        \item a utility function $\Omega \to \mathbb R$
+        \item 
+    \end{itemize} ,, and infinite computation.
+    
+    \medskip
+    
+    % Interesting behavior arises from interactions with the environment or other agents, tricks to make computation tractable (independencies, approximation algorithms)
     % Addiction. 
+    \medskip
     
     But such agents cannot have internal conflict.
-    \begin{itemize}
-        \item 
+\end{frame}
+
+\begin{frame}[label=current]
+    
+    % Rhetorical Question
+    {\Large Why build systems that can be inconsistent, if inconsistency is bad? }
+    {\Large Why entertain the possibility of being wrong, if being wrong is bad? }
+    {\Large Why }
+    
+    
+    External conflict:    
+    \begin{itemize}        
+        \item test cases for software
+        \item losses for training neural networks
+            \hfill\texttt{\color{gray} // probabilistic}
         \item 
     \end{itemize}
+    
+    Internal:
+    \begin{itemize}
+        \item Assertion statements
+    \end{itemize}
+    
+    % ALl of these are things you can find...
+\end{frame}
+
+
+\begin{frame}[label=current]
+    \frametitle{Visual Proof: The Varitaional Bound}
+    \begin{align*}
+    	- \log \Pr\nolimits_{p,d}(X\!=\!x) ~=\qquad&\\
+    	\aar*{\begin{tikzpicture}[center base]
+    	   \node[dpad0] (Z) {$Z$};
+    	   \node[dpad0,right=.5 of Z] (X) {$X$};
+    	   \draw[arr2, ->] (Z) to[bend left=10]
+    		   node[above]{$\scriptstyle d$} (X);
+    	   \draw[arr2, <<-] (X) --
+    		   node[above,pos=0.8]{$\scriptstyle x$}
+    		   ++(0.9, 0);
+    	   \draw[arr2, <-] (Z) --
+    		   node[above,pos=0.6]{$\scriptstyle p$}
+    		   ++(-0.9, 0);%
+    	\end{tikzpicture}}
+     	&\le
+     	\aar*{\begin{tikzpicture}[center base]
+    		\node[dpad0] (Z) {$Z$};
+    		\node[dpad0,right=.5 of Z] (X) {$X$};
+    		\draw[arr2, ->] (X) to[bend left=50]
+    			node[below]{$\scriptstyle e!$} (Z);
+    		\draw[arr2, ->] (Z) to[bend left=50]
+    			node[above]{$\scriptstyle d$} (X);
+    		\draw[arr2, <<-] (X) --
+    			node[above,pos=0.8]{$\scriptstyle x$}
+    			++(0.9, 0);
+    		\draw[arr2, <-] (Z) --
+    			node[above,pos=0.6]{$\scriptstyle p$}
+    			++(-0.9, 0);%
+    	\end{tikzpicture}}
+        \\&\qquad=~ -\mathrm{ELBO}_{p,e,d}(x).
+    \end{align*}
+\end{frame}
+
+
+\begin{frame}[label=current]
+    \frametitle{Visual Proof: Data Processing Inequality}
+    \[ \kldiv[\Big] pq \ge \kldiv[\Big] {f\circ p}{f \circ q}\] 
+    \begin{align*}
+    	% - \log \Pr\nolimits_{p,d}(X\!=\!x) ~=\qquad&\\
+    	\aar*{\begin{tikzpicture}[center base]
+    	   \node[dpad0] (X) {$X$};
+    	   \draw[arr2, <-] (X) --
+    		   node[above,pos=0.8]{$\scriptstyle q$}
+    		   ++(1.1, 0);
+    	   \draw[arr2, <-] (X) --
+    		   node[above,pos=0.6]{$\scriptstyle p$}
+    		   ++(-1.1, 0);%
+    	\end{tikzpicture}}
+        = 
+        \aar**{\begin{tikzpicture}[center base]
+           \node[dpad0] (X) {$X$};
+           \node[dpad0,below=.7 of Z] (Y) {$Y$};
+           \draw[arr2, <-] (X) --
+               node[above,pos=0.8]{$\scriptstyle q$}
+               ++(1.1, 0);
+           \draw[arr2, <-] (X) --
+               node[above,pos=0.6]{$\scriptstyle p$}
+               ++(-1.1, 0);%
+           \draw[arr2] (X) --
+               node[left,pos=0.45]{$\scriptstyle f$}
+               (Y);%
+        \end{tikzpicture}}
+    \end{align*}
 \end{frame}
 
 
