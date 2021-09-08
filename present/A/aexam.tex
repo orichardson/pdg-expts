@@ -4,7 +4,7 @@
 
 % \usepackage{enumitem}
 % \includeonlyframes{current}
-\includeonlyframes{semantics,semantics2}
+% \includeonlyframes{semantics,semantics2}
 
 \usepackage{appendixnumberbeamer}
 
@@ -62,12 +62,18 @@
 		% \colorlet{beamer@blendedblue}{color2}
 		% \makeatother
 	\setbeamercolor{description item}{bg={structurecolor!20!white}}
+	% \setbeamercolor{alerted text}{fg=alertcolor!85!red}
 	\setbeamercolor{alerted text}{fg=alertcolor}
     \setbeamertemplate{navigation symbols}{}
     
     \makeatletter
     \newlength\beamerleftmargin
     \setlength\beamerleftmargin{\Gm@lmargin}
+    %% stolen from:
+    % https://tex.stackexchange.com/questions/34458/reference-overlay-numbers-with-names
+    \DeclareRobustCommand*{\savepause}[1]{\only<1>{\immediate\write\@auxout{\string\pauseentry{\the\c@framenumber}{#1}{\the\c@beamerpauses}}}}
+    \newcommand*{\usepause}[1]{\@ifundefined{pauses@\the\c@framenumber @#1}{1}{\@nameuse{pauses@\the\c@framenumber @#1}}}
+    \newcommand*{\pauseentry}[3]{\global\@namedef{pauses@#1@#2}{#3}}
     \makeatother
     
     \newbool{precompiledfigs}% ...
@@ -78,15 +84,44 @@
 \relax %%%%%%%%  Beamer and slide-specific macros  %%%%%%%%%%%%%%%%%%%
 	\newcommand<>{\hl}[2][alertcolor]{\begingroup%
 		\setbeamercolor{alerted text}{fg=#1}\alert#3{#2}\endgroup}
-	\colorlet{notationcolor}{structurecolor!40}
+	\colorlet{notationcolor}{structurecolor!30}
+	\colorlet{notationalertedcolor}{structurecolor!20!alertcolor!40}
+    \setbeamercolor{base notation}{fg=notationcolor}
+    \setbeamercolor{alerted notation}{fg=notationalertedcolor}
 	% \def\notation#1{\!\hl[notationcolor]{#1$\quad$}}
-	\def\notation#1{\!\hl[notationcolor]{#1$\quad$}}
+    \setbeamertemplate{alerted text begin}{
+        % Set the notation color to alerted notation
+        \setbeamercolor{notation}{use={alerted notation},%
+            fg=alerted notation.fg,bg=alerted notation.bg}%
+        %... and set the local structure to alerted text.
+        \setbeamercolor{local structure}{use={alerted text},%
+            fg=alerted text.fg,bg=alerted text.bg}}
+    \setbeamertemplate{alerted text end}{%
+        % probably no need to reset, because dying scope will reset the notation color.
+        % \setbeamercolor{notation}{fg=base notation.fg, bg=base notation.bg}
+    }
+    % \setbeamercolor{notation}{parent={alerted text,normal text}}
+	\newcommand{\notation}[1]{%
+        {\usebeamercolor{notation}%
+        \!\color{fg}#1$\quad$}}
+        
 	% \newcommand<>{\alertwith}[2]{\begingroup\only#3{\setbeamercolor{alerted text}{fg=#1}}#2\endgroup} % DOESN'T WORK THIS WAY
 	\newenvironment{localfocusenv}{\only{\setbeamercolor{local structure}{fg=alertcolor}}}{}
+	% \newenvironment<>{hidemeenv}{%
+	% 	\only#1{\setbeamercolor{alerted text}{fg=black!60}}%
+	% 	\begingroup\begin{alertenv}#1%
+	% 	}{\end{alertenv}\endgroup}
 	\newenvironment<>{hidemeenv}{%
-		\only#1{\setbeamercolor{alerted text}{fg=black!60}}%
-		\begingroup\begin{alertenv}#1%
-		}{\end{alertenv}\endgroup}
+        \begingroup\only#1{%
+        %     \setbeamercolor{alerted text}{use={alerted text,background canvas},%
+        %         fg=alerted text.fg!30!background canvas.bg}%
+            \setbeamercolor{faded text}{%use={background canvas},%
+                fg=normal text.fg!25!background canvas.bg}%
+            \setbeamercolor{local structure}{use={faded text},fg=faded text.fg}%
+            \setbeamercolor{notation}{use={base notation},fg=base notation.fg!40!background canvas.bg}
+            \setbeamercolor{alerted notation}{fg=notationalertedcolor!30!background canvas.bg}
+            \usebeamercolor[fg]{faded text}
+        }}{\endgroup}
     \newenvironment<>{catblock}[1]{%
       \setbeamercolor{block title}{fg=white,bg=blue!95!black}
       \setbeamercolor{block body}{fg=white,bg=black}
@@ -115,6 +150,9 @@
 	  \resizebox{\@tempdima}{\height}{=}%
 	}
 	\makeatother
+    %https://tex.stackexchange.com/questions/34921/how-to-overlap-images-in-a-beamer-slide
+    \def\Put(#1,#2)#3{\leavevmode\makebox(0,0){\put(#1,#2){#3}}}
+
 	% \newcommand{\tikzmark}[1][last mark]{\tikzro \node (#1){};}
 
 %%%%%%%            Relevant part of PDG Preamble        %%%%%%%%%%%%%%%%
@@ -216,6 +254,7 @@
 		  \only<#1>{\pgfkeysalso{#2}} % \pgfkeysalso doesn't change the path
 			}}
 		}
+		\newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
     
     % Tikz Externalization doesn't work with beamer with all of the animations...
     % \newif\ifexternalizefigures\externalizefigurestrue
@@ -358,9 +397,9 @@
     \frametitle{Outline for Section \thesection}
     \begin{columns}[T]
         \column{0.45\textwidth}
-        \tableofcontents[currentsection,sections={1-3}]
+        \tableofcontents[currentsection,sections={1-4}]
         \column{0.45\textwidth}
-        \tableofcontents[currentsection,sections={<4->}]
+        \tableofcontents[currentsection,sections={<5->}]
     \end{columns}
   \end{frame}
 }
@@ -369,7 +408,7 @@
 \frame{\titlepage}
 
 
-\begin{frame}[label=current]
+\begin{frame}
     % First few sentences need to be about 
     % (1) ease of use
     % (2) 
@@ -407,9 +446,9 @@
     {\color{gray}\hspace{1em} by construction, they have consistent beliefs and desires.}
 \end{frame}
 
-\begin{frame}[label=current]
-    
+\begin{frame}
     % Rhetorical Question
+		\TODO
     \begin{block}{}
         {Why build systems that can be inconsistent, if inconsistency is bad? }
     \end{block}
@@ -438,6 +477,8 @@
 
 
 \begin{frame}\frametitle{Yet Another Probabilistic Graphical Model}
+	\TODO[remove slide, once intro is finished]
+	
 	We introduce \textit{probabilistic dependency graphs} (PDGs), a new class of graphical models
 	for representing uncertainty. 
 	
@@ -994,9 +1035,14 @@
     % \setbeamercolor{itemize item}{fg=yellow}
     \setbeamertemplate{itemize item}[circle]
     \begin{frame} %%%%%%%%%%%%% Definition of PDG, details (removed for AAAI) %%%%%%%%%%%
-    	\colorlet{notationcolor}{benchcolor2!40!alertcolor}
+    	% \colorlet{notationcolor}{benchcolor2!40!alertcolor}
+    	\setbeamercolor{alerted notation}{fg=benchcolor2!40!alertcolor}
+    	\setbeamercolor{base notation}{fg=notationcolor!60!black}
+        \setbeamercolor{notation}{use={base notation},fg=base notation.fg}
     	\setbeamercolor{block body}{bg=structurecolor!05!black}
-    	\setbeamercolor{block title}{bg=structurecolor!40!black,fg=structurecolor!30!white}
+    	\setbeamercolor{block title}
+            {bg=structurecolor!40!black,fg=structurecolor!30!white}
+        \usebeamercolor{background canvas}
         \usebeamercolor[fg]{normal text}
 
     	\setlength{\pdgdefnwidth}{0.55\textwidth}
@@ -1007,18 +1053,28 @@
 		\column{\pdgdefnwidth}
 		\begin{defn}[PDG]
 			\begin{description}%
-                \only<6>{\setbeamercolor{alerted text}{fg=benchcolor2}}
-				\item[$\N$]<hideme@5|alert@1-4,6> \notation{\color<6>{benchcolor2!60!gray!50!black}$:\Set$}<1-4,6>%
+                \only<6>{\setbeamercolor{alerted text}{fg=benchcolor2}%
+                    \setbeamercolor{alerted notation}{fg=benchcolor2!60!gray!50!black}}
+                % \color<6>{benchcolor2}
+				\item[$\N$]<alert@1-4,6|hideme@5>%<hideme@5|alert@1-4,6>
+                    % \notation{\color<6>{benchcolor2!60!gray!50!black}$:\Set$}<1-4,6>%
+                    \notation{$:\Set$}%
 					\hfill\small (node set)
 					\begin{description}
-                        \only<6>{\setbeamercolor{alerted text}{fg=benchcolor1}}
-						\item[$\V$]<hideme@2,3,5|alert@6> \!{\color<1,4>{notationcolor}\color<6>{benchcolor1!60!gray!50!black}{$:\N \to \Set$}}\quad%
+                        \only<6>{\setbeamercolor{alerted text}{fg=benchcolor1}%
+                            \setbeamercolor{alerted notation}{fg=benchcolor1!60!gray!50!black}}
+                        % \color<6>{benchcolor1}
+						\item[$\V$]<hideme@2,3,5|alert@6>
+                            % \color<6>{benchcolor1!60!gray!50!black}
+                            \notation{$:\N \to \Set$}
+                            % \!{\color<1,4>{notationcolor}\color<6>{benchcolor1!60!gray!50!black}{$:\N \to \Set$}}\quad%                         
 							\hfill\small (node values)%
 						\end{description}
 
-                \only<6>{\setbeamercolor{alerted text}{fg=benchcolor2}}
+                \only<6>{\setbeamercolor{alerted text}{fg=benchcolor2}%
+                    \setbeamercolor{notation}{fg=benchcolor2!60!gray!50!black}}
 				\item[$\Ed$]<hideme@1,5 |alert@2-4,6> \notation{\color<6>{benchcolor2!60!gray!50!black}%
-                        $\subseteq \N \times \N \times \mathit{Label}~~~$}<2-4,6>%
+                        $\subseteq \N \times \N \times \mathit{Label}$}%<2-4,6>%
                         % $: \Set$}<2->%
 					\hfill\small (edge set)\\[0.14em]
 					{\color{gray!70!white}For $\ed LXY \in \Ed$,}
@@ -1030,22 +1086,24 @@
                         % \item[$\mathrm{tgt}$]<hideme@1 |alert@2-6>
                         %     \notation{\color<6>{benchcolor2!50!black}$:\Ed \to \N$}<2->%
                         %     \hfill\small (edge target)%
+                        % \only<6>{\setbeamercolor{alerted text}{fg=benchcolor1}%
+                        %     % \usebeamercolor[fg]{alerted text}
+                        %     }
                         \only<6>{\setbeamercolor{alerted text}{fg=benchcolor1}%
-                            % \usebeamercolor[fg]{alerted text}
-                            }
+                            \setbeamercolor{alerted notation}{fg=benchcolor1!60!gray!50!black}}
                         % \color<6>{benchcolor1}
 						\item[$\bp$]<hideme@1-3,5 | alert@4,6> %:\big(\!(X,Y,\ell)\in\!\Ed \big) \to
-							\!{\color<4>{notationcolor}\color<6>{benchcolor1!60!gray!50!black}
-                                {$:\V(X) \to \Delta\V(Y)$}}%
+							% \!{\color<4>{notationcolor}\color<6>{benchcolor1!60!gray!50!black}
+                                \notation{$:\V(X) \to \Delta\V(Y)$}%
                                 % {$:(L:\Ed) \to \V(\mathrm{src} L) \to \Delta\V(\mathrm{tgt} L)$}}%
 							\hfill\small (edge cpd)
                         % }
-                        \onslide<-5>{
-						\item[$\alpha\ssub L$]<hideme@1-2,4-5> \notation{$: \mathbb R$}<3>%
+                        % \onslide<-5>{
+						\item[$\alpha\ssub L$]<hideme@1-2,4-> \notation{$: \mathbb R$}%
 							\hfill\small(functional determination)
-						\item[$\beta\ssub L$]<hideme@1-5> \notation{$: \mathbb R$}<0>%
+						\item[$\beta\ssub L$]<hideme@1-> \notation{$: \mathbb R$}%
 							\hfill\small(cpd confidence)
-                        }                        
+                        % }                        
 						\end{description}
 				\end{description}
 			\end{defn}
@@ -1086,8 +1144,11 @@
     \setbeamercolor{normal text}{fg=white!75!black}
     \begin{frame}
         \usebeamercolor[fg]{normal text}
-        What do you do with diagrams? Take {\color{blue!50!gray!60!white}limits}  colimits.
+        What do you do with diagrams? Take {\color{blue!50!gray!60!white}limits} 
+        {\color{gray!40!black}/ colimits}.
         
+        
+        \onslide<+->{
         \begin{center}
             \begin{tikzpicture}[scale=1.2]
                 \begin{scope}[every node/.style={outer sep=0pt,inner sep=1pt}]
@@ -1098,50 +1159,117 @@
                     \node (dots-right) at (2,0) {$\cdots$};
                 \end{scope}
                 
-                \begin{scope}[orange!50!gray!60!white]
-                    \node (V) at (-0.5,1.2){$V$};
-                    \draw[arr2] (V) -- (X1);
-                    \draw[arr2] (V) -- (X2);
-                    \draw[arr2] (V) -- (X3);
-                    
-                    \node[below left=0.05 and 0.1 of V,inner sep=0pt, outer sep=0pt] {$\scriptstyle\forall$};
-                \end{scope}
-                \begin{scope}[blue!50!gray!60!white]
-                    \node (L) at (0.5,1){$L$};
-                    \usebeamercolor{background canvas}
-                    \draw[line width=4pt,draw=bg] (L) -- (X1);
-                    \draw[line width=4pt,draw=bg] (L) -- (X2);
-                    \draw[line width=4pt,draw=bg] (L) -- (X3);
-                    \draw[arr2] (L) -- (X1);
-                    \draw[arr2] (L) -- (X2);
-                    \draw[arr2] (L) -- (X3);
+                \onslide<+(1)->{
+                    \begin{scope}[red!30!gray!70!black]
+                        \node (V) at (-0.5,1.2){$V$};
+                        \draw[arr2] (V) -- (X1);
+                        \draw[arr2] (V) -- (X2);
+                        \draw[arr2] (V) -- (X3);
+                        
+                        \node[below left=0.05 and 0.1 of V,inner sep=0pt, outer sep=0pt] {$\scriptstyle\forall$};
+                    \end{scope}
+                }
+                
+                \onslide<+(-1)->{
+                    \begin{scope}[blue!50!gray!60!white]
+                        \node (L) at (0.5,1){\alt<.(2)>{$\Omega$}{$L$}};
+                        \onslide<.(2)>{
+                            \node[right=1pt of L,anchor=west,blue!30!gray]{$\scriptstyle\cong X_1 X_3$};}
+                        \usebeamercolor{background canvas}
+                        \draw[line width=4pt,draw=bg] (L) -- (X1);
+                        \draw[line width=4pt,draw=bg] (L) -- (X2);
+                        \draw[line width=4pt,draw=bg] (L) -- (X3);
+                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X1);
+                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X2);
+                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X3);
 
-                    \draw[arr2, densely dashed] (V) -- node[above]{$\scriptstyle\exists!$} (L);
-                \end{scope}
+                        \onslide<+->{
+                            \draw[arr2, densely dashed] (V) -- node[above]{$\scriptstyle\exists!$} (L);
+                        }
+                    \end{scope}
+                }
+                
                 \draw[arr2, ->>] (X1) -- (X2);
-                \draw[arr2, ->] (X3) -- (X2);
+                \draw[arr2, ->, onslide=<.(1)>{draw=fg!17!background canvas.bg}]
+                    (X3) -- (X2);
             \end{tikzpicture}
-        \end{center}
+        \end{center}}
         
         % \begin{prop}
-        For the deterministic sub-PDG $\dg M_{\mathrm{det}}$:
+        \onslide<+->{
+        % \savepause{highlight-det-sub-pdg}
+        \alert<.>{%
+        For the deterministic sub-PDG $\dg M_{\mathrm{det}} \subseteq \dg M$:}
             \[ \lim {\dg M}_{\mathrm{det}} 
                 % = \faktor{\V(\dg M)}{ \sim }
                 = \Bigg(\parbox{0.9in}{\centering\color{gray!90!black} natural \\[-0.12em] sample space}~\Omega,~ \parbox{0.62in}{\raggedleft\color{gray!90!black} random\\[-0.12em] variables}~\Big\{ \tilde X : \Omega \to \V(X) \Big\}_{X \in \N}  \Bigg) \] 
+        }
         % \end{prop}
         \bigskip
         
-        For all of $\dg M$:
+        % For all of $\dg M$:
+        \onslide<+->{
+        \alert<.>{In general:}\vspace{-2.5em}
         % \begin{prop}
-            \[ \lim \dg M =  \mathrm{Verts}(\, {\color{gray!90!black}\underbrace{\usebeamercolor[fg]{normal text}%
+            \[ \hspace{1in} \lim \dg M = \Big( \mathrm{Verts}(\, {\color{gray!90!black}\underbrace{\usebeamercolor[fg]{normal text}%
                     \,\mathbb L \dg M \,%
-                }_{\mathclap{\substack{\text{Locally Consistent Polytope}\\\text{(state for belief propagation)}}}} } \,)  \] 
+                }_{\mathclap{\substack{\text{Locally Consistent Polytope}\\\text{\color{gray!50!black}(possible states of the
+                    % Belief Propagation
+                    Sum-Product
+                        algorithm)}}}} } \,),~~\{\,\text{\color{gray!90!black}variable marginals}\,\} \Big)  \] 
         % \end{prop}
+        }
+        
+        \onslide<+->{
+        \alert<.>{
+        For a BN $\mathcal B$:} \vspace{-1.7em}
+        \[ \lim \PDGof{\mathcal B} = \bigg( \pdgunit,~\Big\{ \Pr\nolimits_{\mathcal B}(X) \Big\}_{X \in \N} \bigg) \]
+        }
     \end{frame}
 }
 
 \section{Semantics of PDGs}
-\begin{frame}
+\setbeamercolor{notation}{fg=base notation.fg, bg=base notation.bg}
+\begin{frame}[label=semantics]
+    \frametitle{Semantics of PDGs}
+    % \begin{description}[<+-|alert@+>]
+    \begin{description}%[<+->]
+        \item<+-|hideme@6> [{$\SD{\dg M}$}] \notation{$\subseteq {\Delta \V(\dg M)}$} \\[0.15em]
+            The set of joint distributions consistent with $\dg M$;
+            \medskip
+        
+        \item<+-|alert@7|hideme@5> [{$\bbr{\dg M}_\gamma$}] \notation{$:{\Delta \V(\dg M)} \to \mathbb R$} \\[0.15em]
+            A function (parameterized by $\gamma > 0$) that scores distributions by compatibility with $\dg M$;
+            \medskip
+        
+        \item<+-|hideme@5-6>  [{$\bbr{\dg M}_\gamma^*$}] \notation{$\subseteq{\Delta \V(\dg M)}$} \\[0.25em]
+            The distribution(s) most compatible with  $\dg M$\\
+            (a singleton in many cases of interest);
+            \medskip            
+        
+        \item<+-|hideme@5> [{$\aar{\dg M}_\gamma$}] \notation{$: \mathbb R$} \\[0.15em]
+            The best posssible compatibility of $\dg M$ with any distribution: the  \emph{inconsistency} of $\dg M$
+    \end{description}
+    % \pause
+\end{frame}
+
+\begin{frame}[label=semantics2]
+    \frametitle{The Scoring Function}
+		\TODO[either finish overhaul or reinstate old slides]
+    \[%\displaystyle%
+        \bbr{\dg M}_\gamma(\mu) := {\color{alertcolor!30!benchcolor1!99!structurecolor}
+                \Inc_{\dg M}(\mu)}
+            + \gamma%
+            \extra[below right=0.5em and -1 em of call point, 
+                inner sep=0.3em, font=\small, name=tp, draw=alertcolor, text=alertcolor!40!black,
+                fill=alertcolor!10]{\small tradeoff parameter $\gamma \ge 0$}
+            %
+            \;{\color{alertcolor!30!benchcolor2!99!structurecolor}
+                \IDef{\dg M}(\mu)}
+    \]
+    \tikzro{ \draw[alertcolor] ([yshift=-0.2em,xshift=-0.3em]call point.center) -- ([xshift=1.0em]tp.north west);}
+    
+  \TODO[Emphasize entropy balance]  
     
 \end{frame}
 
@@ -1153,8 +1281,28 @@
 	
 	\begin{frame}%%%%%%%%%          BN THEOREM
 		\frametitle{Capturing Bayesian Networks}
-		Let $\PDGof{\mathcal B, \beta}$ be the PDG
-		corresponding to the BN $\mathcal B$, with every $\alpha=1$, and the given confidences $\beta$.
+        For a BN $\mathcal B$ with $N$ nodes and a vector $\beta \in \mathbb R^N$,
+		let $\PDGof{\mathcal B, \beta}$ be the PDG
+		corresponding to $\mathcal B$, with $\alpha=\mathbf 1$, and the given vector $\beta$ of confidences.
+    
+        \begin{center}\only<.(1)>{\smash{
+            \vspace{1em}
+            \begin{tikzpicture}[{baseline=(current bounding box.north)}]
+                \node[dpadded] (1) at (0,0) {$\pdgunit$};
+                \node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
+                \node[dpadded] (S) at (3.2, 0.8) {$\mathit S$};
+                \node[dpadded] (SH) at (3.35, -0.8) {$\mathit{SH}$};
+                \node[dpadded] (C) at (4.8,0) {$\mathit C$};
+                %
+                \draw[arr1] (1) -- (PS);
+                \draw[arr2] (PS) -- (S);
+                \draw[arr2, onslide=<4>{benchcolor2}] (PS) -- (SH);
+                \mergearr{SH}{S}{C}
+                %
+                \end{tikzpicture}}} \end{center}
+        
+        \vspace{-2em}
+        \pause
 		\begin{theorem}[{{\it BNs are PDGs}}] \label{thm:bns-are-pdgs}
 			% If $\mathcal B$ is a Bayesian network and $\Pr_{\mathcal B}$ is the distribution it specifies, then for all $\gamma > 0$ and all vectors $\beta$,
 			If $\mathcal B$ is a BN and $\Pr_{\mathcal B}$ is the distribution it specifies, then for all $\gamma > 0$ and all vectors $\beta$,
@@ -1164,7 +1312,8 @@
 				\bbr{\PDGof{\mathcal B, \beta}}^* = \Pr\nolimits_{\mathcal B}.
 			$$
 			\end{theorem}
-			
+        
+		\pause	
 		\begin{center}
 		% \begin{minipage}{3.3cm}
 		% 	\small
@@ -1207,7 +1356,7 @@
 
 \begin{frame}
     % \TODO
-    maximum entropy result for BNs
+    \TODO[maximum entropy result for BNs]
 \end{frame}
 
 \subsection{Factor Graphs}
@@ -1466,6 +1615,7 @@
 	$\bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}^*$.
 	\end{theorem}
 	}
+	\TODO[Add theorem: $\log Z_\Phi = \aar{\dg N_\Phi}$]
 	\end{frame}
 	
 % Scoring function breakdown
@@ -1496,12 +1646,54 @@
 		% \end{prop}
 	\end{frame}
     
+\section{Inference}
+\begin{frame}\frametitle{Inference via Inconsistency Reduction}
+	\textbf{Conditioning as inconsistency resolution.}\\ 
+	% \parbox{2.6in}{\raggedright
+		To condition on $Y\!=\!y$, in $\dg M$, 
+		simply add the edge $\ed {\delta_y}{\pdgunit} Y$  to get ${\dg M}_{Y\!=y}$.
+		Then $\bbr{{\dg M}_{Y\!=y}}^* = \bbr{\dg M}^* \mid (Y\!=\!y)$.
+		% This generalizes to Jeffrey's rule.
+	\bigskip\pause
+	
+	\textbf{Querying $\Pr(Y\mid X)$ in a PDG $\dg M$.}
+	\begin{itemize}[<+-|alert@+>]
+		\item We can add $\ed pXY$ to $\dg M$ with a cpt $p$, to get ${\dg M}^{+p}$.
+		\item The choice of cpd $p$ that minimizes the inconsistency of $\dg M^{+p}$ (which is strongly convex and smooth in $p$) is $\bbr{\dg M}^*(Y\!\mid \!X)$,
+		\item so oracle access to inconsistency yields fast inference by gradient descent.
+	\end{itemize}	
+	% Roughly, the quality of an answer $p$ is the inconsistency of $\dg M^{+p}$.  The function $p \mapsto \Inc({\dg M^{+p}})$ is minimized by $p = \bbr{\dg M}^*(Y\!\mid\! X)$, and is smooth and convex in $p$; with oracle access to $\Inc(-)$ (or an approximation), we can compute optima by gradient methods.
+	
+%	\pause[\thebeamerpauses]
+%	
+%	\parbox{0.5\textwidth}{This is closely related to  \\ standard variational techniques!}
+%	\centering
+%	\begin{tikzpicture}[center base]
+%		\node[dpadded] (1) {$\pdgunit$};
+%		\node[dpadded,right=1.0 of 1] (Z) {$Z$};
+%		\node[dpadded,right=1.5 of Z] (X) {$X$};
+%		\draw[arr1] (1) to node[above,name=pri] {$p(Z)$} (Z);
+%		\draw[arr1] (Z) to[bend left=15] node[above,name=dec] {$p(X \!\mid\! Z)$} (X);
+%		
+%		\path[gray!80] (dec) -- ++(0,0.2) node[above,inner sep=1pt]{\small decoder};
+%		\path[gray!80] (pri) -- ++(0,0.2) node[above,inner sep=1pt]{\small prior};
+%		\onslide<4->{
+%			\draw[arr1,onslide=<+(1)->{alertcolor}] (X) to[bend left=15] node[below,name=enc,inner sep=1pt] {$q(Z \!\mid\! X)$} (Z);	
+%			\path[gray!80] (enc) -- ++(0,-0.2) node[below,inner sep=1pt]{\small encoder};}
+%	\end{tikzpicture}\par
+	% 
+	\TODO[Convexity Result]
+	
+	\TODO[Hardness Result]
+
+	\end{frame}
+
 \section{Inconsistency as Loss}
 \subsection{Motivation}
-\begin{frame}[label=current] %%  Introduction Slide for loss.pdf
+\begin{frame} %%  Introduction Slide for loss.pdf
     \frametitle{Inconsistency: The Universal Loss}
     
-    \begin{itemize}
+    \begin{itemize}[<+->]
         \item Fruitful to cast AI as optimization. But what to optimize? 
             \begin{itemize}
                 \item \texttt{Cross Entropy}, \texttt{Square Loss}, \texttt{Accuracy}, \ldots
@@ -1509,8 +1701,8 @@
         % \item Each objective represents different values, results in different behavior.
         %     \begin{itemize}
                 \item choice is made by instinct, tradition, or pragmatics,
-                
-                \item which makes results difficult to motivate, and vulnerable to overfitting.
+                % \item
+                 which makes results difficult to motivate, and vulnerable to overfitting.
             \end{itemize}
         \item Choice of \emph{model} admits more principled discussion.
             \begin{itemize}
@@ -1519,12 +1711,14 @@
             
         % \item PDG Inconsistency gives 
     \end{itemize}
-    
+
+    \pause
     \begin{block}{Surprising Result}
         Most standard objectives arise naturally as the inconsistency of the obvious PDG describing the situation. 
         % {\color{gray} (including some that are traditionally difficult to motivate)}.
     \end{block}
-    
+
+    \pause
     \begin{alertblock}{Pedagogical Bonus}
         
         % \begin{enumerate}
@@ -1536,36 +1730,33 @@
 \end{frame}
 
 
-\begin{frame}
-    \begin{lemma}[monotonicity of inconsistency]\label{lemma!}
-     	For all pdgs $\dg M$, $\dg M'$, we have that
-    	\begin{enumerate}
-    		\item  $\aar{\dg M + \dg M'} \ge \aar{\dg M}$.
-    		\item If $\dg M$ and $\dg M'$ have respective confidence vectors $\beta$ and $\beta'$, and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
-    	\end{enumerate}
-    \end{lemma}
-\end{frame}
+
 
 
 \subsection{Standard Metrics as Inconsistency}
-\begin{frame}[label=current] %% Surprise as Inconsistency
+\begin{frame} %% Surprise as Inconsistency
     % \frametitle{Warmup Example}
-    \begin{prop}[Surprise as Inconsistency]
+    \frametitle{Surprise as Inconsistency}
+    \begin{prop}%[Surprise as Inconsistency]
         Consider a distribution over $X$ with mass function $p(X)$.
-        The information content, or surprise $\I_p(x)$ at seeing a sample $x$ is the inconsistency of the pdg containing $p$ a point mass on $x$ , i.e.,
-        \[\I_p(x) := \log \frac{1}{p(x)} =
+        % Consider $p(X)$. 
+        The surprise (or information content)
+        $ \I_p(x) := - \log {p(X\!=\!x)}$
+        at seeing a sample $x$ is the inconsistency of the pdg containing $p$ and the event $X=x$ , i.e.,
+        \[\I_p(x) = \log \frac{1}{p(X\!=\!x)} =
             \aar[\Big] {
             \begin{tikzpicture}[center base]
                 \node[dpad0] (X) {$X$};
                 \coordinate (A) at ($(X) + (-0.9,0)$);
                 \draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
-                \draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+                \draw[arr2, <<-] (X) --  node[above,pos=0.7]{$\scriptstyle X\!=\,\!x$} ++(1.2, 0);
             \end{tikzpicture}
             }.
         \]
     \end{prop}
     
-    \begin{itemize}
+    \pause
+    \begin{itemize}[<+-|alert@+>]
         \item PDG semantics just so happen to give the standard meaure of compatibility between a sample and distribution.
         \item Known as ``surprise'', a particular kind of internal conflict.
         % \item Provides a straightforward (if somewhat circular) justification for the logarithm.
@@ -1573,38 +1764,34 @@
 \end{frame}
 
 
-\begin{frame}[label=current] %% Marginal Surprise as Inconsistency
-    \begin{prop}[marginal surprise as inconsistency]
-        If $p(X,Z)$ is a joint distribution, the information content of the partial observation $X=x$ (marginal log likelihood), is given by
-    	% \begin{equation}
+\begin{frame} %% Marginal Surprise as Inconsistency
+    \frametitle{Variations: Surprise as Inconsistency}
+    % For partial observations
+    \begin{prop}[marginal information as inconsistency]<+-|alert@+>
+        If $p(X,Z)$ is a joint distribution, the (marginal) information of the (partial) observation $X=x$ is given by 
+    % Marginal Information:    
         \[
-    	 	\I_p(x) = \log \frac{1}{p(X\!=\!x)} =
-    	    % \lim_{t \to \infty}
+    	 	\I_p(x) = \log \frac{1}{p(x)} =
     		 \aar[\Bigg]{
-    	% 	  \Inc\left(
     			\begin{tikzpicture}[center base]
     				\node[dpad0] (Z) {$Z$};
     				\node[dpad0,right=.5 of Z] (X) {$X$};
     				\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
     				\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
     				\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
-    	%
+                	%
     				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-    	% 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
-    				% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
     			\end{tikzpicture}
     			}.
-    			% \label{eq:mll}
-    	% \end{equation}
         \]
     \end{prop}
-% \end{frame}
-% 
-% \begin{frame}[label=current] %% Cross Entropy as Inconsistency
-    \begin{prop}[cross entropy as inconsistency]
-    	The cross entropy $\ell(p;x) := -\frac{1}{|\xsamp|}\sum_{x \in \xsamp} \log p(x)$ is the inconsistency of the PDG containing $p$ and the data distribution $\datadist\xsamp$, plus the entropy of the data distribution (which is constant in $p$). That is,
+    
+    % And for an entire dataset at once:
+    \begin{prop}[cross entropy as inconsistency]<+-|alert@+>
+        Given a dataset $\xsamp$,
+        the cross entropy $\mathrm{CE}(p,\xsamp) := -\frac{1}{|\xsamp|}\sum_{x \in \xsamp} \log p(x)$ is the inconsistency of the PDG containing $p$ and the data distribution $\datadist\xsamp$, plus the entropy of the data distribution (constant in $p$). That is,
     	\[
-    	\ell(p;\xsamp) =
+    	\mathrm{CE}(p;\xsamp) =
     	 \aar[\Bigg]{
     	 % \Inc\left(
     		\begin{tikzpicture}[center base]
@@ -1624,47 +1811,12 @@
     \end{prop}
 \end{frame}
 
-\begin{frame} %% Regularization
-    \begin{prop}[Regularizers as (inconsistent) priors]
-        Suppose you believe $Y \sim f_\theta(Y)$, and have a prior $p(\theta)$, and an empirical distribution $D(Y)$ which you trust. The inconsistency of also believing $\Theta = \theta_0$ is the \emph{regularized}-cross entropy loss, and controlled by the strength $\beta_p$ of the prior.
-    	That is,
-    	\begin{equation}\label{eq:regularize}
-    		\aar*{\begin{tikzpicture}[center base]
-    			\node[dpad0] (theta) {$\Theta$};
-    			\node[dpad0, right=1.1 of theta] (Y) {$Y$};
-    			%
-    			\draw[arr] (theta) --
-    	 			% node[above]{$\overset{{\color{gray}(\beta_f)}}f$}
-    	 			% node[above]{$f^{{\color{gray}(\beta_f)}}$}
-    	 			node[above]{$f$}
-    				(Y);
-    			\draw[arr, <-] (theta) --
-    				node[above right, pos=0.7] {$p^{{\color{gray}(\beta)}}$}
-    				++(-1.0, 0.4);
-    			\draw[arr, <<-] (theta) -- node[below,pos=0.6]{$\theta_0$} ++(-1.1, -0.3);
-    			\draw[arr, <-] (Y) -- node[above,pos=0.6]{$D!$} ++(1.1, 0);
-    		\end{tikzpicture}}
-    		=
-    		% \beta_f\,
-    		\Ex_{y \sim D} \left[\log \frac{1}{f(y \mid \theta_0)} \right]
-    			+ \beta \log \frac1{p(\theta_0)}
-    		 - \H(D)
-    	\end{equation}
-    \end{prop}
-
-    Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\frac12 \theta^2)$ for a normaization constant $k$, the RHS of \eqref{eq:regularize} becomes
-    \[ \underbrace{\Ex_{D} \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
-    	_{\substack{\text{Cross entropy loss of $f_\theta$ w.r.t. $D$}\\(\text{data-fit cost of $\theta_0$})}}%(f_\theta; D)
-    	+ \underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \quad
-    	{\color{gray} \underbrace{+  \beta \log k - \H(D)}_{\text{constant in $f$ and $\theta_0$}}}. \]
-    % which is the $\ell_2$ regularized version of \cref{prop:many-equal-simple}.
-    % Moreover, the regularization strength corresponds exactly to the confidence $\beta$ functions as the hyperparameter, a feature unique to our approach.
-\end{frame}
 
 \begin{frame} %% Acuracy as Inconsistency
     \begin{prop}[Accuracy as Inconsistency]
-        If $h: X \to Y$ is a predictor for an input space $X$ and label space $Y$, and $f: X \to Y$ generates the correct labels, then the inconsistency of believing $f$ and $h$ (with any degree of confidence), and also that inputs are distributed according to $D(X)$, equals the information content of learning that $f(X) = h(X)$ according to $D$ (which is the log accuracy of the predictor $h$) times the confidence in $D$. That is,
-	\begin{equation}\label{eq:accuracy-pdg}
+        % If $h: X \to Y$ is a predictor for an input space $X$ and label space $Y$, and $f: X \to Y$ generates the correct labels, then the inconsistency of believing $f$ and $h$ (with any degree of confidence), and also that inputs are distributed according to $D(X)$, equals the information content of learning that $f(X) = h(X)$ according to $D$ (which is the log accuracy of the predictor $h$) times the confidence in $D$. That is,
+        Consider a predictor $h : X \to Y$ for true labels $f : X \to Y$, and a distribution $D(X)$. The inconsistency of believing all three is
+	\begin{equation*}%\label{eq:accuracy-pdg}
 		\aar*{\begin{tikzpicture}[center base]
 				\node[dpad0] (Y) {$Y$};
 				\node[dpad0,left=1.1 of Y] (X) {$X$};
@@ -1677,7 +1829,7 @@
 			\end{tikzpicture}}
 		=  - \beta\,\log \Big( \mathrm{accuracy}_{f,D} (h) \Big)
 		= \beta\, \I_D [f = h].
-	\end{equation}
+	\end{equation*}
     \end{prop}
 \end{frame}
 
@@ -1721,15 +1873,177 @@
     \end{prop}
 \end{frame}
 
+
+\begin{frame} %% Regularization
+    \setbeamercolor{block body}{bg=gray!20!white}
+	\setbeamercolor{block title}{bg=gray!45!white}
+    \colorlet{priorcolor}{red}
+    \begin{prop}[Regularizers as priors]
+        \onslide<1->{%
+            Suppose you believe $Y \sim f_\theta(Y)$,
+        }\onslide<2->{%
+            have a prior {\color{priorcolor}$p(\theta)$},
+        }\onslide<3->{\alert<3>{%
+            and have an empirical distribution $D(Y)$ which you trust.
+        }}\onslide<4->{\alert<4>{%
+            Then the inconsistency of also believing $\Theta = \theta_0$ is
+        }}\onslide<5->{\alert<5>{%
+            the {\color{priorcolor}\emph{regularized}}-cross entropy loss, and controlled by the strength $\beta_p$ of the prior.} That is,
+        }
+        \only<-4>{\par\vspace{-1.1em}That is,}
+    	\begin{equation*}%\label{eq:regularize}
+    		\aar**{\!\!\begin{tikzpicture}[center base]
+    			\node[dpad0] (theta) {$\Theta$};
+    			\node[dpad0, right=0.8 of theta] (Y) {$Y$};
+    			%
+    			\draw[arr] (theta) --
+    	 			% node[above]{$\overset{{\color{gray}(\beta_f)}}f$}
+    	 			% node[above]{$f^{{\color{gray}(\beta_f)}}$}
+    	 			node[above]{$f$}
+    				(Y);
+                \onslide<2->{
+        			\draw[arr, <-, priorcolor] (theta) --
+        				node[above right, pos=0.7] {$p^{{\color{gray}(\beta)}}$}
+        				++(-1.0, 0.4);}
+                
+                \onslide<4->{
+                    \draw[arr, <<-, onslide=<4>{alertcolor}] (theta) --
+                        node[below,pos=0.4]{$\theta_0$} ++(-1.1, -0.3);}
+                \onslide<3->{
+                    \draw[arr, <-, onslide=<3>{alertcolor}] (Y) -- node[above,pos=0.6]{$D!$} ++(1.1, 0); }
+    		\end{tikzpicture}\!\!}
+    		\onslide<4->{=\!}\onslide<5->{\alert<5>{
+        		% \beta_f\,
+        		\Ex_{y \sim D} \left[\log \frac{1}{f(y \mid \theta_0)} \right]
+        			\!+ {\color{priorcolor}\beta \log \frac1{p(\theta_0)}}
+        		 - \H(D)}}
+    	\end{equation*}
+    \end{prop}
+    
+    \onslide<6->{    
+        Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\frac12 \theta^2)$ for a normaization constant $k$, the RHS %of \eqref{eq:regularize}
+        becomes
+        \[ \underbrace{\Ex_{D} \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
+        	_{\substack{\text{Cross entropy loss of $f_\theta$ w.r.t. $D$}\\(\text{data-fit cost of $\theta_0$})}}%(f_\theta; D)
+        	+{\color{priorcolor} \underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}}} \quad
+        	{\color{gray!50} \underbrace{+  \beta \log k - \H(D)}_{\text{constant in $f$ and $\theta_0$}}}. \]
+        }
+    % which is the $\ell_2$ regularized version of \cref{prop:many-equal-simple}.
+    % Moreover, the regularization strength corresponds exactly to the confidence $\beta$ functions as the hyperparameter, a feature unique to our approach.
+\end{frame}
+
 \subsection{Variational AutoEncoders}
-\begin{frame}[label=current] %% Visual proof: VaE Variational Bound
+\begin{frame}
+    \frametitle{Variational Auto-Encoders, Take 1}
+
+    \begin{columns}[T]
+    \column{0.84\linewidth}
+        \begin{itemize}[<+->]
+            \item Structure consists of two networks:
+            \begin{description}
+                % \item generate samples of $X$ from a (smaller) latent space $Z$:     
+                \item[$e(Z\mid X)$]: encodes $X$'s in a (small) latent space $Z$;
+                \item[$d(X\mid Z)$]: generate samples of $X$ from $Z$.
+            \end{description}
+            \item Objective:
+            \begin{itemize}
+                \item Want to minimize ``reconstruction error'' for each $x$ \\[-1em]
+                    % \[ \mathrm{Rec}(x) = \Ex_{z \sim e \mid x} \underbrace{~\mathrm I_{d\mid z}(x)~}_{\substack{\text{Additional bits to}\\\text{specify $x$ from $d|z$}}}
+                	%    = \sum_z e(z \mid x) \log \frac1{d(x \mid z)} \]
+                    \[ \mathrm{Rec}(x) = - \Ex_{z \sim e \mid x} \log {d(x \mid z)} \] 
+                \vspace{-0.2em}
+                \item you also have a prior $p(Z)$, which you want to match.
+                    % (Uncorrelated features are more useful.)
+                \item Together, maximize $\mathrm{ELBO}_{p,e,d}(x) :=$\\[-1.8em]
+                \[  -\kldiv{e(Z|x)}{p(Z)} - \mathrm{Rec}(x) = \!\!\Ex_{z \sim e|x}\! \left[\log \frac{p(z) d(x\mid z)}{e(z\mid x)} \right]
+                    \onslide<+->{\alert<.>{\le \log \Pr_{pd}(x)}} \]
+            \end{itemize}
+        \end{itemize}
+    \column{0.16\linewidth}
+        \includegraphics[width=\linewidth]{figs/vae-sample-cropped}
+        % \includegraphics[width=\linewidth]{figs/vae2-cropped}
+    \end{columns}
+    
+    \pause[\thebeamerpauses]
+    \alert<.(1)->{Note: not a graphical model (desipte shoehorning attempts)}
+    \setlength{\fboxsep}{0pt}
+    \pause\Put(-300,180){\color{structurecolor}\fbox{\includegraphics[height=5cm]{figs/vae-diagram-2-colored}}}
+    \pause\Put(-130,165){\color{structurecolor}\fbox{\includegraphics[height=4cm]{figs/vae-diagram-3-colored}}}
+    \pause\Put(-200,155){\color{structurecolor}\fbox{\includegraphics[height=3cm]{figs/vae-diagram-1-cropped}}}
+    \pause
+    % \Put(10,0){\includegraphics[height=3cm]{figs/vae-diagram-2}}
+    \begin{itemize}[<+->]
+        \item $e(Z\mid X)$ has same target as $p(Z)$, so BN doesn't work
+        \item The heart of the VaE is not its structure, but its objective.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Variational Auto-Encoders, Take 2}
+    
+    \begin{itemize}[<+-|alert@+>]
+        \item Structure:
+        \begin{description}
+            % \item generate samples of $X$ from a (smaller) latent space $Z$:     
+            \item[$e(Z\mid X)$]: encodes $X$ in a latent space $Z$;
+            \item[$d(X\mid Z)$]: generate samples of $X$ from $Z$.
+            \item[$p(Z)$]: a prior over from $Z$.
+        \end{description}
+        \item want to do a gradient step for a specific $x$.
+    \end{itemize}
+    
+		\bigskip
+		\onslide<6->{
+    \alert<6>{Objective function is free:}}
+    \[
+        \aar*{\begin{tikzpicture}[center base]
+            \node[dpad0] (Z) {$Z$};
+            \node[dpad0,right=.5 of Z] (X) {$X$};
+            \onslide<2->{
+                \draw[arr2, ->, onslide=<2>{alertcolor}] (X) to[bend left=50]
+                    node[below]{$e\onslide<5->{\alert<5>{!}}$} (Z); }
+            \onslide<3->{
+                \draw[arr2, ->, onslide=<3>{alertcolor}] (Z) to[bend left=50]
+                    node[above]{$d$} (X); }
+            \onslide<5->{
+                \draw[arr2, <<-, onslide=<5>{alertcolor}] (X) --
+                    node[above,pos=0.8]{$x$}
+                    ++(0.9, 0);}
+            \onslide<4->{
+                \draw[arr2, <-, onslide=<4>{alertcolor}] (Z) --
+                    node[above,pos=0.6]{$p$}
+                    ++(-0.9, 0);}
+        \end{tikzpicture}}
+				\alert<6>{\;= \mathrm{ELBO}_{p,e,d}(x)}
+    \]
+    
+\end{frame}
+
+\begin{frame}[label=monotone-inc]
+    \frametitle{A Very Useful Fact}
+    {\centering Believing more things can't make you any less inconsistent. \par }
+    
+    \bigskip
+    
+    {\setbeamercolor{block body}{bg=Emerald!60!gray!20!white}
+	 \setbeamercolor{block title}{bg=Emerald!50!structurecolor!35!white}
+    \begin{lemma}[monotonicity of inconsistency]\label{lemma!}
+     	For all pdgs $\dg M$, $\dg M'$, and all $\gamma > 0$,
+    	\begin{enumerate}
+    		\item  $\aar{\dg M \sqcup \dg M'}_\gamma \ge \aar{\dg M}_\gamma$.
+    		\item If $\dg M$ and $\dg M'$ have respective confidence vectors $\beta$ and $\beta'$, and $\beta \succeq \beta'$ {\color{gray!55}(that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$)}, then $\aar{\dg M}_\gamma \ge \aar{\dg M'}_\gamma$.
+    	\end{enumerate}
+    \end{lemma}}
+\end{frame}
+
+\begin{frame} %% Visual proof: VaE Variational Bound
     \frametitle{Visual Proof: The Varitaional Bound}
     \begin{align*}
-    	- \log \Pr\nolimits_{p,d}(X\!=\!x) ~=\qquad&\\
+    	\onslide<3->{- \log \Pr\nolimits_{p,d}(X\!=\!x) ~=\hspace{0.8in}&\\[-1.3em]
     	\aar*{\begin{tikzpicture}[center base]
     	   \node[dpad0] (Z) {$Z$};
-    	   \node[dpad0,right=.5 of Z] (X) {$X$};
-    	   \draw[arr2, ->] (Z) to[bend left=10]
+    	   \node[dpad0,right=.6 of Z] (X) {$X$};
+    	   \draw[arr2, ->] (Z) to[bend left=20]
     		   node[above]{$\scriptstyle d$} (X);
     	   \draw[arr2, <<-] (X) --
     		   node[above,pos=0.8]{$\scriptstyle x$}
@@ -1737,23 +2051,24 @@
     	   \draw[arr2, <-] (Z) --
     		   node[above,pos=0.6]{$\scriptstyle p$}
     		   ++(-0.9, 0);%
-    	\end{tikzpicture}}
-     	&\le
-     	\aar*{\begin{tikzpicture}[center base]
-    		\node[dpad0] (Z) {$Z$};
-    		\node[dpad0,right=.5 of Z] (X) {$X$};
-    		\draw[arr2, ->] (X) to[bend left=50]
-    			node[below]{$\scriptstyle e!$} (Z);
-    		\draw[arr2, ->] (Z) to[bend left=50]
-    			node[above]{$\scriptstyle d$} (X);
-    		\draw[arr2, <<-] (X) --
-    			node[above,pos=0.8]{$\scriptstyle x$}
-    			++(0.9, 0);
-    		\draw[arr2, <-] (Z) --
-    			node[above,pos=0.6]{$\scriptstyle p$}
-    			++(-0.9, 0);%
-    	\end{tikzpicture}}
-        \\&\qquad=~ -\mathrm{ELBO}_{p,e,d}(x).
+    	\end{tikzpicture}}}
+     	&{\onslide<4->{\color{Emerald!50!black}~\le~}}
+			\onslide<2->{
+	     	\aar*{\begin{tikzpicture}[center base]
+	    		\node[dpad0] (Z) {$Z$};
+	    		\node[dpad0,right=.5 of Z] (X) {$X$};
+	    		\draw[arr2, ->] (X) to[bend left=50]
+	    			node[below]{$\scriptstyle e!$} (Z);
+	    		\draw[arr2, ->] (Z) to[bend left=50]
+	    			node[above]{$\scriptstyle d$} (X);
+	    		\draw[arr2, <<-] (X) --
+	    			node[above,pos=0.8]{$\scriptstyle x$}
+	    			++(0.9, 0);
+	    		\draw[arr2, <-] (Z) --
+	    			node[above,pos=0.6]{$\scriptstyle p$}
+	    			++(-0.9, 0);%
+	    	\end{tikzpicture}}
+        \\[-0.7em]&\hspace{1.2in}=~ -\mathrm{ELBO}_{p,e,d}(x).}
     \end{align*}
 \end{frame}
 
@@ -1763,8 +2078,9 @@
 
 
 \begin{frame}
+	\frametitle{Divergences and Inconsistency}
     \begin{lemma}[Divergences and PDGs]
-    	The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, the inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$, satisfies
+    	The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, the inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$, is given by
         \[
     		\thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
             \aar[\bigg]{\begin{tikzpicture}[center base]
@@ -1787,10 +2103,11 @@
         \]
     \end{lemma}
 \end{frame}
-\begin{frame}[label=current] %% Visual Proof: DPI
+\begin{frame} %% Visual Proof: DPI
     \frametitle{Visual Proof: Data Processing Inequality}
-    \[ \kldiv[\Big] pq \ge \kldiv[\Big] {f\circ p}{f \circ q}\] 
-    \hfill
+    {\color{structurecolor}
+    \[ \kldiv[\Big] pq \ge \kldiv[\Big] {f\circ p}{f \circ q}\] }
+    
     \begin{align*}
     	% - \log \Pr\nolimits_{p,d}(X\!=\!x) ~=\qquad&\\
     	\aar*{\begin{tikzpicture}[center base]
@@ -1802,7 +2119,7 @@
     		   node[above,pos=0.6]{$\scriptstyle p$}
     		   ++(-1.1, 0);%
     	\end{tikzpicture}}
-        &= 
+        &\onslide<2->{= 
         \aar**{\begin{tikzpicture}[center base]
            \node[dpad0] (X) {$X$};
            \node[dpad0,below=.7 of X] (Y) {$Y$};
@@ -1815,8 +2132,8 @@
            \draw[arr2] (X) --
                node[left,pos=0.45]{$\scriptstyle f!$}
                (Y);%
-        \end{tikzpicture}} \\
-        &= 
+        \end{tikzpicture}}} \\
+        &\onslide<3->{= 
         \aar**{\begin{tikzpicture}[center base]
            \node[dpad0] (X1) {$X_1$};
            \node[dpad0, right=0.7 of X1] (X2) {$X_2$};
@@ -1834,8 +2151,8 @@
            \draw[arr2] (X2) --
                node[right,pos=0.45]{$\scriptstyle f!$}
                (Y);%
-        \end{tikzpicture}}
-        \\&\ge 
+        \end{tikzpicture}}}
+        \\&\onslide<4->{\ge 
         \aar**{\begin{tikzpicture}[center base]
            \node[dpad0] (X1) {$X_1$};
            \node[dpad0, right=0.7 of X1] (X2) {$X_2$};
@@ -1853,7 +2170,7 @@
                node[right,pos=0.45]{$\scriptstyle f!$}
                (Y);%
         \end{tikzpicture}}
-        =
+        =}
         \aar*{\begin{tikzpicture}[center base]
     	   \node[dpad0] (X) {$X$};
     	   \draw[arr2, <-] (X) --
@@ -1953,72 +2270,18 @@
         
 \end{frame}
 
-\section{Inference}
-\begin{frame}\frametitle{Inference and Inconsistency: a Glimpse.}
-	\textbf{Conditioning as inconsistency resolution.}\\ 
-	% \parbox{2.6in}{\raggedright
-		To condition on $Y\!=\!y$, in $\dg M$, 
-		simply add the edge $\ed {\delta_y}{\pdgunit} Y$  to get ${\dg M}_{Y\!=y}$.
-		Then $\bbr{{\dg M}_{Y\!=y}}^* = \bbr{\dg M}^* \mid (Y\!=\!y)$.
-		% This generalizes to Jeffrey's rule.
-	\bigskip\pause
-	
-	\textbf{Querying $\Pr(Y\mid X)$ in a PDG $\dg M$.}
-	\begin{itemize}[<+-|alert@+>]
-		\item We can add $\ed pXY$ to $\dg M$ with a cpt $p$, to get ${\dg M}^{+p}$.
-		\item The choice of cpd $p$ that minimizes the inconsistency of $\dg M^{+p}$ (which is strongly convex and smooth in $p$) is $\bbr{\dg M}^*(Y\!\mid \!X)$,
-		\item so oracle access to inconsistency yields fast inference by gradient descent.
-	\end{itemize}	
-	% Roughly, the quality of an answer $p$ is the inconsistency of $\dg M^{+p}$.  The function $p \mapsto \Inc({\dg M^{+p}})$ is minimized by $p = \bbr{\dg M}^*(Y\!\mid\! X)$, and is smooth and convex in $p$; with oracle access to $\Inc(-)$ (or an approximation), we can compute optima by gradient methods.
-	
-%	\pause[\thebeamerpauses]
-%	
-%	\parbox{0.5\textwidth}{This is closely related to  \\ standard variational techniques!}
-%	\centering
-%	\begin{tikzpicture}[center base]
-%		\node[dpadded] (1) {$\pdgunit$};
-%		\node[dpadded,right=1.0 of 1] (Z) {$Z$};
-%		\node[dpadded,right=1.5 of Z] (X) {$X$};
-%		\draw[arr1] (1) to node[above,name=pri] {$p(Z)$} (Z);
-%		\draw[arr1] (Z) to[bend left=15] node[above,name=dec] {$p(X \!\mid\! Z)$} (X);
-%		
-%		\path[gray!80] (dec) -- ++(0,0.2) node[above,inner sep=1pt]{\small decoder};
-%		\path[gray!80] (pri) -- ++(0,0.2) node[above,inner sep=1pt]{\small prior};
-%		\onslide<4->{
-%			\draw[arr1,onslide=<+(1)->{alertcolor}] (X) to[bend left=15] node[below,name=enc,inner sep=1pt] {$q(Z \!\mid\! X)$} (Z);	
-%			\path[gray!80] (enc) -- ++(0,-0.2) node[below,inner sep=1pt]{\small encoder};}
-%	\end{tikzpicture}\par
-	
-	% }
-	 \begin{tikzpicture}[center base]	
-	 	% \useasboundingbox (-3,-1) rectangle (3.5,4);
-	 	\node[dpadded] (1) at (0,3) {$\pdgunit$};
-	 	\node[dpadded] (W) at (0,0) {$W$};
-	 	\node[dpadded] (B) at (-2,1) {$B$};
-	 	\node[dpadded] (E) at (2.5, 0){$E$};
-	 	\coordinate (Q) at (6,0); % to even out controls
-	 
-	 	\draw[arr] (1) to node[fill=white]{$p$} (W);
-	 	\draw[arr] (1) to node[fill=white]{$\pi$} (B);
-	 
-	 	\draw[arr, gray, ->>] (W) to[bend left=10] (B);
-	 	\draw[arr, dashed] (B) to[bend right=30] (W);	
-	 
-	 	\draw[arr, ->>] (W) to (E);
-	 
-	 	\draw[arr,blue!50] (1) .. controls (-5.5,1.5) and (-2,-2) .. node[fill=white]{$p'(E)$} (E);
-	 	\draw[arr,orange!70] (1) .. controls (0.5,1) and (1,0.5) .. node[fill=white]{$p(E)$} (E);
-	 \end{tikzpicture}
-	% 
-
-	\end{frame}
-
 
 \section{Databases}
+\begin{frame}
+	\TODO[Schema Picture]
+	\TODO[Add Universal Relation Theorem]
+\end{frame}
+
 \section{Open Problems}
 \begin{frame}\frametitle{Open Problems and Future Work}
+	\TODO
     \begin{itemize}
-        \item 
+				\item 
         \begin{itemize}    
             \item Trace Semantics
             \item Composition
@@ -2028,6 +2291,7 @@
 
 \begin{frame} % Summary
 	\frametitle{Summary}
+	\TODO[update with second half]
 	PDGs\textellipsis 
 	\begin{itemize}[<+-|alert@+>]
 		\item capture inconsistency, including conflicting information
@@ -2050,9 +2314,15 @@
 	\medskip
 	\textit{But there is much more to be done!}
 	\end{frame}
+	
+
+\begin{frame}
+	\TODO[return to initial slide, but with more conflicts]
+\end{frame}
 
 
 \appendix
+\section{Appendix}
 	\colorlet{hypergraphcolor}{benchcolor1}
 	\colorlet{simplegraphcolor}{structurecolor}
 % \setbeamercolor{background canvas}{bg=black}
@@ -2200,7 +2470,7 @@
 		
 		\vskip0pt plus 1filll
 		\hfill
-		\hyperlink{returntosemantics}{\beamerbutton{back to semantics}}
+		% \hyperlink{returntosemantics}{\beamerbutton{back to semantics}}
 	\end{frame}
 \begin{frame}
 	\def\vsize{0.4}
