@@ -146,6 +146,8 @@
 		}}
 	\newcommand{\tikzro}[1][]{\tikz[remember picture, overlay,#1]}
 	\def\Set{\mathbf{Set}}
+	% "light gray script script"
+	\def\lgss{\color{gray!80}\scriptscriptstyle}%
 	\makeatletter
 	\newcommand{\shorteq}{%
 	  \settowidth{\@tempdima}{-}% Width of hyphen
@@ -371,6 +373,8 @@
     		\SD\{\{\}\}
     	\DeclareDoubleDelim
     		\bbr[[]]
+			\DeclareDoubleDelim
+				\aarphantom{.{\phantom\langle}}{.{\phantom\langle}}{.{\phantom\rangle}}{.{\phantom\rangle}}
 	% \DeclareDoubleDelim
 	% 	\aar\langle\langle\rangle\rangle
 	\makeatletter
@@ -1804,44 +1808,80 @@
 \begin{frame}
     \frametitle{Variational Auto-Encoders, Take 1}
 
-    \begin{columns}[T]
-    \column{0.84\linewidth}
+    % \begin{columns}[T]
+    % \column{0.84\linewidth}
         \begin{itemize}[<+->]
-            \item Structure consists of two networks:
-            \begin{description}
-                % \item generate samples of $X$ from a (smaller) latent space $Z$:     
-                \item[$e(Z\mid X)$]: encodes $X$'s in a (small) latent space $Z$;
-                \item[$d(X\mid Z)$]: generate samples of $X$ from $Z$.
-            \end{description}
+            \item Structure consists of two neural networks (cpds):
+            % \begin{description}
+            %     \item[$e(Z\mid X)$]: encodes $X$'s in a (small) latent space $Z$;
+            %     \item[$d(X\mid Z)$]: generate samples of $X$ from $Z$.
+            % \end{description}
+						\begin{center}
+						\begin{tikzpicture}[]
+							\node[dpadded, outer sep=0pt, minimum height=5em] (X) at (0,0) {$X$};
+							\node[dpadded, outer sep=0pt, minimum height=2.5em] (Z) at (3,0) {$Z$};
+							\node[dpadded, outer sep=0pt, minimum height=5.5em] (X2) at (6,0) {$\hat X$};
+							\node[left=0.3 of X, align=center] { %,label={right:$\in$}
+									\includegraphics[height=5em]{figs/vae-sample-cropped}
+							};
+							\node[right=0.3 of X2, align=center] { %label={left:$\ni$}
+									\includegraphics[height=5em]{figs/vae-sample-cropped}
+							};
+							\fill[opacity=0.2, structurecolor] (X.north east) -- (Z.north west) -- (Z.south west) -- (X.south east) -- cycle;
+							\fill[opacity=0.2, structurecolor] (Z.north east) -- (X2.north west) -- (X2.south west) -- (Z.south east) -- cycle;
+							\draw[arr] (X) to
+							 	node[below,inner sep=2pt]{\small encoder}
+								node[above,inner sep=2pt]{$e(Z\mid X)$} (Z);
+							\draw[arr] (Z) to
+								node[below]{\small decoder}
+								node[above]{$d(X \mid Z)$} (X2);
+						\end{tikzpicture}
+						\end{center}
             \item Objective:
             \begin{itemize}
-                \item Want to minimize ``reconstruction error'' for each $x$ \\[-1em]
+                \item For each $x$, want to minimize 
+									% ``reconstruction error'' for each $x$ \\[-1em]
                     % \[ \mathrm{Rec}(x) = \Ex_{z \sim e \mid x} \underbrace{~\mathrm I_{d\mid z}(x)~}_{\substack{\text{Additional bits to}\\\text{specify $x$ from $d|z$}}}
                 	%    = \sum_z e(z \mid x) \log \frac1{d(x \mid z)} \]
-                    \[ \mathrm{Rec}(x) = - \Ex_{z \sim e \mid x} \log {d(x \mid z)} \] 
+                    % \[ \mathrm{Rec}(x) = - \Ex_{z \sim e \mid x} \log {d(x \mid z)} \] 
+                  $\displaystyle
+										\mathrm{Rec}(x) := 
+											\overset{\smash{\mathclap{\text{\tiny\color{gray}``reconstruction error'' }}}}
+											{ -\!\! \Ex_{z \sim e \mid x}\! \log {d(x \mid z)}} $ 
                 \vspace{-0.2em}
-                \item you also have a prior $p(Z)$, which you want to match.
+                \item Also have a prior $p(Z)$ that we want encodings of $x$ to follow.
                     % (Uncorrelated features are more useful.)
-                \item Together, maximize $\mathrm{ELBO}_{p,e,d}(x) :=$\\[-1.8em]
-                \[  -\kldiv{e(Z|x)}{p(Z)} - \mathrm{Rec}(x) = \!\!\Ex_{z \sim e|x}\! \left[\log \frac{p(z) d(x\mid z)}{e(z\mid x)} \right]
-                    \onslide<+->{\alert<.>{\le \log \Pr_{pd}(x)}} \]
+                \item Add terms \& negate to get\\ $\mathrm{ELBO}_{p,e,d}(x) :=$
+									\\[-2.1em]
+							  \onslide<+->{
+                	\[
+									 -{\color{gray!80}\underbrace{\usebeamercolor[fg]{normal text} \kldiv[\big]{e(Z|x)}{p(Z)}}_{\smash{\text{\tiny divergence from prior}}}}
+								   \onslide<+->{ - \mathrm{Rec}(x)}   
+									 \onslide<+->{= \!\!\Ex_{z \sim e|x}\! \left[\log \frac{p(z) d(x\mid z)}{e(z\mid x)}\right]} 
+                    \onslide<+->{\alert<.>{\le 
+											\overset{{\color{gray!80}\smash{\text{\tiny ``evidence''}}}}
+											{\log \Pr\nolimits_{pd}(x)}%
+										}}
+								 \]}
             \end{itemize}
         \end{itemize}
-    \column{0.16\linewidth}
-        \includegraphics[width=\linewidth]{figs/vae-sample-cropped}
-        % \includegraphics[width=\linewidth]{figs/vae2-cropped}
-    \end{columns}
+    % \column{0.16\linewidth}
+    %     \includegraphics[width=\linewidth]{figs/vae-sample-cropped}
+    %     % \includegraphics[width=\linewidth]{figs/vae2-cropped}
+    % \end{columns}
+		\vspace{-0.7em}
     
     \pause[\thebeamerpauses]
-    \alert<.(1)-.(4)>{Note: not a graphical model (desipte shoehorning attempts)}
+    \alert<.(1)-.(4)>{
+				Urge to use graphical models (even if can't quite capture \emph{entire} VaE)}
     \setlength{\fboxsep}{0pt}
-    \pause\Put(-300,180){\color{structurecolor}\fbox{\includegraphics[height=5cm]{figs/vae-diagram-2-colored}}}
-    \pause\Put(-130,165){\color{structurecolor}\fbox{\includegraphics[height=4cm]{figs/vae-diagram-3-colored}}}
-    \pause\Put(-200,155){\color{structurecolor}\fbox{\includegraphics[height=3cm]{figs/vae-diagram-1-cropped}}}
+    \pause\Put(-330,180){\color{structurecolor}\fbox{\includegraphics[height=5cm]{figs/vae-diagram-2-colored}}}
+    \pause\Put(-180,185){\color{structurecolor}\fbox{\includegraphics[height=4cm]{figs/vae-diagram-3-colored}}}
+    \pause\Put(-230,195){\color{structurecolor}\fbox{\includegraphics[height=3cm]{figs/vae-diagram-1-cropped}}}
     \pause
     % \Put(10,0){\includegraphics[height=3cm]{figs/vae-diagram-2}}
     \begin{itemize}[<+-|alert@+>]
-        \item $e(Z\mid X)$ has same target as $p(Z)$, so BN doesn't work
+        \item $e(Z\mid X)$ has same target as $p(Z)$, so can't put in BN;
         \item The heart of the VaE is not its structure, but its objective.
     \end{itemize}
 \end{frame}
@@ -1849,29 +1889,56 @@
 \begin{frame}
     \frametitle{Variational Auto-Encoders, Take 2}
     
+		\begin{columns}[c]
+		\column{0.38\textwidth}
     \begin{itemize}[<+-|alert@+>]
         \item Structure:
         \begin{description}
             % \item generate samples of $X$ from a (smaller) latent space $Z$:     
-            \item[$e(Z\mid X)$]: encodes $X$ in a latent space $Z$;
-            \item[$d(X\mid Z)$]: generate samples of $X$ from $Z$.
-            \item[$p(Z)$]: a prior over from $Z$.
+            \item[$e(Z\mid X)$]: encoder
+						 	% encodes $X$ in a latent space $Z$;
+            \item[$d(X\mid Z)$]: decoder
+							% generate samples of $X$ from $Z$.
+            \item[$p(Z)$]: prior
+							% a prior over from $Z$.
         \end{description}
-        \item want to do a gradient step for a specific $x$.
+        \item observe a sample $x$
+				\begin{itemize}
+					\item and trust encoding
+				\end{itemize}
     \end{itemize}
-    
-		\bigskip
-		\onslide<6->{
-    \alert<6>{Objective function is free:}}
-    \[
-        \aar*{\begin{tikzpicture}[center base]
+		
+		\column{0.60\textwidth}
+		\onslide<7->{
+    \alert<7>{Objective function is free:}}
+    \[	
+				\usebeamercolor{alerted text}
+				\color<7>{fg}
+        \alt<7->{\aar**}{\hspace{5ex}}{
+					\usebeamercolor{normal text}
+					\color<7>{fg}\hspace{-1.5em}
+					\begin{tikzpicture}[center base]
             \node[dpad0] (Z) {$Z$};
-            \node[dpad0,right=.5 of Z] (X) {$X$};
+            \node[dpad0,right=.9 of Z] (X) {$X$};
             \onslide<2->{
-                \draw[arr2, ->, onslide=<2>{alertcolor}] (X) to[bend left=50]
-                    node[below]{$e\onslide<5->{\alert<5>{!}}$} (Z); }
+                \draw[arr2, ->, onslide=<2>{alertcolor}] (X)
+								 		to[bend left=60, looseness=1]
+								 		% to[in=-70,out=-110, looseness=1]
+										%% v1: exclamation point
+                    % node[below]{$e\onslide<5->{\alert<5>{!}}$} (Z); }
+										%% v2: gray ^(\infty)
+                    % node[below, inner sep=1pt]{$e\color{gray}\onslide<6->{\alert<6>{^{\mathrlap{(\only<6>{\beta{:}}\infty)}}}}$} (Z); }
+										%% v3: gray infinity, separate node.
+                    node[below]{$e$}
+										node[above, inner sep=2pt]{$\lgss\onslide<6->{\alert<6>{(\only<6>{\beta{:}}\infty)}}$}
+										%% v4: gray infinity above, except on first show, then with e
+                    % node[below, inner sep=2pt]{$e\only<6>{\mathrlap{\lgss\alert{(\beta{:}\infty)}}}$}
+										% node[above, inner sep=2pt]{$\lgss\onslide<7->{(\infty)}$}
+									(Z); }
             \onslide<3->{
-                \draw[arr2, ->, onslide=<3>{alertcolor}] (Z) to[bend left=50]
+                \draw[arr2, ->, onslide=<3>{alertcolor}] (Z) 
+										% to[bend left=50]
+										to[bend left=60, looseness=1]
                     node[above]{$d$} (X); }
             \onslide<5->{
                 \draw[arr2, <<-, onslide=<5>{alertcolor}] (X) --
@@ -1881,9 +1948,39 @@
                 \draw[arr2, <-, onslide=<4>{alertcolor}] (Z) --
                     node[above,pos=0.6]{$p$}
                     ++(-0.9, 0);}
-        \end{tikzpicture}}
-				\alert<6>{\;= \mathrm{ELBO}_{p,e,d}(x)}
+        \end{tikzpicture}\!\!\!}
+				\onslide<7->{
+					 = \mathrm{ELBO}_{p,e,d}(x) }
+				% \alert<6>{\;= \mathrm{ELBO}_{p,e,d}(x)}
     \]
+		\end{columns}
+    
+		\bigskip
+		\onslide<8->{
+		\usebeamercolor{alerted text} \color<8>{fg}
+		\[=~ \aar**{
+		\usebeamercolor{normal text} \color<8>{fg}
+		\begin{tikzpicture}[center base]%transform canvas={scale=1}
+			\node[dpadded, outer sep=0pt, minimum height=5em] (X) at (0,0) {$X$};
+			\node[dpadded, outer sep=0pt, minimum height=2.5em] (Z) at (3,0) {$Z$};
+			\node[dpadded, outer sep=0pt, minimum height=5.5em] (X2) at (6,0) {$\hat X$};
+			\fill[opacity=0.2, structurecolor] (X.north east) -- (Z.north west) -- (Z.south west) -- (X.south east) -- cycle;
+			\fill[opacity=0.2, structurecolor] (Z.north east) -- (X2.north west) -- (X2.south west) -- (Z.south east) -- cycle;
+			\draw[arr] (X) to
+			 	% node[below,inner sep=2pt]{\small encoder}
+			 	node[below,inner sep=2pt]{{$\scriptscriptstyle\color{gray}(\infty)$}}
+				node[above,inner sep=2pt]{$e(Z\mid X)$} (Z);
+			\draw[arr] (Z) to
+				% node[below]{\small decoder}
+				node[above]{$d(X \mid Z)$} (X2);
+			%
+			\draw[arr2, <<-] (X.west) -- node[above,pos=0.6]{$x$} ++(-0.6, 0);
+			\draw[arr2, <<-] (X2.east) -- node[above,pos=0.6]{$x$} ++(0.6, 0);
+			\draw[arr2, <-] (Z.north) -- node[left,pos=0.6]{$p$} ++(0, 0.6);
+			% \draw[arr, double equals sign distance] (X) to[bend right] (X2);
+		\end{tikzpicture}}
+		\]}
+		
     
 \end{frame}
 
@@ -1947,36 +2044,136 @@
 
 \begin{frame}
 	\frametitle{Divergences and Inconsistency}
-    \begin{lemma}[Divergences and PDGs]
-    	The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, the inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$, is given by
-        \[
-    		\thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
-            \aar[\bigg]{\begin{tikzpicture}[center base]
-                \node[dpad0] (X) {$X$};
-                \draw[arr2, <-] (X) --
-    			 		% node[above] {$\overset{(\beta : r)}p$}
-    			 		node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
-    			 		node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : r)}$}
-    				++(-1.1,0);
-                \draw[arr2, <-] (X) --
-    					% node[above,pos=0.5] {$\overset{(\beta : s)}q$}
-    			 		node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
-    			 		node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : s)}$}
-    				 ++(1.1, 0);
-            \end{tikzpicture}}
-            % = \thickD^{\mathrm{PDG}}_{(r,s)}(p, q)
-            = - (r+s) \log  \sum_x \left(p(x)^{r}\vphantom{\Big|} q(x)^{s}\right)^{\frac{1}{r+s}}.
-            % = - (r+s) \log \sum_x \! \sqrt[\leftroot{0}\uproot{2}r+s]{\vphantom{\big|}p(x)^{r} q(x)^{s}}
-        % \qquad\text{where}\qquad \xi:= \beta_p+\beta_q
-        \]
-    \end{lemma}
+	You believe both $p(X)$ and $q(X)$. \\
+	\onslide<2->{
+		Your inconsistency: a divergence between $p$ and $q$? }
+	\[
+		\onslide<4->{\mathllap{\text{Let }\thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=~}}
+		\alt<2->{\aar*}{}
+		% \only<2->{\aarphantom}
+		% \aarphantom*
+		{\begin{tikzpicture}[center base]
+		\node[dpad0] (X) {$X$};
+		\draw[arr2, <-] (X) --
+			% node[above] {$\overset{(\beta : r)}p$}
+			node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
+			node[below, pos=0.65, inner sep=3pt, align=center] {{\onslide<3->{
+				$\scriptscriptstyle{\color{gray}(\beta : r)}$}}}
+			++(-1.1,0);
+				\draw[arr2, <-] (X) --
+			% node[above,pos=0.5] {$\overset{(\beta : s)}q$}
+			node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
+			node[below, pos=0.65, inner sep=3pt, align=center] {{\onslide<3->{
+				$\scriptscriptstyle{\color{gray}(\beta : s)}$}}}
+			++(1.1, 0);
+		\end{tikzpicture}}
+		% \only<2->{\egroup}
+	 \]
+	
+	\onslide<5->{
+  \begin{lemma}%[Divergences and PDGs]
+  	% The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, the inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$, is given by
+    \begin{align*}
+  		\thickD^{\mathrm{PDG}}_{(r,s)}(p, q) 
+          = - (r+s) \log  \sum_x \left(p(x)^{r}\vphantom{\Big|} q(x)^{s}\right)^{\frac{1}{r+s}}.
+          % = - (r+s) \log \sum_x \! \sqrt[\leftroot{0}\uproot{2}r+s]{\vphantom{\big|}p(x)^{r} q(x)^{s}}
+      % \qquad\text{where}\qquad \xi:= \beta_p+\beta_q
+      \end{align*}
+    \end{lemma}}
+\end{frame}
+
+
+\begin{frame}\frametitle{Divergences as Inconsistencies}
+    \hspace*{-\beamerleftmargin}%
+    \resizebox{\paperwidth}{!}{
+    	\centering
+    	\def\ptradius{0.07}
+    	\begin{tikzpicture}[scale=1.8]
+    		\draw[help lines, color=gray!30, dashed] (-0.9,-1.4) grid (5.9,2.9);
+    		\draw[->,thick] (-1,0)--(6,0) node[right]{$\beta_p$};
+    		\draw[->,thick] (0,-1.5)--(0,3) node[above]{$\beta_q$} ;
+
+
+    		%concave part
+    		\fill[gray, fill opacity=0.2] (-1,1) -- (1.5,-1.5) -- (-1,-1.5) --cycle;
+    		\draw[gray, opacity=0.5, thick] (-1,1) --
+    		node[below left=3em, anchor=north, rotate=-45,font=\footnotesize,fill=gray!20,fill opacity=0.8, inner sep=1pt, outer sep=3pt] % at (-0.5,-0.5)
+    			{Non-convex region} (1.5,-1.5);
+    		%axis of symmetry
+    		% \draw[color=orange!25, thick] (-1, -1) -- (3,3);
+    		% \fill[orange, opacity=0.05] (-1,-1) -- (3,3) -- (-1,3) -- cycle;
+    		\draw[color=gray!80!orange!45, densely dashdotted] (-1, -1) -- (3,3);
+    		\draw[color=gray!80!orange!45, thick, <->] (2.8, 2.2) -- node[above right, anchor=south, rotate=-45,font=\footnotesize,fill=white,fill opacity=0.8, inner sep=1pt, outer sep=3pt]{Axis of Symmtry}(2.2,2.8);
+
+
+    		% Renyi Entropy Line
+    		\draw[blue!40, densely dashed, very thick, opacity=0.8]
+    		 	(0,1) -- node[below, align=center, pos=0.8, font=\footnotesize]{R\'enyi divergences\\for $\alpha \in (0,1)$} (5.6,1)
+    			(5.6,-1) -- node[above, align=center, pos=0.2, font=\footnotesize]{(negative) R\'enyi divergences\\ for $\alpha \in (1,\infty)$} (1,-1);
+    		%Chernoff Information Line
+    		\draw[red!40, densely dashed, very thick, opacity=0.9, (-), shorten <=6pt, shorten >=6pt]
+    		 	(0,1) -- node[pos=0.5,below left=1ex,anchor=north, rotate=-45, font=\footnotesize, align=center, fill=white,fill opacity=0.8, inner sep=1pt, outer sep=2pt]{Chernoff}
+                node[pos=0.5,below left=1.35em, anchor=north, rotate=-45, font=\footnotesize, align=center, fill=white,fill opacity=0.8, inner sep=0.5pt, outer sep=1pt]{Divergences} (1,0);
+    		%alpha divergence line
+    		\draw[domain=1.5:5.6, smooth, very thick, variable=\x, blue!50!green!50, opacity=0.8, densely dashed] plot ({\x}, {1/(1-1/\x)})
+    			node[rotate=-7, font=\footnotesize] at (3.9,1.55){$\alpha$-divergences};
+
+    		%%%% POINTS %%%%
+    		%[draw, very thick,fill=magenta!50!black]
+    		\fill (0.5,0.5) circle (\ptradius) node[above right, align=center,
+    			label={[yshift=0ex,xshift=-1ex,align=left,font=\footnotesize\color{gray!50}]right:Bhattacharya\\distance}]
+    			% {Bhattacharya\\distance};
+    			% {$\thickD^{\text{Bhattacharya}}$};
+    			{$\thickD_{B}(p,q)$};
+
+    		\fill (1,3.4) -- +(0:\ptradius) arc (0:-180:\ptradius) -- +(0:\ptradius)
+    			node[below]{$\vdots$}
+    			node[right=1ex, align=center,label={[yshift=1ex,xshift=0ex]below:\footnotesize\color{gray!50}Reverse KL}](revKL){$\kldiv qp$};
+
+    		\fill (6.4,1) -- +(270:\ptradius) arc (270:90:\ptradius) -- +(270:\ptradius)
+    			node[above=2pt, align=center,
+    				label={[yshift=-1ex,xshift=0ex]\footnotesize\color{gray!50} KL Divergence}] (FwdKL) {$\kldiv pq$}
+    			node[left]{$\cdots$};
+
+    		\fill (0,1) -- ++(-90:\ptradius) arc (-90:90:\ptradius)
+    			node[above right, align=center,
+    				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} Max Entropy}
+    			]{$\I_q(p > 0)$};
+
+    		% divergences requiring negative \beta
+    		\fill (2,-1) circle (\ptradius) node[below right, align=center,
+    				label={[yshift=1ex,xshift=1ex]below:\footnotesize\color{gray!50}$-\chi^2$ divergence}]
+    			{$-\chi^2\infdivx pq$};
+    		\fill (1,-1) -- ++(-45:\ptradius) arc (-45:135:\ptradius)
+    			node[above, align=center,
+    				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} $-$Min Entropy}]
+    			{$- \log \sup \frac pq$};
+
+
+
+    	\end{tikzpicture}
+        }
+    	% \caption{A map of the inconsistency of the PDG containing the distributions $p(X)$ and $q(X)$, as we vary their respective confidences $\beta_p$ and $\beta_q$. Solid circles indicate well-known named measures, and semicircles indicate limiting values. }
+    	% {A map of inconsistency
+    	% \(\aar[\bigg]{\begin{tikzpicture}[center base]
+    	% 	\node[dpad0] (X) {$X$};
+    	% 	\draw[arr2, <-] (X) --
+    	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
+    	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_p)}$}
+    	% 		++(-1.1,0);
+    	% 	\draw[arr2, <-] (X) --
+    	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
+    	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_q)}$}
+    	% 		 ++(1.1, 0);
+    	% \end{tikzpicture}}\)
+    	% as we vary the confidences $(\beta_p, \beta_q)$ in the distributions $p$ and $q$. }
+    	% \label{fig:statdistmap}
+        
 \end{frame}
 
 \begin{frame}[t] %% Visual Proof: DPI
     \frametitle{Visual Proof: Data Processing Inequality}
 		%
-		% "light gray script script"
-		\def\lgss{\color{gray!80}\scriptscriptstyle}%
 		\tikzset{ci2/.style={inner sep=2pt, align=center}}%
 		%
 		\colorlet{pcolor}{Plum}%
@@ -2085,93 +2282,6 @@
     	\end{tikzpicture}}
     \end{align*}
 \end{frame}
-\begin{frame}\frametitle{Divergences as Inconsistencies}
-    \hspace*{-\beamerleftmargin}%
-    \resizebox{\paperwidth}{!}{
-    	\centering
-    	\def\ptradius{0.07}
-    	\begin{tikzpicture}[scale=1.8]
-    		\draw[help lines, color=gray!30, dashed] (-0.9,-1.4) grid (5.9,2.9);
-    		\draw[->,thick] (-1,0)--(6,0) node[right]{$\beta_p$};
-    		\draw[->,thick] (0,-1.5)--(0,3) node[above]{$\beta_q$} ;
-
-
-    		%concave part
-    		\fill[gray, fill opacity=0.2] (-1,1) -- (1.5,-1.5) -- (-1,-1.5) --cycle;
-    		\draw[gray, opacity=0.5, thick] (-1,1) --
-    		node[below left=3em, anchor=north, rotate=-45,font=\footnotesize,fill=gray!20,fill opacity=0.8, inner sep=1pt, outer sep=3pt] % at (-0.5,-0.5)
-    			{Non-convex region} (1.5,-1.5);
-    		%axis of symmetry
-    		% \draw[color=orange!25, thick] (-1, -1) -- (3,3);
-    		% \fill[orange, opacity=0.05] (-1,-1) -- (3,3) -- (-1,3) -- cycle;
-    		\draw[color=gray!80!orange!45, densely dashdotted] (-1, -1) -- (3,3);
-    		\draw[color=gray!80!orange!45, thick, <->] (2.8, 2.2) -- node[above right, anchor=south, rotate=-45,font=\footnotesize,fill=white,fill opacity=0.8, inner sep=1pt, outer sep=3pt]{Axis of Symmtry}(2.2,2.8);
-
-
-    		% Renyi Entropy Line
-    		\draw[blue!40, densely dashed, very thick, opacity=0.8]
-    		 	(0,1) -- node[below, align=center, pos=0.8, font=\footnotesize]{R\'enyi divergences\\for $\alpha \in (0,1)$} (5.6,1)
-    			(5.6,-1) -- node[above, align=center, pos=0.2, font=\footnotesize]{(negative) R\'enyi divergences\\ for $\alpha \in (1,\infty)$} (1,-1);
-    		%Chernoff Information Line
-    		\draw[red!40, densely dashed, very thick, opacity=0.9, (-), shorten <=6pt, shorten >=6pt]
-    		 	(0,1) -- node[pos=0.5,below left=1ex,anchor=north, rotate=-45, font=\footnotesize, align=center, fill=white,fill opacity=0.8, inner sep=1pt, outer sep=2pt]{Chernoff}
-                node[pos=0.5,below left=1.35em, anchor=north, rotate=-45, font=\footnotesize, align=center, fill=white,fill opacity=0.8, inner sep=0.5pt, outer sep=1pt]{Divergences} (1,0);
-    		%alpha divergence line
-    		\draw[domain=1.5:5.6, smooth, very thick, variable=\x, blue!50!green!50, opacity=0.8, densely dashed] plot ({\x}, {1/(1-1/\x)})
-    			node[rotate=-7, font=\footnotesize] at (3.9,1.55){$\alpha$-divergences};
-
-    		%%%% POINTS %%%%
-    		%[draw, very thick,fill=magenta!50!black]
-    		\fill (0.5,0.5) circle (\ptradius) node[above right, align=center,
-    			label={[yshift=0ex,xshift=-1ex,align=left,font=\footnotesize\color{gray!50}]right:Bhattacharya\\distance}]
-    			% {Bhattacharya\\distance};
-    			% {$\thickD^{\text{Bhattacharya}}$};
-    			{$\thickD_{B}(p,q)$};
-
-    		\fill (1,3.4) -- +(0:\ptradius) arc (0:-180:\ptradius) -- +(0:\ptradius)
-    			node[below]{$\vdots$}
-    			node[right=1ex, align=center,label={[yshift=1ex,xshift=0ex]below:\footnotesize\color{gray!50}Reverse KL}](revKL){$\kldiv qp$};
-
-    		\fill (6.4,1) -- +(270:\ptradius) arc (270:90:\ptradius) -- +(270:\ptradius)
-    			node[above=2pt, align=center,
-    				label={[yshift=-1ex,xshift=0ex]\footnotesize\color{gray!50} KL Divergence}] (FwdKL) {$\kldiv pq$}
-    			node[left]{$\cdots$};
-
-    		\fill (0,1) -- ++(-90:\ptradius) arc (-90:90:\ptradius)
-    			node[above right, align=center,
-    				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} Max Entropy}
-    			]{$\I_q(p > 0)$};
-
-    		% divergences requiring negative \beta
-    		\fill (2,-1) circle (\ptradius) node[below right, align=center,
-    				label={[yshift=1ex,xshift=1ex]below:\footnotesize\color{gray!50}$-\chi^2$ divergence}]
-    			{$-\chi^2\infdivx pq$};
-    		\fill (1,-1) -- ++(-45:\ptradius) arc (-45:135:\ptradius)
-    			node[above, align=center,
-    				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} $-$Min Entropy}]
-    			{$- \log \sup \frac pq$};
-
-
-
-    	\end{tikzpicture}
-        }
-    	% \caption{A map of the inconsistency of the PDG containing the distributions $p(X)$ and $q(X)$, as we vary their respective confidences $\beta_p$ and $\beta_q$. Solid circles indicate well-known named measures, and semicircles indicate limiting values. }
-    	% {A map of inconsistency
-    	% \(\aar[\bigg]{\begin{tikzpicture}[center base]
-    	% 	\node[dpad0] (X) {$X$};
-    	% 	\draw[arr2, <-] (X) --
-    	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
-    	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_p)}$}
-    	% 		++(-1.1,0);
-    	% 	\draw[arr2, <-] (X) --
-    	% 			node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
-    	% 			node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta_q)}$}
-    	% 		 ++(1.1, 0);
-    	% \end{tikzpicture}}\)
-    	% as we vary the confidences $(\beta_p, \beta_q)$ in the distributions $p$ and $q$. }
-    	% \label{fig:statdistmap}
-        
-\end{frame}
 
 
 \section{Databases}
@@ -2195,7 +2305,7 @@
 \end{frame}
 
 \begin{frame} % Summary
-	\frametitle{Summary}
+	\frametitle{Technical Recap}
 	\TODO[update with second half]
 	PDGs\textellipsis 
 	\begin{itemize}[<+-|alert@+>]
@@ -2222,8 +2332,6 @@
 	
 
 \begin{frame}[label=current]
-	\TODO[return to initial slide, but with more conflicts]
-	
 	%% Draw:
 	% - many variables, edges
 	% - belief in good
@@ -2235,38 +2343,94 @@
 	% - Explains (variance in behavior?)
 	
 	\begin{center}
-		\only<1>{
-			\begin{tikzpicture}
-			\node[dpadded] (W) at(0,0) {$W$};
-			\node[dpadded] (O) at (2,0) {$\Omega$};
-			\node[dpadded] (A) at (0.8,1) {$A$};
+		% \begin{tikzpicture}
+		% 	\node[dpadded] (W) at (0,0) {$W$};
+		% 	\node[dpadded] (O) at (2,0) {$\Omega$};
+		% 	\node[dpadded] (A) at (0.8,1) {$A$};
+		% 	\node[dpadded] (U) at (3.8,0) {$U$};
+		% 	%
+		% 	
+		% 	\mergearr[->>] WAO
+		% 	\draw[arr2, ->>] (O) -- node[above]{$u$}  (U);
+		% \end{tikzpicture}
+		\begin{tikzpicture}
+			\node[dpadded,outer sep=2pt] (A) at (0.8,1) {$A$};
 			\node[dpadded] (U) at (3.8,0) {$U$};
+			\onslide<-2>{
+					\node[dpadded] (O) at (2,0) {$\Omega$}; 
+					\draw[arr2, ->>] (O) -- node[above]{$u$}  (U);
+				}
 			%
-			\draw[arr2, <-] (W) -- node[above]{$p$} ++(-1.5, 0);
-			\mergearr[->>] WAO
-			\draw[arr2, ->>] (O) -- node[above]{$u$}  (U);
-			\end{tikzpicture}
-		}
-		\only<2>{
-			\begin{tikzpicture}
-			\node[dpadded] (O) at (2,0) {$\Omega$};
-			\node[dpadded] (A) at (0.8,1) {$A$};
-			\node[dpadded] (U) at (3.8,0) {$U$};
-			%
-			\node[dpadded] (X) at (-1.4, -0.3) {$X$};
-			\node[dpadded] (Y) at (-0.4,-1.2) {$Y$};
-			\node[dpadded] (Z) at (0,0) {$Z$};
-			\node[dpadded, fit={(X)(Y)(Z)}, label={[label distance=-1em]120:$W$},
-			fill opacity=0.05,draw opacity=0.1,dashed] (W) {};
-			\draw[arr2] (X) to (Y);
-			\mergearr YZX
-			\mergearr AZO
-			\draw[arr2] (A) to[bend right] (X);
-			%			
-			\draw[arr2, ->>] (O) -- node[above]{$u$}  (U);
-			\end{tikzpicture}
-		}		
+			\onslide<1>{
+		 			\node[dpadded] (W) at (0,0) {$W$};
+					\draw[arr2, <-] (W) -- node[above]{$p$} ++(-1.5, 0); 
+					\mergearr[->>] WAO 
+				}
+			\onslide<2->{
+					\begin{scope}[every node/.style={dpadded, outer sep=0pt, inner sep=3pt}] %X1, X2, X3
+						\node (X1) at (-1.4, -0.3) {$X_1$};
+						\node (X2) at (-0.25,-1.2) {$X_2$};
+						\node (X3) at (0,0) {$X_3$};						
+						\end{scope}
+					\node[dpadded, % (new W) 
+							fit={(X1)(X2)(X3)},dashed,
+							label={[label distance=-0.8em,%
+								fill=white, rounded corners=5,inner sep=0pt]123:$W$},
+							fill opacity=0.05,draw opacity=0.2,inner sep=4pt] (newW) {};
+							
+					\draw[arr2] (X1) to[bend right] (X2);
+					\mergearr {X2}{X3}{X1}
+					\draw[arr2, <-] (X1) -- ++(-0.1, -0.8); 
+					% New merge arrow from worlds + actions -> outcomes
+					\onslide<2>{
+						% \mergearr A{X3}O
+						\coordinate (center1) at (0.8,0.0);
+						\coordinate (center2) at (1.0,0.1);
+
+						\draw[arr, -, shorten >=0pt] (X2) to[out=0, in=-110] (center1);
+						\draw[arr, -, shorten >=0pt] (X3) to[out=0, in=-170] (center1);
+						\draw[arr, -, shorten >=0pt,shorten <=0pt]
+							(center1) to[out=20, in=180] (center2);
+						\draw[arr, -, shorten >=0pt] (A) to[out=-90, in=150] (center2);
+						\draw[arr, ->, shorten <=0pt] (center2) -- (O);
+					}
+				}
+			\onslide<3-> {
+				\begin{scope}[every node/.style={dpadded, outer sep=0pt, inner sep=3pt}]
+					\node (X4) at (1.7,-0.9) {$X_4$};
+					\node (X5) at (2,0) {$X_5$};	
+					% \node (X6) at (2.2, -0.7) {$X_6$};
+				\end{scope}
+				\node[dpadded, % (new O) 
+					fit={(X4)(X5)},dashed, 
+					label={[label distance=-0.7em,%
+						fill=white, rounded corners=3,inner sep=0pt]-65:$\Omega$},
+						fill opacity=0.05,draw opacity=0.2,inner sep=4pt] (newO) {};	
+				\mergearr {X2}{X3}{X4}
+				\mergearr {A}{X3}{X5}
+				%
+				\onslide<3>{
+					\mergearr{X4}{X5}{U} }
+			}
+			\onslide<4->{
+				\draw[arr2] (X4) to[bend right=15] (U);
+				\draw[arr2] (X5) -- (U);
+			}
+			\onslide<5->{	
+				\draw[arr2] (A) to[bend right] (X1); 
+			}
+			\onslide<6->{
+				\draw[arr2,line width=0.3pt,gray!70,<-]
+					(U) -- node[above]{\tiny faith} ++ (1.5,0);
+			}
+		\end{tikzpicture}
 	\end{center}
+	
+	
+	\begin{itemize}
+		\item decompose states and beliefs (like PGMs)
+		\item driven by pursuit of coherent identity, not ``favorite number go up''
+	\end{itemize}
 	
 \end{frame}
 
