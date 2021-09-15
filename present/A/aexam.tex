@@ -66,20 +66,27 @@
 	\setbeamercolor{description item}{bg={structurecolor!20!white}}
 	% \setbeamercolor{alerted text}{fg=alertcolor!85!red}
 	\setbeamercolor{alerted text}{fg=alertcolor}
-    \setbeamertemplate{navigation symbols}{}
+	\gdef\customnav{}
+  % \setbeamertemplate{navigation symbols}{\customnav\insertframenavigationsymbol}
+  \setbeamertemplate{navigation symbols}{\customnav~\insertsectionnavigationsymbol}
+	\setbeamercolor{button}{fg=structurecolor,bg=structurecolor!15!white}
+	\renewcommand\beamerreturnbutton[1]{{%
+			\setbeamercolor{button}{fg=structurecolor!15!white,bg=black}%
+			\beamerbutton{\insertreturnsymbol#1}%			
+		}}
 
-    \makeatletter
-    \newlength\beamerleftmargin
-    \setlength\beamerleftmargin{\Gm@lmargin}
-    %% stolen from:
-    % https://tex.stackexchange.com/questions/34458/reference-overlay-numbers-with-names
-    \DeclareRobustCommand*{\savepause}[1]{\only<1>{\immediate\write\@auxout{\string\pauseentry{\the\c@framenumber}{#1}{\the\c@beamerpauses}}}}
-    \newcommand*{\usepause}[1]{\@ifundefined{pauses@\the\c@framenumber @#1}{1}{\@nameuse{pauses@\the\c@framenumber @#1}}}
-    \newcommand*{\pauseentry}[3]{\global\@namedef{pauses@#1@#2}{#3}}
-    \makeatother
+  \makeatletter
+  \newlength\beamerleftmargin
+  \setlength\beamerleftmargin{\Gm@lmargin}
+  %% stolen from:
+  % https://tex.stackexchange.com/questions/34458/reference-overlay-numbers-with-names
+  \DeclareRobustCommand*{\savepause}[1]{\only<1>{\immediate\write\@auxout{\string\pauseentry{\the\c@framenumber}{#1}{\the\c@beamerpauses}}}}
+  \newcommand*{\usepause}[1]{\@ifundefined{pauses@\the\c@framenumber @#1}{1}{\@nameuse{pauses@\the\c@framenumber @#1}}}
+  \newcommand*{\pauseentry}[3]{\global\@namedef{pauses@#1@#2}{#3}}
+  \makeatother
 
-    \newbool{precompiledfigs}% ...
-		\setbool{precompiledfigs}{false}
+  \newbool{precompiledfigs}% ...
+	\setbool{precompiledfigs}{false}
 		% the etoolbox way, which works with beamer.
 	% \setbeamercovered{dynamic}
 
@@ -270,7 +277,10 @@
 \usepackage{booktabs,microtype}
 \usepackage{mathtools, amsfonts, nicefrac, amssymb, bbm} % mathtools loads amsmath
 % \usepackage{faktor}
-\usepackage{subcaption}
+% \usepackage[overlay,absolute]{textpos}
+\usepackage[absolute,overlay]{textpos}
+	\setlength{\TPHorizModule}{\textwidth}
+	\setlength{\TPVertModule}{\textheight}
 \usepackage{amsthm,thmtools}
 	% \theoremstyle{plain}
 	% \let\theorem\relax
@@ -404,7 +414,7 @@
 
 \AtBeginSection[]
 {
-  \begin{frame}<beamer>
+  \begin{frame}<beamer>[noframenumbering]
     % \frametitle{Outline for section \thesection}
     \frametitle{Outline for Section \thesection}
 		% \setlength\fboxsep{0pt}
@@ -418,7 +428,7 @@
 				\end{minipage}
 
         \column{0.45\textwidth}
-				\begin{minipage}[t][0.8\textheight]{\linewidth}
+				\begin{minipage}[t][0.84\textheight]{\linewidth}
 				\raggedright
         \tableofcontents[currentsection,sections={<6->}]
 				\end{minipage}
@@ -444,24 +454,31 @@
             \setlength{\parskip}{0pt}
             \setlength{\parsep}{0pt}
         \item a probability distribution $p : \Delta W$ over worlds $W$,
-        \item a utility function $u:\Omega \to \mathbb R$
-				\item some actions $A$.
+        \item {\color{gray!80}(a utility function $u:\Omega \to \mathbb R$, 
+				% \item
+				 	some actions $A$).}
     \end{itemize}
     \medskip
 
     \begin{center}
         \begin{tikzpicture}
 					\onslide<2->{
-            \node[dpadded] (W) at (0,0) {$W$}; }
+            \node[dpadded, fill=blue!90] (W) at (0,0) {$W$};
+						\draw[arr2, <-] (W) -- node[above]{$p$} ++(-1.5, 0);  }
+					%
+					\begin{scope}[draw=gray!40,%text opacity=0.4,
+							muted/.style={text opacity=0.4, text=gray!80, fill opacity=0.08},
+							dpadded/.append style={muted, fill=gray!25},
+						]
 					\onslide<3->{
-            \node[dpadded] (O) at (2,0) {$\Omega$};
-            \node[dpadded] (U) at (3.8,0) {$U$}; }
-					\onslide<4->{
-						\node[dpadded] (A) at (0.8,1) {$A$}; }
-            %
-					\onslide<2->{ \draw[arr2, <-] (W) -- node[above]{$p$} ++(-1.5, 0); }
-					\onslide<3->{ \draw[arr2, ->>] (O) -- node[above]{$u$}  (U);}
-					\onslide<4->{ \mergearr[->>] WAO	}
+	            \node[dpadded] (O) at (2,0) {$\Omega$};
+	            \node[dpadded] (U) at (3.8,0) {$U$};
+							\draw[arr2, ->>] (O) -- node[above, pos=0.35, muted]{$u$}  (U);
+					% }	\onslide<4->{
+							\node[dpadded] (A) at (0.8,1) {$A$};
+							\mergearr[->>] WAO	
+					 	}
+					\end{scope}
         \end{tikzpicture}
     \end{center}
 
@@ -471,87 +488,81 @@
 		\pause[\thebeamerpauses]
 
     Such agents cannot have internal conflict;\\
-    {\color{gray}\hspace{1em} by construction, they have consistent beliefs and desires.}
+    {\color{black}\hspace{1em}\small by construction, they have consistent beliefs and desires.}
 \end{frame}
 
 \begin{frame}
     % Rhetorical Question
 		\frametitle{Why Inconsistency?}
-
+		
+		\medskip
 		Why \textbf{model} inconsistency?
-		\begin{itemize}[<+->]
-				\setlength{\itemsep}{0pt}
-				\setlength{\parskip}{0pt}
-				\setlength{\parsep}{0pt}
-			\item Sometimes people have inconsistent beliefs;
-			\item also want to understand the process of resolving it.
-		\end{itemize}
+	
+		{%
+				\setlength{\itemsep}{0pt}%
+				\setlength{\parskip}{0pt}%
+				\setlength{\parsep}{0pt}%
+			\begin{itemize}[<+->]
+					\item Sometimes people have inconsistent beliefs; %
+						\begin{itemize}%%
+						\item also want to understand the process of resolving it.
+						\end{itemize}%
+					\item Internal conflict seems to drive important epistemic change.
+				\end{itemize}%
+		}
 
 		\bigskip
 		\pause[\thebeamerpauses]
-		Why \textbf{build a system} that can be inconsistent%
+		Why \textbf{build a synthetic agent} that can be inconsistent%
 			%{\small\color{gray}, if inconsistency bad}
 			?
 
 		% Why \textbf{entertain the possibility of being wrong}?
 		\pause
 
+		{\setlength{\itemsep}{0pt}%
 		\begin{itemize}[<+->]
-		\item Why entertain the possibility of being wrong?
-			\begin{itemize}
-				% \item Why write assertions, which can fail?
-				\item Assertions and test cases can fail.
-				% \item Why attempt proofs of
-			\end{itemize}
-		\item Why adopt beliefs without first cross-checking all knowledge?
-
-		\item Why consult multiple models, that can give inconsistent answers?
-
-			\vspace{0.5em}
-			\begin{quotation}\small\it
-					A man with a watch knows what time it is.\\
-					A man with two watches is never sure.\\
-					-- Segal's Law
-				\end{quotation}
-		\end{itemize}
+			% \item Why adopt beliefs without first cross-checking all knowledge?
+			% \item Why entertain the possibility of being mistaken?
+			\item Ensuring consistency is restrictive and expensive.
+			\item Why write assertions and test cases?
+			% \begin{itemize}
+			% 	% \item Why write assertions, which can fail?
+			% 	\item Assertions and test cases can fail.
+			% 	% \item Why attempt proofs of
+			% \end{itemize}%
+			% \item Internal conflict is a valuable process for introspection and driver of change.
+			% \item Why consult multiple models, that can give inconsistent answers?
+			%
+			\item Less reliant on flawless design.
+			% \item Epistemic modesty is a virtue.
+				\vspace{0.6em}
+				
+				\begin{quotation}\small\it
+						A man with a watch knows what time it is;\\
+						a man with two watches is never sure.\\
+						\hspace{1em}(Segal's Law)
+					\end{quotation}
+		\end{itemize}}
 		\medskip
 
 		\pause[\thebeamerpauses]
-		Freedom from perfect consistency is valuable, \\
-		but demands that you also recognize and address internal conflict.
-
-    % \begin{block}{As a tool}
-    %     {Why build systems that can be inconsistent, if inconsistency is bad? }
-		% 		\pause
-		%
-    % 		{\small Why entertain the possibility of being wrong, if being wrong is bad? }
-		% 		\begin{itemize}
-		% 			\item because you can learn
-		% 			\item
-		% 		\end{itemize}
-    % \end{block}
-		%
-    %
-    % \begin{catblock}{}
-    %     a
-    % \end{catblock}
-		%
-		% Other successful
-    % \begin{itemize}
-    %     \item assertions and test cases:
-		%
-    %     \item
-    %     \item losses for training neural networks
-    %         \hfill\texttt{\color{gray} (totally separate from the probabilistic model)}
-    % \end{itemize}
-		%
-    % ALl of these are things you can find...
+		% Internal conflict is valuable ,\\
+		%% v1
+		% Freedom from perfect consistency is valuable, \\
+		% but demands that you also recognize and address internal conflict.
+		%% v2
+		% Internal conflict can let you better allocate computation \\ 
+		% but demands the ability to recognize and adress it.
+		%% v3
+		% Internal conflict is an important driver of change \\ 
+		Freedom from perfect consistency frees up \textbf{a lot} of computation, 
+		but demands the ability to recognize and adress internal conflict.
+		\smallskip
 \end{frame}
 
 
 \begin{frame}\frametitle{Yet Another Probabilistic Graphical Model}
-	% \TODO[remove slide, once intro is finished]
-	%
 	% We introduce \textit{probabilistic dependency graphs} (PDGs), a new class of graphical models
 	% for representing uncertainty.
 	%
@@ -566,15 +577,21 @@
 	% 	\item In doing so, we get much more \ldots
 	% \end{itemize}
 
-	We introduce \textit{probabilistic dependency graphs} (PDGs), a new class of
-	graphical models for representing uncertainty.
+	% We introduce
+	\textit{Probabilistic Dependency Graphs} (PDGs), \\
+	a new class of graphical model
+	% for representing uncertainty.	
+	designed to model inconsistent beliefs.
 
-	\begin{itemize}[<+-|alert@+>]
-		% \item Designed to tolerate inconsistency, so we can model it.
-		\item Designed to model inconsistent beliefs.
-		\item In doing so, we get much more \ldots
-	\end{itemize}
+	\bigskip
+	\hspace{1.5em}\pause
+	In doing so, we get much more \ldots
 
+	% \begin{itemize}[<+-|alert@+>]
+	% 	% \item Designed to tolerate inconsistency, so we can model it.
+	% 	\item Designed to model inconsistent beliefs.
+	% 	\item In doing so, we get much more \ldots
+	% \end{itemize}
 \end{frame}
 
 	\begin{frame} %%%%%%%%%%%        REVIEW OF BNS      %%%%%%%%%%%%%%%%
@@ -1081,7 +1098,7 @@
 						\end{description}
 
 				\item[$\Ed$]<+-> %\notation{$\subseteq \N \times \N \times \mathit{Label}~~~$}%
-					is a set of labeled edges $\{ \ed LXY \}$, \hfill\hyperlink{hypergraphextra}{\beamerbutton{(or hyper-edges)}}\\
+					is a set of labeled edges $\{ \ed LXY \}$, \hfill\hyperlink{hypergraphextra}{\beamergotobutton{(or hyper-edges)}}\\
 					\pause[\thebeamerpauses]
 					and associated to each $\ed LXY$, there is:
 
@@ -1144,7 +1161,7 @@
             The best posssible compatibility of $\dg M$ with any distribution: the  \emph{inconsistency} of $\dg M$
 
 				\item[{$\cdots$}]<+>~\\
-					(others: traces \& )
+					\hyperlink{sec:trace}{\beamergotobutton{trace semantics}}
     \end{description}
     % \pause
 \end{frame}
@@ -1157,7 +1174,7 @@
 	% \def\INCfst{2}
 	\def\INCmotfst{2}
 		% \def\INCmotlen{4}
-		\def\INCmotlen{4}
+		\def\INCmotlen{1}
 
 	\edef\INCfst{\the\numexpr \INCmotfst + \INCmotlen \relax}
 		\def\INClen{5}
@@ -1179,7 +1196,8 @@
 
 	% \def\IDEFfst{12}
 	\edef\IDEFfst{\the\numexpr \IDEFmotfst + \IDEFmotlen \relax}
-		\def\IDEFlen{3}
+		% \def\IDEFlen{3}
+		\def\IDEFlen{4}
 		\edef\IDEFlst{\the\numexpr\IDEFfst+\IDEFlen-1\relax}
 		\def\IDEFrange{\IDEFfst-\IDEFlst}
 		\def\IDEF+#1{\atslide{\IDEFfst+#1}}
@@ -1203,7 +1221,8 @@
 	\def\halfblocks{\INCexrange,\IDEFexrange,\INCandIDEF}
 \begin{frame}[t,label=semantics2] %%%
 	\frametitle{The Scoring Function }
-	\only<\IIboth+0->{
+		\hypertarget<\IDEFexlst>{returntosemantics}{}
+	\only<\IIboth+0->{ % this is actually at the end
 		\begin{itemize}
 			\item<\IIboth+1-|alert@\IIboth+1> A BN strictly enforces the qualitative picture (large $\gamma$)
 			\item<\IIboth+2-|alert@\IIboth+2> we are interested in the quantitative limit (small $\gamma$)
@@ -1226,9 +1245,10 @@
 
 	{\medskip}
 	\setlength\pdgdefnwidth{0.95\textwidth}
-	\only<\halfblocks>{\setlength\pdgdefnwidth{0.43\textwidth}}
+	% \only<\halfblocks>{\setlength\pdgdefnwidth{0.43\textwidth}}
+	\only<\halfblocks>{\setlength\pdgdefnwidth{0.47\textwidth}}
 
-	\only<2-\atslide{\INCfst-1}> {
+	\only<\atslide{\INCmotfst}-\atslide{\INCfst-1}> {
 		\smallskip
 		{\centering\parbox{0.8\textwidth}{\raggedright
 			\textbf{Intuition:}
@@ -1237,21 +1257,23 @@
 			Measure $\mu$'s violation of $\dg M$'s cpds.
 		}\par}
 
-		{\color{structurecolor}\scshape{Motivating Examples}.}
-		% \begin{center}
-		\hfill
-		$\dg M := \quad$
-		\begin{tikzpicture}[paperfig]
-			\node[dpadded] (1) {$\pdgunit$};
-			\node[dpadded, right=1 of 1] (X) {$X$};
-			\draw[arr1] (1) to[bend left=30] node[above] {$q$} (X);
-			\draw[arr1] (1) to[bend right=30] node[below] {$p$} (X);
-		\end{tikzpicture}
-		\hfill~
-		% \end{center}
-		% \vspace{-1em}
+		\onslide<\atslide{\INCmotfst+1}-\atslide{\INCfst-1}>{
+			{\color{structurecolor}\scshape{Motivating Examples}.}
+			% \begin{center}
+			\hfill
+			$\dg M := \quad$
+			\begin{tikzpicture}[paperfig]
+				\node[dpadded] (1) {$\pdgunit$};
+				\node[dpadded, right=1 of 1] (X) {$X$};
+				\draw[arr1] (1) to[bend left=30] node[above] {$q$} (X);
+				\draw[arr1] (1) to[bend right=30] node[below] {$p$} (X);
+			\end{tikzpicture}
+			\hfill~
+			% \end{center}
+			% \vspace{-1em}
 
-		Suppose $p = [.4, .6]$.
+			Suppose $p = [.4, .6]$.
+		}
 		\begin{itemize}
 			% \aitem@{INCmot}+1 If $p = \begin{idxmat}{$\star$}{$x_1$,$x_2$} .4 & .6 \end{idxmat} = q$, then $\dg M$ is consistent, and compatible with the joint distribution $\mu(X) = p$.
 			\aitem@{INCmot}+1 If $p = q$, then $\dg M$ is clearly consistent, and compatible with the joint distribution $\mu(X) = p = q$, so $\Inc_{\dg M}(p) = 0$.
@@ -1291,22 +1313,38 @@
 			The \emph{incompatibility} of
 			\only<\INCrange>{a joint distribution }$\mu$ with $\dg M$\alt<\INCrange>{ is given by}{:}
 			\def\fullnotate{\atslide{\INCfst+3}}
-			\alt<-\INC+2,\INCex+0->{ \[ % The simpler, less clear notation
-					\Inc_{\dg M}(\mu) :=
-						\sum_{\mathclap{\ed LXY}}\; \visible<\INC+1->{\alert<\INC+1>{\beta_L}} \;
-						\tikzmark{relentD}
-						\kldiv{ \mu_{Y|X} }{ \bp }
-				\] }{ \[ % The notation used in our paper
-					\Inc_{\dg M }( \mu) :=
-						\sum_{\mathclap{\ed LXY}} \beta_L \alert<\INC+3>{ \Ex_{x \sim \mu_{_X}} }
-						\tikzmark{relentD}
-						\kldiv[\Big]{ \mu \alert<\INC+3>{(Y \mid X \!=\! x)} }{\bp \alert<\INC+3>{(x)} }. \] }
+			\begin{align*}
+				\alt<-\INC+2,\INCex+0->{ % The simpler, less clear notation
+						\Inc_{\dg M}(\mu) :=&
+							\sum_{\mathclap{\ed LXY}}\; \visible<\INC+1->{\alert<\INC+1>{\beta_L}} \;
+							\tikzmark{relentD}
+							\kldiv{ \mu_{Y|X} }{ \bp }
+					}{  % The notation used in our paper
+						\Inc_{\dg M }( \mu) :=&
+							\sum_{\mathclap{\ed LXY}} \beta\ssub L \alert<\INC+3>{ \Ex_{x \sim \mu_{\!_X}} }
+							\tikzmark{relentD}
+							\kldiv[\Big]{ \mu \alert<\INC+3>{(Y \mid X \!=\! x)} }{\bp \alert<\INC+3>{(x)} }. }
+					\alt<\INCex+0->{}{%
+						\visible<\INC+4>{
+							\\=& \Ex\nolimits_\mu \sum_{{\ed LXY}} \beta\ssub L
+							 \Big( 
+								 % \I_{\bp} - \I_{\mu}
+								 	\underbrace{~~\I_{\bp}~~}_{\parbox{0.9in}{\centering\footnotesize%
+										code length,\\optimized for $\bp$\\to communicate\\$Y$ given $X$}} -
+									\underbrace{~~\I_{\mu}~~}_{\parbox{0.9in}{\centering\footnotesize% 
+										code length,\\optimized for $\mu$\\to communicate\\$Y$ given $X$}} 
+								\Big)
+							}}
+				\end{align*}\vfill
 			%
 			\only<\INC+2-\INC+3>{
 				\extra[name=Dexplain, below=1cm of pic cs:relentD, align=right,
 							fill=benchcolor1!40!structurecolor!20!white]{%
-						$\displaystyle\kldiv\mu\nu = \sum_{\mathclap{w \in \mathop{Supp}(\mu)}} \mu(w) \log \frac{\mu(w)}{\nu(w)}$
-						is the relative entropy \\[-1.2em] from $\nu$ to $\mu$.
+							% is
+							the
+							relative entropy\\[-0.6em]%
+						$\displaystyle\kldiv\mu\nu = \sum_{\mathclap{w \in \mathop{\mathrm{Supp}}\mu}} \mu(w) \log \frac{\mu(w)}{\nu(w)}\qquad$
+						(KL Divergence) \\[-1.1em] from $\nu$ to $\mu$.
 					}
 				\tikzro \draw[thick,structurecolor!70!black,draw opacity=0.5]
 					([xshift=0.5em,yshift=-0.2em]pic cs:relentD) -- ([xshift=0.5em]Dexplain.north); }
@@ -1317,7 +1355,7 @@
 			\end{defn}
 			\end{column}
 			}}
-		\only<\INCexrange>{
+		\only<\INCexrange>{ %%% Inc Examples (omitted for AAAI + other talk, INC mot used instead)
 			\column{\textwidth-\pdgdefnwidth}
 			\vspace{-1em}
 			{\centering\Large\color{structurecolor}\textsc{Examples}\par}
@@ -1348,7 +1386,7 @@
 					q \shorteq\!\! \begin{bmatrix} .9 \\ .1 \end{bmatrix}\! \right\}\!$}
 
 				\end{itemize}
-		}
+			}
 		\only<\IDEFmotfst-\atslide{\IDEFfst-1}>{{
 			\begin{column}{0.75\textwidth}
 
@@ -1473,11 +1511,15 @@
 						(opt. $\mu$ makes $X,Y$ share information)}
 			\end{itemize}
 
-			\onslide<\IDEFex+4>
-				{\hyperlink{idefextra}{\beamerbutton{Information Diagrams}}
-				\hypertarget<\IDEFex+4>{returntosemantics}{}}
-		}
+			\onslide<\IDEFex+4>%
+				{\hyperlink{idefextra}{\beamergotobutton{Information Diagrams}}}
+			}
 		\end{columns}
+		\alt<\IDEFlst>{
+			\gdef\customnav{{\hyperlink{idefextra}{\beamergotobutton{Information Diagrams}}}}
+		}{
+			\gdef\customnav{}
+		}
 	\end{frame}
 
 \begin{frame}
@@ -1503,18 +1545,6 @@
 
 	\begin{columns}
 		\column{0.85\textwidth}
-		\begin{prop}
-				% [{\normalsize{\it $\SD{\dg M}$ is the zero set of $\bbr{\dg M}$\;}}]
-				[{\small{\it the set of consistent distributions is the zero set of the scoring function}}]
-			$\SD{\dg M} \!= \big\{ \mu : \bbr{\dg M}_0(\mu) \!=\! 0 \big\}$.
-		\end{prop}
-
-		\begin{prop}[{\normalsize{\it If there there are distributions consistent
-			 		with $\dg M$, the best distribution is one of them.\;}}]
-					\label{prop:consist}
-				$\bbr{\dg M}^* \in \bbr{\dg M}_0^*$, so if $\dg M$ is consistent,
-				then $\bbr{\dg M}^* \in \SD{\dg  M}$.
-			\end{prop}
 
 		\column{0.15\textwidth}
 		% \rotatebox{-56}{Relationships between Semantics}
@@ -1530,7 +1560,9 @@
 	%
 	% 	\end{itemize}
 	% \end{prop}
-
+	\gdef\customnav{%
+		\hyperlink{more-semantics-properties}{\beamergotobutton{More Semantics Properties}}
+	}
 \end{frame}
 
 \begin{frame}
@@ -1556,29 +1588,32 @@
 
 	\begin{frame}%%%%%%%%%          BN THEOREM
 		\frametitle{Capturing Bayesian Networks}
-        For a BN $\mathcal B$ with $N$ nodes and a vector $\beta \in \mathbb R^N$,
-		let $\PDGof{\mathcal B, \beta}$ be the PDG
-		corresponding to $\mathcal B$, with $\alpha=\mathbf 1$, and the given vector $\beta$ of confidences.
+		\onslide<2->{
+      For a BN $\mathcal B$ with $N$ nodes and a vector $\beta \in \mathbb R^N$,
+			let $\PDGof{\mathcal B, \beta}$ be the PDG
+			corresponding to $\mathcal B$, with $\alpha=\mathbf 1$, and the given vector $\beta$ of confidences.
+		}
 
-        \begin{center}\only<.(1)>{\smash{
-            \vspace{1em}
-            \begin{tikzpicture}[{baseline=(current bounding box.north)}]
-                \node[dpadded] (1) at (0,0) {$\pdgunit$};
-                \node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
-                \node[dpadded] (S) at (3.2, 0.8) {$\mathit S$};
-                \node[dpadded] (SH) at (3.35, -0.8) {$\mathit{SH}$};
-                \node[dpadded] (C) at (4.8,0) {$\mathit C$};
-                %
-                \draw[arr1] (1) -- (PS);
-                \draw[arr2] (PS) -- (S);
-                \draw[arr2, onslide=<4>{benchcolor2}] (PS) -- (SH);
-                \mergearr{SH}{S}{C}
-                %
-                \end{tikzpicture}}} \end{center}
+    \begin{center}\only<.(1)>{\smash{
+      \vspace{1em}
+      \begin{tikzpicture}[{baseline=(current bounding box.north)}]
+          \node[dpadded] (1) at (0,0) {$\pdgunit$};
+          \node[dpadded] (PS) at (1.65,0) {$\mathit{PS}$};
+          \node[dpadded] (S) at (3.2, 0.8) {$\mathit S$};
+          \node[dpadded] (SH) at (3.35, -0.8) {$\mathit{SH}$};
+          \node[dpadded] (C) at (4.8,0) {$\mathit C$};
+          %
+          \draw[arr1] (1) -- (PS);
+          \draw[arr2] (PS) -- (S);
+          \draw[arr2, onslide=<4>{benchcolor2}] (PS) -- (SH);
+          \mergearr{SH}{S}{C}
+        \end{tikzpicture}
+			%
+			}} \end{center}
 
-        \vspace{-2em}
-        \pause
-		\begin{theorem}[{{\it BNs are PDGs}}] \label{thm:bns-are-pdgs}
+    \vspace{-2em}
+		\pause\pause
+		\begin{theorem}[{{BNs are PDGs}}] \label{thm:bns-are-pdgs}
 			% If $\mathcal B$ is a Bayesian network and $\Pr_{\mathcal B}$ is the distribution it specifies, then for all $\gamma > 0$ and all vectors $\beta$,
 			If $\mathcal B$ is a BN and $\Pr_{\mathcal B}$ is the distribution it specifies, then for all $\gamma > 0$ and all vectors $\beta$,
 			$$
@@ -1627,62 +1662,23 @@
 		% 	\end{itemize}
 		% \end{minipage}
 		\end{center}
+		
+		% \vfill
+		% 
+		% \begin{textpos}
+		% \end{textpos}
+		% \begin{textblock}{0.05}(0,1)
+		% \stretch{}
+		% \alt<2->{
+		\only<.>{\hypertarget<.>{returntobns}{}
+			\gdef\customnav{%
+				{\hyperlink{sec:bnmaxent}{%
+						\beamergotobutton{Corolary: BNs as Maximum Entropy Distributions}} }}%
+			}
+		% \end{textblock}
 		\end{frame}
+		\gdef\customnav{} % have to clear this.
 
-\begin{frame}
-		\frametitle{Bayesian Networks: Maximum Entropy?}
-    % \TODO[maximum entropy result for BNs]
-
-		\begin{columns}[c]
-			\small
-			\column{0.3\textwidth}
-				\centering
-				Common distributions tend to maximize entropy subject to natural constraints.
-
-			\column{0.7\textwidth}
-				\footnotesize
-				\renewcommand\arraystretch{1.2}
-				\color{gray}
-				\begin{tabular}{r|l}
-					\texttt{<distribution>}&\texttt{constraints}\\\hline
-					Gaussian $\mathcal N(\mu, \sigma^2)$ & mean $\mu$, variance $\sigma^2$ \\
-					Exponential $\mathrm{Exp}(\lambda)$& positive support, mean $\lambda$ \\
-					Factor graphs& moment matching. \\
-					$\cdots$ & $\cdots$ \\
-					\pause
-					\color{black}
-					Bayesian Networks & \color{black} cpds + \alert<.(1)>{???}
-				\end{tabular}
-		\end{columns}
-		\pause
-		\begin{center}
-			\small
-			\begin{tikzpicture}[scale=0.9]
-				\node[dpadded] (c1) at (0,0.6) {$C_1$};
-				\node[dpadded] (c2) at (0,-0.6) {$C_2$};
-				\node[dpadded] (X) at (2, 0) {$X$};
-
-				\draw[arr, <-] (c1) -- node[above]{50/50} ++(-2.1, 0);
-				\draw[arr, <-] (c2) -- node[above]{50/50} ++(-2.1, 0);
-				\cmergearr {c1}{c2}{X}{1,0}
-				% \node[below=0.2 of center-c1c2X]{
-				\node[right=0.2 of X,align=left]{
-					$\Pr(X\mid C_1,C_2)=$\\[0.1em]$\quad\begin{cases}
-						\mathbbm{1}{[X=x_0]} & \text{if } C_1 = C_2 \\
-						\mathrm{Unif}(X) & \text{if } C_1 \ne C_2
-					\end{cases}$
-				};
-			\end{tikzpicture}
-		\end{center}
-		\pause
-
-		\begin{coro}
-			Among the distributions in $\SD{\mathcal B}$,
-			$\Pr_{\mathcal B}$ has the maximum entropy, beyond the entropy of the given cpds.
-		\end{coro}
-		\vspace{-0.9em}
-		\[\text{$\IDef{}$ says maximize:}\quad \H(\mu) - \sum_{X \in \N} \H_\mu( X \mid \Pa\, X ) \]
-\end{frame}
 
 \subsection{Factor Graphs}
 \begin{frame} \frametitle{Factor Graphs}
@@ -1724,18 +1720,20 @@
 	% \begin{columns}
 	% \column{0.5\textwidth}
 	\begin{defn}
-		 A \only<7->{\alert<7>{weighted}} \emph{factor graph}
-		 \alt<-6>{$\Phi$}{$\Psi=(\Phi,\theta)$} is
-		 \pause
-		 a set of \alert<2>{variables $\mathcal X = \{X_i\}$},
-		 \pause
-		 \alt<-6>{and}{} \alert<3>{\emph{factors}} $\{\phi_J\colon \V(X_J) \to \mathbb R_{\geq0}\}_{\alert<3>{J \in
+		A \only<7->{\alert<7>{weighted}} \emph{factor graph}
+		\alt<-6>{$\Phi$}{$\Psi=(\Phi,\theta)$} is
+		\pause
+		a set of \alert<2>{variables $\mathcal X = \{X_i\}$},
+		\pause
+		\alt<-6>{and}{}%
+		\alert<3>{\emph{factors} }%
+		 	$\{\phi_J\colon \V(X_J) \to \mathbb R_{\geq0}\}_{\alert<3>{J \in
 		\mathcal J }}$,
 		\only<7->{\alert<7>{and weights $(\theta_J)_{J \in \mathcal J}$}}
 		with $X_J \subseteq \mathcal X$;
 		\pause
-		\alt<-6>{$\Phi$}{$\Psi$} defines a distribution
-		\[ \alert<6>{{\Pr}_{\alt<-6>{\Phi}{\Psi}}(\vec x) :=}~\frac{1}{Z_{\Phi}}
+		\alt<-6>{$\Phi$}{$\Psi$} defines a \alert<4>{distribution}
+		\[ \alert<4>{{\Pr}_{\alt<-6>{\Phi}{\Psi}}(\vec x) :=}~\frac{1}{Z_{\Phi}}
 		 	\prod_{J \in \cal J} \phi_J(\vec x_J)\only<7->{\alert<7>{^{\theta_J}}},
 			\qquad\parbox{1.8in}{\raggedright where $Z_{\alt<-6>{\Phi}{\Psi}}$ is the\\normalization constant.}
 			\]
@@ -1746,7 +1744,9 @@
 	% \column{0.5\textwidth}
 	% \begin{defn}
 		% A weighted factor graph (WFG) $\Psi= (\Phi, \theta)$ also has weights $(\theta_J)_{J \in \mathcal J}$.
-		\alt<-6>{$\Phi$}{$\Psi$} defines a scoring function called ``variational free energy''
+		\alt<-6>{$\Phi$}{$\Psi$} 
+			% defines a scoring function called ``variational free energy''
+			defines a standard scoring function
 		% \[ \VFE_\Phi(\mu) := \Ex_{\mu} \left[ \only<7->{\alert<7>{\theta_J}} \sum_{J \in \mathcal J} \log \frac{1}{\phi_J(X_J)} \right] - \H(\mu) \]
 		\[ \VFE_\Phi(\mu) := \Ex_{\mu} \Big[ - \sum_{J \in \mathcal J} \only<7->{\alert<7>{\theta_J}} \log {\phi_J(X_J)} \Big] - \H(\mu) \]
 	% \end{defn}
@@ -1833,16 +1833,17 @@
 	\pause
 	{\setbeamercolor{block body}{bg=structurecolor!50!white}
 	 \setbeamercolor{block title}{bg=structurecolor!70!black,fg=white}
-	\begin{theorem}\label{thm:pdg-is-wfg}
-		For all unweighted PDGs $\dg{N}$ and non-negative vectors $\mat v$
-		over the edges of $\dg N$, and all $\gamma > 0$, we have that
-		$\bbr{(\dg N, \mat v, \gamma \mat v)}_{\gamma}
-		= \gamma\,\VFE_{(\Phi_{\dg N}, \mat v)} $; consequently,
-		$\bbr{(\dg N,  \mat v,  \gamma\mat v)}_{\gamma}^*
-				= \{\Pr_{(\Phi_{\dg N}, \mat v)} \}$.
-	\end{theorem}
+		\begin{theorem}
+			If $\boldsymbol\beta = \gamma\boldsymbol\alpha $, then
+			$\bbr{\dg M}^*_\gamma = \Pr_{(\Phi_{\dg M}, \boldsymbol\beta)}$.
+		\end{theorem}
 	 }
+	 \hypertarget<.>{returnto-pdg-is-wfg}{}
+
+		\gdef\customnav{\hyperlink{thm:pdg-is-wfg}%
+			{\beamergotobutton{Precise Theorem Statement}}}
 	\end{frame}
+	\gdef\customnav{}
 
 % Why use PDGs over factor graphs
 \begin{frame}\frametitle{An Important Difference between PDGs and Factor Graphs}
@@ -1870,8 +1871,8 @@
 	\begin{itemize}[<+-|alert@+>]
 		\item If $p = q$, then $\bbr{\dg M}^* = p = q$\textellipsis
 		\item \textellipsis but $\Pr_{\Phi} \propto p^2$
-		\item Individual factors have \emph{no probabilistic meaning},
-		\item a factor graph can fail to normalize, in which case it has no global semantics either.
+		\item Individual factors have \emph{no probabilistic meaning}.
+		% \item a factor graph can fail to normalize, in which case it has no global semantics either.
 	\end{itemize}
 	\end{frame}
 
@@ -1958,47 +1959,62 @@
 	{\setbeamercolor{block body}{bg=structurecolor!50!white}
 	 \setbeamercolor{block title}{bg=structurecolor!70!black,fg=white}
 	\begin{theorem}
-	For all weighted factor graphs $\Psi = (\Phi,\theta)$ and all $\gamma > 0$,
-	we have that
-	$\VFE_\Psi
-	= \nicefrac1{\gamma} \bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}
-	+ C$
-	for some constant $C$, so
-	$\Pr_{\Psi}$ is the unique element of
-	$\bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}^*$.
+		% If $\boldsymbol\beta = \gamma\boldsymbol\alpha $, then
+		$\Psi$ can be translated to a PDG $\dg M_{\Psi}$
+		where $\boldsymbol \beta = k \boldsymbol\alpha$, and \vspace{-0.5em}
+		\[ \Pr\nolimits_\Psi = \bbr{\dg M_{\Psi}}^*_k \]
 	\end{theorem}
 	}
+	\hypertarget<.>{returnto-wfg-is-pdg}{}
 	\pause
 	\begin{block}{}
 		Also: $\log Z_\Phi = \aar{{\dg N}_{\Phi}}_1$.
 	\end{block}
+		\gdef\customnav{\hyperlink{thm:wfg-is-pdg}%
+			{\beamergotobutton{Full Theorem}}}
 	\end{frame}
+	\gdef\customnav{}
 
 % Scoring function breakdown
 \begin{frame} %%%%%%%      SCORING FUNCTION BREAKDOWN       %%%%%%
 	% \begin{prop}\label{prop:nice-score}%
-		Letting $x^{\mat w}$ and $y^{\mat w}$ denote the values of
-		$X$ and $Y$, respectively, in $\mat w \in \V(\dg M)$,
-		we have
+		% Let $x^{\mat w}$, $y^{\mat w}$ denote the values of
+		% $X$,$Y$ in world $\mat w$. Then:
+		\frametitle{PDG Semantics, Compared to that of Factor Graphs}
+		
+		{\small
 		\begin{equation*}\label{eq:semantics-breakdown}
-			\begin{split}
-				\bbr{\dg M}(\mu) =  \Ex_{\mat w \sim \mu}\! \Bigg\{
+			% \begin{split}
+				\bbr{\dg M}(\mu) = 
+				% \Ex_{\mat w \sim \mu}\! \Bigg\{
+				\Ex\nolimits_\mu	\!\!
 				 \sum_{ X \xrightarrow{\!\!L} Y  }
 				\bigg[\,
 				    {\color{benchcolor1}\overbrace{\color{black}
-				      \beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})}
+				      % \beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})}
+				      \beta\ssub L \log \frac{1}{\bp(Y|X)}
 					}^{\color{benchcolor1}\smash{\mathclap{\text{log likelihood / cross entropy}}}}}~+
-					 \qquad\qquad\qquad\\[-0.7em]\qquad\qquad
+					 % \qquad\qquad\qquad\\[-0.7em]\qquad\qquad
 				    {\color{benchcolor2}\underbrace{\color{black}
-				({\alpha_L}\gamma - \beta_L ) \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}
-					}_{\color{benchcolor2}\smash{\mathclap{\text{local regularization ($\beta_L >
-					\alpha_L
-					\gamma$)}}}}}~\bigg] - \color{structurecolor!70!blue}\underbrace{\color{black}
-				\gamma \log \frac{1}{\mu(\mat w)}
-					}_{\color{structurecolor!70!blue}\smash{\mathclap{\text{~~~~global
-				        regularization}}}}\color{black} \Bigg\} .
-				\end{split}
-			\end{equation*}
+				({\alpha \ssub L}\gamma - \beta\ssub L )
+						% \log \frac{1}{\mu(y^{\mat w} |x^{\mat w})}
+						\log \frac{1}{\mu(Y | X)}
+					}_{\color{benchcolor2}\smash{\mathclap{\text{local regularization (if $\beta\ssub L >	\alpha\ssub L
+					\gamma$)}}}}}~\bigg] - \color{structurecolor!70!blue}
+					\overbrace{\color{black}
+				% \gamma \log \frac{1}{\mu(\mat w)}
+				\gamma \H(\mu) \vphantom{\Big|}
+					}^{\color{structurecolor!70!blue}\smash{\mathclap{\text{%
+						% ~~~~global regularization
+						global regularization~~~~%
+						}}}}\color{black}
+								% \Bigg\} .				\end{split}
+								.
+			\end{equation*}}
+		\bigskip
+		\pause
+		And recall that
+		\[ \VFE_\Psi(\mu) := \Ex_{\mu} \left[ \sum_{J \in \mathcal J} {\theta_J} \log \frac1{\phi_J(X_J)} \right] - \H(\mu) \]
 		% \end{prop}
 	\end{frame}
 
@@ -2032,10 +2048,16 @@
 	\pause
 
 	\textbf{Querying $\Pr(Y\mid X)$ in a PDG $\dg M$.}
-	\begin{itemize}[<+-|alert@+>]
+	\begin{itemize}
+			[<+-|alert@+>]
+			% [<+->]
 		% \item We can add $\ed pXY$ to $\dg M$, to get ${\dg M}^{+p}$.
 		\item We can add $\ed pXY$ to $\dg M$, to get ${\dg M} \sqcup {p}$.
-		\item The choice of cpd $p$ that minimizes the inconsistency of $\dg M \sqcup {p}$ (which is strictly convex and smooth in $p$) is $\bbr{\dg M}^*(Y\!\mid \!X)$,
+		\item The choice of cpd $p$ that minimizes
+			% the inconsistency of $\dg M \sqcup {p}$ (which is strictly convex and smooth in $p$) 
+			the inconsistency
+			$\aar{\dg M \sqcup {p}}$
+			is $\bbr{\dg M}^*(Y\!\mid \!X)$,
 		\begin{itemize}
 			\item so an inconsistency oracle yields fast inference by gradient descent.
 		\end{itemize}
@@ -2100,13 +2122,16 @@
                  which makes results difficult to motivate, and vulnerable to overfitting.
             \end{itemize}
         \item Choice of \emph{model} admits more principled discussion.
-            % \begin{itemize}
+            \begin{itemize}
             %     % \item and a possibly-inconsistent model comes with a natural objective.
-            % \end{itemize}
+							\item Model makes claims about reality
+							\item For instance: priors correspond to (but are easier to criticize than) regularizers.
+            \end{itemize}
 
         % \item PDG Inconsistency gives
     \end{itemize}
-
+		\medskip
+		
     \pause
     \begin{block}{Surprising Result}
         Most standard objectives arise naturally as the inconsistency of the obvious PDG describing the situation.
@@ -2120,7 +2145,7 @@
         % \begin{enumerate}
         %     \item
         %     \item
-            An intuitive visual language for reasoning about relationships between objective functions.
+            An visual language for reasoning about relationships between objective functions.
         % \end{enumerate}
     \end{alertblock}
 \end{frame}
@@ -2130,22 +2155,34 @@
 
 
 \subsection{Standard Metrics as Inconsistency}
+	\def\multislide{5}
 \begin{frame} %% Surprise as Inconsistency
     % \frametitle{Warmup Example}
     \frametitle{Surprise as Inconsistency}
+		% Consider a distribution over $X$ with mass function $p(X)$.
+		Consider a distribution $p(X)$.\\\pause
+		The surprise {\color{gray!80}(information content)} at seeing a sample $x$ is:
+		\[ \I_p(x) := \log \frac1{p(X\!=\!x)} \]
+		
     \begin{prop}%[Surprise as Inconsistency]
-        Consider a distribution over $X$ with mass function $p(X)$.
-        % Consider $p(X)$.
-        The surprise (or information content)
-        $ \I_p(x) := - \log {p(X\!=\!x)}$
-        at seeing a sample $x$ is the inconsistency of the pdg containing $p$ and the event $X=x$ , i.e.,
-        \[\I_p(x) = \log \frac{1}{p(X\!=\!x)} =
+         % is the inconsistency of the pdg containing $p$ and the event $X=x$ , i.e.,
+				% \alt<-\multislide>
+				Surprise is the inconsistency of simultaneously believing $p$ and $X=x$. That is,
+        \[\I_p(x) =
+					% \log \frac{1}{p(X\!=\!x)} =
             \aar[\Big] {
             \begin{tikzpicture}[center base]
                 \node[dpad0] (X) {$X$};
                 \coordinate (A) at ($(X) + (-0.9,0)$);
                 \draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
-                \draw[arr2, <<-] (X) --  node[above,pos=0.7]{$\scriptstyle X\!=\,\!x$} ++(1.2, 0);
+                \draw[arr2, <<-] (X) -- 
+									node[above,pos=0.7]{%
+										\alt<\multislide->%
+											{\alert<\multislide>{$\datadist\xsamp$}}%
+											{$\scriptstyle X\!=\,\!x$}}%
+									node[below]{\only<\multislide->{\alert<\multislide>{%
+										$\scriptscriptstyle\color{gray!80}(\beta:\infty)$}}}
+									++(1.2, 0);
             \end{tikzpicture}
             }.
         \]
@@ -2154,7 +2191,7 @@
     \pause
     \begin{itemize}[<+-|alert@+>]
         \item PDG semantics just so happen to give the standard meaure of compatibility between a sample and distribution.
-        \item Known as ``surprise'', a particular kind of internal conflict.
+        \item ``surprise'': a particular kind of internal conflict.
         % \item Provides a straightforward (if somewhat circular) justification for the logarithm.
     \end{itemize}
 \end{frame}
@@ -2983,17 +3020,17 @@
 		\begin{tikzpicture}
 			\node[dpadded,outer sep=2pt] (A) at (0.8,1) {$A$};
 			\node[dpadded] (U) at (3.8,0) {$U$};
-			\onslide<-2>{
+			\onslide<-3>{
 					\node[dpadded] (O) at (2,0) {$\Omega$};
 					\draw[arr2, ->>] (O) -- node[above]{$u$}  (U);
 				}
 			%
-			\onslide<1>{
+			\onslide<-2>{
 		 			\node[dpadded] (W) at (0,0) {$W$};
 					\draw[arr2, <-] (W) -- node[above]{$p$} ++(-1.5, 0);
 					\mergearr[->>] WAO
 				}
-			\onslide<2->{
+			\onslide<3->{
 					\begin{scope}[every node/.style={dpadded, outer sep=0pt, inner sep=3pt}] %X1, X2, X3
 						\node (X1) at (-1.4, -0.3) {$X_1$};
 						\node (X2) at (-0.25,-1.2) {$X_2$};
@@ -3009,7 +3046,7 @@
 					\mergearr {X2}{X3}{X1}
 					\draw[arr2, <-] (X1) -- ++(-0.1, -0.8);
 					% New merge arrow from worlds + actions -> outcomes
-					\onslide<2>{
+					\onslide<3>{
 						% \mergearr A{X3}O
 						\coordinate (center1) at (0.8,0.0);
 						\coordinate (center2) at (1.0,0.1);
@@ -3022,7 +3059,7 @@
 						\draw[arr, ->, shorten <=0pt] (center2) -- (O);
 					}
 				}
-			\onslide<3-> {
+			\onslide<4-> {
 				\begin{scope}[every node/.style={dpadded, outer sep=0pt, inner sep=3pt}]
 					\node (X4) at (1.7,-0.9) {$X_4$};
 					\node (X5) at (2,0) {$X_5$};
@@ -3036,17 +3073,17 @@
 				\mergearr {X2}{X3}{X4}
 				\mergearr {A}{X3}{X5}
 				%
-				\onslide<3>{
+				\onslide<4>{
 					\mergearr{X4}{X5}{U} }
 			}
-			\onslide<4->{
+			\onslide<5->{
 				\draw[arr2] (X4) to[bend right=15] (U);
 				\draw[arr2] (X5) -- (U);
 			}
-			\onslide<5->{
+			\onslide<6->{
 				\draw[arr2] (A) to[bend right] (X1);
 			}
-			\onslide<6->{
+			\onslide<2->{
 				\draw[arr2,line width=0.3pt,gray!70,<-]
 					(U) -- node[above]{\tiny faith} ++ (1.5,0);
 			}
@@ -3055,7 +3092,7 @@
 
 
 	\begin{itemize}
-		\item decompose states and beliefs (like PGMs)
+		% \item decompose states and beliefs (like PGMs)
 		\item driven by pursuit of coherent identity, not ``favorite number go up''
 	\end{itemize}
 
@@ -3068,483 +3105,600 @@
 \section{Hyper-graphs}
 	\colorlet{hypergraphcolor}{benchcolor1}
 	\colorlet{simplegraphcolor}{structurecolor}
-% \setbeamercolor{background canvas}{bg=black}
-%  \setbeamercolor{normal text}{fg=white}
-%  \usebeamercolor[fg]{normal text}
+	% \setbeamercolor{background canvas}{bg=black}
+	%  \setbeamercolor{normal text}{fg=white}
+	%  \usebeamercolor[fg]{normal text}
 
-\begin{frame}[label=hypergraphextra] %%%%%         HYPER-GRAPHS AND GRAPHS      %%%%%%
-	\frametitle{{\color{hypergraphcolor}Hyper-graphs?} Or merely {\color{simplegraphcolor!85}graphs}?}
+	\begin{frame}[label=hypergraphextra] %%%%%         HYPER-GRAPHS AND GRAPHS      %%%%%%
+		\frametitle{{\color{hypergraphcolor}Hyper-graphs?} Or merely {\color{simplegraphcolor!85}graphs}?}
 
-	\hfill
-	\begin{tikzpicture||precompiled}[center base,draw=hypergraphcolor]{grok-pre}
-		\fill[fill opacity=0.07,hypergraphcolor, draw, draw opacity=0.2]
-			(-0.6,0.6) rectangle (2.1, -2.1);
-
-		\node[dpadded] (C) at (0,0) {$\mathit C$};
-		\node[dpadded] (T) at (1.5,0){$\mathit T$};
-		\node[dpadded] (SL) at (.75,-1.5){$\it SL$};
-
-		\draw[arr] (T) to[bend right]  (C);
-		\alert<2>{ \mergearr{C}{T}{SL} }
-		% \drawbb
-		\end{tikzpicture||precompiled}
-	\onslide<2->{
 		\hfill
-		\begin{tikzpicture||precompiled}[center base]{widget}%[center base]
-		\fill[fill opacity=0.07,simplegraphcolor, draw, draw opacity=0.2]
-			(-2.1,-1.85) rectangle (2.1, 1.6);
+		\begin{tikzpicture||precompiled}[center base,draw=hypergraphcolor]{grok-pre}
+			\fill[fill opacity=0.07,hypergraphcolor, draw, draw opacity=0.2]
+				(-0.6,0.6) rectangle (2.1, -2.1);
 
-			\node[dpadded] (SL) at (0,-1.3) {$\mathit{SL}$};
+			\node[dpadded] (C) at (0,0) {$\mathit C$};
+			\node[dpadded] (T) at (1.5,0){$\mathit T$};
+			\node[dpadded] (SL) at (.75,-1.5){$\it SL$};
 
-			\node[dpadded] (C) at (-1.5,1) {$\mathit C$};
-			\node[dpadded] (T) at (1.5,1) {$\mathit T$};
-
-			\alert<2>{
-				\node[dpadded,light pad] (CT) at (0, 0){$\scriptstyle C \times T$};
-				\draw[arr1, ->>] (CT) -- (C);
-				\draw[arr1, ->>] (CT) -- (T);
-				\draw[arr1] (CT) -- (SL);
-				}
-			\draw[arr] (T) to [bend right=15] (C);
+			\draw[arr] (T) to[bend right]  (C);
+			\alert<2>{ \mergearr{C}{T}{SL} }
 			% \drawbb
 			\end{tikzpicture||precompiled}
-		}
-		\hfill~
-	\onslide<3->{
-		\vspace{1em}
-		\begin{itemize}
-			\item<3-|alert@+> This widget expands state space, but graphs are simpler.
-			\item<4-> \alert<4>{There is a natural correspondence}
-			\[ \text{\color{hypergraphcolor} joint distributions}\quad\leftrightarrows\quad\parbox{15em}{\color{simplegraphcolor}\centering expanded joint distributions\\ satisfying coherence constraints} \]
-		\end{itemize}
-		}
-	\onslide<5->
-		{\small\color{gray} (working directly with hypergraphs is also possible)}
+		\onslide<2->{
+			\hfill
+			\begin{tikzpicture||precompiled}[center base]{widget}%[center base]
+			\fill[fill opacity=0.07,simplegraphcolor, draw, draw opacity=0.2]
+				(-2.1,-1.85) rectangle (2.1, 1.6);
 
-	\vskip0pt plus 1filll
-	\hfill\hyperlink{definition}{\beamerbutton{main definition}}
-	\end{frame} %----------
+				\node[dpadded] (SL) at (0,-1.3) {$\mathit{SL}$};
+
+				\node[dpadded] (C) at (-1.5,1) {$\mathit C$};
+				\node[dpadded] (T) at (1.5,1) {$\mathit T$};
+
+				\alert<2>{
+					\node[dpadded,light pad] (CT) at (0, 0){$\scriptstyle C \times T$};
+					\draw[arr1, ->>] (CT) -- (C);
+					\draw[arr1, ->>] (CT) -- (T);
+					\draw[arr1] (CT) -- (SL);
+					}
+				\draw[arr] (T) to [bend right=15] (C);
+				% \drawbb
+				\end{tikzpicture||precompiled}
+			}
+			\hfill~
+		\onslide<3->{
+			\vspace{1em}
+			\begin{itemize}
+				\item<3-|alert@+> This widget expands state space, but graphs are simpler.
+				\item<4-> \alert<4>{There is a natural correspondence}
+				\[ \text{\color{hypergraphcolor} joint distributions}\quad\leftrightarrows\quad\parbox{15em}{\color{simplegraphcolor}\centering expanded joint distributions\\ satisfying coherence constraints} \]
+			\end{itemize}
+			}
+		\onslide<5->
+			{\small\color{gray} (working directly with hypergraphs is also possible)}
+
+		% \vskip0pt plus 1filll
+		\gdef\customnav{\hyperlink{definition}{\beamerreturnbutton{main definition}}}
+		\end{frame} %----------
+		\gdef\customnav{}
 
 
 \section{The Information Deficiency}
+	\begin{frame}[label=idefextra]\frametitle{Illustrations of $\IDef{}$}
+		\def\vsize{0.4}
+		% \vskip0pt plus 1filll
+		% \tikzset{dpad0/.append style={fill opacity=0.1}}
+		\begin{tikzpicture}[center base,scale=1.5] %\label{subfig:justXY}
+			% \node[dpad0] (1) at (0,2){$\pdgunit$};
+			\node[dpad0] (X) at (-0.45,.85){$X$};
+			\node[dpad0] (Y) at (0.45,.85){$Y$};
+			\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
+			\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+			\useasboundingbox (current bounding box);
+			\node at (-0.8, 0.4){};
+			\end{tikzpicture}$\qquad$
+		%% EXAMPLE: X -> Y
+		\begin{tikzpicture}[center base,scale=1.5]%\label{subfig:XtoY}
+			% \node[dpad0] (1) at (0,2){$\pdgunit$};
+			\node[dpad0] (X) at (-0.45,0.85){$X$};
+			\node[dpad0] (Y) at (0.45,0.85){$Y$};
+			\draw[arr] (X) to[] (Y);
+			% \draw[arr] (1) to[] (Y);
+			\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+			\useasboundingbox (current bounding box);
+			\node at (-0.8, 0.4){};
+			\end{tikzpicture}$\qquad$
+		%% EXAMPLE: X ->> Y
+		\begin{tikzpicture}[center base,scale=1.5]%\label{subfig:XtoY}
+			% \node[dpad0] (1) at (0,2){$\pdgunit$};
+			\node[dpad0] (X) at (-0.45,0.85){$X$};
+			\node[dpad0] (Y) at (0.45,0.85){$Y$};
+			\draw[arr,->>] (X) to[] (Y);
+			% \draw[arr] (1) to[] (Y);
+			\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
+			\path[fill=red!50!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+			\useasboundingbox (current bounding box);
+			\node at (-0.8, 0.4){};
+			\end{tikzpicture}$\qquad$
+		%% EXAMPLE: X <-> Y
+		\begin{tikzpicture}[center base,scale=1.5] %\label{subfig:XY-cycle}
+			% \node[dpad0] (1) at (0,2){$\pdgunit$};
+			\node[dpad0] (X) at (-0.45,0.85){$X$};
+			\node[dpad0] (Y) at (0.45,0.85){$Y$};
+			\draw[arr] (X) to[bend left] (Y);
+			\draw[arr] (Y) to[bend left] (X);
+			\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
+			\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+			\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+			\node at (-0.85, 0.4){};
+			\end{tikzpicture}
 
-\begin{frame}[label=idefextra]\frametitle{Illustrations of $\IDef{}$}
-	\def\vsize{0.4}
-	\vskip0pt plus 1filll
-	% \tikzset{dpad0/.append style={fill opacity=0.1}}
-	\begin{tikzpicture}[center base,scale=1.5] %\label{subfig:justXY}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,.85){$X$};
-		\node[dpad0] (Y) at (0.45,.85){$Y$};
-		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
-		\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.8, 0.4){};
-		\end{tikzpicture}$\qquad$
-	%% EXAMPLE: X -> Y
-	\begin{tikzpicture}[center base,scale=1.5]%\label{subfig:XtoY}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,0.85){$X$};
-		\node[dpad0] (Y) at (0.45,0.85){$Y$};
-		\draw[arr] (X) to[] (Y);
-		% \draw[arr] (1) to[] (Y);
-		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
-		\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.8, 0.4){};
-		\end{tikzpicture}$\qquad$
-	%% EXAMPLE: X ->> Y
-	\begin{tikzpicture}[center base,scale=1.5]%\label{subfig:XtoY}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,0.85){$X$};
-		\node[dpad0] (Y) at (0.45,0.85){$Y$};
-		\draw[arr,->>] (X) to[] (Y);
-		% \draw[arr] (1) to[] (Y);
-		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
-		\path[fill=red!50!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.8, 0.4){};
-		\end{tikzpicture}$\qquad$
-	%% EXAMPLE: X <-> Y
-	\begin{tikzpicture}[center base,scale=1.5] %\label{subfig:XY-cycle}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,0.85){$X$};
-		\node[dpad0] (Y) at (0.45,0.85){$Y$};
-		\draw[arr] (X) to[bend left] (Y);
-		\draw[arr] (Y) to[bend left] (X);
-		\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.26) node[label=below:\tiny$X$]{};
-		\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.26) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
-		\node at (-0.85, 0.4){};
-		\end{tikzpicture}
+			% \vskip0pt plus 1filll \hfill
+			\gdef\customnav{%
+				\hyperlink{returntosemantics}{\beamerreturnbutton{back to semantics}}}
+		\end{frame}
+	
+	\begin{frame} % More IDef Illustrations
+		\def\vsize{0.4}
+		\def\bnslide{2}
+		\def\spacerlength{0.5em}
+		\begin{tikzpicture}[center base]\label{subfig:justX-0}
+			\node[dpad0] (X) at (0,1){$X$};
+			\draw[fill=green!50!black]  (0,0) circle (\vsize)  ++(-90:.22) node[label=below:\tiny$X$]{};
+			\useasboundingbox (current bounding box);
+			\node at (-0.5, 0.6){};
+			\end{tikzpicture}
+		\begin{tabular}{c}
+				\begin{tikzpicture}[onslide=<\bnslide>{is bn}]\label{subfig:justX-1}
+					\node[dpad0] (1) at (-0.4,.85){$\!\pdgunit\!$};
+					\node[dpad0] (X) at (0.4,.85){$X$};
+					\draw[arr1] (1)  -- (X);
+					\draw[fill=white!70!black]  (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+					\node at (-0.6,0.35){};
+					\useasboundingbox (current bounding box);
+					\node at (-0.7, 0.35){};
+					\end{tikzpicture} \\[0.5em]
+				\begin{tikzpicture}\label{subfig:justX-2}
+					\node[dpad0] (1) at  (-0.45,.85){$\!\pdgunit\!$};
+					\node[dpad0] (X) at  (0.45,.85){$X$};
+					\draw[arr1] (1) to[bend left=20] (X);
+					\draw[arr1] (1) to[bend right=20] (X);
+					\draw[fill=red!50!black] (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
+					\useasboundingbox (current bounding box);
+					\node at (-0.7, 0.35){};
+					\end{tikzpicture}
+			\end{tabular}%}
+			\hspace{\spacerlength}\vrule\hspace{\spacerlength}
+		% \adjustbox{valign=b}{
+		\begin{tabular}{c}
+				%% EXAMPLE: X  Y
+				\begin{tikzpicture}[] \label{subfig:justXY}
+					% \node[dpad0] (1) at (0,2){$\pdgunit$};
+					\node[dpad0] (X) at (-0.45,.85){$X$};
+					\node[dpad0] (Y) at (0.45,.85){$Y$};
+					\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+					\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+					\begin{scope}
+						\clip (-0.2,0) circle (\vsize);
+						\clip (0.2,0) circle (\vsize);
+						\fill[green!50!black] (-1,-1) rectangle (3,3);
+						% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+						% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+					\end{scope}
+					\draw (-0.2,0) circle (\vsize);
+					\draw (0.2,0) circle (\vsize);
+					\useasboundingbox (current bounding box);
+					\node at (-0.8, 0.4){};
+					\end{tikzpicture}\\[0.5em]
+				%% EXAMPLE: X -> Y
+				\begin{tikzpicture}[] \label{subfig:XtoY}
+					% \node[dpad0] (1) at (0,2){$\pdgunit$};
+					\node[dpad0] (X) at (-0.45,0.85){$X$};
+					\node[dpad0] (Y) at (0.45,0.85){$Y$};
+					\draw[arr1] (X) to[] (Y);
+					% \draw[arr] (1) to[] (Y);
+					\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+					\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+					\begin{scope}
+						\clip (-0.2,0) circle (\vsize);
+						\clip (0.2,0) circle (\vsize);
+						\fill[green!50!black] (-1,-1) rectangle (3,3);
+						% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+						% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+					\end{scope}
+					\draw (-0.2,0) circle (\vsize);
+					\draw (0.2,0) circle (\vsize);
+					\useasboundingbox (current bounding box);
+					\node at (-0.8, 0.4){};
+					\end{tikzpicture}
+			\end{tabular}%}
+			% \hspace{\spacerlength}
+		\begin{tabular}{c}
+				%% EXAMPLE: X <-> Y
+				\begin{tikzpicture}[center base]\label{subfig:XY-cycle}
+					% \node[dpad0] (1) at (0,2){$\pdgunit$};
+					\node[dpad0] (X) at (-0.45,0.85){$X$};
+					\node[dpad0] (Y) at (0.45,0.85){$Y$};
+					\draw[arr1] (X) to[bend left] (Y);
+					\draw[arr1] (Y) to[bend left] (X);
+					\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.25) node[label=below:\tiny$X$]{};
+					\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.25) node[label=below:\tiny$Y$]{};
+					\begin{scope}
+						\clip (-0.2,0) circle (\vsize);
+						\clip (0.2,0) circle (\vsize);
+						\fill[green!50!black] (-1,-1) rectangle (3,3);
+						% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+						% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+					\end{scope}
+					\draw (-0.2,0) circle (\vsize);
+					\draw (0.2,0) circle (\vsize);
+					\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+					\node at (-0.85, 0.4){};
+					\end{tikzpicture}\\[2.5em]
+					% \hspace{\spacerlength}
+				%% EXAMPLE: 1 -> Y;1->X
+				\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:XYindep}
+					\node[dpad0] (1) at (0,0.75){$\!\pdgunit\!$};
+					\node[dpad0] (X) at (-0.7,0.95){$X$};
+					\node[dpad0] (Y) at (0.7,0.95){$Y$};
+					\draw[arr0] (1) to[] (X);
+					\draw[arr0] (1) to[] (Y);
+					\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+					\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+					\begin{scope}
+						\clip (-0.2,0) circle (\vsize);
+						\clip (0.2,0) circle (\vsize);
+						\fill[red!50!black] (-1,-1) rectangle (3,3);
+						% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+					% \draw[ultra thick,white] (0.2,0) circle (\vsize);
+					\end{scope}
+					\draw (-0.2,0) circle (\vsize);
+					\draw (0.2,0) circle (\vsize);
+					\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
+					\node at (-0.88, 0.4){};
+					\end{tikzpicture}
+			\end{tabular}
+			\hspace{\spacerlength}
+		 %% EXAMPLE: 1 -> X -> Y
+		\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}]\label{subfig:1XY}
+			\node[dpad0] (1) at (0.15,2){$\!\pdgunit\!$};
+			\node[dpad0] (X) at (-0.45,1.4){$X$};
+			\node[dpad0] (Y) at (0.35,1){$Y$};
+			\draw[arr0] (1) to[] (X);
+			\draw[arr1] (X) to[] (Y);
+			\path[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
+			\begin{scope}
+				\clip (-0.2,0) circle (\vsize);
+				\clip (0.2,0) circle (\vsize);
+				% \fill[red!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
+				% \draw[ultra thick,white] (0.2,0) circle (\vsize);					\end{scope}
+			\end{scope}
+			\draw (-0.2,0) circle (\vsize);
+			\draw (0.2,0) circle (\vsize);
+			\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.6){};
+			\end{tikzpicture}
+			% \hspace{\spacerlength}\hspace{2.5pt}\vrule\hspace{2.5pt}\hspace{\spacerlength}
+		\relax	%CENTER CODE.
+			\vspace{0.5em}
+			\onslide<bnslide>{\tikz[is bn] \node{Achievable by BN}; }
+		
+		%% EXAMPLE: 1 -> X -> Y -> Z
+		\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:1XYZ}
+			% \node[dpad0] (1) at (-0.5,2.3){$\!\pdgunit\!$};
+			% \node[dpad0] (X) at (-0.5,1.5){$X$};
+			% \node[dpad0] (Y) at (0.35,1.25){$Y$};
+			% \node[dpad0] (Z) at (0.25,2.25){$Z$};
+			\node[dpad0] (1) at (-1,0.8){$\!\pdgunit\!$};
+			\node[dpad0] (X) at (-0.6,1.6){$X$};
+			\node[dpad0] (Y) at (0.35,1.6){$Y$};
+			\node[dpad0] (Z) at (1.0,0.9){$Z$};
+			\draw[arr0] (1) to (X);
+			\draw[arr1] (X) to[] (Y);
+			\draw[arr1] (Y) to[] (Z);
+			\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+			\path[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+			\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+			\begin{scope}
+				\clip (90:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[red!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+				\clip (-30:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\end{scope}
+			\begin{scope}
+				\draw[] (-30:0.22) circle (\vsize);
+				\draw[] (210:0.22) circle (\vsize);
+				\draw[] (90:0.22) circle (\vsize);
+			\end{scope}
+			\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){};
+			\end{tikzpicture}
+			\hspace{\spacerlength}
+		%% EXAMPLE: X -> Y -> Z -> X
+		\begin{tikzpicture}[center base] \label{subfig:XYZ-cycle}
+			% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
+			\node[dpad0] (X) at (-0.5,1.75){$X$};
+			\node[dpad0] (Y) at (0.35,1.25){$Y$};
+			\node[dpad0] (Z) at (0.25,2.25){$Z$};
+			% \draw[arr0] (1) to (X);
+			\draw[arr1] (X) to[bend right=25] (Y);
+			\draw[arr1] (Y) to[bend right=25] (Z);
+			\draw[arr1] (Z) to[bend right=25] (X);
+			%option: -- either X -> Y -> Z -> X, or <-> Y <-> Z <-> X. For the latter, uncomment the 6 lines below and comment out the next 3.
+			% \draw[arr1] (Z) to[bend left=5] (Y);
+			% \draw[arr1] (Y) to[bend left=5] (X);
+			% \draw[arr1] (X) to[bend left=5] (Z);
+			% \draw[fill=red!50!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+			% \draw[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+			% \draw[fill=red!50!black] (90:0.22) circle (\vsize) ++(140:.31) node[label=above:\tiny$Z$]{};
 
-		\vskip0pt plus 1filll
-		\hfill
-		% \hyperlink{returntosemantics}{\beamerbutton{back to semantics}}
-	\end{frame}
-\begin{frame} % More IDef Illustrations
-	\def\vsize{0.4}
-	\def\bnslide{4}
-	\def\spacerlength{0.5em}
-	\begin{tikzpicture}[center base]\label{subfig:justX-0}
-		\node[dpad0] (X) at (0,1){$X$};
-		\draw[fill=green!50!black]  (0,0) circle (\vsize)  ++(-90:.22) node[label=below:\tiny$X$]{};
-		\useasboundingbox (current bounding box);
-		\node at (-0.5, 0.6){};
-		\end{tikzpicture}
-	\begin{tabular}{c}
-	\begin{tikzpicture}[onslide=<\bnslide>{is bn}]\label{subfig:justX-1}
-		\node[dpad0] (1) at (-0.4,.85){$\!\pdgunit\!$};
-		\node[dpad0] (X) at (0.4,.85){$X$};
-		\draw[arr1] (1)  -- (X);
-		\draw[fill=white!70!black]  (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
-		\node at (-0.6,0.35){};
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.35){};
-		\end{tikzpicture} \\[0.5em]
-	\begin{tikzpicture}\label{subfig:justX-2}
-		\node[dpad0] (1) at  (-0.45,.85){$\!\pdgunit\!$};
-		\node[dpad0] (X) at  (0.45,.85){$X$};
-		\draw[arr1] (1) to[bend left=20] (X);
-		\draw[arr1] (1) to[bend right=20] (X);
-		\draw[fill=red!50!black] (0,0) circle (\vsize) ++(-90:.22) node[label=below:\tiny$X$]{};
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.35){};
-		\end{tikzpicture}
-	\end{tabular}%}
-	\hspace{\spacerlength}\vrule\hspace{\spacerlength}
-	%% EXAMPLE: X  Y
-	% \adjustbox{valign=b}{
-	\begin{tabular}{c}
-	\begin{tikzpicture}[]  \label{subfig:justXY}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,.85){$X$};
-		\node[dpad0] (Y) at (0.45,.85){$Y$};
-		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
-		\path[fill=green!50!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.8, 0.4){};
-		\end{tikzpicture}\\[0.5em]
-	%% EXAMPLE: X -> Y
-	\begin{tikzpicture}[]\label{subfig:XtoY}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,0.85){$X$};
-		\node[dpad0] (Y) at (0.45,0.85){$Y$};
-		\draw[arr1] (X) to[] (Y);
-		% \draw[arr] (1) to[] (Y);
-		\path[fill=green!50!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
-		\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.8, 0.4){};
-		\end{tikzpicture}
-	\end{tabular}%}
-	% \hspace{\spacerlength}
-	\begin{tabular}{c}
-	%% EXAMPLE: X <-> Y
-	\begin{tikzpicture}[center base]\label{subfig:XY-cycle}
-		% \node[dpad0] (1) at (0,2){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,0.85){$X$};
-		\node[dpad0] (Y) at (0.45,0.85){$Y$};
-		\draw[arr1] (X) to[bend left] (Y);
-		\draw[arr1] (Y) to[bend left] (X);
-		\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.25) node[label=below:\tiny$X$]{};
-		\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.25) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
-		\node at (-0.85, 0.4){};
-		\end{tikzpicture}\\[2.5em]
-	% \hspace{\spacerlength}%% EXAMPLE: 1 -> Y;1->X
-		\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:XYindep}
-		\node[dpad0] (1) at (0,0.75){$\!\pdgunit\!$};
-		\node[dpad0] (X) at (-0.7,0.95){$X$};
-		\node[dpad0] (Y) at (0.7,0.95){$Y$};
-		\draw[arr0] (1) to[] (X);
-		\draw[arr0] (1) to[] (Y);
-		\draw[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
-		\draw[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			\fill[red!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-		% \draw[ultra thick,white] (0.2,0) circle (\vsize);
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box.south west) rectangle (current bounding box.north east);
-		\node at (-0.88, 0.4){};
-		\end{tikzpicture}
-	\end{tabular}
-	\hspace{\spacerlength}
-	 %% EXAMPLE: 1 -> X -> Y
-	\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}]\label{subfig:1XY}
-		\node[dpad0] (1) at (0.15,2){$\!\pdgunit\!$};
-		\node[dpad0] (X) at (-0.45,1.4){$X$};
-		\node[dpad0] (Y) at (0.35,1){$Y$};
-		\draw[arr0] (1) to[] (X);
-		\draw[arr1] (X) to[] (Y);
-		\path[fill=white!70!black] (-0.2,0) circle (\vsize) ++(-110:.23) node[label=below:\tiny$X$]{};
-		\path[fill=white!70!black] (0.2,0) circle (\vsize) ++(-70:.23) node[label=below:\tiny$Y$]{};
-		\begin{scope}
-			\clip (-0.2,0) circle (\vsize);
-			\clip (0.2,0) circle (\vsize);
-			% \fill[red!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-0.2,0) circle (\vsize);
-			% \draw[ultra thick,white] (0.2,0) circle (\vsize);					\end{scope}
-		\end{scope}
-		\draw (-0.2,0) circle (\vsize);
-		\draw (0.2,0) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.6){};
-		\end{tikzpicture}
-	% \hspace{\spacerlength}\hspace{2.5pt}\vrule\hspace{2.5pt}\hspace{\spacerlength}
+			% grey filling for one covering.
+			\draw[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
+			\draw[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
+			\draw[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.31) node[label=above:\tiny$Z$]{};
 
-	\vspace{0.5em}
-	%% EXAMPLE: 1 -> X -> Y -> Z
-	\begin{tikzpicture}[center base, onslide=<\bnslide>{is bn}] \label{subfig:1XYZ}
-		% \node[dpad0] (1) at (-0.5,2.3){$\!\pdgunit\!$};
-		% \node[dpad0] (X) at (-0.5,1.5){$X$};
-		% \node[dpad0] (Y) at (0.35,1.25){$Y$};
-		% \node[dpad0] (Z) at (0.25,2.25){$Z$};
-		\node[dpad0] (1) at (-1,0.8){$\!\pdgunit\!$};
-		\node[dpad0] (X) at (-0.6,1.6){$X$};
-		\node[dpad0] (Y) at (0.35,1.6){$Y$};
-		\node[dpad0] (Z) at (1.0,0.9){$Z$};
-		\draw[arr0] (1) to (X);
-		\draw[arr1] (X) to[] (Y);
-		\draw[arr1] (Y) to[] (Z);
-		\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
-		\path[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
-		\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
-		\begin{scope}
-			\clip (90:0.22) circle (\vsize);
-			\clip (210:0.22) circle (\vsize);
-			\fill[red!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-			\clip (-30:0.22) circle (\vsize);
-			\fill[white!70!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-		\end{scope}
-		\begin{scope}
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				% \fill[white!70!black] (-1,-1) rectangle (3,3);
+				\clip (90:0.22) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\draw[] (-30:0.22) circle (\vsize);
+				\draw[] (210:0.22) circle (\vsize);
+				\draw[] (90:0.22) circle (\vsize);
+			\end{scope}
+			\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){};
+			\end{tikzpicture}
+			\hspace{\spacerlength}
+		%% EXAMPLE: X -> Y <- Z
+		\begin{tikzpicture}[center base] \label{subfig:XZtoY}
+			% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
+			\node[dpad0] (X) at (-0.45,1.9){$X$};
+			\node[dpad0] (Y) at (0.3,1.25){$Y$};
+			\node[dpad0] (Z) at (0.4,2.15){$Z$};
+			% \draw[arr0] (1) to (X);
+			\draw[arr0] (X) to[] (Y);
+			\draw[arr1] (Z) to[] (Y);
+			\path[fill=green!50!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+			\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+			\path[fill=green!50!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (90:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+
+				\clip (90:0.22) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\end{scope}
 			\draw[] (-30:0.22) circle (\vsize);
 			\draw[] (210:0.22) circle (\vsize);
 			\draw[] (90:0.22) circle (\vsize);
-		\end{scope}
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.7){};
-		\end{tikzpicture}
-	%% EXAMPLE: X -> Y -> Z -> X
-	\hspace{\spacerlength}
-	\begin{tikzpicture}[center base] \label{subfig:XYZ-cycle}
-		% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
-		\node[dpad0] (X) at (-0.5,1.75){$X$};
-		\node[dpad0] (Y) at (0.35,1.25){$Y$};
-		\node[dpad0] (Z) at (0.25,2.25){$Z$};
-		% \draw[arr0] (1) to (X);
-		\draw[arr1] (X) to[bend right=25] (Y);
-		\draw[arr1] (Y) to[bend right=25] (Z);
-		\draw[arr1] (Z) to[bend right=25] (X);
-		%option: -- either X -> Y -> Z -> X, or <-> Y <-> Z <-> X. For the latter, uncomment the 6 lines below and comment out the next 3.
-		% \draw[arr1] (Z) to[bend left=5] (Y);
-		% \draw[arr1] (Y) to[bend left=5] (X);
-		% \draw[arr1] (X) to[bend left=5] (Z);
-		% \draw[fill=red!50!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
-		% \draw[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
-		% \draw[fill=red!50!black] (90:0.22) circle (\vsize) ++(140:.31) node[label=above:\tiny$Z$]{};
+			\useasboundingbox (current bounding box);
+			% \node at (-0.7, 0.7){};
+			\end{tikzpicture}
+			\hspace{\spacerlength}
+		%% EXAMPLE: X <-> Y <-> Z
+		\begin{tikzpicture}[center base] \label{subfig:XYZ-bichain}
+			% \node[dpad0] (1) at (0.1,2.4){$\pdgunit$};
+			\node[dpad0] (X) at (-1,1.2){$X$};
+			\node[dpad0] (Y) at (0,1.7){$Y$};
+			\node[dpad0] (Z) at (1,1.4){$Z$};
+			% \draw[arr1] (1) to (X);
+			% \draw[arr1] (1) to (Y);
+			\draw[arr1] (X) to[bend right=15] (Y);
+			\draw[arr1] (Y) to[bend right=15] (X);
+			\draw[arr1] (Y) to[bend right=15] (Z);
+			\draw[arr1] (Z) to[bend right=15] (Y);
+			\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
+			\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
+			\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (90:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\clip (90:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[red!50!black] (-1,-1) rectangle (3,3);
+			\end{scope}
+			\begin{scope}
+				\clip (-30:0.22) circle (\vsize);
+				\clip (210:0.22) circle (\vsize);
+				\fill[white!70!black] (-1,-1) rectangle (3,3);
 
-		% grey filling for one covering.
-		\draw[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.27) node[label=below:\tiny$X$]{};
-		\draw[fill=white!70!black] (-30:0.22) circle (\vsize) ++(-50:.27) node[label=below:\tiny$Y$]{};
-		\draw[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.31) node[label=above:\tiny$Z$]{};
-
-		\begin{scope}
-			\clip (-30:0.22) circle (\vsize);
-			\clip (210:0.22) circle (\vsize);
-			% \fill[white!70!black] (-1,-1) rectangle (3,3);
-			\clip (90:0.22) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-		\end{scope}
-		\begin{scope}
+				\clip (90:0.22) circle (\vsize);
+				\fill[green!50!black] (-1,-1) rectangle (3,3);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (210:0.2) circle (\vsize);
+				% \draw[ultra thick,white] (90:0.2) circle (\vsize);
+			\end{scope}
 			\draw[] (-30:0.22) circle (\vsize);
 			\draw[] (210:0.22) circle (\vsize);
 			\draw[] (90:0.22) circle (\vsize);
-		\end{scope}
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.7){};
-		\end{tikzpicture}
-	%% EXAMPLE: X -> Y <- Z
-	\hspace{\spacerlength}
-	\begin{tikzpicture}[center base] \label{subfig:XZtoY}
-		% \node[dpad0] (1) at (-0.5,2.3){$\pdgunit$};
-		\node[dpad0] (X) at (-0.45,1.9){$X$};
-		\node[dpad0] (Y) at (0.3,1.25){$Y$};
-		\node[dpad0] (Z) at (0.4,2.15){$Z$};
-		% \draw[arr0] (1) to (X);
-		\draw[arr0] (X) to[] (Y);
-		\draw[arr1] (Z) to[] (Y);
-		\path[fill=green!50!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
-		\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
-		\path[fill=green!50!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
-		\begin{scope}
-			\clip (-30:0.22) circle (\vsize);
-			\clip (90:0.22) circle (\vsize);
-			\fill[white!70!black] (-1,-1) rectangle (3,3);
-		\end{scope}
-		\begin{scope}
-			\clip (-30:0.22) circle (\vsize);
-			\clip (210:0.22) circle (\vsize);
-			\fill[white!70!black] (-1,-1) rectangle (3,3);
+			\useasboundingbox (current bounding box);
+			\node at (-0.7, 0.7){};
+			\end{tikzpicture}
+		\end{frame}
+		\gdef\customnav{}
 
-			\clip (90:0.22) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-		\end{scope}
-		\draw[] (-30:0.22) circle (\vsize);
-		\draw[] (210:0.22) circle (\vsize);
-		\draw[] (90:0.22) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		% \node at (-0.7, 0.7){};
-		\end{tikzpicture}
-	%% EXAMPLE: X <-> Y <-> Z
-	\hspace{\spacerlength}
-	\begin{tikzpicture}[center base] \label{subfig:XYZ-bichain}
-		% \node[dpad0] (1) at (0.1,2.4){$\pdgunit$};
-		\node[dpad0] (X) at (-1,1.2){$X$};
-		\node[dpad0] (Y) at (0,1.7){$Y$};
-		\node[dpad0] (Z) at (1,1.4){$Z$};
-		% \draw[arr1] (1) to (X);
-		% \draw[arr1] (1) to (Y);
-		\draw[arr1] (X) to[bend right=15] (Y);
-		\draw[arr1] (Y) to[bend right=15] (X);
-		\draw[arr1] (Y) to[bend right=15] (Z);
-		\draw[arr1] (Z) to[bend right=15] (Y);
-		\path[fill=white!70!black] (210:0.22) circle (\vsize) ++(-130:.25) node[label=below:\tiny$X$]{};
-		\path[fill=red!50!black] (-30:0.22) circle (\vsize) ++(-50:.25) node[label=below:\tiny$Y$]{};
-		\path[fill=white!70!black] (90:0.22) circle (\vsize) ++(40:.29) node[label=above:\tiny$Z$]{};
-		\begin{scope}
-			\clip (-30:0.22) circle (\vsize);
-			\clip (90:0.22) circle (\vsize);
-			\fill[white!70!black] (-1,-1) rectangle (3,3);
-		\end{scope}
-		\begin{scope}
-			\clip (90:0.22) circle (\vsize);
-			\clip (210:0.22) circle (\vsize);
-			\fill[red!50!black] (-1,-1) rectangle (3,3);
-		\end{scope}
-		\begin{scope}
-			\clip (-30:0.22) circle (\vsize);
-			\clip (210:0.22) circle (\vsize);
-			\fill[white!70!black] (-1,-1) rectangle (3,3);
+\section{More on Semantics}
+	\begin{frame}[label=more-semantics-properties]
+		\frametitle{Relationships Between Semantics}
+		\begin{prop}%
+				% [{\normalsize{\it $\SD{\dg M}$ is the zero set of $\bbr{\dg M}$\;}}]
+				[{\small{\it the set of consistent distributions is the zero set of the scoring function}}]
+			$\SD{\dg M} \!= \big\{ \mu : \bbr{\dg M}_0(\mu) \!=\! 0 \big\}$.
+			\end{prop}
 
-			\clip (90:0.22) circle (\vsize);
-			\fill[green!50!black] (-1,-1) rectangle (3,3);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (-30:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (210:0.2) circle (\vsize);
-			% \draw[ultra thick,white] (90:0.2) circle (\vsize);
-		\end{scope}
-		\draw[] (-30:0.22) circle (\vsize);
-		\draw[] (210:0.22) circle (\vsize);
-		\draw[] (90:0.22) circle (\vsize);
-		\useasboundingbox (current bounding box);
-		\node at (-0.7, 0.7){};
-		\end{tikzpicture}
-	\end{frame}
+		\begin{prop}[{\normalsize{\it If there there are distributions consistent
+			 		with $\dg M$, the best distribution is one of them.\;}}]
+					\label{prop:consist}
+				$\bbr{\dg M}^* \in \bbr{\dg M}_0^*$, so if $\dg M$ is consistent,
+				then $\bbr{\dg M}^* \in \SD{\dg  M}$.
+			\end{prop}
+		
+		\gdef\customnav{\hyperlink{semantics-properties}{\beamerreturnbutton{back to semantics properties}}}
+		\end{frame}
+		\gdef\customnav{}
+
+	\begin{frame}[label=semantics-thermo]
+		\end{frame}
+
+\section{More on Graphical Models}
+	\subsection{BNs as MaxEnt}\label{sec:bnmaxent}
+	
+	\begin{frame} \frametitle{Bayesian Networks: Maximum Entropy?}
+			\begin{columns}[c]
+				\small
+				\column{0.3\textwidth}
+					\centering
+					Common distributions tend to maximize entropy subject to natural constraints.
+
+				\column{0.7\textwidth}
+					\footnotesize
+					\renewcommand\arraystretch{1.2}
+					\color{gray}
+					\begin{tabular}{r|l}
+						\texttt{distribution}&\texttt{constraints}\\\hline
+						Gaussian $\mathcal N(\mu, \sigma^2)$ & mean $\mu$, variance $\sigma^2$ \\
+						Exponential $\mathrm{Exp}(\lambda)$& positive support, mean $\lambda$ \\
+						Factor graphs& moment matching. \\
+						$\cdots$ & $\cdots$ \\
+						\pause
+						\color{black}
+						Bayesian Networks & \color{black} cpds + \alert<.(1)>{???}
+					\end{tabular}
+			\end{columns}
+			\pause
+			\begin{center}
+				\small
+				\begin{tikzpicture}[scale=0.9]
+					\node[dpadded] (c1) at (0,0.6) {$C_1$};
+					\node[dpadded] (c2) at (0,-0.6) {$C_2$};
+					\node[dpadded] (X) at (2, 0) {$X$};
+
+					\draw[arr, <-] (c1) -- node[above]{50/50} ++(-2.1, 0);
+					\draw[arr, <-] (c2) -- node[above]{50/50} ++(-2.1, 0);
+					\cmergearr {c1}{c2}{X}{1,0}
+					% \node[below=0.2 of center-c1c2X]{
+					\node[right=0.2 of X,align=left]{
+						$\Pr(X\mid C_1,C_2)=$\\[0.1em]$\quad\begin{cases}
+							\mathbbm{1}{[X=x_0]} & \text{if } C_1 = C_2 \\
+							\mathrm{Unif}(X) & \text{if } C_1 \ne C_2
+						\end{cases}$
+					};
+				\end{tikzpicture}
+			\end{center}
+			\pause
+
+			\begin{coro}
+				Among the distributions in $\SD{\mathcal B}$,
+				$\Pr_{\mathcal B}$ has the maximum entropy, beyond the entropy of the given cpds.
+			\end{coro}
+			\vspace{-0.9em}
+			\[\text{$\IDef{}$ says maximize:}\quad \H(\mu) - \sum_{X \in \N} \H_\mu( X \mid \Pa\, X ) \]
+			
+			% \vspace{-1em}\raggedleft
+			% \onslide<1->{\hyperlink{returntobns}{\beamerreturnbutton{back to BN theorem}}}
+			\gdef\customnav{\hyperlink{returntobns}{\beamerreturnbutton{back to BN theorem}}}
+			\end{frame}
+			\gdef\customnav{}
+				
+	\begin{frame} \frametitle{Full Factor Graph Results}
+		\begin{theorem}[PDGs are WFGs]\label{thm:pdg-is-wfg}
+			For all unweighted PDGs $\dg{N}$ and non-negative vectors $\mat v$
+			over the edges of $\dg N$, and all $\gamma > 0$, we have that
+			$\bbr{(\dg N, \mat v, \gamma \mat v)}_{\gamma}
+			= \gamma\,\VFE_{(\Phi_{\dg N}, \mat v)} $; consequently,
+			$\bbr{(\dg N,  \mat v,  \gamma\mat v)}_{\gamma}^*
+					= \{\Pr_{(\Phi_{\dg N}, \mat v)} \}$.
+		\end{theorem}
+		
+		\begin{theorem}[WFGs are PDGs]\label{them:wfg-is-pdg}
+			For all weighted factor graphs $\Psi = (\Phi,\theta)$ and all $\gamma > 0$,
+			we have that
+			$\VFE_\Psi
+			= \nicefrac1{\gamma} \bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}
+			+ C$
+			for some constant $C$, so
+			$\Pr_{\Psi}$ is the unique element of
+			$\bbr{{\dg M}_{\Psi,\gamma}}_{\gamma}^*$.
+			\end{theorem}
+		
+		\gdef\customnav{%
+			\hyperlink{returnto-pdg-is-wfg}{\beamerreturnbutton{PDG$\to$WFG}}
+			\hyperlink{returnto-pdg-is-wfg}{\beamerreturnbutton{WFG$\to$PDG}}
+		}%
+		\end{frame}
+		\gdef\customnav{}
 
 
 \section{Category Theory}
-{
-    \subsection{PDGs as diagrams of the Markov Category}
-    \setbeamercolor{background canvas}{bg=structurecolor!45!gray!25!black}
-    \setbeamercolor{normal text}{fg=white!75!black}
-    % \setbeamercolor{itemize item}{fg=yellow}
-    \setbeamertemplate{itemize item}[circle]
-    \begin{frame} %%%%%%%%%%%%% Definition of PDG, details (removed for AAAI) %%%%%%%%%%%
-    	% \colorlet{notationcolor}{benchcolor2!40!alertcolor}
-    	\setbeamercolor{alerted notation}{fg=benchcolor2!40!alertcolor}
-    	\setbeamercolor{base notation}{fg=notationcolor!60!black}
-        \setbeamercolor{notation}{use={base notation},fg=base notation.fg}
-    	\setbeamercolor{block body}{bg=structurecolor!05!black}
-    	\setbeamercolor{block title}
-            {bg=structurecolor!40!black,fg=structurecolor!30!white}
-        \usebeamercolor{background canvas}
-        \usebeamercolor[fg]{normal text}
+	\subsection{PDGs as diagrams of the Markov Category}
+	\begingroup % Keep styling local
+	  \setbeamercolor{background canvas}{bg=structurecolor!45!gray!25!black}
+	  \setbeamercolor{normal text}{fg=white!75!black}
+	  % \setbeamercolor{itemize item}{fg=yellow}
+	  \setbeamertemplate{itemize item}[circle]
+	
+  \begin{frame} %%%%%%%%%%%%% Definition of PDG, details (removed for AAAI) %%%%%%%%%%%
+  	% \colorlet{notationcolor}{benchcolor2!40!alertcolor}
+  	\setbeamercolor{alerted notation}{fg=benchcolor2!40!alertcolor}
+  	\setbeamercolor{base notation}{fg=notationcolor!60!black}
+      \setbeamercolor{notation}{use={base notation},fg=base notation.fg}
+  	\setbeamercolor{block body}{bg=structurecolor!05!black}
+  	\setbeamercolor{block title}
+          {bg=structurecolor!40!black,fg=structurecolor!30!white}
+      \usebeamercolor{background canvas}
+      \usebeamercolor[fg]{normal text}
 
-    	\setlength{\pdgdefnwidth}{0.55\textwidth}
-    	% \vspace{-1.5em}
-    	\begin{columns}[t]
-        % \column{0.5\textwidth-0.5\pdgdefnwidth}
-        % \hfill% \dotfill
+  	\setlength{\pdgdefnwidth}{0.55\textwidth}
+  	% \vspace{-1.5em}
+  	\begin{columns}[t]
+      % \column{0.5\textwidth-0.5\pdgdefnwidth}
+      % \hfill% \dotfill
 		\column{\pdgdefnwidth}
 		\begin{defn}[PDG]
 			\begin{description}%
@@ -3618,112 +3772,113 @@
         		\end{itemize}
 		\end{columns}
 
-	\vspace{1em}
-    \onslide<5->{\alert<5>{
-        Let ${\color{white}\mathbf{Mark}}$ be the category of measurable spaces and Markov kernels.}}
+		\vspace{1em}
+	    \onslide<5->{\alert<5>{
+	        Let ${\color{white}\mathbf{Mark}}$ be the category of measurable spaces and Markov kernels.}}
 
-    % \setbeamercolor{normal text}{fg=black}
-    % \usebeamercolor[fg]{normal text}
-    \setbeamercolor{block body}{bg=alertcolor!15!black}
-	\setbeamercolor{block title}{bg=alertcolor!30!black,fg=alertcolor}
-    \setbeamercolor{normal text}{fg=white!75!black}
-    \usebeamercolor[fg]{normal text}
-	\begin{block}<6>{Equivalent Categorical Definition}
-		An unweighted PDG is a functor
-		${\color{benchcolor1}\langle \mat p, \V\rangle}\colon {\color{benchcolor2}\mathit{Paths}(\N, \Ed)} \to {\color{white}\mathbf{Mark}}$.
+	    % \setbeamercolor{normal text}{fg=black}
+	    % \usebeamercolor[fg]{normal text}
+	    \setbeamercolor{block body}{bg=alertcolor!15!black}
+		\setbeamercolor{block title}{bg=alertcolor!30!black,fg=alertcolor}
+	    \setbeamercolor{normal text}{fg=white!75!black}
+	    \usebeamercolor[fg]{normal text}
+		\begin{block}<6>{Equivalent Categorical Definition}
+			An unweighted PDG is a functor
+			${\color{benchcolor1}\langle \mat p, \V\rangle}\colon {\color{benchcolor2}\mathit{Paths}(\N, \Ed)} \to {\color{white}\mathbf{Mark}}$.
 
-        So a PDG is a \emph{diagram} in ${\color{white}\mathbf{Mark}}$, in the usual mathematical sense.
+	        So a PDG is a \emph{diagram} in ${\color{white}\mathbf{Mark}}$, in the usual mathematical sense.
 		\end{block}
-	\end{frame}
+		\end{frame}
 
     \setbeamercolor{normal text}{fg=white!75!black}
-    \begin{frame} % Categorical Limits
-        \usebeamercolor[fg]{normal text}
-        What do you do with diagrams? Take {\color{blue!50!gray!60!white}limits}
-        {\color{gray!40!black}/ colimits}.
+	
+  \begin{frame} % Categorical Limits
+    \usebeamercolor[fg]{normal text}
+    What do you do with diagrams? Take {\color{blue!50!gray!60!white}limits}
+    {\color{gray!40!black}/ colimits}.
 
 
-        \onslide<+->{
-        \begin{center}
-            \begin{tikzpicture}[scale=1.2]
-                \begin{scope}[every node/.style={outer sep=0pt,inner sep=1pt}]
-                    \node (dots-left) at (-2, 0) {$\cdots$};
-                    \node (X1) at (-1,0) {$X_1$};
-                    \node (X2) at (0,-0.2) {$X_2$};
-                    \node (X3) at (1,0) {$X_3$};
-                    \node (dots-right) at (2,0) {$\cdots$};
-                \end{scope}
+    \onslide<+->{
+    \begin{center}
+      \begin{tikzpicture}[scale=1.2]
+        \begin{scope}[every node/.style={outer sep=0pt,inner sep=1pt}]
+          \node (dots-left) at (-2, 0) {$\cdots$};
+          \node (X1) at (-1,0) {$X_1$};
+          \node (X2) at (0,-0.2) {$X_2$};
+          \node (X3) at (1,0) {$X_3$};
+          \node (dots-right) at (2,0) {$\cdots$};
+        \end{scope}
 
-                \onslide<+(1)->{
-                    \begin{scope}[red!30!gray!70!black]
-                        \node (V) at (-0.5,1.2){$V$};
-                        \draw[arr2] (V) -- (X1);
-                        \draw[arr2] (V) -- (X2);
-                        \draw[arr2] (V) -- (X3);
+        \onslide<+(1)->{
+          \begin{scope}[red!30!gray!70!black]
+            \node (V) at (-0.5,1.2){$V$};
+            \draw[arr2] (V) -- (X1);
+            \draw[arr2] (V) -- (X2);
+            \draw[arr2] (V) -- (X3);
 
-                        \node[below left=0.05 and 0.1 of V,inner sep=0pt, outer sep=0pt] {$\scriptstyle\forall$};
-                    \end{scope}
-                }
-
-                \onslide<+(-1)->{
-                    \begin{scope}[blue!50!gray!60!white]
-                        \node (L) at (0.5,1){\alt<.(2)>{$\Omega$}{$L$}};
-                        \onslide<.(2)>{
-                            \node[right=1pt of L,anchor=west,blue!30!gray]{$\scriptstyle\cong X_1 X_3$};}
-                        \usebeamercolor{background canvas}
-                        \draw[line width=4pt,draw=bg] (L) -- (X1);
-                        \draw[line width=4pt,draw=bg] (L) -- (X2);
-                        \draw[line width=4pt,draw=bg] (L) -- (X3);
-                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X1);
-                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X2);
-                        \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X3);
-
-                        \onslide<+->{
-                            \draw[arr2, densely dashed] (V) -- node[above]{$\scriptstyle\exists!$} (L);
-                        }
-                    \end{scope}
-                }
-
-                \draw[arr2, ->>] (X1) -- (X2);
-                \draw[arr2, ->, onslide=<.(1)>{draw=fg!17!background canvas.bg}]
-                    (X3) -- (X2);
-            \end{tikzpicture}
-        \end{center}}
-
-        % \begin{prop}
-        \onslide<+->{
-        % \savepause{highlight-det-sub-pdg}
-        \alert<.>{%
-        For the deterministic sub-PDG $\dg M_{\mathrm{det}} \subseteq \dg M$:}
-            \[ \lim {\dg M}_{\mathrm{det}}
-                % = \faktor{\V(\dg M)}{ \sim }
-                = \Bigg(\parbox{0.9in}{\centering\color{gray!90!black} natural \\[-0.12em] sample space}~\Omega,~ \parbox{0.62in}{\raggedleft\color{gray!90!black} random\\[-0.12em] variables}~\Big\{ \tilde X : \Omega \to \V(X) \Big\}_{X \in \N}  \Bigg) \]
-        }
-        % \end{prop}
-        \bigskip
-
-        % For all of $\dg M$:
-        \onslide<+->{
-        \alert<.>{In general:}\vspace{-2.5em}
-        % \begin{prop}
-            \[ \hspace{1in} \lim \dg M = \Big( \mathrm{Verts}(\, {\color{gray!90!black}\underbrace{\usebeamercolor[fg]{normal text}%
-                    \,\mathbb L \dg M \,%
-                }_{\mathclap{\substack{\text{Locally Consistent Polytope}\\\text{\color{gray!50!black}(possible states of the
-                    % Belief Propagation
-                    Sum-Product
-                        algorithm)}}}} } \,),~~\{\,\text{\color{gray!90!black}variable marginals}\,\} \Big)  \]
-        % \end{prop}
+            \node[below left=0.05 and 0.1 of V,inner sep=0pt, outer sep=0pt] {$\scriptstyle\forall$};
+          \end{scope}
         }
 
-        \onslide<+->{
-        \alert<.>{
-        For a BN $\mathcal B$:} \vspace{-1.7em}
-        \[ \lim \PDGof{\mathcal B} = \bigg( \pdgunit,~\Big\{ \Pr\nolimits_{\mathcal B}(X) \Big\}_{X \in \N} \bigg) \]
+        \onslide<+(-1)->{
+          \begin{scope}[blue!50!gray!60!white]
+            \node (L) at (0.5,1){\alt<.(2)>{$\Omega$}{$L$}};
+            \onslide<.(2)>{
+                \node[right=1pt of L,anchor=west,blue!30!gray]{$\scriptstyle\cong X_1 X_3$};}
+            \usebeamercolor{background canvas}
+            \draw[line width=4pt,draw=bg] (L) -- (X1);
+            \draw[line width=4pt,draw=bg] (L) -- (X2);
+            \draw[line width=4pt,draw=bg] (L) -- (X3);
+            \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X1);
+            \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X2);
+            \draw[arr2,onslide=<.(2)>{->>}] (L) -- (X3);
+
+            \onslide<+->{ % exists unique arrow
+                \draw[arr2, densely dashed] (V) -- node[above]{$\scriptstyle\exists!$} (L);
+            	}
+          \end{scope}
         }
+
+        \draw[arr2, ->>] (X1) -- (X2);
+        \draw[arr2, ->, onslide=<.(1)>{draw=fg!17!background canvas.bg}]
+            (X3) -- (X2);
+      \end{tikzpicture}
+    \end{center}}
+
+    % \begin{prop}
+    \onslide<+->{
+    % \savepause{highlight-det-sub-pdg}
+    \alert<.>{%
+    For the deterministic sub-PDG $\dg M_{\mathrm{det}} \subseteq \dg M$:}
+        \[ \lim {\dg M}_{\mathrm{det}}
+            % = \faktor{\V(\dg M)}{ \sim }
+            = \Bigg(\parbox{0.9in}{\centering\color{gray!90!black} natural \\[-0.12em] sample space}~\Omega,~ \parbox{0.62in}{\raggedleft\color{gray!90!black} random\\[-0.12em] variables}~\Big\{ \tilde X : \Omega \to \V(X) \Big\}_{X \in \N}  \Bigg) \]
+    }
+    % \end{prop}
+    \bigskip
+
+    % For all of $\dg M$:
+    \onslide<+->{
+    \alert<.>{In general:}\vspace{-2.5em}
+    % \begin{prop}
+        \[ \hspace{1in} \lim \dg M = \Big( \mathrm{Verts}(\, {\color{gray!90!black}\underbrace{\usebeamercolor[fg]{normal text}%
+                \,\mathbb L \dg M \,%
+            }_{\mathclap{\substack{\text{Locally Consistent Polytope}\\\text{\color{gray!50!black}(possible states of the
+                % Belief Propagation
+                Sum-Product
+                    algorithm)}}}} } \,),~~\{\,\text{\color{gray!90!black}variable marginals}\,\} \Big)  \]
+    % \end{prop}
+    }
+
+    \onslide<+->{
+    \alert<.>{
+    For a BN $\mathcal B$:} \vspace{-1.7em}
+    \[ \lim \PDGof{\mathcal B} = \bigg( \pdgunit,~\Big\{ \Pr\nolimits_{\mathcal B}(X) \Big\}_{X \in \N} \bigg) \]
+    }
     \end{frame}
-
+	
 	\begin{frame} % Commutative Diagrams
 
-	\end{frame}
-}
+		\end{frame}
+	\endgroup% end color changes
 \end{document}
