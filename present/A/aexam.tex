@@ -1619,12 +1619,13 @@
 	\begin{frame}%%%%%%%%%          BN THEOREM
 		\frametitle{Capturing Bayesian Networks}
 		\onslide<2->{
-      For a BN $\mathcal B$ with $N$ nodes and a vector $\beta \in \mathbb R^N$,
-			let $\PDGof{\mathcal B, \beta}$ be the PDG
-			corresponding to $\mathcal B$, with $\alpha=\mathbf 1$, and the given vector $\beta$ of confidences.
+%     		For a BN $\mathcal B$ with $N$ nodes and a vector $\beta \in \mathbb R^N$,
+			For any $\beta$, let $\PDGof{\mathcal B, \beta}$ be the PDG
+			corresponding to $\mathcal B$, with $\alpha=\mathbf 1$, and confidences $\beta$.
+%			Straightforward to convert BN to PDG, except for confidences. 
 		}
 
-    \begin{center}\only<.(1)>{\smash{
+    \begin{center}\only<.(1)-.(2))>{\smash{
       \vspace{1em}
       \begin{tikzpicture}[{baseline=(current bounding box.north)}]
           \node[dpadded] (1) at (0,0) {$\pdgunit$};
@@ -2054,6 +2055,11 @@
 
 
 \section{Inference}
+%\begin{frame}
+%	BNs and FGs: simple semantics; ~~complex inference.\\
+%	\pause
+%	PDGs: more complicated semantics; inference follows from semantics.	
+%\end{frame}
 \begin{frame}\frametitle{Inconsistency}
 	Inconsistency: the optimal value of the scoring function.\\
 	%No subscript means quantitative limit:
@@ -2063,7 +2069,7 @@
 	
 	\bigskip
 	\pause
-	Nice properties for minimization:
+	Nice property for minimization:
 	\begin{itemize}
 		\item $\aar{\dg M}$ is strictly convex and smooth in cpds ~ {\small\color{gray}(on the interior)}
 	\end{itemize}
@@ -2101,6 +2107,7 @@
 	\pause
 
 	\textbf{Querying $\Pr(Y\mid X)$ in a PDG $\dg M$.}
+	\pause
 	\begin{itemize}
 			[<+-|alert@+>]
 			% [<+->]
@@ -2177,15 +2184,22 @@
         \item Choice of \emph{model} admits more principled discussion.
             \begin{itemize}
             %     % \item and a possibly-inconsistent model comes with a natural objective.
-							\item Model makes claims about reality
-							\item For instance: priors correspond to (but are easier to criticize than) regularizers.
+						\item Model makes claims about reality.
+						\item For instance: priors correspond to regularizers, but can be wrong.
+						\alt<-.(3)>{
+						\begin{align*}
+							\onslide<+->{\text{Bayes Rule: } \text{posterior}
+%								 &= \frac{\text{likelihood} \cdot \text{prior}}{\text{evidence}} } \\
+								& \propto \text{likelihood} \cdot {\color{red}\text{prior}}} \\
+							\onslide<+->{\log \text{posterior} &= \log \text{likelihood} + {\color{red}\log \text{prior}} + C}\\[-0.4em]
+							\onslide<+->{\footnotesize\color{gray}\text{(new objective)} &~~~~\footnotesize\color{gray} \text{(old objective)} ~~~~~ {\color{red!50!gray}\text{(regularizer)}} }
+						\end{align*}\vspace{-6.2em}\par}{\addtocounter{beamerpauses}{3}}
             \end{itemize}
-
         % \item PDG Inconsistency gives
     \end{itemize}
-		\medskip
+		\smallskip
 
-    \pause
+    \pause[\thebeamerpauses]
     \begin{block}{Surprising Result}
         Most standard objectives arise as the inconsistency of the natural PDG describing the situation.
         % {\color{gray} (including some that are traditionally difficult to motivate)}.
@@ -2201,14 +2215,15 @@
             A visual language for reasoning about relationships between objectives.
         % \end{enumerate}
     \end{alertblock}
+	\gdef\customnav{\hyperlink{regularizationframe}{\beamergotobutton{Priors and Regularizers}}}
 \end{frame}
-
+	\gdef\customnav{}
 
 
 
 
 \subsection{Standard Metrics}
-	\def\xentoverlay{5}
+	\def\xentoverlay{6}
 \begin{frame}<-\numexpr\xentoverlay-1\relax>[label=surpriseframe] %% Surprise
     % \frametitle{Warmup Example}
     \frametitle{Surprise as Inconsistency}
@@ -2217,6 +2232,7 @@
 		The surprise {\color{gray!80}(information content)} at seeing a sample $x$ is:
 		\[ \I_p(x) := \log \frac1{p(X\!=\!x)}. \]
 
+	\pause
     \begin{prop}%[Surprise as Inconsistency]
          % is the inconsistency of the pdg containing $p$ and the event $X=x$ , i.e.,
 		\alt<\xentoverlay->{\alert{Average}}{} Surprise
@@ -2744,9 +2760,11 @@
 				\onslide<2->{
 		     	\aar*{\begin{tikzpicture}[center base]
 		    		\node[dpad0] (Z) {$Z$};
-		    		\node[dpad0,right=.5 of Z] (X) {$X$};
+		    		\node[dpad0,right=.6 of Z] (X) {$X$};
 		    		\draw[arr2, ->] (X) to[bend left=50]
-		    			node[below]{$\scriptstyle e!$} (Z);
+%		    			node[below]{$\scriptstyle e!$} (Z);
+						node[above, inner sep=1pt]{${\lgss\Tiny\infty}$}
+						node[below]{$\scriptstyle e$} (Z);
 		    		\draw[arr2, ->] (Z) to[bend left=50]
 		    			node[above]{$\scriptstyle d$} (X);
 		    		\draw[arr2, <<-] (X) --
@@ -2758,6 +2776,7 @@
 		    	\end{tikzpicture}}
 	        \\[-0.7em]&\hspace{1.2in}=~ -\mathrm{ELBO}_{p,e,d}(x).}
 	    \end{align*}
+	   \hypertarget<3>{variational-bound}{}
 			\gdef\customnav{\hyperlink{dpiframe}{\beamergotobutton{Another Visual Proof: Data Processing Inequality}}}
 		\end{frame}
 	\gdef\customnav{}
@@ -4047,7 +4066,9 @@
     		   ++(-1.1, 0);%
     	\end{tikzpicture}}
     \end{align*}
+    \gdef\customnav{\hyperlink{variational-bound}{\beamerreturnbutton{back to variational bound proof}}}
 	\end{frame}
+	\gdef\customnav{}
 \section{More Category Theory}
 	\label{sec:cats}
 	\subsection{PDGs as diagrams of the Markov Category}
