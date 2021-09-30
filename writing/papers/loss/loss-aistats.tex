@@ -43,24 +43,39 @@
 	\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
 	\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
 
+	\newcommand\cmergearr[5][]{
+		\draw[arr, #1, -] (#2) -- (#5) -- (#3);
+		\draw[arr, shorten <=0, #1] (#5) -- (#4);
+		}
+	\newcommand\mergearr[4][]{
+		\coordinate (center-#2#3#4) at (barycentric cs:#2=1,#3=1,#4=1.2);
+		\cmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
+		}
+	\newcommand\cunmergearr[5][]{
+		\draw[arr, #1, -, shorten >=0] (#2) -- (#5);
+		\draw[arr, shorten <=0, #1] (#5) -- (#3);
+		\draw[arr, shorten <=0, #1] (#5) -- (#4);
+		}
+	\newcommand\unmergearr[4][]{
+		\coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
+		\cunmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
+		}
+
 \usepackage[utf8]{inputenc}
 \usepackage{mathtools}
-% \usepackage{bbold}
-\usepackage{amssymb, graphicx}
-\usepackage{parskip}
-\usepackage{algorithm}
+\usepackage{amssymb}
+% \usepackage{parskip}
+% \usepackage{algorithm}
 \usepackage{bbm}
 \usepackage{faktor}
-\usepackage{booktabs}
-% \usepackage{algpseudocode}
+% \usepackage{booktabs}
 \usepackage{graphicx}
-% \usepackage[margin=1.15in, marginpar=1.1in, marginparsep=14pt]{geometry}
 \usepackage{scalerel}
+\usepackage{enumitem}
+\usepackage{nicefrac}\let\nf\nicefrac
 
 \usepackage{hyperref} % Load before theorems...
 
-
-\usepackage{enumitem}
 \usepackage{amsthm,thmtools}
 	\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
     \theoremstyle{plain}
@@ -76,7 +91,6 @@
 	\crefname{defn}{Definition}{Definitions}
 	\crefname{prop}{Proposition}{Propositions}
 
-\usepackage{nicefrac}\let\nf\nicefrac
 \usepackage{color}
     %\usepackage{stmaryrd}
     \hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=green!50!black}
@@ -185,73 +199,73 @@
 	% 	{\nhphantom{\langle}{#1}\hspace{1.2pt}\delimsize\langle\mathopen{}#1\mathclose{}\delimsize\rangle\hspace{1.2pt}\nhphantom{\rangle}{#1}}
 
 
-%%%%% restatables and links
-% \usepackage{xstring} % for expandarg
-\usepackage{xpatch}
-\makeatletter
-\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
-   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
-   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
-   {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
-   \else\fi}
-   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure
-\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
-   {\csname end#2\endcsname}
-   {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
-   {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
+\relax %%%%% restatables and links
+	% \usepackage{xstring} % for expandarg
+	\usepackage{xpatch}
+	\makeatletter
+	\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
+	   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
+	   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
+	   {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
+	   \else\fi}
+	   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure
+	\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
+	   {\csname end#2\endcsname}
+	   {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
+	   {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
 
-% \def\onlyaftercolon#1:#2{#2}
-\newcommand{\recall}[1]{\medskip\par\noindent{\bf \Cref{thmt@@#1}.} \begingroup\em \noindent
-   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
-\newenvironment{linked}[3][]{%
-	\def\linkedproof{#3}%
-	\def\linkedtype{#2}%
-	% \reversemarginpar
-	% \marginpar{%
-	% \vspace{1.1em}
-	% % \hspace{2em}
-	% 	% \raggedleft
-	% 	\raggedright
-	% 	\hyperref[proof:\linkedproof]{%
-	% 	\color{blue!50!white}
-	% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
-	% 	}%
-	\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
-	{\endrestatable%
-	% \par%\vspace{-0.5em}
-	% \normalmarginpar
-	\marginpar{%
-		\vspace{-3em}
-	% \hspace{2em}
-		\raggedright
-		\hyperref[proof:\linkedproof]{%
-		\color{blue!50!white}
-		\scaleleftright{$\Big[$}{\,{\small\raggedright\tt\begin{tabular}{@{}c@{}}
-			% proof of \\\,\linkedtype~\ref*{\linkedtype:\linkedproof}
-			link to\\
-			proof
-		\end{tabular}}\,}{$\Big]$}}
-		}%
-	}
-\makeatother
-	\newcounter{proofcntr}
-	\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
+	% \def\onlyaftercolon#1:#2{#2}
+	\newcommand{\recall}[1]{\medskip\par\noindent{\bf \Cref{thmt@@#1}.} \begingroup\em \noindent
+	   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
+	\newenvironment{linked}[3][]{%
+		\def\linkedproof{#3}%
+		\def\linkedtype{#2}%
+		% \reversemarginpar
+		% \marginpar{%
+		% \vspace{1.1em}
+		% % \hspace{2em}
+		% 	% \raggedleft
+		% 	\raggedright
+		% 	\hyperref[proof:\linkedproof]{%
+		% 	\color{blue!50!white}
+		% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
+		% 	}%
+		\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
+		{\endrestatable%
+		% \par%\vspace{-0.5em}
+		% \normalmarginpar
+		\marginpar{%
+			\vspace{-3em}
+		% \hspace{2em}
+			\raggedright
+			\hyperref[proof:\linkedproof]{%
+			\color{blue!50!white}
+			\scaleleftright{$\Big[$}{\,{\small\raggedright\tt\begin{tabular}{@{}c@{}}
+				% proof of \\\,\linkedtype~\ref*{\linkedtype:\linkedproof}
+				link to\\
+				proof
+			\end{tabular}}\,}{$\Big]$}}
+			}%
+		}
+	\makeatother
+		\newcounter{proofcntr}
+		\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
 
-	\usepackage[framemethod=TikZ]{mdframed}
-	% \surroundwithmdframed[ % lproof
-	% 	   topline=false,
-	% 	   linewidth=3pt,
-	% 	   linecolor=gray!20!white,
-	% 	   rightline=false,
-	% 	   bottomline=false,
-	% 	   leftmargin=0pt,
-	% 	   % innerleftmargin=5pt,
-	% 	   skipabove=\medskipamount,
-	% 	   skipbelow=\medskipamount
-	% 	]{lproof}
-%oli16: The extra space was because there was extra space in the paragraph, not
-%because this length was too big. By breaking arrays, everything will be better.
-\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
+		\usepackage[framemethod=TikZ]{mdframed}
+		% \surroundwithmdframed[ % lproof
+		% 	   topline=false,
+		% 	   linewidth=3pt,
+		% 	   linecolor=gray!20!white,
+		% 	   rightline=false,
+		% 	   bottomline=false,
+		% 	   leftmargin=0pt,
+		% 	   % innerleftmargin=5pt,
+		% 	   skipabove=\medskipamount,
+		% 	   skipbelow=\medskipamount
+		% 	]{lproof}
+	%oli16: The extra space was because there was extra space in the paragraph, not
+	%because this length was too big. By breaking arrays, everything will be better.
+	\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
 
 \begin{document}
 
@@ -274,10 +288,12 @@
 % \aistatstitle{(PDG) Inconsistency: the Universal Loss}
 %%  objectives with title (might not be simultaneously satisfiable)
 %%    focus on inconsistency.  Naturality. Not over-reaching.
-%% 
+%%
+\aistatstitle{Choose your Model, not your Loss:}
+\aistatstitle{Choose your Model, not your Loss:}
 
-\aistatsauthor{ Oliver E. Richardson \And a}
 
+\aistatsauthor{ Oliver E. Richardson }
 \aistatsaddress{ Cornell University } ]
 
 \begin{abstract}
@@ -355,19 +371,20 @@ In \cref{sec:regularizers} we show how our approach is compatible with these res
 
 
 \section{PRELIMINARIES}
-
-A PDG, like a Bayesian Network (BN), is a directed graph, to which we attatch a conditional probability distributions (cpds). While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
-Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents---while in a pdg, an edge $\ed LXY$ is associated with a distribution $\Pr(Y \mid X)$.
-As a result, a PDG of shape $[X \to Y \leftarrow Z]$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
-The first interpretation is more expresive, and can encode joint dependence with an extra variable and some syntactic sugar \cite{richardson2020probabilistic}.
-Formally, the syntax of a PDG is given in \cref{defn:pdg}.
-
-But first, let's fix some notation for the remainder of the paper.
 We generally use capital letters for variables, and lower case letters for their values.
 We use letters of both cases for conditional probability distributions (cpds), which we generally conflate their with probability mass functions.
 % For instance, a given a conditional probability measure $\Pr$ on $Y$ given $X$, with a mass function $p$, we write  $p(Y\mid X)$ for the cpd $(x,y) \mapsto p.\text{pmf}(y \mid x)$.
 Depending on context, we write either $\Ex_\mu X$ or $\Ex_{\omega \sim \mu} X(\omega)$ for expectation of $X : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
 $\H(\mu)$ and $\H_\mu(X)$, $\H_\mu(Y \mid X)$ refer respectively to the entropy of a distribution $\mu$, the entropy of the variable $X$ with respect to $\mu$, and the conditional entropy of $Y$ given $X$, with respect to $\mu$.
+
+A PDG, like a Bayesian Network (BN), is a directed graph, to which we attatch a conditional probability distributions (cpds). While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
+% Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents, an edge $\ed LXY$ of a PDG is associated with a distribution $\Pr(Y \mid X)$.
+% As a result, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
+For instance, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
+The first interpretation is more expresive, and can encode joint dependence with an extra variable and some syntactic sugar \cite{richardson2020probabilistic}.
+% Formally, the syntax of a PDG is given in \cref{defn:pdg}.
+
+But first, let's fix some notation for the remainder of the paper.
 We now give the formal definition.
 
 \begin{defn}\label{defn:pdg}
@@ -398,15 +415,34 @@ We now give the formal definition.
 	the modeler's subjective confidence in the reliability of
 	%added now that there's an extra line
 	the cpd
-	$\bp$,
+	$\bp$.
 	%here too
-
 	\end{description}
 \end{defn}
 
 % This presentation is looks slightly different from the original presentation in \cite{richardson2020probabilistic}, but is equivalent.
-This presentation is equivalent to one in which edge sources and targets are both sets of variables, and
-An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
+This presentation is equivalent to one in which edge sources and targets are both \emph{sets} of variables \cite{richardson2020probabilistic}.
+This allows us to indicate a joint dependence with a multi-tailed edge,
+and unconditional distributions without anything at the tail, so we will draw
+\[
+	% p(Y|X,Z)~
+	% \text{as}~
+	p(Y|X,Z)~\text{as}~
+	\begin{tikzpicture}[center base]
+		\node[dpad0] (Y) at (1,0) {$Y$};
+		\node[dpad0] (X) at (0,-0.5) {$X$};
+		\node[dpad0] (Z) at (0, 0.5) {$Z$};
+		\mergearr[] XZY
+		\node[above right=2pt and 0pt of center-XZY] {$p$};
+	\end{tikzpicture}~,~~\text{and ~~$q(Y)$ as }~~
+	\begin{tikzpicture}[center base]
+		\node[dpad0] (Y) at (1,0) {$Y$};
+		\draw[arr, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
+	\end{tikzpicture}~.
+	% ~\text{for}~q(Y),
+ \]
+
+% An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
 % We will not make much use of $\alpha$ here, so $\mat p$ and $\beta$ are the most important
 
 PDGs, like other graphical models, have semantics in terms of joint distributions over all variables.
@@ -468,7 +504,9 @@ This is captured formally in two different (but related) ways by the following l
 \end{proof}
 
 
+% \section{SIMPLE INFORMATION-THEORETIC OBJECTIVES AS INCONSISTENCY}
 \section{SIMPLE INFORMATION-THEORETIC OBJECTIVES AS INCONSISTENCY}
+
 \def\xsamp{{\underline{\mat x}}}
 \def\xysamp{{\underline{\mat{xy}}}}
 
@@ -615,8 +653,8 @@ In much the same way as \cref{prop:many-equal-simple} generalizes \cref{prop:pdg
 \end{linked}
 
 
-% So far we have been considering models of a distribution $p(X)$ that correspond to generative models, or an unsupervised setting. 
-So far we have been considering models of an unconditional distribution $p(X)$. 
+% So far we have been considering models of a distribution $p(X)$ that correspond to generative models, or an unsupervised setting.
+So far we have been considering models of an unconditional distribution $p(X)$.
 Because one can use such a model to generate samples, such models are called \emph{generative}, and their training process is called \emph{unsupervised} learning.
 Contrast this with the (more common) supervised setting, in which we train \emph{discriminative} models to predict $Y$ from $X$, from joint samples ($X,Y$).
 For supervised learning, cross entropy loss is perhaps even more dominant---and it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data.
@@ -691,101 +729,6 @@ Note that this is the complete opposite of how we captured cross entropy (\cref{
 
 When $Y$ is a continuous variable rather than a discrete one, the estimator is referred to as a regressor, rather than a classifier, and the topology of the real numbers comes with an intuition that not all mistakes are equally bad; a small deviation from the correct value of $Y$ is close to correct.
 Perhaps the most common way of measuring this deviation is with mean square error, which corresponds to the inconsistency of believing that $f$ and $h$ control the mean of a unit-variance gaussian.
-But before we get there, we first prove a more general result, which is most clearly articulated in terms of a power mean.
-
-\begin{defn}%[power mean]
-	The weighted power mean $\mathrm M^w_p(\mathbf r)$ of the collection of real numbers $\mathbf r = r_1, \ldots, r_n$ with respect to the convex weights $w = w_1, \ldots, w_n$ satisfying $\sum_iw_i = 1$, is given by
-	\[ \mathrm M^w_p(\mathbf r) := \Big(\sum_{i=1}^n w_i (r_i)^p \Big)^{\frac1p}.\]
-	We omit the superscript as a shorthand for the uniform weighting $w_i = \nicefrac{1}{N}$.
-	Most standard means, such as those in \cref{tab:power-means}, are special cases.
-\end{defn}
-
-\begin{table}
-\centering
-\renewcommand{\arraystretch}{1.5} % General space between rows (1 standard)
-\begin{tabular}{rcl}
-	\textbf{Name} & $p$ & \textbf{Formula}\\\hline
-	Harmonic&$(p=-1)$:& $\mathrm{HM}_w(\mathbf r) = \faktor1{\left(\sum_{i=1}^n \nicefrac{w_i}{r_i}\right)}$ \\
-	Geometric&$(\lim {p\to 0})$:& $\mathrm{GM}_w(\mathbf r) = \prod_{i=1}^n r_i^{w_i}$ \\
-	Arithmetic&$(p=1)$:& $\mathrm{AM}_w(\mathbf r) = \sum_{i=1}^n w_i r_i$ \\
-	Quadratic&$(p=2)$:& $\mathrm{QM}_w(\mathbf r) = \sqrt{\textstyle\sum_{i=1}^n w_i r_i^2}$\\\hline
-	\end{tabular}
-	\caption{special cases of the $p$-power mean $\mathrm M_p^w(\mathbf r)$}
-	\label{tab:power-means}
-\end{table}
-% \begin{align*}
-% 	\text{Harmonic}~(p=-1):&\quad \mathrm{HM}_w(\mathbf r) = \frac1{\sum_{i=1}^n \nicefrac{w_i}{r_i}} \\
-% 	\text{Geometric}~(\lim {p\to 0}):&\quad \mathrm{GM}_w(\mathbf r) = \prod_{i=1}^n r_i^{(w_i)} \\
-% 	\text{Arithmetic}~(p=1):&\quad \mathrm{AM}_w(\mathbf r) = \sum_{i=1}^n w_i r_i \\
-% 	\text{Quadratic}~(p=2):&\quad \mathrm{QM}_w(\mathbf r) = \sqrt{\textstyle\sum_{i=1}^n w_i r_i^2}.
-% \end{align*}
-
-It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and strictly so if not all elements of $\mathbf r$ are identical. In particular, $\mathrm{QM}_w(a,b) > \mathrm{GM}_w(a,b)$ for all $a \ne b$ and positive weights $w$. We now present the result.
-
-
-\begin{linked}{prop}{inc-two-gaussians}
-	Consider a PDG containing two (distinct) conditional Gaussian distributions on a variable $Y$, whose parameters can both depend on a variable $X$. Its inconsistency takes the form
-	\begin{align*}
-		\aar**{\!\!\!\!\begin{tikzpicture}[center base]
-			\node[dpad0] (Y) {$Y$};
-			\node[dpad0,left=2.4 of Y] (X) {$X$};
-			\node[dpad0,above right=0.6 and 0.8 of X] (mf) {$\mu_1$};
-			\node[dpad0,below right=0.6 and 0.8 of X] (mh) {$\mu_2$};
-			\node[dpad0,above right=0.1 and 0.8 of X] (sf) {$\sigma_1$};
-			\node[dpad0,below right=0.1 and 0.8 of X] (sh) {$\sigma_2$};
-			%
-			\draw[arr2, ->>] (X) to[bend left=30]
-				node[pos=0.6, inner sep=0.2pt, fill=white, fill opacity=0.9] {$f$} (mf);
-				\draw[arr2, ->>] (X) to[bend left=10]
-					node[pos=0.4, inner sep=0.2pt, fill=white, fill opacity=0.9] {$t$} (sf);
-			\draw[arr2, ->>] (X) to[bend right=30]
-					node[pos=0.6, inner sep=0.2pt, fill=white, fill opacity=0.9] {$h$} (mh);
-				\draw[arr2, ->>] (X) to[bend right=10]
-					node[pos=0.4, inner sep=0.2pt, fill=white, fill opacity=0.9] {$s$} (sh);
-			%
-			\draw[arr2, <-] (X) to node[pos=0.55, above]{$D!$} +(-1.1, 0);
-			\coordinate (C1) at ($(mf)!.5!(sf) + (0.85,-0.2)$);
-			\coordinate (C2) at ($(mh)!.5!(sh) + (0.85,+0.2)$);
-			% \coordinate (C2) at ($ (X)!.5!(Y) + (0,0.8)$);
-			\draw[arr2, ->] (mh) to[bend right=15] (C2) to[out=45,in=-160]
-				node[pos=0.25, below right, inner sep=0] {\!\!$\underset{{\color{gray}(\beta:\beta_2)}}{\mathcal N}$} (Y);
-			\draw[arr2, -,shorten >=0pt] (sh) to[bend right=25] (C2);
-			%
-			\draw[arr2, ->] (mf) to[bend left=15] (C1) to[out=-45,in=160]
-				node[pos=0.25, above right, inner sep=1pt] {\!\!$\overset{{\color{gray}(\beta:\beta_1)}}{\mathcal N}$} (Y);
-			\draw[arr2, -,shorten >=0pt] (sf) to[bend left=25] (C1);
-			% \draw (current bounding box.north east) rectangle (current bounding box.south west);
-		\end{tikzpicture}\!} %\hspace{-2cm}&\\
-		 \! &=
-		  	\frac12
-			\Ex\nolimits_D \!\!\left[
-		 	{\mathrm {HM}}(\beta_1, \beta_2)
-				\frac12
-			\left( \frac{\mu_1 - \mu_2}
-		 		{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)} \right)^{\!\!2}
-			+ {\mathrm {AM}}(\beta_1, \beta_2) \log
-				\frac
-				{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)}
-				{\mathrm {GM}_{\hat\beta}(\sigma_1,\sigma_2)}
-		 \right] \numberthis\label{eq:2gaussians} \\
-		 &\color{gray}\hspace{-2cm}= \Ex_{x \sim D} \left[
-		 	\frac{\beta_1 \beta_2}2
-		 	\frac{\Big(f(x) - h(x)\Big)^2}
-		 		% {\mathrm {QM}_{\hat\beta}(s(x),t(x))}
-		 		{\beta_2 s(x)^2 + \beta_1 t(x)^2}
-			+ \frac{\beta_1 + \beta_2}{2} \log
-				\frac
-				{\beta_2 s(x)^2 + \beta_1 t(x)^2}
-				{(\beta_1 + \beta_2)( s(x)^{\beta_2} t(x)^{\beta_1})^{\frac1{\beta_1+\beta_2}}}
-				% {\mathrm {QM}_{\hat\beta}(s(x),t(x))}
-				% {\mathrm {GM}_{\hat\beta}(s(x),t(x))}
-		 \right]
-	\end{align*}
-	where  $\hat\beta = (\frac{\beta_2}{\beta_1+\beta_2}, \frac{\beta_1}{\beta_1+\beta_2})$ represents the normalized and reversed vector of conficences $\beta = (\beta_1, \beta_2)$ for the two distributions, and $\mu_1 = f(X)$, $\mu_2 = g(X)$, $\sigma_1 = s(X)$, $\sigma_2 = t(X)$ are random variables over $X$.
-\end{linked}
-
-
-Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives us the result we had hinted at before.
 
 \begin{coro}[Mean Square Error as inconsistency] \label{coro:MSE}
 	\begin{align*}
@@ -824,6 +767,8 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives us the result we
 	where $\mathcal N_1 = \mathcal N(-,1)$ is the normal distribution with unit variance, and mean equal to its argument.
 \end{coro}
 
+We treat the more general case, with arbitrary confdiences variances, in the appendix.
+
 The equality of the two PDG inconsistencies illustrates an orthogonal point: that PDGs handle composition of functions as one would expect, so that it is equivalent to model an entire process as a single arrow, or to break it into stages, ascribing an arrow to each stage, with one step of randomization.
 
 
@@ -859,7 +804,7 @@ The equality of the two PDG inconsistencies illustrates an orthogonal point: tha
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%/%%%%%%%%%%%%%%%%%%%%%%
 \section{STATISTICAL DISTANCES AS INCONSISTENCIES} \label{sec:statdist}
-Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.  
+Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.
 Thus the inconsistency of a PDG comprised of $p$ and $q$ is a measure of divergence.
 
 Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each cpd, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$.
@@ -1068,7 +1013,7 @@ We now review these findings in the context of our framework, as we show how add
 	\begin{equation}\label{eq:regularize}
 		\aar*{\begin{tikzpicture}[center base]
 			\node[dpad0] (theta) {$\Theta$};
-			\node[dpad0, right=1.1 of theta] (Y) {$Y$};
+			\node[dpad0, right=0.7 of theta] (Y) {$Y$};
 			%
 			\draw[arr] (theta) --
 	 			% node[above]{$\overset{{\color{gray}(\beta_f)}}f$}
@@ -1076,9 +1021,13 @@ We now review these findings in the context of our framework, as we show how add
 	 			node[above]{$f$}
 				(Y);
 			\draw[arr, <-] (theta) --
-				node[above right, pos=0.7] {$p^{{\color{gray}(\beta)}}$}
-				++(-1.0, 0.4);
-			\draw[arr, <<-] (theta) -- node[below,pos=0.6]{$\theta_0$} ++(-1.1, -0.3);
+				node[above right=-2pt and -2pt, pos=0.7] {$p$}
+				node[below left=-3pt and -4pt,pos=0.6]{{$\color{gray}\scriptscriptstyle(\beta)$}}
+				++(-1.0, 0.5);
+			% \draw[arr, <-] (theta) --
+			% 	node[above right, pos=0.7] {$p^{{\color{gray}(\beta)}}$}
+			% 	++(-1.0, 0.4);
+			\draw[arr, <<-] (theta) -- node[below,pos=0.4]{$\theta_0$} ++(-1.1, -0.3);
 			\draw[arr, <-] (Y) -- node[above,pos=0.6]{$D!$} ++(1.1, 0);
 		\end{tikzpicture}}
 		=
@@ -1090,10 +1039,10 @@ We now review these findings in the context of our framework, as we show how add
 \end{linked}
 
 Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\frac12 \theta^2)$ for a normaization constant $k$, the RHS of \eqref{eq:regularize} becomes
-\[ \underbrace{\Ex_{D} \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
-	_{\substack{\text{Cross entropy loss of $f_\theta$ w.r.t. $D$}\\(\text{data-fit cost of $\theta_0$})}}%(f_\theta; D)
-	+ \underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \quad
-	{\color{gray} \underbrace{+  \beta \log k - \H(D)}_{\text{constant in $f$ and $\theta_0$}}}, \]
+\[ \underbrace{\Ex\nolimits_{D} \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
+	_{\substack{\text{Cross entropy loss}\\(\text{data-fit cost of $\theta_0$})}}%(f_\theta; D)
+	+ \!\!\!\!\!\underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \!\!\!\!
+	{\color{gray!80} \underbrace{+ \beta \log k - \H(D)}_{\text{constant in $f, \theta_0$}}}, \]
 which is the $\ell_2$ regularized version of \cref{prop:many-equal-simple}.
 Moreover, the regularization strength corresponds exactly to the confidence $\beta$ functions as the hyperparameter, a feature unique to our approach.
 
@@ -1462,7 +1411,7 @@ which for $\beta = 1$ is equivalent to the ELBO from the previous section. The a
 The factors of a factor graph, which in isolation indicate relative probabilities.
 Factored exponential families form the mathematical backbone of statistical
 mechanics.
-The weighted factor graph (WFG) $\Psi = (\phi_j, \theta_j)_{j \in \cal J}$, where each $\theta_j$ is a real weight, $j$ is associated with a subset of variables $\mathbf X_j$, and  $\phi_j : \mathbf X_j \to \mathbb R$ determines a distribution by 
+The weighted factor graph (WFG) $\Psi = (\phi_j, \theta_j)_{j \in \cal J}$, where each $\theta_j$ is a real weight, $j$ is associated with a subset of variables $\mathbf X_j$, and  $\phi_j : \mathbf X_j \to \mathbb R$ determines a distribution by
 \[ \Pr\nolimits_\Psi(\mat x) \propto \prod_{j \in J} \phi_j(\mat x_j)^{\theta_j} \]
 The normalization constant $Z_{\Psi}$, is given by
 \begin{equation*}
@@ -1486,7 +1435,7 @@ be obtained by taking various partial derivatives of $Z_\Psi$, and calculating t
 DISCUSSION GOES HERE.
 
 \subsubsection*{Acknowledgements}
-% All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support. 
+% All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.
 % To preserve the anonymity, please include acknowledgments \emph{only} in the camera-ready papers.
 
 
@@ -1504,6 +1453,105 @@ DISCUSSION GOES HERE.
 \clearpage
 \onecolumn
 \appendix
+
+\section{More Detailed Results}
+But before we get there, we first prove a more general result, which is most clearly articulated in terms of a power mean.
+
+\begin{defn}%[power mean]
+	The weighted power mean $\mathrm M^w_p(\mathbf r)$ of the collection of real numbers $\mathbf r = r_1, \ldots, r_n$ with respect to the convex weights $w = w_1, \ldots, w_n$ satisfying $\sum_iw_i = 1$, is given by
+	\[ \mathrm M^w_p(\mathbf r) := \Big(\sum_{i=1}^n w_i (r_i)^p \Big)^{\frac1p}.\]
+	We omit the superscript as a shorthand for the uniform weighting $w_i = \nicefrac{1}{N}$.
+	Most standard means, such as those in \cref{tab:power-means}, are special cases.
+\end{defn}
+
+\begin{table}
+\centering
+\renewcommand{\arraystretch}{1.5} % General space between rows (1 standard)
+\begin{tabular}{rcl}
+	\textbf{Name} & $p$ & \textbf{Formula}\\\hline
+	Harmonic&$(p=-1)$:& $\mathrm{HM}_w(\mathbf r) = \faktor1{\left(\sum_{i=1}^n \nicefrac{w_i}{r_i}\right)}$ \\
+	Geometric&$(\lim {p\to 0})$:& $\mathrm{GM}_w(\mathbf r) = \prod_{i=1}^n r_i^{w_i}$ \\
+	Arithmetic&$(p=1)$:& $\mathrm{AM}_w(\mathbf r) = \sum_{i=1}^n w_i r_i$ \\
+	Quadratic&$(p=2)$:& $\mathrm{QM}_w(\mathbf r) = \sqrt{\textstyle\sum_{i=1}^n w_i r_i^2}$\\\hline
+	\end{tabular}
+	\caption{special cases of the $p$-power mean $\mathrm M_p^w(\mathbf r)$}
+	\label{tab:power-means}
+\end{table}
+% \begin{align*}
+% 	\text{Harmonic}~(p=-1):&\quad \mathrm{HM}_w(\mathbf r) = \frac1{\sum_{i=1}^n \nicefrac{w_i}{r_i}} \\
+% 	\text{Geometric}~(\lim {p\to 0}):&\quad \mathrm{GM}_w(\mathbf r) = \prod_{i=1}^n r_i^{(w_i)} \\
+% 	\text{Arithmetic}~(p=1):&\quad \mathrm{AM}_w(\mathbf r) = \sum_{i=1}^n w_i r_i \\
+% 	\text{Quadratic}~(p=2):&\quad \mathrm{QM}_w(\mathbf r) = \sqrt{\textstyle\sum_{i=1}^n w_i r_i^2}.
+% \end{align*}
+
+It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and strictly so if not all elements of $\mathbf r$ are identical. In particular, $\mathrm{QM}_w(a,b) > \mathrm{GM}_w(a,b)$ for all $a \ne b$ and positive weights $w$. We now present the result.
+
+
+\begin{linked}{prop}{inc-two-gaussians}
+	Consider a PDG containing two (distinct) conditional Gaussian distributions on a variable $Y$, whose parameters can both depend on a variable $X$. Its inconsistency takes the form
+	\begin{align*}
+		\aar**{\!\!\!\!\begin{tikzpicture}[center base]
+			\node[dpad0] (Y) {$Y$};
+			\node[dpad0,left=2.4 of Y] (X) {$X$};
+			\node[dpad0,above right=0.6 and 0.8 of X] (mf) {$\mu_1$};
+			\node[dpad0,below right=0.6 and 0.8 of X] (mh) {$\mu_2$};
+			\node[dpad0,above right=0.1 and 0.8 of X] (sf) {$\sigma_1$};
+			\node[dpad0,below right=0.1 and 0.8 of X] (sh) {$\sigma_2$};
+			%
+			\draw[arr2, ->>] (X) to[bend left=30]
+				node[pos=0.6, inner sep=0.2pt, fill=white, fill opacity=0.9] {$f$} (mf);
+				\draw[arr2, ->>] (X) to[bend left=10]
+					node[pos=0.4, inner sep=0.2pt, fill=white, fill opacity=0.9] {$t$} (sf);
+			\draw[arr2, ->>] (X) to[bend right=30]
+					node[pos=0.6, inner sep=0.2pt, fill=white, fill opacity=0.9] {$h$} (mh);
+				\draw[arr2, ->>] (X) to[bend right=10]
+					node[pos=0.4, inner sep=0.2pt, fill=white, fill opacity=0.9] {$s$} (sh);
+			%
+			\draw[arr2, <-] (X) to node[pos=0.55, above]{$D!$} +(-1.1, 0);
+			\coordinate (C1) at ($(mf)!.5!(sf) + (0.85,-0.2)$);
+			\coordinate (C2) at ($(mh)!.5!(sh) + (0.85,+0.2)$);
+			% \coordinate (C2) at ($ (X)!.5!(Y) + (0,0.8)$);
+			\draw[arr2, ->] (mh) to[bend right=15] (C2) to[out=45,in=-160]
+				node[pos=0.25, below right, inner sep=0] {\!\!$\underset{{\color{gray}(\beta:\beta_2)}}{\mathcal N}$} (Y);
+			\draw[arr2, -,shorten >=0pt] (sh) to[bend right=25] (C2);
+			%
+			\draw[arr2, ->] (mf) to[bend left=15] (C1) to[out=-45,in=160]
+				node[pos=0.25, above right, inner sep=1pt] {\!\!$\overset{{\color{gray}(\beta:\beta_1)}}{\mathcal N}$} (Y);
+			\draw[arr2, -,shorten >=0pt] (sf) to[bend left=25] (C1);
+			% \draw (current bounding box.north east) rectangle (current bounding box.south west);
+		\end{tikzpicture}\!} %\hspace{-2cm}&\\
+		 \! &=
+		  	\frac12
+			\Ex\nolimits_D \!\!\left[
+		 	{\mathrm {HM}}(\beta_1, \beta_2)
+				\frac12
+			\left( \frac{\mu_1 - \mu_2}
+		 		{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)} \right)^{\!\!2}
+			+ {\mathrm {AM}}(\beta_1, \beta_2) \log
+				\frac
+				{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)}
+				{\mathrm {GM}_{\hat\beta}(\sigma_1,\sigma_2)}
+		 \right] \numberthis\label{eq:2gaussians} \\
+		 &\color{gray}\hspace{-2cm}= \Ex_{x \sim D} \left[
+		 	\frac{\beta_1 \beta_2}2
+		 	\frac{\Big(f(x) - h(x)\Big)^2}
+		 		% {\mathrm {QM}_{\hat\beta}(s(x),t(x))}
+		 		{\beta_2 s(x)^2 + \beta_1 t(x)^2}
+			+ \frac{\beta_1 + \beta_2}{2} \log
+				\frac
+				{\beta_2 s(x)^2 + \beta_1 t(x)^2}
+				{(\beta_1 + \beta_2)( s(x)^{\beta_2} t(x)^{\beta_1})^{\frac1{\beta_1+\beta_2}}}
+				% {\mathrm {QM}_{\hat\beta}(s(x),t(x))}
+				% {\mathrm {GM}_{\hat\beta}(s(x),t(x))}
+		 \right]
+	\end{align*}
+	where  $\hat\beta = (\frac{\beta_2}{\beta_1+\beta_2}, \frac{\beta_1}{\beta_1+\beta_2})$ represents the normalized and reversed vector of conficences $\beta = (\beta_1, \beta_2)$ for the two distributions, and $\mu_1 = f(X)$, $\mu_2 = g(X)$, $\sigma_1 = s(X)$, $\sigma_2 = t(X)$ are random variables over $X$.
+\end{linked}
+
+
+Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
+
+\recall{coro:MSE}
 
 \section{Proofs}
 \recall{prop:pdg-Ix}

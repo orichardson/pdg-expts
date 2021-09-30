@@ -1,0 +1,163 @@
+\documentclass{article} %Preamble
+    \usepackage{tikz}
+    	\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
+    	\usetikzlibrary{cd}
+
+    	%%%%%%%%%%%%
+    	\tikzset{AmpRep/.style={ampersand replacement=\&}}
+    	\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+    	\tikzset{paperfig/.style={center base,scale=0.9, every node/.style={transform shape}}}
+
+    	% Node Stylings
+    	\tikzset{dpadded/.style={rounded corners=2, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+    	\tikzset{dpad0/.style={outer sep=0.05em, inner sep=0.3em, draw=gray!75, rounded corners=4, fill=black!08, fill opacity=1, align=center}}
+    	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
+    	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+
+    	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
+    	\tikzset{arr0/.style={draw, ->, thick, shorten <=0pt, shorten >=0pt}}
+    	\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
+    	\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
+
+    \usepackage[utf8]{inputenc}
+    \usepackage{mathtools}
+    % \usepackage{bbold}
+    \usepackage{amssymb, graphicx}
+    \usepackage{parskip}
+    \usepackage{algorithm}
+    \usepackage{bbm}
+    \usepackage{faktor}
+    \usepackage{booktabs}
+    % \usepackage{algpseudocode}
+    \usepackage{graphicx}
+    \usepackage[margin=1.15in, marginpar=1.1in, marginparsep=14pt]{geometry}
+    \usepackage{scalerel}
+
+    \usepackage{hyperref} % Load before theorems...
+
+
+    \usepackage{enumitem}
+    \usepackage{amsthm,thmtools}
+    	\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
+        \theoremstyle{plain}
+        \newtheorem{theorem}{Theorem}
+    	\newtheorem{coro}{Corollary}[theorem]
+        \newtheorem{prop}[theorem]{Proposition}
+        \newtheorem{claim}{Claim}
+        \newtheorem{remark}{Remark}
+        \newtheorem{lemma}[theorem]{Lemma}
+        \theoremstyle{definition}
+        \declaretheorem[name=Definition, qed=$\square$]{defn}
+
+    	\crefname{defn}{Definition}{Definitions}
+    	\crefname{prop}{Proposition}{Propositions}
+
+    \usepackage{nicefrac}\let\nf\nicefrac
+    \usepackage{color}
+    %\usepackage{stmaryrd}
+    \hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=green!50!black}
+
+    \relax %%%%%%%%% GENERALL MACROS %%%%%%%%
+        \let\Horig\H
+    	\let\H\relax
+    	\DeclareMathOperator{\H}{\mathrm{H}} % Entropy
+    	\DeclareMathOperator{\I}{\mathrm{I}} % Information
+    	\DeclareMathOperator*{\Ex}{\mathbb{E}} % Expectation
+
+        \newcommand{\mat}[1]{\mathbf{#1}}
+        \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+    		#1\;\delimsize\|\;#2%
+    	}
+    	\newcommand{\thickD}{I\mkern-8muD}
+    	\newcommand{\kldiv}{\thickD\infdivx}
+    	\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
+
+    	\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
+    	% \newcommand{\datadist}[1]{p_\text{data}}
+
+    	\makeatletter
+    	\newcommand{\subalign}[1]{%
+    	  \vcenter{%
+    	    \Let@ \restore@math@cr \default@tag
+    	    \baselineskip\fontdimen10 \scriptfont\tw@
+    	    \advance\baselineskip\fontdimen12 \scriptfont\tw@
+    	    \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
+    	    \lineskiplimit\lineskip
+    	    \ialign{\hfil$\m@th\scriptstyle##$&$\m@th\scriptstyle{}##$\hfil\crcr
+    	      #1\crcr
+    	    }%
+    	  }%
+    	}
+    	\makeatother
+    	\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+
+
+    \relax %%%%%%%%%   PDG  MACROS   %%%%%%%%
+    	\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+    	\newcommand{\bP}[1][L]{\mat{P}_{\!_{#1}\!}}
+    	\newcommand{\V}{\mathcal V}
+    	\newcommand{\N}{\mathcal N}
+    	\newcommand{\Ed}{\mathcal E}
+
+    	\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+    	\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+    	\newcommand{\dg}[1]{\mathbdcal{#1}}
+    	\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+    	\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
+    	\newcommand\GFE{\mathit{G\mkern-4mu F\mkern-4.5mu E}}
+
+    	\newcommand\Inc{\mathit{Inc}}
+    	\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
+    	\newcommand{\ed}[3]{%
+    		\mathchoice%
+    		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
+    		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
+    		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
+    		{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
+
+        \newcommand{\nhphantom}[2]{\sbox0{\kern-2%
+    		\nulldelimiterspace$\left.\delimsize#1\vphantom{#2}\right.$}\hspace{-.97\wd0}}
+    		% \nulldelimiterspace$\left.\delimsize#1%
+    		% \vrule depth\dp#2 height \ht#2 width0pt\right.$}\hspace{-.97\wd0}}
+    	\makeatletter
+    	\newsavebox{\abcmycontentbox}
+    	\newcommand\DeclareDoubleDelim[5]{
+    	    \DeclarePairedDelimiterXPP{#1}[1]%
+    			{% box must be saved in this pre code
+    				\sbox{\abcmycontentbox}{\ensuremath{##1}}%
+    			}{#2}{#5}{}%
+    		    %%% Correct spacing, but doesn't work with externalize.
+    			% {\nhphantom{#3}{##1}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{##1}}
+    			%%% Fast, but wrong spacing.
+    			% {\nhphantom{#3}{~}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{~}}
+    			%%% with savebox.
+    		    {%
+    				\nhphantom{#3}{\usebox\abcmycontentbox}%
+    				\hspace{1.2pt} \delimsize#3%
+    				\mathopen{}\usebox{\abcmycontentbox}\mathclose{}%
+    				\delimsize#4\hspace{1.2pt}%
+    				\nhphantom{#4}{\usebox\abcmycontentbox}%
+    			}%
+    	}
+    	\makeatother
+    	\DeclareDoubleDelim
+    		\SD\{\{\}\}
+    	\DeclareDoubleDelim
+    		\bbr[[]]
+    	% \DeclareDoubleDelim
+    	% 	\aar\langle\langle\rangle\rangle
+    	\makeatletter
+    	\newsavebox{\aar@content}
+    	\newcommand\aar{\@ifstar\aar@one@star\aar@plain}
+    	\newcommand\aar@one@star{\@ifstar\aar@resize{\aar@plain*}}
+    	\newcommand\aar@resize[1]{\sbox{\aar@content}{#1}\scaleleftright[3.8ex]
+    		{\Biggl\langle\!\!\!\!\Biggl\langle}{\usebox{\aar@content}}
+    		{\Biggr\rangle\!\!\!\!\Biggr\rangle}}
+    	\DeclareDoubleDelim
+    		\aar@plain\langle\langle\rangle\rangle
+    	\makeatother
+
+\begin{document}
+
+\end{document}
