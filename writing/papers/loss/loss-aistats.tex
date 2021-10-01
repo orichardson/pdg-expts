@@ -45,7 +45,7 @@
 
 	\newcommand\cmergearr[5][]{
 		\draw[arr, #1, -] (#2) -- (#5) -- (#3);
-		\draw[arr, shorten <=0, #1] (#5) -- (#4);
+		\draw[arr, #1, shorten <=0] (#5) -- (#4);
 		}
 	\newcommand\mergearr[4][]{
 		\coordinate (center-#2#3#4) at (barycentric cs:#2=1,#3=1,#4=1.2);
@@ -53,8 +53,8 @@
 		}
 	\newcommand\cunmergearr[5][]{
 		\draw[arr, #1, -, shorten >=0] (#2) -- (#5);
-		\draw[arr, shorten <=0, #1] (#5) -- (#3);
-		\draw[arr, shorten <=0, #1] (#5) -- (#4);
+		\draw[arr, #1, shorten <=0] (#5) -- (#3);
+		\draw[arr, #1, shorten <=0] (#5) -- (#4);
 		}
 	\newcommand\unmergearr[4][]{
 		\coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
@@ -86,6 +86,8 @@
     \newtheorem{remark}{Remark}
     \newtheorem{lemma}[theorem]{Lemma}
     \theoremstyle{definition}
+    % \newtheorem{defn}{Definition}
+    % \declaretheorem[name=Definition]{defn}
     \declaretheorem[name=Definition, qed=$\square$]{defn}
 
 	\crefname{defn}{Definition}{Definitions}
@@ -130,8 +132,11 @@
 	\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
 
 \relax %%%%%%%%%   PDG  MACROS   %%%%%%%%
-	\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
-	\newcommand{\bP}[1][L]{\mat{P}_{\!_{#1}\!}}
+	\newcommand{\ssub}[1]{_{\!_{#1}\!}}
+	% \newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+	% \newcommand{\bP}[1][L]{\mat{P}_{\!_{#1}\!}}
+	\newcommand{\bp}[1][L]{\mat{p}\ssub{#1}}
+	\newcommand{\bP}[1][L]{\mat{P}\ssub{#1}}
 	\newcommand{\V}{\mathcal V}
 	\newcommand{\N}{\mathcal N}
 	\newcommand{\Ed}{\mathcal E}
@@ -267,6 +272,8 @@
 	%because this length was too big. By breaking arrays, everything will be better.
 	\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
 
+\newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
+
 \begin{document}
 
 % If your paper is accepted and the title of your paper is very long,
@@ -284,13 +291,19 @@
 %\runningauthor{Surname 1, Surname 2, Surname 3, ...., Surname n}
 
 \twocolumn[
-
-% \aistatstitle{(PDG) Inconsistency: the Universal Loss}
-%%  objectives with title (might not be simultaneously satisfiable)
-%%    focus on inconsistency.  Naturality. Not over-reaching.
+%%  Title objectives (might not be simultaneously satisfiable)
+%%    -focus on inconsistency.  -Naturality. -Not over-reaching.
 %%
-\aistatstitle{Choose your Model, not your Loss:}
-\aistatstitle{Choose your Model, not your Loss:}
+% \aistatstitle{(PDG) Inconsistency: the Universal Loss}
+% \aistatstitle{Choose your Model, not your Loss:}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models (Choose your Model, not your Loss)}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
+% \aistatstitle{Inconsistency, the Universal Loss Fuction: How Loss is but the Shadow of an Inconsistent Model}
+\aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are but  Shadows of Inconsistent Models}
+% \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows of Inconsistent Probabilistic Dependency Graphs}
+% \aistatstitle{The One True Loss: How Our Objectives are but Shadows of Inconsistent Models}
+
 
 
 \aistatsauthor{ Oliver E. Richardson }
@@ -308,7 +321,9 @@
 % -universality
 Many tasks in artificial intelligence can be fruitfully cast as optimization problems, but often the choice of objective is not unique.
 %
-For instance, one key component of a machine learning system is a `loss' that the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
+% For instance, one key component of a machine learning system is a `loss' that the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
+For instance, one key component of a machine learning system is a `loss function' --- the 
+% In machine learning, the objective is often called the loss function, and many different 
 %oli: this sentence perhaps unnecessary...
 % All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
 Each implicitly represents different values, and results in different behavior, and so the choice of loss can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
@@ -366,58 +381,73 @@ In the coming sections, we will show in more detail how this concept of inconsis
 
 Recent work in the Bayesian ML community has established a correspondence between regularizers and priors
 \cite{williams1995bayesian,rennie2003l2,probinterptowardsds,probinterpblogpost}.
-The primary motivation for this correspondance is the ability to view (some) regularizers as \emph{prior beliefs}, which, because they are modeling assumptions, makes them better targets for principled discussion and criticism.
+A primary motivation for this line of work is the ability it gives us to view regularizers as \emph{prior beliefs}, which, because they are modeling assumptions, makes them better targets for principled discussion and criticism.
 In \cref{sec:regularizers} we show how our approach is compatible with these results, and can be thought of as a natural extension of them.
 
 
 \section{PRELIMINARIES}
 We generally use capital letters for variables, and lower case letters for their values.
-We use letters of both cases for conditional probability distributions (cpds), which we generally conflate their with probability mass functions.
+% We use letters of both cases for conditional probability distributions (cpds), which we generally conflate their with probability mass functions.
+For variables $X$ and $Y$, a conditional probability distribution (cpd) $p$ on $Y$ given $X$, written $p(Y|X)$, consists of a probability distribution on $Y$ (denoted $p(Y\mid X\!=\!x)$ or $p(Y\mid x)$ for short), for each possible value $x$ of $X$.
+If $\mu$ is a probability on outcomes which determine $X$ and $Y$, then $\mu(X)$ denotes the marginal of $\mu$ on $X$, and $\mu(Y|X)$ denotes the conditional marginal of $\mu$ on  $Y$ given $X$.
+% Conditional probability distributions (cpds) are  $p(Y|X)$
 % For instance, a given a conditional probability measure $\Pr$ on $Y$ given $X$, with a mass function $p$, we write  $p(Y\mid X)$ for the cpd $(x,y) \mapsto p.\text{pmf}(y \mid x)$.
-Depending on context, we write either $\Ex_\mu X$ or $\Ex_{\omega \sim \mu} X(\omega)$ for expectation of $X : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
-$\H(\mu)$ and $\H_\mu(X)$, $\H_\mu(Y \mid X)$ refer respectively to the entropy of a distribution $\mu$, the entropy of the variable $X$ with respect to $\mu$, and the conditional entropy of $Y$ given $X$, with respect to $\mu$.
+Depending on which we find clearer in context, we write either $\Ex_\mu f$ or $\Ex_{\omega \sim \mu} f(\omega)$ for expectation of $f : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
+We write $\kldiv\mu\nu = \Ex_\mu \log \frac{\mu}{\nu}$ for the relative entropy (KL Divergence) of $\nu$ with respect to $\mu$, and for finitely supported $\mu$, we write $\H(\mu) := \Ex_\mu \log\frac1\mu$ for the entropy of $\mu$, $\H_\mu(X):= \H(\mu(X))$ for the marginal entropy on a variable $X$, and $\H_\mu(Y \mid X):= \Ex_\mu \log \nicefrac1{\mu(Y|X)}$ for the conditional entropy of $Y$ given $X$.
 
-A PDG, like a Bayesian Network (BN), is a directed graph, to which we attatch a conditional probability distributions (cpds). While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
+A Probabilsity Dependency Graph (PDG) \cite{richardson2020probabilistic}, like a Bayesian Network (BN), is a directed graph with cpds attached to it. While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
 % Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents, an edge $\ed LXY$ of a PDG is associated with a distribution $\Pr(Y \mid X)$.
 % As a result, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
-For instance, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
-The first interpretation is more expresive, and can encode joint dependence with an extra variable and some syntactic sugar \cite{richardson2020probabilistic}.
+For instance, a PDG of shape $X \to Y \leftarrow Z$ contains both cpd $p(Y | X)$ and a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X,Z$.
+The first interpretation is more expresive, and can encode joint dependence with an extra variable and pair of edges.
 % Formally, the syntax of a PDG is given in \cref{defn:pdg}.
+We now restate the formal definition .
 
-But first, let's fix some notation for the remainder of the paper.
-We now give the formal definition.
-
-\begin{defn}\label{defn:pdg}
-	A Probabilistic Dependency Graph (PDG) is a tuple $\dg M = (\N,\Ed,\V,\mat p, \alpha, \beta)$ , where
+\begin{defn}
+    %[Richardson \& Halpern 
+    \label{defn:pdg}
+	A Probabilistic Dependency Graph (PDG) is a tuple $\dg M = (\N,\Ed,\V,\mat p, \boldsymbol\alpha, \boldsymbol\beta)$, where
+    \vspace{-1em}
 	\begin{description}[leftmargin=1em,labelindent=1.5em,itemsep=0pt]
 		\item[$\N$]
-			is a finite set of nodes, corresponding to variables;
+			is a set of nodes, corresponding to variables;
+        \item[$\V$]
+			associates each node $X \in \N$ with a set $\V(X)$ of possible values that the variable $X$ can take;
+            % making it a variable;
 		\item[$\Ed$]
 			is a set of labeled  edges $\{ \ed LXY \}$, each with a source
-			$X$ and target $Y$ in $\N$;
+			$X$ and target $Y$ from $\N$;
 			% is a set of labeled  edges $\{ \ed L{\mat X}{\mat Y} \}$, each with a source
 			% $\mat X$ and target $\mat Y$ subset of $\N$;
-		\item[$\V$]
-			associates each variable $N \in \N$ with a set $\V(N)$ of values that the variable $N$ can take;
+
 		\item[$\mat p$]
-		associates to each edge $\ed L{X}{Y} \in \Ed$
+		associates 
+        a cpd $\bp(\mskip-1muY\mskip-1mu|\mskip-1muX\mskip-2mu)$
+        to each edge $\ed L{X\!\!}{\!Y} \!\in\! \Ed$%
 		% associates to each edge $\ed L{\mat X}{\mat Y} \in \Ed$
 		% a conditional probability $\bp(\mat Y\mid\mat X)$ on $\mat Y$ given $\mat X$;
 		% --- that is,
-		a conditional distribution $\bp(Y \mid x)$ on $Y$ for each $x \in \V(X)$;
+		% a conditional distribution 
+        % a cpd $\bp(Y|X)$ --- that is, a distribution
+        % $\bp(Y \mid x)$ over $Y$ for each $x \in \V(X)$;
 		% a distribution $\bp(x)$ on $Y$ for each $x \in \V(X)$;
-	\item[$\alpha$]
+        ;
+	\item[$\boldsymbol\alpha$]
 	associates to each edge $\ed L{X}{Y}$ a non-negative number $\alpha_L$ which,
-	roughly speaking, is the modeler's confidence in the functional
-	dependence of $Y$ on the variables $X$ implicit in $L$;
-	\item[$\beta$]
+	roughly speaking, is
+    % the modeler's confidence in the functional dependence of $Y$ on the variables $X$ implicit in $L$;
+    the moderler's confidence in the  $X$.
+    
+	\item[$\boldsymbol\beta$]
 	associates to each edge $L$ a real number $\beta_L$,
 	the modeler's subjective confidence in the reliability of
+    % indicating the agent's trust in the reliability of
 	%added now that there's an extra line
 	the cpd
-	$\bp$.
-	%here too
-	\end{description}
+	$\bp$.%
+    % \vspace{-2em}%
+    \qedhere
+	\end{description}%
 \end{defn}
 
 % This presentation is looks slightly different from the original presentation in \cite{richardson2020probabilistic}, but is equivalent.
@@ -432,12 +462,12 @@ and unconditional distributions without anything at the tail, so we will draw
 		\node[dpad0] (Y) at (1,0) {$Y$};
 		\node[dpad0] (X) at (0,-0.5) {$X$};
 		\node[dpad0] (Z) at (0, 0.5) {$Z$};
-		\mergearr[] XZY
-		\node[above right=2pt and 0pt of center-XZY] {$p$};
-	\end{tikzpicture}~,~~\text{and ~~$q(Y)$ as }~~
+		\mergearr[arr2] XZY
+		\node[above right=-1pt and -3pt of center-XZY] {$p$};
+	\end{tikzpicture}~,~~\text{and $q(Y)$ as }~~
 	\begin{tikzpicture}[center base]
 		\node[dpad0] (Y) at (1,0) {$Y$};
-		\draw[arr, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
+		\draw[arr2, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
 	\end{tikzpicture}~.
 	% ~\text{for}~q(Y),
  \]
@@ -445,24 +475,35 @@ and unconditional distributions without anything at the tail, so we will draw
 % An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
 % We will not make much use of $\alpha$ here, so $\mat p$ and $\beta$ are the most important
 
-PDGs, like other graphical models, have semantics in terms of joint distributions over all variables.
-Most directly, a PDG $\dg M$ determines a family of loss (scoring) functions on joint distributions $\mu$, with a single parameter $\gamma > 0$, given by
+Like other graphical models, PDGs have semantics in terms of joint distributions $\mu$ over all variables.
+Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions, one qualitative and one quantitative. The qualitative score, called the \emph{incompatibility} of $\mu$ with $\dg M$, is given by
 \begin{equation}
-	\bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
-	\label{eq:semantics}
+	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
+    \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
+	% \label{eq:semantics}
+    \label{eq:inc}
 \end{equation}
-where $\kldiv\mu\nu = \Ex_\mu \log \frac{\mu}{\nu}$ is the relative entropy (KL Divergence) of $\nu$ with respect to $\mu$, and $\IDef{\dg M}(\mu) = - \H(\mu) + \sum_{\ed LXY} \alpha_L \H(Y \mid X)$, called the information deficiency (which plays a minimal role in the present paper),  measures the degree to which $\mu$ reflects the qualitative features one would expect if it were generated by the causal weighted graph $(\N, \Ed, \alpha)$.
-For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ for all $\mu$, and we can also set $\gamma=0$ to ignore it explicitly.
+% where  and
+% For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ for all $\mu$, and we can also set $\gamma=0$ to ignore it explicitly.
 
-We are primarily concerned with the second term of \eqref{eq:semantics}, which penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge. In this way, violations of high-confidence beliefs are more costly per bit.
+There is more than one coherent interpretation of this expression; we will give one in terms of codes.
+% We are primarily concerned with the second term of \eqref{eq:semantics}, which
+It is well known that $\kldiv{\mu}{p}$ is a measure of divergence between $\mu$ and $p$, which can be interpreted as overhead (in extra bits per sample) of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \cite{mackay2003information:relentropy}. 
+% $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
+But if one uses edges in proportion to the condfidence one has in them, then violations of high-confidence cpds are compounded, and hence more costly.
+So $\Inc_{\dg M}(\mu)$ measures the total expected cost of using the cpds of $\dg M$ in proportion to their confidences, in a world drawn from $\mu$. 
+
+
+
+\TODO[The most charitable interpretation of the agent's beliefs]
 
 The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
 % = \arg\min_\mu \bbr{\dg M}(\mu)$
-exists and is unique for small enough $\gamma$.
-This is also true in the limit as $\gamma$ goes to zero;
+exists and is unique for small enough $\gamma$, and also in the limit as $\gamma$ goes to zero;
 we write $\bbr{\dg M}^*$, without a subscript, to indicate this limiting best joint distribution.
-It is via this joint distribution that PDGs generalize other graphical models; here we argue that the scoring function \eqref{eq:semantics} encodes useful information beyond its minimizer.
+It is via this joint distribution that PDGs generalize other graphical models
 
+% here we argue that the scoring function \eqref{eq:semantics} encodes useful information beyond its minimizer.
 
 The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, and is denoted $\aar{\dg M}_\gamma$.
 Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$, and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$.
@@ -491,10 +532,12 @@ Intuitively, believing more things can't make you any less inconsistent.
 This is captured formally in two different (but related) ways by the following lemma, which is the primary tool we will use to derive relationships between loss functions.
 
 \begin{lemma}[monotonicity of inconsistency]\label{lemma!}
- 	For all pdgs $\dg M$, $\dg M'$, we have that
+ 	For all pdgs $\dg M$ and $\dg M'$, with respective confidence vectors $\beta$ and $\beta'$, we have that
 	\begin{enumerate}
 		\item  $\aar{\dg M + \dg M'} \ge \aar{\dg M}$.
-		\item If $\dg M$ and $\dg M'$ have respective confidence vectors $\beta$ and $\beta'$, and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
+		\item If 
+            % and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
+            $\beta_L \ge \beta'_L$ for all $L \in \Ed$, then $\aar{\dg M} \ge \aar{\dg M'}$.
 	\end{enumerate}
 
 \end{lemma}
@@ -511,7 +554,9 @@ This is captured formally in two different (but related) ways by the following l
 \def\xysamp{{\underline{\mat{xy}}}}
 
 To illustrate how the inconsistency of a PDG can start to generate information theoretic expressions, let's start with a simple example. Suppose you believe that $X$ is distributed according to a probability distribution with mass function $p$,
-and also that it (always) equals a certain value $x$. These beliefs are entirely consistent if $p(X=x) = 1$, and become more inconsistent (in our sense) as $p(X = x)$ decreases.
+and also that it (always) equals a certain value $x$. These beliefs are entirely consistent if $p(X=x) = 1$, and become more inconsistent
+%(in our sense)
+ as $p(X = x)$ decreases.
 In fact, it is equal to $\I_p(x) = -\log p(x)$, the information content (or surprise) of the event $X = x$, according to $p$. It also goes by the name ``negative log likelihood'', and is perhaps the most popular objective for training generative models.%
 
 \begin{linked}{prop}{pdg-Ix}
@@ -532,7 +577,9 @@ In fact, it is equal to $\I_p(x) = -\log p(x)$, the information content (or surp
 
 In some ways, this result is entirely unsurprising, given that PDG scoring rule \eqref{eq:semantics} is a complicated and flexible formula built out of information theoretic primitives.
 %
-With a little more focus on the context and less on the algebra, perhaps \Cref{prop:pdg-Ix} becomes more curous: the inconsistency of the PDG containing just a distribution $p(X)$ and a sample $x$ just so happens to equal the overlwhelming favorite measure of incompatibility between a distribution $p$ and sample $x$ --- and it is known as ``surprise'', a particular kind of cognitive dissonance.
+Even so, it is 
+% With a little more focus on the context and less on the algebra, perhaps \Cref{prop:pdg-Ix} becomes more curous:
+ the inconsistency of the PDG containing just a distribution $p(X)$ and a sample $x$ just so happens to equal the overlwhelming favorite measure of incompatibility between a distribution $p$ and sample $x$ --- and it is known as ``surprise'', a particular kind of cognitive dissonance.
 % Equation \eqref{eq:semantics} was not designed to do this.
 
 
@@ -694,16 +741,23 @@ There are also simpler scoring metrics used to evaluate the performance of syste
 	\begin{equation}\label{eq:accuracy-pdg}
 		\aar*{\begin{tikzpicture}[center base]
 				\node[dpad0] (Y) {$Y$};
-				\node[dpad0,left=1.1 of Y] (X) {$X$};
+				\node[dpad0,left=0.8 of Y] (X) {$X$};
 				%
-				\draw[arr2, ->>] (X) to[bend left] node[pos=0.5, above]{$h$} (Y);
-				\draw[arr2, ->>] (X) to[bend right] node[pos=0.5, below]{$f$} (Y);
-				\draw[arr2, <-] (X) to node[pos=0.4, anchor=south west, above]
+				\draw[arr2, ->>] (X) to[bend left] node[pos=0.4, above]{$h$} (Y);
+				\draw[arr2, ->>] (X) to[bend right] node[pos=0.4, below]{$f$} (Y);
+				\draw[arr2, <-] (X) to 
+                    node[pos=0.55, anchor=south west, above]
 					% {$\overset{(\beta)}D$} +(-1.1, 0);
-					{$D^{\color{gray}(\beta)}$} +(-1.1, 0);
+					% {$D^{\color{gray}(\beta)}$}
+                    {$D$}
+                    node[pos=0.55, anchor=south west, below]
+                    {{\color{gray}$\scriptstyle(\beta)$}}
+                    +(-1.1, 0);
 			\end{tikzpicture}}
-		=  - \beta\,\log \Big( \mathrm{accuracy}_{f,D} (h) \Big)
-		= \beta\, \I_D [f = h].
+        \begin{aligned}
+		&=  - \beta\,\log \Big( \mathrm{accuracy}_{f,D} (h) \Big) \\
+		&\quad= \beta\, \I_D [f = h].
+        \end{aligned}
 	\end{equation}
 \end{linked}
 It is common to think of accuracy as a property of a hypothesis $h$ (with some dependence on the true labeling function $f$ and the data distribution $D$), even though it is symmetric in $f$ and $g$, in part because we change the predictor more than the labels.
