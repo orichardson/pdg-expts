@@ -300,7 +300,9 @@
 % \aistatstitle{Loss Functions are the Shadows of Inconsistent Models (Choose your Model, not your Loss)}
 % \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
 % \aistatstitle{Inconsistency, the Universal Loss Fuction: How Loss is but the Shadow of an Inconsistent Model}
-\aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are but  Shadows of Inconsistent Models}
+% \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are but  Shadows of Inconsistent Models}
+\aistatstitle{Inconsistency, the Universal Loss Fuction: 
+Our Favorite Objectives are the  Shadows of Probabilistic Dependency Graphs}
 % \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows of Inconsistent Probabilistic Dependency Graphs}
 % \aistatstitle{The One True Loss: How Our Objectives are but Shadows of Inconsistent Models}
 
@@ -318,31 +320,35 @@
 \end{abstract}
 
 \section{INTRODUCTION}
+% \section{CHOOSE YOUR MODEL, NOT YOUR LOSS}
 % -universality
-Many tasks in artificial intelligence can be fruitfully cast as optimization problems, but often the choice of objective is not unique.
+Many tasks in artificial intelligence have been fruitfully cast as optimization problems, but often the choice of objective is not unique.
 %
 % For instance, one key component of a machine learning system is a `loss' that the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
-For instance, one key component of a machine learning system is a `loss function' --- the 
+For instance, a key component of a machine learning system is a loss function which the system to minimize, and a wide variety of such functions are used in pratice (e.g., cross entropy, square error, hinge loss, \ldots).
 % In machine learning, the objective is often called the loss function, and many different 
 %oli: this sentence perhaps unnecessary...
 % All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
 Each implicitly represents different values, and results in different behavior, and so the choice of loss can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
 %We aim to
-Furthermore, there is often something to be gained by fiddling with these loss functions: one can add regularization terms, to incentivize desirable behavior.
-But the process of tinkering with the objective to get desirable behavior, and afterwards spinning a story about why it works, leaves something to be desired:
-the tinkering itself can be a tedious game without well-defined rules, while results so obtained are vulnerable to overfitting and pedagogically difficult to motivate.
+Furthermore, there is something to be gained by fiddling with these loss functions: one can add regularization terms, to (dis)incentivize (un)desirable behavior.
+But this process---of tinkering with the objective and afterwards spinning a story about why it works---is unsatisfying:
+it can be a tedious game without clear rules or meaning, and results so obtained are arguably overfitted and pedagogically difficult to motivate.
 %
 % We attribute this state of affairs to the relative permisiveness of the medium of expression.
 % ...
 
 
-By contrast, a choice of \emph{model} admits more principled discussion, in part because it makes sense to ask if a model is accurate, or of it captures some intuition about reality.
-This observation motivates our proposition: the use of model inconsistency a ``universal'' loss function. In this framework, it is no longer possible to specify an objective directly; rather, one must articulate a situation that gives rise to it, in the (more interpretable) language of probablistic beliefs and certainties. % (concretely, as a PDG \cite{richardson2020probabilistic}).
-Concretely, we use the machinery Probabilistic Dependency Graphs (PDGs), a particularly expressive class graphical models which can can incorporate aribtrary (even inconsistent) probabilistic information in a natural way, and comes equipped with a well-motivated information-theoretic measure of inconsistency  \cite{richardson2020probabilistic}.
-Surprisingly, most standard objective functions (such as cross entropy, KL divergence, Bhattacharyya distance, R\'enyi entropies, the ELBO, L1 and L2 regularizers, log partition functions) arise naturally as inconsistencies of the appropriate underlying PDG.
+By contrast, a choice of \emph{model} admits more principled discussion, in part because it makes sense to ask if a model is accurate, or of it captures a real phenomenon.
+This observation motivates our proposal: the use of model inconsistency a ``universal'' loss function. In this framework, it is no longer possible to specify an objective directly; rather, one must articulate a situation that gives rise to it, in the (more interpretable) language of probablistic beliefs and certainties. % (concretely, as a PDG \cite{richardson2020probabilistic}).
+Concretely, we use the machinery of Probabilistic Dependency Graphs (PDGs), a particularly expressive class graphical models which can can incorporate aribtrary (even inconsistent) probabilistic information in a natural way, and comes equipped with a well-motivated measure of inconsistency  \cite{richardson2020probabilistic}.
+
+In this paper, we show that many standard objective functions---cross entropy, square error, many statistical distances, the ELBO, regularizers, and the log partition function---
+arise naturally as inconsistencies of the appropriate underlying PDG.
+This is especially surprising because PDGs were not designed for this purpose.
 % which surprised us because it was not designed with any of them in mind, but rather from purely information-theoretic considerations.
-Such a scheme of objective specification is more restrictive, but also more intuitive (since knowledge of the objectives listed above is not necessary), and admits more epistemically grounded support and criticism.
-This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
+Such a scheme of objective specification may be more restrictive, but it is also more intuitive (since intimate experience working with different losses is no longer required), and admits more epistemically grounded support and criticism.
+% This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
 
 
 %TODO Variational AutoEncoder
@@ -352,14 +358,15 @@ This change is analogous to a higher-level programming language, which restricts
 
 For a particularly powerful demonstration, consider the variational autoencoder (VaE), an enormously successful class of generative model that has enabled breakthroughs in image generation, semantic interpolation, and unsupervised feature learning.
 Structurally, a VaE for a space $X$ consists of a (smaller) latent space $Z$, a prior distribution $p(Z)$, a decoder $d(Z | X)$, and an encoder $e(Z| X)$.
-Despite the fact that they are usually introduced by way of a graphical model (the Bayesian Network
-% $\xrightarrow{p} Z \xrightarrow{d} X$
-comprising the prior $p(Z)$ and decoder $d(X|Z)$), a VaE is not considered a ``graphical model'' for two reasons.
+% Despite the fact that they are usually introduced by way of a graphical model (the Bayesian Network
+%     % $\xrightarrow{p} Z \xrightarrow{d} X$
+%     comprising the prior $p(Z)$ and decoder $d(X|Z)$),
+A VaE is not considered a ``graphical model'' for two reasons.
 The first is that the encoder $e(Z|X)$ has the same target variable as $p(Z)$, so a standard directed graphical model cannot simultaneously incorporate them both (after all, they could be inconsistent with one another).
-The second reason: it is not a VaE's structure, but rather its \emph{loss function} that makes a VaE tick. A VaE is typically trained by minimizing a function called the Evidence Lower BOund (ELBO), a particularly difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
-We show that $\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$.
+The second reason: it is not a VaE's structure, but rather its \emph{loss function} that makes a VaE tick. A VaE is typically trained by minimizing a function called the Evidence Lower BOund (ELBO), a somewhat difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
+We show (\Cref{prop:pdg-elbo-x}) that $\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$.
+% Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
 Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
-So PDG semantics capture not only structured objects such as Bayesian Networks and Factor Graphs \cite{richardson2020probabilistic}, but also in the same stroke grant VaEs legitimate graphical-model-hood, blurring the line between the structure and the objective.
 
 
 
@@ -433,10 +440,12 @@ We now restate the formal definition .
 		% a distribution $\bp(x)$ on $Y$ for each $x \in \V(X)$;
         ;
 	\item[$\boldsymbol\alpha$]
-	associates to each edge $\ed L{X}{Y}$ a non-negative number $\alpha_L$ which,
-	roughly speaking, is
+	associates to each edge $\ed L{X}{Y}$ a non-negative number $\alpha_L$
+     % which, roughly speaking, is
     % the modeler's confidence in the functional dependence of $Y$ on the variables $X$ implicit in $L$;
-    the moderler's confidence in the  $X$.
+    % which, roughly speaking, is
+    representing
+    the modeler's confidence in the functional dependence of $Y$ on $X$;
     
 	\item[$\boldsymbol\beta$]
 	associates to each edge $L$ a real number $\beta_L$,
@@ -452,8 +461,8 @@ We now restate the formal definition .
 
 % This presentation is looks slightly different from the original presentation in \cite{richardson2020probabilistic}, but is equivalent.
 This presentation is equivalent to one in which edge sources and targets are both \emph{sets} of variables \cite{richardson2020probabilistic}.
-This allows us to indicate a joint dependence with a multi-tailed edge,
-and unconditional distributions without anything at the tail, so we will draw
+This allows us to indicate joint dependence with multi-tailed arrows, joint distributions with multi-headed arrows,
+and unconditional distributions without any variables at the tail. For instance, we will draw
 \[
 	% p(Y|X,Z)~
 	% \text{as}~
@@ -464,33 +473,41 @@ and unconditional distributions without anything at the tail, so we will draw
 		\node[dpad0] (Z) at (0, 0.5) {$Z$};
 		\mergearr[arr2] XZY
 		\node[above right=-1pt and -3pt of center-XZY] {$p$};
-	\end{tikzpicture}~,~~\text{and $q(Y)$ as }~~
+	\end{tikzpicture}~,
+    % ~~\text{and $q(Y)$ as }~~
+	% \begin{tikzpicture}[center base]
+	% 	\node[dpad0] (Y) at (1,0) {$Y$};
+	% 	\draw[arr2, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
+	% \end{tikzpicture}~.
+    ~~\text{and $q(A,B)$ as }~~
 	\begin{tikzpicture}[center base]
-		\node[dpad0] (Y) at (1,0) {$Y$};
-		\draw[arr2, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
-	\end{tikzpicture}~.
-	% ~\text{for}~q(Y),
+		\node[dpad0] (A) at (0,0) {$A$};
+        \node[dpad0] (B) at (1,0) {$B$};
+        \coordinate (above) at (0.5,0.8);
+        \coordinate (center) at (0.5,0.4);
+		% \draw[arr2, <-] (Y) -- node[left,inner sep=2pt]{$q$} ++(0,1);
+        \cunmergearr[arr1] {above}{A}{B}{center}
+        \node[above left=0pt and 0pt of center,inner sep=2pt]{$q$};
+	\end{tikzpicture}~.	
  \]
 
 % An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
 % We will not make much use of $\alpha$ here, so $\mat p$ and $\beta$ are the most important
 
 Like other graphical models, PDGs have semantics in terms of joint distributions $\mu$ over all variables.
-Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions, one qualitative and one quantitative. The qualitative score, called the \emph{incompatibility} of $\mu$ with $\dg M$, is given by
+Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions $\mu$, which describe the qualitative and quantitative discrepency between $\mu$ and $\dg M$. The quantitative score, called the \emph{incompatibility} of $\mu$ with $\dg M$, is given by
 \begin{equation}
 	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
     \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
 	% \label{eq:semantics}
     \label{eq:inc}
 \end{equation}
-% where  and
 % For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ for all $\mu$, and we can also set $\gamma=0$ to ignore it explicitly.
 
-There is more than one coherent interpretation of this expression; we will give one in terms of codes.
-% We are primarily concerned with the second term of \eqref{eq:semantics}, which
+% There is more than one coherent interpretation of this expression; here is one based on codes.
 It is well known that $\kldiv{\mu}{p}$ is a measure of divergence between $\mu$ and $p$, which can be interpreted as overhead (in extra bits per sample) of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \cite{mackay2003information:relentropy}. 
 % $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
-But if one uses edges in proportion to the condfidence one has in them, then violations of high-confidence cpds are compounded, and hence more costly.
+But if one uses edges in proportion to the condfidence one has in them, then $\mu$'s violations of high-confidence cpds are compounded, and hence more costly.
 So $\Inc_{\dg M}(\mu)$ measures the total expected cost of using the cpds of $\dg M$ in proportion to their confidences, in a world drawn from $\mu$. 
 
 
@@ -513,15 +530,16 @@ Any such formula can be interpreted litterally by setting $\gamma = 0$, and our 
 
 
 Now, some short-hand.
-A cpd $p$ can be regarded as a PDG with a single edge, and sometimes we will implicitly convert a cpd to a PDG.
+A cpd $p$ can be regarded as a PDG with a single edge, and often we will implicitly convert a cpd to a PDG.
 The union of $\dg M$ and $\dg M'$ is denoted by $\dg M + \dg M'$.
-A value $x$ of a variable $X$ is identified with the degenerate distribution $\delta_x$ that places all mass on $x$, and hence may be associated to an edge.
-By default, all cpds are associated with confidence $\beta = 1$, unless specified otherwise, which will be done as a parameter list near the name of the cpd, as in
+We identify an event $X=x$ with with the degenerate distribution on $X$ that places all mass on $x$, and hence may be associated to an edge. Furthermore, when we draw PDGs, it is unambiguous to shorten this event to simply $x$, and attach it 
+By default, all cpds are associated with confidence $\beta = 1$, unless specified otherwise, which is done with a lighter parenthesized parameter list near the edge, as in
 $p ~^{\color{gray}{(\beta\colon0.7)}}$, or
 $p^{\color{gray}(\beta)}$ as a compressed form of
-of $p^{\color{gray}{(\beta\colon\beta)}}$.
+of $p^{\color{gray}{(\beta:\beta)}}$.
 %
-We will use an exclamation point (e.g., $\ed {p!}XY$) to inciate the limit of high confidence ($\beta_p \to \infty$).
+To inciate the limit of high confidence on a cpd $p$, we write an exclamation point, as in: \tikz[baseline=0.9] \draw[arr, <-] node[dpad0](X){$X$} (X) -- node[below,pos=0.6, inner sep=2pt]{$p!$} ++(-1,0);.
+ % ($\beta_p \to \infty$)
 
 
 \subsection{Monotonicity of Inconsistency}
@@ -548,7 +566,8 @@ This is captured formally in two different (but related) ways by the following l
 
 
 % \section{SIMPLE INFORMATION-THEORETIC OBJECTIVES AS INCONSISTENCY}
-\section{SIMPLE INFORMATION-THEORETIC OBJECTIVES AS INCONSISTENCY}
+% \section{INFORMATION-THEORETIC EXPRESSIONS AS INCONSISTENCY}
+\section{SURPRISE AS INCONSISTENCY}
 
 \def\xsamp{{\underline{\mat x}}}
 \def\xysamp{{\underline{\mat{xy}}}}
@@ -567,9 +586,9 @@ In fact, it is equal to $\I_p(x) = -\log p(x)$, the information content (or surp
 	\begin{tikzpicture}[center base]
 		\node[dpad0] (X) {$X$};
 		\coordinate (A) at ($(X) + (-0.9,0)$);
-		\draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
+		\draw[arr1] (A) -- node[above]{$ p$}  (X);
 %
-		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
 	\end{tikzpicture}
 	}.
 	\]
@@ -659,11 +678,11 @@ We now consider an orthogonal generalization of \cref{prop:pdg-Ix}, in which $x$
 				\node[dpad0] (Z) {$Z$};
 				\node[dpad0,right=.5 of Z] (X) {$X$};
 				\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-				\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+				\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 				\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 	%
-				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-	% 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
+				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+	% 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
 				% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 			\end{tikzpicture}
 			}.
@@ -691,7 +710,7 @@ In much the same way as \cref{prop:many-equal-simple} generalizes \cref{prop:pdg
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 			%
 			\draw[arr1, <-] (X) --  node[above,pos=0.8]{$\datadist\xsamp!$} ++(0.9, 0);
-			% \draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q$} ++(-0.9, 0);
+			% \draw[arr1, <-] (Z) -- node[above]{$ q$} ++(-0.9, 0);
 		\end{tikzpicture}
 		}%_{\!\!0}
 		% \right)
@@ -707,7 +726,8 @@ Contrast this with the (more common) supervised setting, in which we train \emph
 For supervised learning, cross entropy loss is perhaps even more dominant---and it equals the inconsistency of a PDG consisting of the predictor $f(Y|X)$ together with high-confidence data.
 
 \begin{linked}{prop}{supervised-cross-entropy}
-	Consider a probabilistic model $f$ with mass function $f(Y \mid X)$. The inconsistency of the PDG containing $f$ and the empirical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the negative log-liklihood (cross-entropy) loss, plus the empirical uncertainty in $Y$ given $X$ (a constant independent of $f$). That is,
+	% Consider a probabilistic model $f$ with mass function $f(Y \mid X)$. The inconsistency of the PDG containing $f$ and the empirical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the negative log-liklihood (cross-entropy) loss, plus the empirical uncertainty in $Y$ given $X$ (a constant independent of $f$). That is,
+    Consider a probabilistic predictor $f(Y \mid X)$. The inconsistency of the PDG containing $f$ and the empirical distribution $\datadist\xysamp$ of samples $\xysamp$ is equal to the cross-entropy loss, (plus the empirical uncertainty in $Y$ given $X$, a constant that depends only on the data). That is,
 	\[ \aar**{
 		\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
@@ -716,7 +736,11 @@ For supervised learning, cross entropy loss is perhaps even more dominant---and 
 			\draw[arr1] (A) -- node[right]{$\datadist\xysamp!$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Y);
 			\draw[arr2, ->] (X) --  node[below,pos=0.5]{$f$} (Y);
-		\end{tikzpicture}} = \frac1{|\xysamp|}\sum_{(x,y) \in \xysamp} \left[ \log \frac1{f(y \mid x)}\right] \quad - \H_{\datadist\xysamp}(Y\mid X).
+		\end{tikzpicture}} =
+        \begin{aligned}
+            \frac1{|\xysamp|}\sum_{(x,y) \in \xysamp} \left[ \log \frac1{f(y \mid x)}\right]&\\
+             - \H_{\datadist\xysamp}(Y\mid X)&.
+        \end{aligned}            
 	\]
 \end{linked}
 
@@ -784,19 +808,19 @@ Note that this is the complete opposite of how we captured cross entropy (\cref{
 When $Y$ is a continuous variable rather than a discrete one, the estimator is referred to as a regressor, rather than a classifier, and the topology of the real numbers comes with an intuition that not all mistakes are equally bad; a small deviation from the correct value of $Y$ is close to correct.
 Perhaps the most common way of measuring this deviation is with mean square error, which corresponds to the inconsistency of believing that $f$ and $h$ control the mean of a unit-variance gaussian.
 
-\begin{coro}[Mean Square Error as inconsistency] \label{coro:MSE}
+\begin{prop}[Mean Square Error as Inconsistency] \label{coro:MSE}
 	\begin{align*}
-		\aar**{\begin{tikzpicture}[center base]
-			\node[dpad0] (Y) {$Y$};
-			\node[dpad0,left=1.1 of Y] (X) {$X$};
-			%
-			\draw[arr2, ->] (X) to[bend left]
-				node[pos=0.5, above] {$\mathcal N(f(x), 1)$} (Y);
-			\draw[arr2, ->] (X) to[bend right] node[pos=0.5, below]{$\mathcal N(g(x), 1)$} (Y);
-			\draw[arr2, <-] (X) to node[pos=0.6, above]{$D!$} +(-1.1, 0);
-		\end{tikzpicture}}
-		&=
-		\aar**{\begin{tikzpicture}[center base]
+		% \aar**{\begin{tikzpicture}[center base]
+		% 	\node[dpad0] (Y) {$Y$};
+		% 	\node[dpad0,left=1.1 of Y] (X) {$X$};
+		% 	%
+		% 	\draw[arr2, ->] (X) to[bend left]
+		% 		node[pos=0.5, above] {$\mathcal N(f(x), 1)$} (Y);
+		% 	\draw[arr2, ->] (X) to[bend right] node[pos=0.5, below]{$\mathcal N(g(x), 1)$} (Y);
+		% 	\draw[arr2, <-] (X) to node[pos=0.6, above]{$D!$} +(-1.1, 0);
+		% \end{tikzpicture}}
+		% &=
+		\aar**{\!\!\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
 			\node[dpad0,left=2.2 of Y] (X) {$X$};
 			\node[dpad0,above right=0.1 and 0.8 of X] (mf) {$\mu_f$};
@@ -814,16 +838,17 @@ Perhaps the most common way of measuring this deviation is with mean square erro
 			\draw[arr2, ->] (mf) to[bend left=0]
 				node[pos=0.3, above right=0]{$\mathcal N_1$} (Y);
 			% \draw[arr2, <-] (X) to node[pos=0.6, above]{$D$} +(-1.1, 0);
-		\end{tikzpicture}}\\
-		 &= \Ex\nolimits_D \Big( f(X) - h(X) \Big)^2
-		 =: \mathrm{MSE}( f, h ), \numberthis\label{eq:mse}
+		\end{tikzpicture}}
+		\begin{aligned}
+        = \Ex\nolimits_D \big( f(X) - h(X) \big)^2 \\
+		 = \mathrm{MSE}( f, h )~,~
+        \end{aligned}\numberthis\label{eq:mse}
 	\end{align*}
 	where $\mathcal N_1 = \mathcal N(-,1)$ is the normal distribution with unit variance, and mean equal to its argument.
-\end{coro}
+\end{prop}
 
 We treat the more general case, with arbitrary confdiences variances, in the appendix.
 
-The equality of the two PDG inconsistencies illustrates an orthogonal point: that PDGs handle composition of functions as one would expect, so that it is equivalent to model an entire process as a single arrow, or to break it into stages, ascribing an arrow to each stage, with one step of randomization.
 
 
 
@@ -858,8 +883,8 @@ The equality of the two PDG inconsistencies illustrates an orthogonal point: tha
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%/%%%%%%%%%%%%%%%%%%%%%%
 \section{STATISTICAL DISTANCES AS INCONSISTENCIES} \label{sec:statdist}
-Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.
-Thus the inconsistency of a PDG comprised of $p$ and $q$ is a measure of divergence.
+Suppose you are concerned with only a single variable $X$. One friend has told you that it is distributed according to the probability distribution $p(X)$; another has told you that it follows $q(X)$, and you adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.
+Thus the inconsistency of a PDG comprised of $p$ and $q$ is a divergence measure.
 
 Recall that a PDG also allows us to specify the confidences $\beta_p$ and $\beta_q$ of each cpd, and so we can form a distinct PDG containing only the distributions $p$ and $q$ for each setting of $(\beta_p, \beta_q)$.
 It turns out that a surprisingly large classs of statistical distances arise as the inconsistency of such a PDG.
@@ -889,10 +914,12 @@ This concords with the standard view that $\kldiv pq$ reflects the amount of inf
 
 In general, we derive the following form for the inconsistency of a PDG whose contents are distributions $p(X)$ and $q(X)$, for arbitrary confidences.
 \begin{linked}{lemma}{pdgdiv}
-	The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, the inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$, satisfies
+	% The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$, 
+    The inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$
+    is given in closed form by 
     \[
-		\thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
-        \aar[\bigg]{\begin{tikzpicture}[center base]
+		% \thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
+        \aar[\bigg]{\!\!\begin{tikzpicture}[center base]
             \node[dpad0] (X) {$X$};
             \draw[arr2, <-] (X) --
 			 		% node[above] {$\overset{(\beta : r)}p$}
@@ -904,7 +931,7 @@ In general, we derive the following form for the inconsistency of a PDG whose co
 			 		node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
 			 		node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : s)}$}
 				 ++(1.1, 0);
-        \end{tikzpicture}}
+        \end{tikzpicture}\!\!}
         % = \thickD^{\mathrm{PDG}}_{(r,s)}(p, q)
         = - (r+s) \log  \sum_x \left(p(x)^{r}\vphantom{\Big|} q(x)^{s}\right)^{\frac{1}{r+s}}.
         % = - (r+s) \log \sum_x \! \sqrt[\leftroot{0}\uproot{2}r+s]{\vphantom{\big|}p(x)^{r} q(x)^{s}}
@@ -979,7 +1006,7 @@ In general, we derive the following form for the inconsistency of a PDG whose co
 
 
 	\end{tikzpicture}
-	\caption{A map of the inconsistency of the PDG containing the distributions $p(X)$ and $q(X)$, as we vary their respective confidences $\beta_p$ and $\beta_q$. Solid circles indicate well-known named measures, and semicircles indicate limiting values. }
+	\caption{A map of the inconsistency of the PDG comprising $p(X)$ and $q(X)$, as we vary their respective confidences $\beta_p$ and $\beta_q$. Solid circles indicate well-known named measures, semicircles indicate limiting values, and the heavily dashed lines are well-established classes. }
 	% {A map of inconsistency
 	% \(\aar[\bigg]{\begin{tikzpicture}[center base]
 	% 	\node[dpad0] (X) {$X$};
@@ -1002,25 +1029,28 @@ In general, we derive the following form for the inconsistency of a PDG whose co
 Of the many generalizations of KL divergence, R\'enyi divergences, first characterized by Alfr\'ed R\'enyi \cite{renyi1961measures} are perhaps the most significant, as few others have found either application or an interpretation in terms of coding theory \cite{van2014renyi}.
 The R\'enyi divergence of order $\alpha$ between two distributions $p(X)$ and $q(X)$ is given by
 \begin{equation}
-	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \log \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}\label{eq:renyi}
+	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \log \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}.  \label{eq:renyi}
 \end{equation}
 R\'enyi introduced this measure in the same paper as the more general class of $f$-divergences, but directs his attention towards those of the form \eqref{eq:renyi}, because satisfy a natural weakening of Fadeev's postulates \cite{fadeev1957begriff}, for Shannon entropy.
 Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain `mean-value property', is of the form \eqref{eq:renyi}, up to scaling \cite{renyi1961measures}.
-It follows from \cref{lemma:pdgdiv} that varing the confidences of our two-distribution PDG, essentially carves out the same class: every R\'enyi entropy is the inconsistency of some PDG of this form, and every PDG divergence (with the exception of limiting values) is a scaled R\'enyi entropy.
+It follows from \cref{lemma:pdgdiv} that varing the confidences of our two-distribution PDG, essentially carves out the same class: every R\'enyi entropy is the inconsistency of some PDG of this form, and every PDG divergence (but not every limit point) is a scaled R\'enyi entropy.
 
-\begin{coro}[R\'enyi Divergences as Inconsistencies]
-    \[ \thickD^{\mathrm{PDG}}_{r, s}(p, q) =
-        s \cdot \thickD_{\frac{r}{r+s}}\infdivx{p}{q}
-    \qquad \text{and} \qquad
+\begin{coro}[R\'enyi Divergences as Inconsistency]
+    % \vskip{-5pt}
+    \begin{align*}
+        \thickD^{\mathrm{PDG}}_{r, s}(p, q) &=
+            s \cdot \thickD_{\frac{r}{r+s}}\infdivx{p}{q}
+        % \qquad \text{and} \qquad
+        \\\text{and}\qquad
         \thickD_{\alpha}\infdivx{p}{q}
-        = \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
-    \]
+        &= \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
+    \end{align*}
 \end{coro}
 
 However, the two classes are not exactly identical, because the PDG divergences admit extra limit points. One of the biggest differences is that the reverse KL divergence $\kldiv q p$ is not a Renyi entropy of the form $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$. This lack of symmetry has caused other authors \cite{cichocki2010families} to instead work with a re-scaled symmetric version of the R\'enyi entropy, called $\alpha$-divergence \eqref{eq:alphadiv}  (although sometimes the term is used for the same quantity without the logarithm).  The relationship between them can be seen in \cref{fig:statdistmap}.
 
 \begin{equation}
-	\tilde \thickD_\alpha\infdivx p q := \frac{1}{(\alpha)( 1- \alpha)} \;{\color{gray}\log} \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha} \label{eq:alphadiv}
+	\tilde \thickD_\alpha\infdivx p q := \frac{1}{\alpha( 1- \alpha)} \;{\color{black}\log}\!\! \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha} \label{eq:alphadiv}
 \end{equation}
 
 We submit that viewing these as inconsistencies can clarify things a great deal. Whereas the formula for R\'enyi entropy is mostly symmetric, the leading $\frac1{1-\alpha}$ of \eqref{eq:renyi} makes it instead \emph{skew}-symmetric, and as a result the behavior for $\alpha \in (0, \nicefrac12)$ is qualitatively different from the behavior for $\alpha \in (\nicefrac12, 1)$. The corresponding PDG inconsistencies, on the other hand, are symmetric: the semantics do not give special treatment to one edge over the other.
@@ -1028,7 +1058,7 @@ We submit that viewing these as inconsistencies can clarify things a great deal.
 One consequence of representing divergences as inconsistencies is that we can use \cref{lemma!} to derive relationships between them. The following facts follow immediately, and can be seen in \cref{fig:statdistmap} by inspection.
 \begin{coro}
 	\begin{enumerate}[nosep]
-		\item R\'enyi entropy is monotonic in its parameter $\beta$
+		\item R\'enyi entropy is monotonic in its parameter $\alpha$
 		\item $\kldiv P Q \ge 2 \thickD_B(P,Q) \le \kldiv Q P$
 		\item If $Q(P > 0) < 1$ (i.e., $Q \not\ll P$), then $\kldiv Q P = \infty$
 	\end{enumerate}
@@ -1062,34 +1092,36 @@ The picture presented here is compatible with the correspondence between regular
 We now review these findings in the context of our framework, as we show how adding a prior distribution in a PDG results in the corresponding regularization term in the inconsistency.
 
 \begin{linked}{prop}{regularized}
-	Consider a situation where you believe that $Y$ is distributed according to $f_\theta(Y)$  for some parameter $\theta$, and also that you have a prior belief $p(\theta)$ over parameters, and an empirical distribution $D$ over $Y$ which you trust. The inconsistency of also believing that the parameter is some $\theta_0$ is the \emph{regularized}-cross entropy loss, where the regularizer is $\log \frac1{p(\theta_0)}$ times the confidence in the prior $p$.
+	Suppose you believe that $Y$ is distributed according to $f_\theta(Y)$  for some parameter $\theta$, and also that you have a prior belief $p(\theta)$ over which parameters are likely, and also observe an empirical distribution $D(Y)$ which you trust. The inconsistency of also believing that the parameter is some $\theta_0$ is the \emph{regularized}-cross entropy loss, where the regularizer is $\log \frac1{p(\theta_0)}$ times your confidence in $p$.
 	That is,
-	\begin{equation}\label{eq:regularize}
-		\aar*{\begin{tikzpicture}[center base]
-			\node[dpad0] (theta) {$\Theta$};
-			\node[dpad0, right=0.7 of theta] (Y) {$Y$};
+	\begin{align*}
+		\aar*{\!\!\begin{tikzpicture}[center base]
+			\node[dpad0] (theta) at (0,0) {$\Theta$};
+            \node[dpad0] (Y) at (1.2,0.3) {$Y$};
+			% \node[dpad0, right=0.7 of theta] (Y) {$Y$};
 			%
 			\draw[arr] (theta) --
 	 			% node[above]{$\overset{{\color{gray}(\beta_f)}}f$}
 	 			% node[above]{$f^{{\color{gray}(\beta_f)}}$}
 	 			node[above]{$f$}
 				(Y);
-			\draw[arr, <-] (theta) --
+			\draw[arr2, <-] (theta) --
 				node[above right=-2pt and -2pt, pos=0.7] {$p$}
-				node[below left=-3pt and -4pt,pos=0.6]{{$\color{gray}\scriptscriptstyle(\beta)$}}
+				node[below left=-3pt and -4pt,pos=0.6]{{$\color{gray}\scriptstyle(\beta)$}}
 				++(-1.0, 0.5);
 			% \draw[arr, <-] (theta) --
 			% 	node[above right, pos=0.7] {$p^{{\color{gray}(\beta)}}$}
 			% 	++(-1.0, 0.4);
-			\draw[arr, <<-] (theta) -- node[below,pos=0.4]{$\theta_0$} ++(-1.1, -0.3);
-			\draw[arr, <-] (Y) -- node[above,pos=0.6]{$D!$} ++(1.1, 0);
+			\draw[arr2, <<-] (theta) -- node[below,pos=0.4]{$\theta_0$} ++(-1.1, -0.3);
+			\draw[arr2, <-] (Y) -- node[left,pos=0.6, inner sep=2pt]{$D!$} ++(0, -0.9);
 		\end{tikzpicture}}
-		=
+		=\!
 		% \beta_f\,
-		\Ex_{y \sim D} \left[\log \frac{1}{f(y \mid \theta_0)} \right]
-			+ \beta \log \frac1{p(\theta_0)}
-		 - \H(D)
-	\end{equation}
+		% \Ex_{y \sim D} \left[\log \frac{1}{f(y \mid \theta_0)} \right]
+        \Ex_{y \sim D} \log \frac{1}{f(y \mid \theta_0)} 
+			&+ \beta \log \frac1{p(\theta_0)} \numberthis\label{eq:regularize} \\[-2em]
+            &\!{\color{gray}- \H(D)}
+	\end{align*}
 \end{linked}
 
 Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\frac12 \theta^2)$ for a normaization constant $k$, the RHS of \eqref{eq:regularize} becomes
@@ -1098,7 +1130,7 @@ Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\
 	+ \!\!\!\!\!\underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \!\!\!\!
 	{\color{gray!80} \underbrace{+ \beta \log k - \H(D)}_{\text{constant in $f, \theta_0$}}}, \]
 which is the $\ell_2$ regularized version of \cref{prop:many-equal-simple}.
-Moreover, the regularization strength corresponds exactly to the confidence $\beta$ functions as the hyperparameter, a feature unique to our approach.
+Moreover, the regularization strength corresponds exactly to the confidence $\beta$ functions as the hyperparameter,.
 
 What about other priors? It is not difficult to see that if we use a (discretized) centered unit Laplacian prior, $p(\theta) = \frac1k \exp(-|\theta|)$, the second term instead becomes $\beta |\theta_0|$, which is $\ell_1$ regularization.
 More generally, to consider any complexity measure $E(\theta)$, we need only include the Gibbs distribution $\Pr_E(\theta) \propto \exp(-E(\theta))$ into our PDG.
@@ -1133,7 +1165,7 @@ But only by being clever. The straightforward divergence-minimizing approach to 
 
 % We will now see that this tie extends to latent variable models in a nice way.
 This formula is somewhat difficult to make sense of, especially if $p$ and $q$ are densities, in which case the units don't cancel in the logarithm, making it an ill-defined physical quantity (see \cref{remark:continuous}).
-If $p$ and $q$ are mass functions, though, it turns out that the ELBO also arises naturally as the inconsistency of the obvious.
+If $p$ and $q$ are mass functions, though, it turns out that the ELBO also arises naturally as the inconsistency of the obvious PDG.
 
 \begin{linked}{prop}{pdg-elbo-x}%[Capturing the ELBO]
 		% \label{prop:pdg-elbo-x}
@@ -1150,11 +1182,11 @@ If $p$ and $q$ are mass functions, though, it turns out that the ELBO also arise
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);%
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
 			%\scriptstyle q^{\{\beta =\infty\}}
 			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 		\end{tikzpicture}
@@ -1185,12 +1217,12 @@ If $p$ and $q$ are mass functions, though, it turns out that the ELBO also arise
 % 	  		\node[dpad0] (Z) {$Z$};
 % 	  		\node[dpad0,right=.5 of Z] (X) {$X$};
 % 	  		\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-% 	  		\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+% 	  		\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 % 	  		\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 % 	  %
-% 	  		\draw[arr1, <-] (X) --  node[above,pos=0.2,anchor=south west]{$\scriptstyle {\datadist\xsamp}!$} ++(0.9, 0);
+% 	  		\draw[arr1, <-] (X) --  node[above,pos=0.2,anchor=south west]{$ {\datadist\xsamp}!$} ++(0.9, 0);
 % 	  			% ^{\{\beta=\beta_0\}}
-% 	  		\draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q! $} ++(-0.9, 0);
+% 	  		\draw[arr1, <-] (Z) -- node[above]{$ q! $} ++(-0.9, 0);
 % 	  	\end{tikzpicture} }_1 + \H(\datadist\xsamp)\)
 % 	\end{enumerate}
 %
@@ -1201,8 +1233,8 @@ If $p$ and $q$ are mass functions, though, it turns out that the ELBO also arise
 
 
 
-The use of the ELBO as an objective is often justified by the fact that it lower-bounds the objective that you ``really wanted'': the cross entropy.
-This is often proved by jensen's inequality, or alternatively, but appeal to the non-negativity of relative entropy \cite{elboproofs}.
+The use of the ELBO as an objective is often justified by the fact that it bounds the evidence: the objective that you ``really wanted'': the marginal log likelihood of the partial observation $X=x$.
+The bound is often proved by jensen's inequality, or alternatively, but appeal to the non-negativity of relative entropy \cite{elboproofs}.
 We now give a very simple, different-looking diagrammatic proof of this second approach, by appealing to the intuitive fact that adding believing more things cannot make you less inconsistent, as captured by \cref{lemma!}.
 
 \[
@@ -1214,11 +1246,11 @@ We now give a very simple, different-looking diagrammatic proof of this second a
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-% 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+% 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q^{\{\beta =\infty\}}$} ++(-0.9, 0);%
 			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 		\end{tikzpicture}
 		}%_{\!\!0}
@@ -1231,11 +1263,11 @@ We now give a very simple, different-looking diagrammatic proof of this second a
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);%
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
 			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 		\end{tikzpicture}
 		}%_{\!\!0}
@@ -1259,11 +1291,11 @@ Furthermore, this picture shows us that if we simultaneously vary $q(Z)$ within 
 % 			\node[dpad0] (Z) {$Z$};
 % 			\node[dpad0,right=.5 of Z] (X) {$X$};
 % 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-% 			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+% 			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 % 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 % %
-% 			\draw[arr1, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle \datadist\xsamp$} ++(0.9, 0);
-% 			% \draw[arr1, <-] (Z) -- node[above]{$\scriptstyle q$} ++(-0.9, 0);
+% 			\draw[arr1, <<-] (X) --  node[above,pos=0.8]{$ \datadist\xsamp$} ++(0.9, 0);
+% 			% \draw[arr1, <-] (Z) -- node[above]{$ q$} ++(-0.9, 0);
 % 		\end{tikzpicture}
 % 		}%_{\!\!0}
 % 		% \right)
@@ -1275,7 +1307,7 @@ Furthermore, this picture shows us that if we simultaneously vary $q(Z)$ within 
 % 	  		\node[dpad0] (Z) {$Z$};
 % 	  		\node[dpad0,right=.5 of Z] (X) {$X$};
 % 	  		\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-% 	  		\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+% 	  		\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 % 	  		\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 % 	  %
 % 	  		\draw[arr1, <-] (X) --  node[above,pos=0.2,anchor=south west]{$ {\datadist\xsamp}^{\{\beta= t\}}$} ++(0.9, 0);
@@ -1288,14 +1320,14 @@ Furthermore, this picture shows us that if we simultaneously vary $q(Z)$ within 
 
 \subsection{Variational Auto-Encoders and PDGs}
 
-An autoencoder is a probabilistic model intended to compress a variable $X$ (e.g., an image) to a compact latent representation $Z$ (a compact vector), and is specified by two conditional distributions:
+An autoencoder is a probabilistic model intended to compress a variable $X$ (e.g., an image) to a compact latent representation $Z$ (a compact representation with meaningful features), and is specified by two conditional distributions:
 an encoder $e(Z \mid X)$, and a decoder $d(X \mid Z)$.
 Of course, not all pairs of cpds fill this role equally well.
 Perhaps most importantly, we would to have low \emph{reconstruction error} \eqref{eq:rec}---when we decode an encoded image, we would like it to be reasonably similar to the original.
 
 \begin{equation}
- \mathrm{Rec}(x) = \Ex_{z \sim e \mid x} \underbrace{~\mathrm I_{d\mid z}(x)~}_{\substack{\text{Additional bits to}\\\text{specify $x$ from $d|z$}}}
-	= \sum_z e(z \mid x) \log \frac1{d(x \mid z)}\label{eq:rec}
+ \mathrm{Rec}(x) := \!\! \Ex_{z \sim e \mid x} \, \underbrace{\,\mathrm I_{d\mid z}(x)~\vphantom{\bigg|}}_{\mathclap{\substack{\text{Additional bits required to}\\\text{decode $x$ from $z$, its encoding}}}}
+	= \sum_z e(z \,|\, x) \log \frac1{d(x \,|\, z)}\label{eq:rec}
 \end{equation}
 
 % Note the similarity to the cross entropy objective from before, except in place of our
@@ -1324,14 +1356,14 @@ This gives us the following results, analogous to \cref{prop:pdg-elbo-x}.
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\draw[arr2, ->] (X) to[bend left=50]
-				node[below]{$\scriptstyle e!$} (Z);
+				node[below]{$ e!$} (Z);
 			\draw[arr2, ->] (Z) to[bend left=50]
-				node[above]{$\scriptstyle d$} (X);
+				node[above]{$ d$} (X);
 			\draw[arr2, <<-] (X) --
-			  	node[above,pos=0.8]{$\scriptstyle x$}
+			  	node[above,pos=0.8]{$ x$}
 			 	++(0.9, 0);
 			\draw[arr2, <-] (Z) --
-				node[above,pos=0.6]{$\scriptstyle p$}
+				node[above,pos=0.6]{$ p$}
 				++(-0.9, 0);%
 		\end{tikzpicture}}
 	\]
@@ -1370,12 +1402,12 @@ This result in the following simple visual proof:
 	   \node[dpad0] (Z) {$Z$};
 	   \node[dpad0,right=.5 of Z] (X) {$X$};
 	   \draw[arr2, ->] (Z) to[bend left=10]
-		   node[above]{$\scriptstyle d$} (X);
+		   node[above]{$ d$} (X);
 	   \draw[arr2, <<-] (X) --
-		   node[above,pos=0.8]{$\scriptstyle x$}
+		   node[above,pos=0.8]{$ x$}
 		   ++(0.9, 0);
 	   \draw[arr2, <-] (Z) --
-		   node[above,pos=0.6]{$\scriptstyle p$}
+		   node[above,pos=0.6]{$ p$}
 		   ++(-0.9, 0);%
 	\end{tikzpicture}}
  	\le
@@ -1383,14 +1415,14 @@ This result in the following simple visual proof:
 		\node[dpad0] (Z) {$Z$};
 		\node[dpad0,right=.5 of Z] (X) {$X$};
 		\draw[arr2, ->] (X) to[bend left=50]
-			node[below]{$\scriptstyle e!$} (Z);
+			node[below]{$ e!$} (Z);
 		\draw[arr2, ->] (Z) to[bend left=50]
-			node[above]{$\scriptstyle d$} (X);
+			node[above]{$ d$} (X);
 		\draw[arr2, <<-] (X) --
-			node[above,pos=0.8]{$\scriptstyle x$}
+			node[above,pos=0.8]{$ x$}
 			++(0.9, 0);
 		\draw[arr2, <-] (Z) --
-			node[above,pos=0.6]{$\scriptstyle p$}
+			node[above,pos=0.6]{$ p$}
 			++(-0.9, 0);%
 	\end{tikzpicture}} = -\mathrm{ELBO}_{p,e,d}(x).
 \]
@@ -1423,7 +1455,7 @@ Here $\Pr(X)$ is the marginal of $p(Z)d(X \mid Z)$ on $X$.
 			node[above,pos=0.8]{$\datadist\xsamp!$}
 			++(0.9, 0);
 		\draw[arr2, <-] (Z) --
-			node[above,pos=0.6]{$\scriptstyle p$}
+			node[above,pos=0.6]{$ p$}
 			++(-0.9, 0);%
 	\end{tikzpicture}} + \H(\datadist\xsamp) \\
 	&\qquad\qquad= -\Ex_{\datadist\xsamp}\mathop{\mathrm{ELBO}}\limits_{p,e,d}(X)
@@ -1487,6 +1519,8 @@ be obtained by taking various partial derivatives of $Z_\Psi$, and calculating t
 \section{DISCUSSION}
 
 DISCUSSION GOES HERE.
+
+So PDG semantics capture not only structured objects such as Bayesian Networks and Factor Graphs as in \cite{richardson2020probabilistic}, but also in the same stroke grant VaEs legitimate graphical-model-hood, blurring the line between model and objective.
 
 \subsubsection*{Acknowledgements}
 % All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.
@@ -1603,7 +1637,9 @@ It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and stric
 \end{linked}
 
 
-Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
+
+The equality of the two PDG inconsistencies illustrates an orthogonal point: that PDGs handle composition of functions as one would expect, so that it is equivalent to model an entire process as a single arrow, or to break it into stages, ascribing an arrow to each stage, with one step of randomization.
+Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ proves \Cref{coro:MSE}.
 
 \recall{coro:MSE}
 
@@ -1617,17 +1653,17 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
 		\begin{tikzpicture}[center base]
 			\node[dpad0] (X) {$X$};
 			\coordinate (A) at ($(X) + (-0.9,0)$);
-			\draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
+			\draw[arr1] (A) -- node[above]{$ p$}  (X);
 	%
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
 		\end{tikzpicture}
 		}
 		= \bbr*{\begin{tikzpicture}[center base]
 			\node[dpad0] (X) {$X$};
 			\coordinate (A) at ($(X) + (-0.9,0)$);
-			\draw[arr1] (A) -- node[above]{$\scriptstyle p$}  (X);
+			\draw[arr1] (A) -- node[above]{$ p$}  (X);
 	%
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
 		\end{tikzpicture}}( \delta_x )
 		= \kldiv{\delta_x}{p} = \log \frac{1}{p(x)} = \I_p(x).
 	\end{equation*}
@@ -1660,17 +1696,17 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
 		\end{tikzpicture}}
 			&= \inf_{\mu(Z)} \bbr*{\begin{tikzpicture}[center base]
 				\node[dpad0] (Z) {$Z$};
 				\node[dpad0,right=.5 of Z] (X) {$X$};
 				\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-				\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+				\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 				\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
-				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
+				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
 			\end{tikzpicture}}\Big(\delta_x(X)\mu(Z)\Big)  \\
 			&= \inf_{\mu(Z)}\kldiv[\Big]{\delta_x(X)\mu(Z)}{p(X,Z)} \\
 			&= \inf_{\mu(Z)}\Ex_{z \sim \mu} \log \frac{\mu(z)}{p(x,z)}
@@ -1699,9 +1735,9 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
 				\node[dpad0] (Z) {$Z$};
 				\node[dpad0,right=.5 of Z] (X) {$X$};
 				\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-				\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+				\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 				\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
-				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle \datadist\xsamp!$} ++(0.9, 0);
+				\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ \datadist\xsamp!$} ++(0.9, 0);
 			\end{tikzpicture}}\Big(\datadist\xsamp(X) \mu(Z \mid X)\Big)  \\
 			&= \inf_{\mu(Z \mid X)}\kldiv[\Big]{\datadist\xsamp(X) \mu(Z \mid X)}{p(X,Z)} \\
 			&= \inf_{\mu(Z \mid X)}
@@ -1852,12 +1888,12 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
 		\node[dpad0] (Z) {$Z$};
 		\node[dpad0,right=.5 of Z] (X) {$X$};
 		\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-		\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+		\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 		\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-		\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);%
-		%\scriptstyle q^{\{\beta =\infty\}}
+		\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+		\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
+		% q^{\{\beta =\infty\}}
 		% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 	\end{tikzpicture}
 	}
@@ -1867,12 +1903,12 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
-			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
-			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);%
-			%\scriptstyle q^{\{\beta =\infty\}}
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
+			% q^{\{\beta =\infty\}}
 			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
 		\end{tikzpicture}
 		}( \mu ) \\
@@ -1882,12 +1918,12 @@ Plugging in $s(x) = t(x) = 1$ and $\beta_1 = \beta_2 = 1$ gives the MSE result.
  			\node[dpad0] (Z) {$Z$};
  			\node[dpad0,right=.5 of Z] (X) {$X$};
  			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
- 			\draw[arr1] (A) -- node[right]{$\scriptstyle p$} ++(0,-0.25) -- (X);
+ 			\draw[arr1] (A) -- node[right]{$ p$} ++(0,-0.25) -- (X);
  			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
  %
- 			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$\scriptstyle x$} ++(0.9, 0);
- 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$\scriptstyle q!$} ++(-0.9, 0);%
- 			%\scriptstyle q^{\{\beta =\infty\}}
+ 			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+ 			\draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
+ 			% q^{\{\beta =\infty\}}
  			% \ar[r,"p"] \& Z \ar[r,"p", bend left] \& X \ar[l,"q", bend left] \& \ar[l, two heads, "x"']
  		\end{tikzpicture}
  		}( \delta_x(X) q(Z) ) \\
@@ -1922,11 +1958,11 @@ We proove both \Cref{prop:pdg-elbo-vae} and \cref{prop:pdg-elbo-vae-whole} at th
 			\node[dpad0] (Z) {$Z$};
 			\node[dpad0,right=.5 of Z] (X) {$X$};
 			\draw[arr2, ->] (X) to[bend left=50]
-			   node[below]{$\scriptstyle e!$} (Z);
+			   node[below]{$ e!$} (Z);
 			\draw[arr2, ->] (Z) to[bend left=50]
-			   node[above]{$\scriptstyle d$} (X);
+			   node[above]{$ d$} (X);
 			\draw[arr2, <<-] (X) --
-			   node[above,pos=0.8]{$\scriptstyle x$}
+			   node[above,pos=0.8]{$ x$}
 			   ++(0.9, 0);
 			\draw[arr2, <-] (Z) --
 			   node[above,pos=0.6]{$\scriptstyle \overset{(\beta : \beta')}p$}
@@ -1936,11 +1972,11 @@ We proove both \Cref{prop:pdg-elbo-vae} and \cref{prop:pdg-elbo-vae-whole} at th
  		   \node[dpad0] (Z) {$Z$};
  		   \node[dpad0,right=.5 of Z] (X) {$X$};
  		   \draw[arr2, ->] (X) to[bend left=50]
- 			   node[below]{$\scriptstyle e!$} (Z);
+ 			   node[below]{$ e!$} (Z);
  		   \draw[arr2, ->] (Z) to[bend left=50]
- 			   node[above]{$\scriptstyle d$} (X);
+ 			   node[above]{$ d$} (X);
  		   \draw[arr2, <<-] (X) --
- 			   node[above,pos=0.8]{$\scriptstyle x$}
+ 			   node[above,pos=0.8]{$ x$}
  			   ++(0.9, 0);
  		   \draw[arr2, <-] (Z) --
  			   node[above,pos=0.6]{$\scriptstyle \overset{(\beta : \beta')}p$}
