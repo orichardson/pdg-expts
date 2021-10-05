@@ -376,8 +376,11 @@ Structurally, a VaE for a space $X$ consists of a (smaller) latent space $Z$, a 
 %     comprising the prior $p(Z)$ and decoder $d(X|Z)$),
 A VaE is not considered a ``graphical model'' for two reasons.
 The first is that the encoder $e(Z|X)$ has the same target variable as $p(Z)$, so a standard directed graphical model cannot simultaneously incorporate them both (after all, they could be inconsistent with one another).
-The second reason: it is not a VaE's structure, but rather its \emph{loss function} that makes a VaE tick. A VaE is typically trained by minimizing a function called the Evidence Lower BOund (ELBO), a somewhat difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
-We show (\Cref{prop:pdg-elbo-x}) that $\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$.
+The second reason: it is not a VaE's structure, but rather its \emph{loss function} that makes a VaE tick. A VaE is typically trained by 
+    % minimizing a function called the Evidence Lower BOund (ELBO), 
+maximizing the ``ELBO'', 
+    a somewhat difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
+We show (\Cref{prop:pdg-elbo-x}) that $-\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$.
 % Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
 Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
 
@@ -955,16 +958,21 @@ We start with the one that we've already seen.
 \begin{prop}[KL Divergence as Inconsistency]
 	The inconsistency of believing $p$ with complete certainty, and also $q$ with some finite certainty $\beta$, is $\beta$ times the KL Divergence (or relative entropy) of $q$ with respect to $p$. That is,
 \[
-    \aar[\bigg]{\begin{tikzpicture}[center base]
+    \aar[\Big]{\begin{tikzpicture}[center base]
         \node[dpad0] (X) {$X$};
-        \draw[arr, <-] (X) -- node[above]
-            {$p !$}  ++(-1.1,0);
-        \draw[arr, <-] (X) --  node[above,pos=0.6]
+        \draw[arr, <-] (X) -- 
+            node[above,inner sep=2pt, pos=0.65] {$p$}
+            node[below,inner sep=2pt, pos=0.65] 
+                {${\color{gray}\scriptscriptstyle(\infty)}$}
+             ++(-1.1,0);
+        \draw[arr, <-] (X) --  
+            node[above,pos=0.6,inner sep=2pt]
             % {$\overset{\smash{\color{gray}(\beta)}}q$} ++(0.9, 0);
          	% {$\overset{{\color{gray}(\beta)}}q$}
             % {$q~^{{\color{gray}(\beta)}}$} ++(1.1, 0);
 			{$q$}
-			node[below,pos=0.6]{$\scriptstyle{\color{gray}(\beta)}$}++(1.1, 0);
+			node[below,pos=0.6,inner sep=2pt]
+                {$\scriptstyle{\color{gray}(\beta)}$}++(1.1, 0);
     \end{tikzpicture}}
 	= \beta\, \kldiv pq
 \]
@@ -974,24 +982,30 @@ $\kldiv p q$ is the inconsistency of a mental state containing both $p$ and $q$,
 This concords with the standard view that $\kldiv pq$ reflects the amount of information required to change $q$ into $p$, which is why we call it the relative entropy ``from $q$ to $p$''.
 
 
-In general, we derive the following form for the inconsistency of a PDG whose contents are distributions $p(X)$ and $q(X)$, for arbitrary confidences.
+% In general, we derive the following form for the inconsistency of a PDG whose contents are distributions $p(X)$ and $q(X)$, for arbitrary confidences.
+We now consider the general case of a PDG comprising $p(X)$ and $q(X)$ with arbitrary confidences.
+%, which we denote $\thickD^{PDG}_{r,s}(p,q)$,  .
 \begin{linked}{lemma}{pdgdiv}
 	% The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$,
     The inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$
     is given in closed form by
     \[
 		% \thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
-        \aar[\bigg]{\!\!\begin{tikzpicture}[center base]
+        \aar[\bigg]{\!\!\begin{tikzpicture}[baseline = -0.75ex]
             \node[dpad0] (X) {$X$};
             \draw[arr2, <-] (X) --
 			 		% node[above] {$\overset{(\beta : r)}p$}
 			 		node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
-			 		node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : r)}$}
+			 		node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : r)}$}
+                        {$\scriptstyle{\color{gray}(r)}$}
 				++(-1.1,0);
             \draw[arr2, <-] (X) --
 					% node[above,pos=0.5] {$\overset{(\beta : s)}q$}
 			 		node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
-			 		node[below, pos=0.65, inner sep=3pt, align=center] {$\scriptstyle{\color{gray}(\beta : s)}$}
+			 		node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : s)}$}
+                        {$\scriptstyle{\color{gray}(s)}$}
 				 ++(1.1, 0);
         \end{tikzpicture}\!\!}
         % = \thickD^{\mathrm{PDG}}_{(r,s)}(p, q)
@@ -1094,18 +1108,56 @@ The R\'enyi divergence of order $\alpha$ between two distributions $p(X)$ and $q
 	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \log \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}.  \label{eq:renyi}
 \end{equation}
 R\'enyi introduced this measure in the same paper as the more general class of $f$-divergences, but directs his attention towards those of the form \eqref{eq:renyi}, because satisfy a natural weakening of Fadeev's postulates \cite{fadeev1957begriff}, for Shannon entropy.
-Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain `mean-value property', is of the form \eqref{eq:renyi}, up to scaling \cite{renyi1961measures}.
+Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain ``mean-value property'', up to scaling, 
+% is a R\'enyi divergence \eqref{eq:renyi} for some $\alpha$, up to scaling \cite{renyi1961measures}.
+is of the form \eqref{eq:renyi} for some $\alpha$ \cite{renyi1961measures}.
 It follows from \cref{lemma:pdgdiv} that varing the confidences of our two-distribution PDG, essentially carves out the same class: every R\'enyi entropy is the inconsistency of some PDG of this form, and every PDG divergence (but not every limit point) is a scaled R\'enyi entropy.
 
-\begin{coro}[R\'enyi Divergences as Inconsistency]
-    % \vskip{-5pt}
-    \begin{align*}
-        \thickD^{\mathrm{PDG}}_{r, s}(p, q) &=
+\begin{coro}[R\'enyi Divergences as Inconsistency]%
+    % \vskip-1em
+    \begin{align*}%
+        % \thickD^{\mathrm{PDG}}_{r, s}(p, q) 
+        \aar[\Big]{\!\begin{tikzpicture}[baseline = -0.75ex]
+            \node[dpad0] (X) {$X$};
+            \draw[arr2, <-] (X) --
+			 		% node[above] {$\overset{(\beta : r)}p$}
+			 		node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
+			 		node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : r)}$}
+                        {$\scriptstyle{\color{gray}(r)}$}
+				++(-1.1,0);
+            \draw[arr2, <-] (X) --
+					% node[above,pos=0.5] {$\overset{(\beta : s)}q$}
+			 		node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
+			 		node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : s)}$}
+                        {$\scriptstyle{\color{gray}(s)}$}
+				 ++(1.1, 0);
+        \end{tikzpicture}\!}
+            &=
             s \cdot \thickD_{\frac{r}{r+s}}\infdivx{p}{q}
         % \qquad \text{and} \qquad
-        \\\text{and}\qquad
+        \\[-0.3em]\text{and}\qquad
         \thickD_{\alpha}\infdivx{p}{q}
-        &= \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
+        &= 
+        % \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
+        \aar[\Big]{\!\begin{tikzpicture}[baseline = -0.75ex]
+            \node[dpad0] (X) {$X$};
+            \draw[arr2, <-] (X) --
+			 		% node[above] {$\overset{(\beta : r)}p$}
+			 		node[above, pos=0.6, inner sep=2pt, align=center] {$p$}
+			 		node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : r)}$}
+                        {$\scriptstyle{\color{gray}(\frac{\alpha}{1-\alpha})}$}
+				++(-1.3,0);
+            \draw[arr2, <-] (X) --
+					% node[above,pos=0.5] {$\overset{(\beta : s)}q$}
+			 		node[above, pos=0.6, inner sep=2pt, align=center] {$q$}
+			 		% node[below, pos=0.65, inner sep=2pt, align=center]
+                        % {$\scriptstyle{\color{gray}(\beta : s)}$}
+                        % {$\scriptstyle{\color{gray}(s)}$}
+				 ++(0.9, 0);
+        \end{tikzpicture}\!}
     \end{align*}
 \end{coro}
 
@@ -1125,7 +1177,7 @@ The relationships between these quantities can be seen in \cref{fig:statdistmap}
 
 The Chernoff divergence, measures the tightest possible exponential bound on probability of error \cite{nielsen2011chernoff} in Bayesian hypotehsis testing.
 It also happens to be the smallest possible inconsistency of simultaneously believing $p$ and $q$, with combined confidence 1.
-\begin{coro}[Chernoff Divergence as Inconsistency]
+\begin{coro}%[Chernoff Divergence as Inconsistency]
 \[
 	\inf_{\beta \in (0,1)}
 	\aar[\Big]{\begin{tikzpicture}[center base]
@@ -1207,10 +1259,10 @@ We now review these findings in the context of our framework, as we show how add
 \end{linked}
 
 Using a (discretized) unit gaussian as a prior, $p(\theta) = \frac{1}{k} \exp(-\frac12 \theta^2)$ for a normaization constant $k$, the RHS of \eqref{eq:regularize} becomes
-\[ \underbrace{\Ex\nolimits_{D} \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
+\[ \underbrace{\Ex\nolimits_{D}\! \left[\log \frac{1}{f(Y \mid \theta_0)} \right]}
 	_{\substack{\text{Cross entropy loss}\\(\text{data-fit cost of $\theta_0$})}}%(f_\theta; D)
-	+ \!\!\!\!\!\underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \!\!\!\!
-	{\color{gray!80} \underbrace{+ \beta \log k - \H(D)}_{\text{constant in $f, \theta_0$}}}, \]
+	+ \!\!\!\!\!\underbrace{~\frac\beta2 \theta_0^2~}_{\substack{\ell_2 \text{ regularizer}\\(\text{complexity cost of $\theta_0$})}} \!\!\!\!\!
+	{\color{gray!80} \underbrace{+ \beta \log k - \H(D)}_{\text{constant in $f, \theta_0$}}}\;, \]
 which is the $\ell_2$ regularized version of \cref{prop:expected-surprise}.
 Moreover, the regularization strength corresponds exactly to the confidence $\beta$.
 
@@ -1235,26 +1287,54 @@ The fact that the incompatibility of $\dg M$ with a \emph{specific} joint distri
 Here, we focus on the more surprising converse:  PDG semantics capture interesting features of variational inference and provides a graphical proof language for it.
 %, which can be notoriously difficult to track symbolically.
 
-To demonstrate, we begin by showing that the `Evidence Lower BOund' (ELBO), a common objective for training latent variable models, arises naturally as a PDG inconsistency.
-Suppose we have a joint distribution $p(X,Z)$, but only have access to observations $X$. Evaluating $p(X)$ requires marginalizing over $Z$, and could be intractable if $Z$ complicated.
-One workaround is as follows. Fix a family of distributions $\mathcal Q$ and assume that $Z$ is distributed according to some $q \in \mathcal Q$; to start, we guess $q_0(Z)$.
-Now it's easy to sample $Z$ (by assumption), but $q_0$ is likely to be inconsistent with $p$. But if, while optimizing $p$ to best fit the data, we also optimize $q$ so that it closly mirrors $p$, (and if $\mathcal Q$ is expressive enough), we can avoid computing the ``evidence''  $\log p(x) = \log \int p(x,z)\, \mathrm d z$.
-% For fixed $p$, we are interested in $q^*_p := \argmin_{q \in \mathcal Q} \kldiv{q(Z)}{p(Z\mid x)}$.
-But only by being clever. The straightforward divergence-minimizing approach to both optimization problems (the choice of $p$ and $q$) requires computing this integral \cite[\S2.2]{blei2017variational}. Instead, $q$ and $p$ are chosen so as to maximize
-$\mathrm{ELBO}_{p,\xsamp}(q) :=
-    \sum_{x \in \xsamp} \mathrm{ELBO}_{p,q}(x)
-$, where
-\begin{equation}
-	% \mathrm{ELBO}_{p,\xsamp}(q) :=
-	%  	\sum_{x \in \xsamp} \mathrm{ELBO}_{p,q}(x)~,
-	% \qquad \qquad\text{where}
-    %\qquad
-	\mathrm{ELBO}_{p,q}(x) := \Ex_{z \sim q} \log \frac{p(x,z)}{q(z)}, \label{eq:elbo}
-\end{equation}
+To demonstrate, we begin by recounting the standard development of the `Evidence Lower BOund' (ELBO), the objective for training latent variable models \cite[\S2.2]{blei2017variational}, and then show that it arises naturally as the inconsistency of the obvious PDG.
+Suppose we have a joint distribution $p(X,Z)$, but only have access to observations $X$.
+In service of adjusting $p(X,Z)$ to make our observations more likely, we would like to maximize $\log p(X)$, the ``evidence'' of $X$---but just computing $p(X) = \int p(X,z)\, \mathrm d z$ requires integrating over $Z$, which is often intractable.
+%
+% The variational approach is as follows: fix a family of distributions $\mathcal Q$ that is easy to sample from, choose some $q \in \mathcal Q$, and assume that $Z \sim q$.
+% ; to start, we guess $q_0(Z)$.
+% Now it's easy to sample $Z$ (by assumption), but $q_0$ is likely to be inconsistent with $p$. But if, while optimizing $p$ to best fit the data, we also optimize $q$ so that it closly mirrors $p$, (and if $\mathcal Q$ is expressive enough), we can avoid computing the ``evidence''  $\log p(x) = \log \int p(x,z)\, \mathrm d z$.
+%% For fixed $p$, we are interested in $q^*_p := \argmin_{q \in \mathcal Q} \kldiv{q(Z)}{p(Z\mid x)}$.
+% But only by being clever. The straightforward divergence-minimizing approach to both optimization problems (the choice of $p$ and $q$) requires computing this integral \cite[\S2.2]{blei2017variational}. Instead, $q$ and $p$ are chosen so as to maximize
+% Now, we can sample $Z$ from $q$, so we can compute 
+% $
+%     \Ex_{z \sim q} \frac{p(x,z)}{q(z)} =
+%     \int_{z} q(z) \frac{p(x,z)}{q(z)} \mathrm dz=
+%     \int p(x,z) \mathrm d z = p(z)
+% $
+The variational approach is as follows: fix a family of distributions $\mathcal Q$ that is easy to sample from, choose some $q(Z) \in \mathcal Q$, and define
+$\mathrm{ELBO}_{p,q}(x) := \Ex_{z \sim q} \log \frac{p(x,z)}{q(z)}$.
+This is something we can estimate, since we can sample from $Z$ from $q$, and by Jensen's inequality, 
+\[
+    \mathop{\mathrm{ELBO}}\limits_{p,q}(x)
+    =\! \Ex_{q} \log \frac{p(x,Z)}{q(Z)}
+    % = \int_{z} q(z) \log  \frac{p(x,z)}{q(z)} \mathrm dz 
+    \le  \log \Big[\! \Ex_{q}\! \frac{p(x,Z)}{q(Z)} \Big]\!
+    = \log p(X).
+    % \int p(x,z) \mathrm d z = p(z)
+\]
+with equality if $q(Z) = p(Z)$. 
+So to maximize $p(X)$, it suffices to adjust $p$ and $q$ to maximize $\mathrm{ELBO}_{p,q}(x)$,%
+    \footnote{ or $\sum_{x \in \xsamp}\mathrm{ELBO}_{p,q}(x)$ for multiple samples $\xsamp$}
+ provided $\mathcal Q$ is expressive enough.
+    
+% $\mathrm{ELBO}_{p,\xsamp}(q) :=
+%     \sum_{x \in \xsamp} \mathrm{ELBO}_{p,q}(x)
+% $. 
+% where
+% \begin{equation}
+% 	% \mathrm{ELBO}_{p,\xsamp}(q) :=
+% 	%  	\sum_{x \in \xsamp} \mathrm{ELBO}_{p,q}(x)~,
+% 	% \qquad \qquad\text{where}
+%     %\qquad
+% 	\mathrm{ELBO}_{p,q}(x) := \Ex_{z \sim q} \log \frac{p(x,z)}{q(z)}, \label{eq:elbo}
+% \end{equation}
 
 % We will now see that this tie extends to latent variable models in a nice way.
-This formula is somewhat difficult to make sense of, especially if $p$ and $q$ are densities, in which case the units don't cancel in the logarithm, making it an ill-defined physical quantity (see \cref{remark:continuous}).
-Nevertheless, if we interpret $p$ and $q$ are mass functions, it turns out that the ELBO also arises naturally as the inconsistency of the obvious PDG modeling the data of the VaE.
+The formula for the ELBO is somewhat difficult to make sense of, especially if $p$ and $q$ are densities 
+(see \cref{remark:continuous}).
+% in which case the units don't cancel in the logarithm, making it an ill-defined physical quantity (see \cref{remark:continuous}).
+Nevertheless, if we interpret $p$ and $q$ are mass functions, it turns out that the ELBO also arises naturally as the inconsistency of the appropriate PDG.
 
 \begin{linked}{prop}{pdg-elbo-x}%[Capturing the ELBO]
 		% \label{prop:pdg-elbo-x}
@@ -1325,9 +1405,12 @@ Nevertheless, if we interpret $p$ and $q$ are mass functions, it turns out that 
 
 
 
-The use of the ELBO as an objective is often justified by the fact that it is a lower bound on the log likelihood of partial observation $X=x$ (the evidence), which is usually proved with some algebra and Jensen's inequality.
+% The use of the ELBO as an objective is often justified by the fact that it is a lower bound on the log likelihood of partial observation $X=x$ (the evidence), which is usually proved with some algebra and Jensen's inequality.
 % , or alternatively, but appeal to the non-negativity of relative entropy \cite{elboproofs}.
-We now give a very simple diagrammatic proof by via \cref{lemma!}:
+Owing to its structure, a PDG is often more intuitive and easier to work with than the formula for its inconsistency. 
+To illustrate,
+we now give a simple and visually intuitive proof of the bound traditionally used to motivate the ELBO, via \cref{lemma!}:
+% We now give a very simple diagrammatic proof by via \cref{lemma!}:
 $\log \frac1{p(x)} = $
 \[
 % \log \frac{1}{p(x)} =
@@ -1338,8 +1421,8 @@ $\log \frac1{p(x)} = $
 			\coordinate (A) at ($ (X)!.5!(Z) + (0,0.7)$);
 			\draw[arr1] (A) -- node[left, inner sep=2pt]{$p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
-			% \draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
-			\draw[arr2, <<-] (X) --  node[left,pos=0.8]{$x$} ++(0.2, 0.8);
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+			% \draw[arr2, <<-] (X) --  node[left,pos=0.8]{$x$} ++(0.2, 0.8);
 		\end{tikzpicture}
 		}%_{\!\!0}
 	\le
@@ -1353,8 +1436,8 @@ $\log \frac1{p(x)} = $
             \draw[arr1] (A) -- node[left, inner sep=2pt]{$p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 %
-			% \draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
-            \draw[arr2, <<-] (X) --  node[left,pos=0.8]{$x$} ++(0.2, 0.8);
+			\draw[arr2, <<-] (X) --  node[above,pos=0.8]{$ x$} ++(0.9, 0);
+            % \draw[arr2, <<-] (X) --  node[left,pos=0.8]{$x$} ++(0.2, 0.8);
 			% \draw[arr2, <-] (Z) -- node[above,pos=0.6]{$ q!$} ++(-0.9, 0);%
 			\draw[arr2, <-] (Z) -- node[above, inner sep=2pt,pos=0.6]{$q$}
                 node[below, inner sep=2pt, pos=0.65]{\rotatebox{0}{${\color{gray}\scriptscriptstyle(\infty)}$}}
@@ -1367,12 +1450,12 @@ $\log \frac1{p(x)} = $
     % = \mathop{\mathrm{NELBO}}\limits_{p,q}(x).
 \]
 $= - \mathrm{ELBO}_{p,q}(x)$.~
-The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-x} respectively,
+The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-x} respectively.
  % and the inequality is an instance of \Cref{lemma!}.
 %% This is fine material, but we don't have space for it...
 % We submit that this proof is more intuitve and gives a clearer picture of why it should be true. The second PDG has more edges, so it must be at least as inconsistent.
 % Furthermore, this picture shows us that if we simultaneously vary $q(Z)$ within an expressive enough class of distributions, the inequality is also tight, because the distribution that realizes the smallest inconsistency must have some marginal on $Z$ --- and taking $q$ to be that distribution will incur no additional inconsistency.
-We submit that this presentation is clearer than the standard one. The second PDG has more edges so it is clearly at least as inconsistent, and one can see that equality holds when $q(Z) = p(Z)$, because that is the marginal on $Z$ in the first PDG anyway.
+We submit that our presentation has substantial pedagogical benefits. The second PDG has more edges so it is clearly at least as inconsistent. Furthermore, it's easy to see that equality holds when $q(Z) = p(Z)$: the best distribution for the first PDG has that marginal anyway, so insisting on it incurs no further inconsistency.
 % so the constraint is already satisfied.
 
  % We also have analog analog holds for the entire dataset at once, which is more easily formulated with a slightly different variational form in the next section.
@@ -1453,7 +1536,8 @@ This setup is quite simlar to the one in \Cref{sec:variational}. Here $e(Z|X)$ f
 This gives us the following analog of \cref{prop:pdg-elbo-x}.
 
 \begin{linked}{prop}{pdg-elbo-vae}
-	The conditional ELBO used as a VaE objective is the inconsistency of the PDG containing the encoder $e$, decoder $d$ prior $p$, and a sample $x$.\dfootnote{See appendix, for a multi-sample analog.}
+	The conditional ELBO used as a VaE objective is the inconsistency of the PDG containing the encoder $e$, decoder $d$ prior $p$, and a sample $x$.
+        \dfootnote{See appendix for a multi-sample analog.}
 	That is,
     \vspace{-1.8em}
 	\[
