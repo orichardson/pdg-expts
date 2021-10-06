@@ -321,7 +321,8 @@
 % \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are mere shadows of Probabilistic Dependency Graphs}
 % \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows cast by Inconsistent Probabilistic Dependency Graphs}
 % \aistatstitle{Loss Functions are mere Shadows of Probabilistic Dependency Graphs: Choose your Model, not your Loss}
-\aistatstitle{Natural Loss Functions from Probabilistic Dependency Graphs: Choose your Model, not your Loss}
+\aistatstitle{Inconsistency from Probabilistic Dependency Graphs: 
+	Choose your Model, not your Loss Function}
 
 
 \aistatsauthor{ Oliver E. Richardson }
@@ -336,11 +337,42 @@
     % I will argue that minimizing PDG inconsistency is actually much more broadly useful, and in particular show that many standard loss functions arise as the inconsistency of the natural PDG describing the appropriate scenario.  We will then see how the extra structure of the underlying PDGs gives a rich visual proof language for reasoning about the relationships between objectives.
     In a world blessed with a great diversity of loss functions, 
     we argue that that choice between them is not a matter of taste, but a modeling assumption.
-    Probabilistic Depencency Graphs (PDGs) are probabilistic models that can capture inconsistency.
-    We prove that many standard objectives are the incinstencies of the natural PDG describing the scenario at hand, and corroborate an existing connection between regularizaters and priors.
-    % We then focus on two surprising examples.
-    We then show that PDGs generate a large class of statistical divergences, and detail the benefits of doing so, including a visual proof language for proving inequalities between them.
-    Finally, we focus turn to variational inference, and show that the ELBO, a difficult-to-motivate function for training Variational models, arises for free out of the modeling assumptions, as do an intuitive visual proofs of the variational bounds used to motivate it. 
+	Probabilistic Depencency Graphs (PDGs) are probabilistic models
+    that can capture inconsistency.
+	%joe1: This is the first of many places where you assume the reader
+	%knows what you know, although that's unlikely to be true.    The
+	%reader won't know that we can talk about the inconsistency of a PDG.
+	    %Added next sentence
+	We can associate with each PDG its \emph{inconsistency}, a measure of
+	the degree to which the PDG is inconsistent.
+    We prove that many standard objectives are the incinstencies of
+	%joe1: I doubt it's unique in general
+	%    the natural PDG describing the scenario at hand, and corroborate
+    a natural PDG describing the scenario at hand.
+	%joe1: this is out of place, and mysterious
+	%    and corroborate an existing connection between regularizaters and
+	%    priors.  
+	    % We then focus on two surprising examples.
+	%joe1
+	    %    We then show that PDGs generate a large class of statistical
+        We then show that the incnosistency of PDGs can capture a
+	        large class of statistical 
+	    divergences, and detail the benefits of doing so, including a
+	    visual proof language for proving inequalities between them. 
+	    Finally, we focus turn to variational inference, and show that the
+	%joe1
+	%    ELBO, a difficult-to-motivate function for training Variational
+	    ELBO, a difficult-to-motivate function for training variational
+	    models, and its variants arise for free out of the modeling assumptions, as 
+	%joe1: singular or plural
+	% do an intuitive visual proofs of the variational bounds used to motivate
+	 does an intuitive visual proof of the variational bounds used to motivate
+	 it.
+	%joe1: idf you feel a great need to talk about regularizer, say
+	%something like  s(It seems strange to say "In addition" after
+	%"Finally"; you may want to smooth the wording if you add this.
+	In addition, we show that PDGs can be used to justify a well-known
+	connection between regularizers and priors.
 \end{abstract}
 
 \section{INTRODUCTION}
@@ -348,30 +380,103 @@
 % -universality
 Many tasks in artificial intelligence have been fruitfully cast as optimization problems, but often the choice of objective is not unique.
 %
-% For instance, one key component of a machine learning system is a `loss' that the system tries to minimize, and many different formulas (such as hinge loss, cross entropy, mean squared error, and accuracy) are commonly employed.
-For instance, a key component of a machine learning system is a loss function which the system to minimize, and a wide variety of such functions are used in pratice (e.g., cross entropy, square error, hinge loss, \ldots).
+% For instance, one key component of a machine learning system is a
+% `loss' that the system tries to minimize, and many different
+% formulas (such as hinge loss, cross entropy, mean squared error, and
+% accuracy) are commonly employed. 
+For instance, a key component of a machine learning system is a loss
+%joe1: must minimize?  This is the first of many run-on sentences
+%function which the system to minimize, and a wide variety of such
+function which the system must minimize.  A wide variety of such
+functions are used in pratice (e.g., cross entropy, square error,
+hinge loss, \ldots). 
 % In machine learning, the objective is often called the loss function, and many different
 %oli: this sentence perhaps unnecessary...
 % All are backed by a similar intuitions of `proximity to ground truth', but draw from different formalisms.
-Each implicitly represents different values, and results in different behavior, and so the choice of loss can be quite important---and yet because the crieteria for choosing a ``good'' loss function are often inscrutible, the choice is usually made by instinct, tradition, or to simplify implementation, rather than because it reflects one's beliefs or values.
+Each implicitly represents different values, and results in different
+%joe1: another run on
+%behavior, and so the choice of loss can be quite important---and yet
+behavior, so the choice of loss can be quite important.   
+\TODO[LIT REVIEW: choose loss function]
+Yet,
+%joe1*: do you have examples or references you can cite?   This is
+%strong claim, and needs some defence.  
+because the crieteria for choosing a ``good'' loss function are often
+inscrutible, the choice is usually made by instinct, tradition, or to
+simplify implementation, rather than because it reflects one's beliefs.
+%joe1: Ddon't bring in values.  These involve utilities, and you never
+%mention utilities in the paper 
+%or values.  
 %We aim to
-Furthermore, there is something to be gained by fiddling with these loss functions: one can add regularization terms, to (dis)incentivize (un)desirable behavior.
-But this process---of tinkering with the objective and afterwards spinning a story about why it works---is unsatisfying:
-it can be a tedious game without clear rules or meaning, and results so obtained are arguably overfitted and pedagogically difficult to motivate.
+Furthermore, there is something to be gained by fiddling with these
+loss functions: one can add regularization terms, to (dis)incentivize
+(un)desirable behavior.
+%joe1: again, a reference where this is done would be useful here
+%But this process---of tinkering with the objective and afterwards
+But this process---tinkering with the objective and afterwards
+spinning a story about why it works---is unsatisfying: 
+%joe1: another run-on
+%it can be a tedious game without clear rules or meaning, and results
+it can be a tedious game without clear rules or meaning. Results
+so obtained are arguably overfitted and pedagogically difficult to
+motivate. 
 %
 % We attribute this state of affairs to the relative permisiveness of the medium of expression.
 % ...
 
 
-By contrast, a choice of \emph{model} admits more principled discussion, in part because it makes sense to ask if a model is accurate, or of it captures a real phenomenon.
-This observation motivates our proposal: the use of model inconsistency a ``universal'' loss function. In this framework, it is no longer possible to specify an objective directly; rather, one must articulate a situation that gives rise to it, in the (more interpretable) language of probablistic beliefs and certainties. % (concretely, as a PDG \cite{richardson2020probabilistic}).
-Concretely, we use the machinery of Probabilistic Dependency Graphs (PDGs), a particularly expressive class graphical models which can can incorporate aribtrary (even inconsistent) probabilistic information in a natural way, and comes equipped with a well-motivated measure of inconsistency  \cite{richardson2020probabilistic}.
+By contrast, a choice of \emph{model} admits more principled
+discussion, in part because it makes sense to ask if a model is
+accurate, or of it captures a real phenomenon.
+%joe1: this is out of place. The reader will have no idea what "model
+%inconsistency" is, let alone know that we're interested in a measure
+%of it.   It also breaks the flow.  
+%This observation motivates our proposal: the use of model
+%inconsistency a ``universal'' loss function.
+In this framework, it is
+no longer possible to specify an objective directly; rather, one must
+articulate a situation that gives rise to it, in the (more
+interpretable) language of probablistic beliefs and certainties. % (concretely, as a PDG \cite{richardson2020probabilistic}). 
+Concretely, we use the machinery of Probabilistic Dependency Graphs
+%joe1
+%(PDGs), a particularly expressive class graphical models which can can
+(PDGs), a particularly expressive class graphical models that can can
+incorporate aribtrary (even inconsistent) probabilistic information in
+a natural way, and comes equipped with a well-motivated measure of
+inconsistency  \cite{richardson2020probabilistic}. 
 
-In this paper, we show that many standard objective functions---cross entropy, square error, many statistical distances, the ELBO, regularizers, and the log partition function---
-arise naturally as inconsistencies of the appropriate underlying PDG.
-This is especially surprising because PDGs were not designed for this purpose.
-% which surprised us because it was not designed with any of them in mind, but rather from purely information-theoretic considerations.
-Such a scheme of objective specification may be more restrictive, but it is also more intuitive (since intimate experience working with different losses is no longer required), and admits more epistemically grounded support and criticism.
+
+%joe1*: perhaps add the following sentence
+The goal of this paper is to show that we can use PDGs and their
+associated measure of inconsistency to proide a model-based 
+``universal'' loss function.
+%joe1
+%In this paper, we show that many standard objective functions---cross
+Towards this end, we show that many standard objective functions---cross
+entropy, square error, many statistical distances, the ELBO,
+regularizers, and the log partition
+%joe1
+%function--- arise naturally as inconsistencies of the appropriate
+function---arise naturally as inconsistencies of the appropriate
+underlying PDG. 
+%joe1: I would tonie this down; also clarify what purpose you have in mind
+%This is especially surprising because PDGs were not designed for this purpose. 
+This is somewhat surprising, since PDGs were not designed with the
+goal of capturing loss functions at all.
+% which surprised us because it was not designed with any of them in
+% mind, but rather from purely information-theoretic considerations.
+%joe1: What do you mean by "schme of objective specification?  Do you
+%mean using models?  What's objective about that?
+%Such a scheme of objective specification may be more restrictive, but
+Using models (specifically, PDGs) and inconsisstency to specify an
+objective  may be more restrictive than using loss functions, but
+it is also more intuitive (since intimate experience working with
+%joe1: what do you mean by "epistemically grounded"?  Do you mean
+%something like "and forces the agent to express their beliefs"?  If
+%so, say that.  It's much less mysterious.  The reader does not have
+%access to your mind! 
+different losses is no longer required), and admits more epistemically
+grounded support and criticism. 
 % This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
 
 
@@ -380,7 +485,11 @@ Such a scheme of objective specification may be more restrictive, but it is also
 % Furthermore, this approach unifies the semantics of standard graphical models, such as BNs and factor graphs % TODO
 % and illustrate by example how often
 
-For a particularly powerful demonstration, consider the variational autoencoder (VaE), an enormously successful class of generative model that has enabled breakthroughs in image generation, semantic interpolation, and unsupervised feature learning.
+For a particularly powerful demonstration, consider the variational
+%joe1: you nee4 a reference here
+autoencoder (VaE), an enormously successful class of generative model
+that has enabled breakthroughs in image generation, semantic
+interpolation, and unsupervised feature learning. 
 Structurally, a VaE for a space $X$ consists of a (smaller) latent space $Z$, a prior distribution $p(Z)$, a decoder $d(Z | X)$, and an encoder $e(Z| X)$.
 % Despite the fact that they are usually introduced by way of a graphical model (the Bayesian Network
 %     % $\xrightarrow{p} Z \xrightarrow{d} X$
@@ -391,16 +500,38 @@ The second reason: it is not a VaE's structure, but rather its \emph{loss functi
     % minimizing a function called the Evidence Lower BOund (ELBO), 
 maximizing the ``ELBO'', 
     a somewhat difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
-We show (\Cref{prop:pdg-elbo-x}) that $-\mathrm{ELBO}(x)$ is also precisely the inconsistency of a PDG containing the probabilistic information of the autoencoder ($p, d$, and $e$) and the sample $x$.
-% Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
-Thus, PDG semantics simultaneously legitimize the strange structure the VaE, and also justify its loss function, which can be thought of as a property of the model itself (its inconsistency), rather than some mysterious construction borrowed from physics.
+%joe1:? 
+%oli1: it's the negative ELBO (to maximize elbo, minimize inconsistency)
+%    We show (\Cref{prop:pdg-elbo-x}) that $-\mathrm{ELBO}(x)$ is also
+    We show (\Cref{prop:pdg-elbo-x}) that $\mathrm{ELBO}(x)$ is also
+    precisely the inconsistency of a PDG containing the probabilistic
+    information of the autoencoder ($p, d$, and $e$) and the sample $x$.
+%joe1: stress the goodness of PDGs!
+We can find such a PDG precisely because PDGs let us capture
+inconsistencies.     
+% Thus, PDG semantics simultaneously legitimize the strange structure
+% the VaE, and also justify its loss function, which can be thought of
+% as a property of the model itself (its inconsistency), rather than
+% some mysterious construction borrowed from physics. 
+Thus, PDG semantics simultaneously legitimize the strange structure
+the VaE, and also justify its loss function, which can be thought of
+as a property of the model itself (its inconsistency), rather than
+some mysterious construction borrowed from physics. 
 
 
 
 %%%%%%%%%%%%%%%%%
 
 Representing objectives as model inconsistencies, in addition to providing a principled way of selecting an objective, also has beneficial pedagogical side effects, because of the relationships between the underlying models.
-For instance, we will be able to use the structure to give rise to very simple and intuitive proofs of otherwise unintuitive results, such as the variational inequalitites to which the ELBO owes its name, and the monotonicity of R\'enyi entropy  in its parameter $\alpha$.
+%joe1: 
+%For instance, we will be able to use the structure to give rise to
+For instance, we will be able to use the structure of the PDG to give rise to
+very simple and intuitive proofs of otherwise unintuitive results,
+%oli1: 
+% such as the variational inequalitites to which the ELBO owes its name,
+% and the monotonicity of R\'enyi entropy  in its parameter $\alpha$. 
+such as the variational inequalitites that traditionally motivate the ELBO,
+and the monotonicity of R\'enyi divergence.
 
 % Is there a deeper reason to use one measure of  these terms?
 
@@ -411,25 +542,50 @@ For instance, we will be able to use the structure to give rise to very simple a
 In the coming sections, we will show in more detail how this concept of inconsistency, beyond simply providing a forgiving and intuitive modeling framework, reduces exactly to many standard objectives used in machine learning, measures of statistical distance, and also demonstrate that this framework clarifies the relationships between them, by providing simple clear derivations of otherwise opaque inequalities.
 
 
-\subsection{Related Work}
-
-Recent work in the Bayesian ML community has established a correspondence between regularizers and priors
-\cite{williams1995bayesian,rennie2003l2,probinterptowardsds,probinterpblogpost}.
-A primary motivation for this line of work is the ability it gives us to view regularizers as \emph{prior beliefs}, which, because they are modeling assumptions, makes them better targets for principled discussion and criticism.
-In \cref{sec:regularizers} we show how our approach is compatible with these results, and can be thought of as a natural extension of them.
+\TODO[FOLD IN REGULARIZERS AGAIN]
+% %joe1: in general, it's bad form to have a single subsection.  It also
+% %seems strange to have a single paragraph subsection coming at the
+% %end.  Fold it in to the rest!  Moreover, it's hard to imeagine that
+% %the only work related to this is work on regularizers.
+% %\subsection{Related Work}
+% 
+% %joe1: tried to provide glue, but I dont' think it's very good.  
+% %Recent work in the Bayesian ML community has established a
+% Using PDGs and their inconsistency allos allows us to provide a
+% justification for recent work
+% that has established a
+% correspondence between regularizers and priors 
+% \cite{williams1995bayesian,rennie2003l2,probinterptowardsds,probinterpblogpost}.
+% A primary motivation for this line of work is the ability it gives us to view regularizers as \emph{prior beliefs}, which, because they are modeling assumptions, makes them better targets for principled discussion and criticism.
+% %joe1*: what does "compatible" mean?  Also, what does this have to do
+% %with all the work on lss functions that you've discussed up to now.
+% %This seems like a disconnected random observation.  You need to tie
+% %it in better.
+% In \cref{sec:regularizers} we show how our approach is compatible with
+% these results, and can be thought of as a natural extension of them. 
 
 
 \section{PRELIMINARIES}
 We generally use capital letters for variables, and lower case letters for their values.
 % We use letters of both cases for conditional probability distributions (cpds), which we generally conflate their with probability mass functions.
 For variables $X$ and $Y$, a conditional probability distribution (cpd) $p$ on $Y$ given $X$, written $p(Y|X)$, consists of a probability distribution on $Y$ (denoted $p(Y\mid X\!=\!x)$ or $p(Y\mid x)$ for short), for each possible value $x$ of $X$.
-If $\mu$ is a probability on outcomes which determine $X$ and $Y$, then $\mu(X)$ denotes the marginal of $\mu$ on $X$, and $\mu(Y|X)$ denotes the conditional marginal of $\mu$ on  $Y$ given $X$.
+%joe1
+%If $\mu$ is a probability on outcomes which determine $X$ and $Y$,
+If $\mu$ is a probability on outcomes that determine $X$ and $Y$,
+then $\mu(X)$ denotes the marginal of $\mu$ on $X$, and $\mu(Y|X)$
+denotes the conditional marginal of $\mu$ on  $Y$ given $X$. 
 % Conditional probability distributions (cpds) are  $p(Y|X)$
 % For instance, a given a conditional probability measure $\Pr$ on $Y$ given $X$, with a mass function $p$, we write  $p(Y\mid X)$ for the cpd $(x,y) \mapsto p.\text{pmf}(y \mid x)$.
 Depending on which we find clearer in context, we write either $\Ex_\mu f$ or $\Ex_{\omega \sim \mu} f(\omega)$ for expectation of $f : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
 We write $\kldiv\mu\nu = \Ex_\mu \log \frac{\mu}{\nu}$ for the relative entropy (KL Divergence) of $\nu$ with respect to $\mu$, and for finitely supported $\mu$, we write $\H(\mu) := \Ex_\mu \log\frac1\mu$ for the entropy of $\mu$, $\H_\mu(X):= \H(\mu(X))$ for the marginal entropy on a variable $X$, and $\H_\mu(Y \mid X):= \Ex_\mu \log \nicefrac1{\mu(Y|X)}$ for the conditional entropy of $Y$ given $X$.
 
-A Probabilsity Dependency Graph (PDG) \cite{richardson2020probabilistic}, like a Bayesian Network (BN), is a directed graph with cpds attached to it. While this data is attached to the \emph{nodes} of a BN, it is attached to the \emph{edges} of PDG.
+%joe1
+%A Probabilsity Dependency Graph (PDG)
+A \emph{probabilsity dependency graph} (PDG)
+\cite{richardson2020probabilistic}, like a Bayesian Network (BN), is a
+directed graph with cpds attached to it. While this data is attached
+to the \emph{nodes} of a BN, it is attached to the \emph{edges} of
+PDG. 
 % Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents, an edge $\ed LXY$ of a PDG is associated with a distribution $\Pr(Y \mid X)$.
 % As a result, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
 For instance, a PDG of shape $X \to Y \leftarrow Z$ contains both cpd $p(Y | X)$ and a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X,Z$.
@@ -442,22 +598,31 @@ We now restate the formal definition from \cite{richardson2020probabilistic}.
     \label{defn:pdg}
 	A Probabilistic Dependency Graph (PDG) is a tuple $\dg M = (\N,\Ed,\V,\mat p, \boldsymbol\alpha, \boldsymbol\beta)$, where
     \vspace{-1em}
-	\begin{description}[leftmargin=1em,labelindent=1.5em,itemsep=0pt]
-		\item[$\N$]
+	%joe1: You seem to have worked hard on this, and I found it ugly.  I think bullets are much more helpful
+	%oli1: The bullets look better than I thought.
+	%\begin{description}[leftmargin=1em,labelindent=1.5em,itemsep=0pt]
+    \begin{itemize}[leftmargin=1.5em, itemsep=0pt]
+		% \item[$\N$]
+        \item $\N$
 			is a set of nodes, corresponding to variables;
-        \item[$\V$]
+		%joe1
+		% \item[$\V$]
+		\item $\V$
 			associates each node $X \in \N$ with a set $\V(X)$ of possible values that the variable $X$ can take;
             % making it a variable;
-		\item[$\Ed$]
+		%joe1
+		% \item[$\Ed$]
+   		\item $\Ed$
 			is a set of labeled  edges $\{ \ed LXY \}$, each with a source
 			$X$ and target $Y$ from $\N$;
 			% is a set of labeled  edges $\{ \ed L{\mat X}{\mat Y} \}$, each with a source
 			% $\mat X$ and target $\mat Y$ subset of $\N$;
-
-		\item[$\mat p$]
+		%joe1
+		% \item[$\mat p$]
+        \item $\mat p$
 		associates
         a cpd $\bp(\mskip-1muY\mskip-1mu|\mskip-1muX\mskip-2mu)$
-        to each edge $\ed L{X\!\!}{\!Y} \!\in\! \Ed$%
+        to each edge $\ed L{X\!\!}{\!Y} \!\in\! \Ed$;
 		% associates to each edge $\ed L{\mat X}{\mat Y} \in \Ed$
 		% a conditional probability $\bp(\mat Y\mid\mat X)$ on $\mat Y$ given $\mat X$;
 		% --- that is,
@@ -465,26 +630,31 @@ We now restate the formal definition from \cite{richardson2020probabilistic}.
         % a cpd $\bp(Y|X)$ --- that is, a distribution
         % $\bp(Y \mid x)$ over $Y$ for each $x \in \V(X)$;
 		% a distribution $\bp(x)$ on $Y$ for each $x \in \V(X)$;
-        ;
-	\item[$\boldsymbol\alpha$]
-	associates to each edge $\ed L{X}{Y}$ a non-negative number $\alpha_L$
-     % which, roughly speaking, is
-    % the modeler's confidence in the functional dependence of $Y$ on the variables $X$ implicit in $L$;
-    % which, roughly speaking, is
-    % representing% the modeler's confidence in the functional dependence of $Y$ on $X$;
-    representing
-    the modeler's confidence in the functional dependence of $Y$ on $X$;
+		%joe1
+		% \item[$\boldsymbol\alpha$]
+		\item $\boldsymbol\alpha$
+		associates to each edge $\ed L{X}{Y}$ a non-negative number $\alpha_L$
+	     % which, roughly speaking, is
+	    % the modeler's confidence in the functional dependence of $Y$ on the variables $X$ implicit in $L$;
+	    % which, roughly speaking, is
+	    % representing% the modeler's confidence in the functional dependence of $Y$ on $X$;
+	    representing
+	    the modeler's confidence in the functional dependence of $Y$ on $X$;
 
-	\item[$\boldsymbol\beta$]
-	associates to each edge $L$ a real number $\beta_L$,
-	the modeler's subjective confidence in the reliability of
-    % indicating the agent's trust in the reliability of
-	%added now that there's an extra line
-	the cpd
-	$\bp$.%
-    % \vspace{-2em}%
-    \qedhere
-	\end{description}%
+		%joe1
+		%\item[$\boldsymbol\beta$]
+		\item $\boldsymbol\beta$
+		associates to each edge $L$ a real number $\beta_L$,
+		the modeler's subjective confidence in the reliability of
+	    % indicating the agent's trust in the reliability of
+		%added now that there's an extra line
+		the cpd
+		$\bp$.%
+	    % \vspace{-2em}%
+	    \qedhere
+	%joe1
+	% \end{description}%
+    \end{itemize}%
 \end{defn}
 
 % This presentation is looks slightly different from the original presentation in \cite{richardson2020probabilistic}, but is equivalent.
@@ -518,13 +688,24 @@ and unconditional distributions without any variables at the tail. For instance,
         \node[above left=0pt and 0pt of center,inner sep=2pt]{$q$};
 	\end{tikzpicture}~.
  \]
+\TODO[SLOW DOWN]
+%joe1*: you need to SLOW DOWN here and reimnd the reader what these
+%pictures are saying.  They do not have access to your mind
+
 
 % An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
 % We will not make much use of $\alpha$ here, so $\mat p$ and $\beta$ are the most important
 
 Like other graphical models, PDGs have semantics in terms of joint distributions $\mu$ over all variables.
 % Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions $\mu$, which measure the discrepency between $\dg M$ and $\mu$. The \emph{incompatibility} of $\mu$ with respect to $\dg M$, which measures the quantitative discrepency between $\mu$ and the cpds of $\dg M$, is given by
-Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions $\mu$. For us, the more important of the two is the \emph{incompatibility} of $\mu$ with respect to $\dg M$, which measures the \emph{quantitative} discrepency between $\mu$ and the cpds of $\dg M$, is given by
+Most directly, a PDG $\dg M$ determines two scoring functions on joint
+%joe1
+%distributions $\mu$. For us, the more important of the two is the
+distributions $\mu$. For the purposes of this paper, the more
+important of the two is the 
+\emph{incompatibility} of $\mu$ with respect to $\dg M$, which
+measures the \emph{quantitative} discrepency between $\mu$ and the
+cpds of $\dg M$, is given by 
 \begin{equation}
 	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
     \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
@@ -535,8 +716,19 @@ Most directly, a PDG $\dg M$ determines two scoring functions on joint distribut
 % There is more than one coherent interpretation of this expression; here is one based on codes.
 It is well known that $\kldiv{\mu}{p}$ is a measure of divergence between $\mu$ and $p$, which can be interpreted as overhead (in extra bits per sample) of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \cite{mackay2003information:relentropy}.
 % $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
-But if one uses edges in proportion to the condfidence one has in them, then $\mu$'s violations of high-confidence cpds are compounded, and hence more costly.
-So $\Inc_{\dg M}(\mu)$ measures the total expected excess cost of using the cpds of $\dg M$ in proportion to their confidences, in a world drawn from $\mu$.
+%joe1
+%But if one uses edges in proportion to the condfidence one has in
+But if one uses edges in proportion to the confidence one has in
+them, then $\mu$'s violations of high-confidence cpds are compounded,
+and hence more costly. 
+So $\Inc_{\dg M}(\mu)$ measures the total expected excess cost of
+%using the cpds of $\dg M$ in proportion to their confidences, in a
+%joe1: PDGs don't hae confidences; modelers do
+% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
+%oli1: this is more lengthy, and I think an overly pedantic distinction,
+% since we've alredy said confidences are "associated to edges"
+using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
+world drawn from $\mu$. 
 %
 % In general, we do not know the true distribution $\mu$, only the model $\dg M$, which we interpret as charitably as possible
 % (even though it might be inconsistent).
@@ -546,7 +738,13 @@ The \emph{inconsistency} of $\dg M$, denoted
 $
     \aar{\dg M} := \inf_\mu \Inc_{\dg M}(\mu),
 $
-is the smallest possible incompatibility with any distribution.
+is the smallest possible incompatibility with any distribution
+%joe1
+%    is the smallest possible incompatibility with any distribution.
+%oli1: reverse order.
+% is the smallest possible incompatibility of the PDG $\dg M$ with any distribution. 
+is the smallest possible incompatibility of any distribution with respect to $\dg M$.
+
 
 The second scoring function defined by a PDG $\dg M$, called information deficiency, measures the \emph{qualitative} discrepency between $\dg M$ and $\mu$, and is given by
 \[ \IDef{\dg M}(\mu) := -\H(\mu) + \sum_{\ed LXY} \alpha\ssub L \H_\mu(Y\mid X). \]
@@ -554,7 +752,15 @@ $\IDef{\dg M}(\mu)$ can be thought of as measuring the
 % additional entropy in the $\mu$ beyond what one would expect from the link structure alone, and captures
 (weighted) number of bits needed to describe the target of each edge given its source, beyond the information needed to describe a full sample of $\mu$.
 
-It is via these two scoring functions that PDGs capture other graphical models: the distribution specified by a BN $\dg B$ is the unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and hence every positive linear combination of the two), and the distribution specfied by a factor graph $\Phi$ uniquely minimizes the sum $\Inc_{\Phi} + \IDef{\Phi}$.
+%joe1
+%It is via these two scoring functions that PDGs capture other
+As shown  in \cite{richardson2020probabilistic}), 
+it is via these two scoring functions that PDGs capture other
+graphical models: the distribution specified by a BN $\dg B$ is the
+unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and
+hence every positive linear combination of the two), and the
+distribution specfied by a factor graph $\Phi$ uniquely minimizes the
+sum $\Inc_{\Phi} + \IDef{\Phi}$. 
 In general, for any $\gamma > 0$, the one can consider a weighted combination
 \(
     \bbr{\dg M}_\gamma(\mu) \!:= \Inc_{\dg M}(\mu) + \gamma\; \IDef{\dg M}(\mu),
@@ -582,15 +788,44 @@ $\aar{\dg M}$.
  % := \inf_\mu \bbr{\dg M}(\mu)$.
 
 
-Now, some short-hand.
+%joe1:
+%Now, some short-hand.
+% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.  
+%oli1:
+% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.  
+We now present some shorthand to simplify the presentation.  
 % By default, all cpds are associated with confidence $\beta = 1$.
-A cpd $p$ can be regarded as a PDG with a single edge (with $\bp[p] = p$, and  $\alpha_p=0$ and $\beta_p = 1$ by default), and sometimes we make this conversion implicitly.
-%% union is not really used.
-% The union of $\dg M$ and $\dg M'$ is denoted by $\dg M + \dg M'$.
+%joe1: do we actually ever do it?
+
+\TODO{SORT OUT}
+
+A cpd $p$ can be regarded as a PDG with a single edge (with $\bp[p] =
+p$, and  $\alpha_p=0$ and $\beta_p = 1$ by default), and sometimes we
+make this conversion implicitly.
+% p$, and  $\alpha_p=0$ and $\beta_p = 1$;   we sometimes do so.
+% union is not really used.
+The union of $\dg M$ and $\dg M'$ is denoted by $\dg M + \dg M'$.
 We identify an event $X=x$ with with the degenerate distribution on $X$ that places all mass on $x$, and hence may be associated to an edge.
-Furthermore, as is unambiguous to shorten this event to simply $x$, as the label of an edge.
-To emphasize that an edge is degenerate (a function), we will draw it with two heads. 
-To specify a confidence $\beta \ne 1$, we put it in a parentheses and a lighter color nearby the edge, as in
+%joe1
+%Furthermore, as is unambiguous to shorten this event to simply $x$, as
+%the label of an edge.
+We occasionally write $x$ rather than $X=x$ as the label of the edge.
+To emphasize that an edge is degenerate (a function), we will draw it
+%joe1*: Draw an example!
+with two heads.  
+To specify a confidence $\beta \ne 1$, we put it in a parentheses
+%joe1*: why a lighter color?  This makes it harder to read, and does
+%not help (at least, not me) in any way.  I strongly recommend that
+%you don't use a lighter color
+and a lighter color nearby the edge, as in
+% % By default, all cpds are associated with confidence $\beta = 1$.
+% A cpd $p$ can be regarded as a PDG with a single edge (with $\bp[p] = p$, and  $\alpha_p=0$ and $\beta_p = 1$ by default), and sometimes we make this conversion implicitly.
+% %% union is not really used.
+% % The union of $\dg M$ and $\dg M'$ is denoted by $\dg M + \dg M'$.
+% We identify an event $X=x$ with with the degenerate distribution on $X$ that places all mass on $x$, and hence may be associated to an edge.
+% Furthermore, as is unambiguous to shorten this event to simply $x$, as the label of an edge.
+% To emphasize that an edge is degenerate (a function), we will draw it with two heads. 
+% To specify a confidence $\beta \ne 1$, we put it in a parentheses and a lighter color nearby the edge, as in
 % $p ~^{\color{gray}{(\beta\colon0.7)}}$, or
 % $p^{\color{gray}(\beta)}$ as a compressed form of
 % of $p^{\color{gray}{(\beta:\beta)}}$.
@@ -601,6 +836,9 @@ To specify a confidence $\beta \ne 1$, we put it in a parentheses and a lighter 
          ++(-1,0);
 \end{tikzpicture}.
 %
+%joe1*: I think that this is a bad idea.  Help the reader and use
+%\beta \to \inftyh.  You may be used to your notation, but the typical
+%reader will absolutely not be.
 We use ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta \to \infty$).
 % To inciate the limit of high confidence on a cpd $p$, we write an exclamation point, as in: \tikz[baseline=0.9] \draw[arr, <-] node[dpad0](X){$X$} (X) -- node[below,pos=0.6, inner sep=2pt]{$p!$} ++(-1,0);.
  % ($\beta_p \to \infty$)
@@ -616,7 +854,10 @@ Intuitively, believing more things can't make you any less inconsistent.
 \begin{lemma}[monotonicity of inconsistency]\label{lemma!}
  	For all pdgs $\dg M$ and $\dg M'$, with respective confidence vectors $\beta$ and $\beta'$, we have that
 	\begin{enumerate}[label={\arabic*.}]
-		\item  $\aar{\dg M + \dg M'}_\gamma \ge \aar{\dg M}_\gamma$.
+		%joe1: the + notation is undefined
+		%oli1:
+		% \item  $\aar{\dg M + \dg M'}_\gamma \ge \aar{\dg M}_\gamma$.
+		\item  $\aar{\dg M + \dg M'}_\gamma \ge \aar{\dg M}_\gamma$, where $\dg M + \dg M'$ is the union of $\dg M$ and $\dg M'$. 
 		\item If
             % and $\beta \succeq \beta'$ (that is, $\beta_L \ge \beta'_L$ for all $L \in \Ed$), then $\aar{\dg M} \ge \aar{\dg M'}$.
             $\beta_L \ge \beta'_L$ for all $L \in \Ed$, then $\aar{\dg M} \ge \aar{\dg M'}$.
