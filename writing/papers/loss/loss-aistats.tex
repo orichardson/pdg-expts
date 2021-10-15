@@ -1,5 +1,12 @@
 \documentclass[twoside]{article}
 
+% CONTROLS
+\newif\ifappendix
+	\appendixtrue
+	% \appendixfalse
+\newif\ifbody\bodytrue
+\newif\ifmarginprooflinks\marginprooflinksfalse
+
 \usepackage{aistats2022} % aistats formatting
     % If your paper is accepted, change the options for the package
     % aistats2022 as follows:
@@ -174,6 +181,7 @@
     % \usepackage[utf8]{inputenc}
     \usepackage{mathtools}
     \usepackage{amssymb}
+		\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
     % \usepackage{parskip}
     % \usepackage{algorithm}
     \usepackage{bbm}
@@ -337,7 +345,8 @@
 	% \def\onlyaftercolon#1:#2{#2}
 	\newcommand{\recall}[1]{\medskip\par\noindent{\bf \Cref{thmt@@#1}.} \begingroup\em \noindent
 	   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
-   \setlength\marginparwidth{1.55cm}
+	   
+   	\setlength\marginparwidth{1.55cm}
 	\newenvironment{linked}[3][]{%
 		\def\linkedproof{#3}%
 		\def\linkedtype{#2}%
@@ -352,10 +361,10 @@
 		% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
 		% 	}%
         % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
+		\ifmarginprooflinks
 		\marginpar{%
-			% \vspace{-3em}%
+			% \vspace{-3em}% %% for bottom
 			\vspace{1.5em}
-			% \raggedright
 			\centering%
 			\hyperref[proof:\linkedproof]{%
             % \hyperref[proof:#3]{
@@ -366,11 +375,10 @@
 				proof
 			\end{tabular}}\,}{$\Big]$}}~
 			}%
+		\fi
         \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
         }%
 		{\endrestatable%
-		% \par%\vspace{-0.5em}
-		% \normalmarginpar
 		}
 	\makeatother
 		\newcounter{proofcntr}
@@ -440,10 +448,11 @@
 % \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows cast by Inconsistent Probabilistic Dependency Graphs}
 % \aistatstitle{Loss Functions are mere Shadows of Probabilistic Dependency Graphs: Choose your Model, not your Loss}
 % \aistatstitle{Inconsistency from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
+% \aistatstitle{Loss Functions from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
 % \aistatstitle{ The Shadows of an Inconsistent Probabilistic Dependency Graphs: \\
 	% Choose your Model, not your Loss Function}
-% \aistatstitle{ Loss as the Inconsistency of a Probabilistic Dependency Graph: \\ Choose your Model, not your Loss Function}
-\aistatstitle{ Loss as the Inconsistency of a Probabilistic Dependency Graph: \\ Choose your Model, not your Loss}
+\aistatstitle{ Loss as the Inconsistency of a Probabilistic Dependency Graph: \\ Choose your Model, not your Loss Function}
+% \aistatstitle{ Probabilistic Dependency Graph Inconsistency, the Natural Loss: \\ Choose your Model, not your Loss Function}
 
 
 \aistatsauthor{ Oliver E. Richardson }
@@ -456,9 +465,10 @@
     % bold, and in point size 12. Two line spaces precede the
     % Abstract. The Abstract must be limited to one paragraph.
     % I will argue that minimizing PDG inconsistency is actually much more broadly useful, and in particular show that many standard loss functions arise as the inconsistency of the natural PDG describing the appropriate scenario.  We will then see how the extra structure of the underlying PDGs gives a rich visual proof language for reasoning about the relationships between objectives.
-    In a world blessed with a great diversity of loss functions,
+    % In a world blessed with a great diversity of loss functions,
+    In a world with a great diversity of loss functions,
     % we argue that that choice between them is not a matter of taste, but a modeling assumption.
-    we argue that that choice between them is not a matter of taste (or pragmatics), but of model.
+    we argue that that choice between them is not a matter of taste or pragmatics, but of model.
 	%joe1: This is the first of many places where you assume the reader
 	%knows what you know, although that's unlikely to be true.    The
 	%reader won't know that we can talk about the inconsistency of a PDG.
@@ -476,7 +486,7 @@
 	%
     a natural PDG describing the appropriate scenario%
 	%.
-	, and use the same approach to
+	, and use the same approach
 	% The same approach can be used
 	to justify a well-known
 		connection between regularizers and priors.
@@ -488,27 +498,18 @@
     % We then focus on two surprising examples.
 	%joe1
     %    We then show that PDGs generate a large class of statistical
-    We also show that the inconsistency of PDGs captures a
+    We also show that the PDG inconsistency captures a
     large class of statistical divergences, and detail benefits of
 	thinking of them in this way, including an intuitive
     visual language for deriving inequalities between them.
 	% We then show
 	% Turning to variational inference,
 	In variational inference, we find
+	% Turning to variational inference, we find
 	that the ELBO, a difficult-to-motivate objective for latent variable
-    models, and variants of it,
-	%TODO
-	%greg: get rid of comma
+    models, and variants of it
 	arise for free out of uncontroversial modeling assumptions%
-	%joe1: singular or plural
-	% So do intuitive visual proofs of the variational bounds used to justify them.
 	---as do simple graphical proofs of their corresponding bounds.
-	% an intuitive visual proof of the variational bounds used to motivate
-	 % it.
-	%joe1: idf you feel a great need to talk about regularizer, say
-	%something like  s(It seems strange to say "In addition" after
-	%"Finally"; you may want to smooth the wording if you add this.
-	%oli2: added
 	Finally, we observe that inconsistency becomes the log partition function (free energy) in the setting where PDGs are factor graphs.
 \end{abstract}
 
@@ -527,7 +528,9 @@ For instance, a key component of a machine learning system is a loss
 % function which the system minimizes.
 %greg1:
 % function which the system minimizes, a wide variety of which are used in pratice.
-function which the system minimizes. A wide variety of losses are used in pratice.
+% function which the system minimizes.
+function which the system must minimize.
+A wide variety of losses are used in pratice.
 %oli2: removed examples
 % (e.g., cross entropy, square error, hinge loss, \ldots).
 % In machine learning, the objective is often called the loss function, and many different
@@ -538,7 +541,8 @@ function which the system minimizes. A wide variety of losses are used in pratic
 Each implicitly represents different values and results in different
 %joe1: another run on
 %behavior, and so the choice of loss can be quite important---and yet
-behavior, so the choice of loss can be quite important
+% behavior, so the choice of loss can be quite important
+behavior, so the choice between them can be quite important
 \parencite{wang2020comprehensive,jadon2020survey}.
 Yet,
 %joe1*: do you have examples or references you can cite?   This is
@@ -551,7 +555,7 @@ Yet,
 % loss functions: one can add regularization terms, to (dis)incentivize
 % (un)desirable behavior.
 because it's unclear how to choose a ``good'' loss function,
-the choice is usually made by empirics, tradition, and an instinctive calculus acquired through the practice---not explicitly laying out beliefs.
+the choice is usually made by empirics, tradition, and an instinctive calculus acquired through the practice---not by explicitly laying out beliefs.
 Furthermore, there is something to be gained by fiddling with these
 loss functions: one can add regularization terms, to (dis)incentivize
 (un)desirable behavior.
@@ -570,8 +574,8 @@ It can be a tedious game without clear rules or meaning,
  % while results so obtained are arguably overfit and harder to motivate.
  %joe2:
  % while results so obtained are arguably overfit and difficult to motivate.
- % while results so obtained are arguably overfitted and difficult to motivate.
- while results so obtained are arguably overfitted and hard to motivate.
+ while results so obtained are arguably overfitted and difficult to motivate.
+ % while results so obtained are arguably overfitted and hard to motivate.
  % that brings
 %
 % We attribute this state of affairs to the relative permisiveness of the medium of expression.
@@ -584,7 +588,7 @@ It can be a tedious game without clear rules or meaning,
 By contrast, a choice of \emph{model} admits more principled
 discussion, in part because
 % it makes sense to ask if a model is accurate, or makes good predictions.
-models are testable: it makes sense to ask if a model is accurate.
+models are testable; it makes sense to ask if a model is accurate.
  % or of it captures a real phenomenon.
 %joe1: this is out of place. The reader will have no idea what "model
 %inconsistency" is, let alone know that we're interested in a measure
@@ -600,7 +604,7 @@ Concretely, we use the machinery of Probabilistic Dependency Graphs (PDGs),
 %a particularly expressive class graphical models which can
 %greg1:
 % a particularly expressive class graphical models that can incorporate aribtrary (even inconsistent) probabilistic information in a natural way, and comes equipped with
-a particularly expressive class of graphical models that can incorporate arbitrary (even inconsistent) probabilistic information in a natural way and comes equipped with
+a particularly expressive class of graphical models that can incorporate arbitrary (even inconsistent) probabilistic information in a natural way, and comes equipped with
 a well-motivated measure of inconsistency  \parencite{richardson2020probabilistic}.
 
 %joe1*: perhaps add the following sentence
@@ -643,12 +647,13 @@ but it is also more intuitive
 % quite fits here, since I'm trying to counterbalance the restrictiveness.
 % I like the phrase "epistemically grounded" better than any alternative
 % I've found so far, but I'll revisit this again.
-% TODO
+% DONE
 %
 %% grounded support and criticism.
 % and admits more epistemically grounded support and criticism.
 % and admits more epistemically grounded support and criticism.
-and admits more epistemically grounded discussion.
+% and admits more epistemically grounded discussion.
+and admits clearer discussion in a more common language.
 % This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
 
 For a particularly powerful demonstration, consider the variational
@@ -676,20 +681,21 @@ it tick.
 A VAE is typically trained by
     % minimizing a function called the Evidence Lower BOund (ELBO),
 maximizing the ``ELBO'',
-    a somewhat difficult-to-motivate function of a sample $x$, borrowed from variational analysis.
+    a somewhat difficult-to-motivate function of a sample $x$, originating in variational calculus.
 %joe1:?
 %oli1: it's the negative ELBO (to maximize elbo, minimize inconsistency).
 % also, I don't have space for all the references, so I won't include any of them.
 %    We show (\Cref{prop:pdg-elbo-x}) that $-\mathrm{ELBO}(x)$ is also
     We show that $-\mathrm{ELBO}(x)$ is also
-    precisely the inconsistency of a PDG containing the probabilistic
-    information of the autoencoder ($p, d$, and $e$) and
+    precisely the inconsistency of a PDG containing
 	% the sample $x$.
-	$x$.
+	$x$
+	and the probabilistic
+    information of the autoencoder ($p, d$, and $e$).
 %joe1: stress the goodness of PDGs!
 % We can find such a PDG precisely because PDGs let us capture inconsistencies.
 %oli1: I find that sentence strange.
-%TODO: reword.
+%DONE: reword.
 We can form such a PDG precisely because PDGs allow for inconsistency.
 Thus, PDG semantics simultaneously legitimize the strange structure of
 the VAE, and also justify its loss function, which can be thought of
@@ -700,13 +706,15 @@ some mysterious construction borrowed from physics.
 
 %%%%%%%%%%%%%%%%%
 
-Representing objectives as model inconsistencies, in addition to providing a principled way of selecting an objective, also has beneficial pedagogical side effects, because of the relationships between the underlying models.
+Representing objectives as model inconsistencies, in addition to providing a principled way of selecting an objective, also has beneficial pedagogical side effects, because of the \emph{structural} relationships between the underlying models.
 %joe1:
 %For instance, we will be able to use the structure to give rise to
-For instance, we will be able to use the structure of the PDG
+% For instance, we will be able to use the structure of the PDG
+For instance, we will be able to use this underlying structure
 %ol12:
 % to give rise to very simple and intuitive proofs of otherwise unintuitive results,
-to get simple, intuitive proofs of technical results,
+% to get simple, intuitive proofs of technical results,
+to get simple and intuitive visual proofs of technical results,
 %oli1:
 % such as the variational inequalitites to which the ELBO owes its name,
 % and the monotonicity of R\'enyi entropy  in its parameter $\alpha$.
@@ -771,7 +779,16 @@ directed graph with cpds attached to it. While this data is attached
 to the \emph{nodes} of a BN, it is attached to the \emph{edges} of a PDG.
 % Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents, an edge $\ed LXY$ of a PDG is associated with a distribution $\Pr(Y \mid X)$.
 % As a result, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
-For instance, a PDG of shape $X \to Y \leftarrow Z$ contains both a cpd $p(Y | X)$ and (separately) a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X$ and $Z$.
+For instance, a PDG of shape 
+% \vspace{-2ex}
+% \[
+$
+% X\!~\!\to\!~\!Y\!~\!\leftarrow\!~\!Z
+X \to Y \leftarrow Z
+$
+% \]
+% \vskip-3ex
+contains both a cpd $p(Y | X)$ and (separately) a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X$ and $Z$.
 The first interpretation is more expresive, and can encode joint dependence with an extra variable and pair of edges.
 % Formally, the syntax of a PDG is given in \cref{defn:pdg}.
 We now restate the formal definition.
@@ -844,7 +861,7 @@ We now restate the formal definition.
     \end{itemize}%
 \end{defn}
 
-We conflate a cpd's symbol as the edge label, so we draw the PDG with one edge attached to the cpd $f(Y|X)$ as
+We conflate a cpd's symbol with its edge label, so we draw the PDG with a single edge attached to $f(Y|X)$ as
 \begin{tikzpicture}[center base]
 	\node[dpadinline] (X) at (0,0) {$X$};
 	\node[dpadinline] (Y) at (1.2,0){\small$Y$};
@@ -914,7 +931,7 @@ measures the
 quantitative
 discrepency between $\mu$ and
 % the cpds of $\dg M$ and is given by
-$\dg M$'s cpds and is given by
+$\dg M$'s cpds, and is given by
 \begin{equation}
 	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
     \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
@@ -926,7 +943,9 @@ $\dg M$'s cpds and is given by
 % There is more than one coherent interpretation of this expression; here is one based on codes.
 It is well known that $\thickD(\mu\Vert p)$ is a measure of divergence
 between $\mu$ and $p$,
-which can be interpreted as overhead (in extra bits per sample) of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \parencite{mackay2003information}.
+% which can be interpreted as overhead (in extra bits per sample)
+that can be viewed as the overhead (in extra bits per sample)
+of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \parencite{mackay2003information}.
 % $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
 %joe1
 %But if one uses edges in proportion to the condfidence one has in
@@ -935,14 +954,17 @@ them, then $\mu$'s violations of high-confidence cpds are compounded,
 and hence more costly.
 % So $\Inc_{\dg M}(\mu)$ measures the total expected excess cost of
 % So $\Inc_{\dg M}(\mu)$ measures the total expected overhead of
-So $\Inc_{\dg M}(\mu)$ measures the expected excess cost of
+% So $\Inc_{\dg M}(\mu)$ measures the expected excess cost of
+So $\Inc_{\dg M}(\mu)$ measures the total excess cost of
 %using the cpds of $\dg M$ in proportion to their confidences, in a
 %joe1: PDGs don't hae confidences; modelers do
 % using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
 %oli1: this is more lengthy, and I think an overly pedantic distinction,
 % since we've alredy said confidences are "associated to edges"
-using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
-world drawn from $\mu$.
+% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, 
+using $\dg M$'s cpds in proportion to the confidence the modeler has in them, 
+% in a world drawn from $\mu$.
+in expectation over $\mu$.
 %
 % In general, we do not know the true distribution $\mu$, only the model $\dg M$, which we interpret as charitably as possible
 % (even though it might be inconsistent).
@@ -951,6 +973,7 @@ world drawn from $\mu$.
 
 % The \emph{inconsistency} of $\dg M$, denoted
 The \emph{inconsistency} of $\dg M$,
+% The \emph{inconsistency} of a PDG $\dg M$,
 denoted
 $\aar{\dg M}$,
 % is the smallest possible incompatibility with any distribution
@@ -958,9 +981,9 @@ $\aar{\dg M}$,
 %    is the smallest possible incompatibility with any distribution.
 %oli1: reverse order.
 % is the smallest possible incompatibility of the PDG $\dg M$ with any distribution.
-is the smallest possible incompatibility of any distribution with
-% respect to
-$\dg M$:
+% is the smallest possible incompatibility of any distribution with respect to $\dg M$:
+% is the smallest possible incompatibility of any distribution with $\dg M$:
+is the smallest possible incompatibility of $\dg M$ with any distribution:
 \[
     \aar{\dg M} := \inf_\mu \Inc_{\dg M}(\mu)
 	\quad
@@ -977,9 +1000,13 @@ The second scoring function defined by a PDG $\dg M$, called information deficie
 \]
 \vskip-2ex
 % Although less important,
-$\IDef{\dg M}(\mu)$ can be thought of as measuring the
+$\IDef{\dg M}(\mu)$ %, which plays only a minor role in this paper,
+% can be thought of as measuring the
+can be thought of as the
 % additional entropy in the $\mu$ beyond what one would expect from the link structure alone, and captures
-(weighted) number of bits needed to describe the target of each edge given its source, beyond the information needed to describe a full sample of $\mu$.
+% (weighted) number of bits
+information 
+needed to separately describe the target of each edge $L$ given its source ($\alpha_L$ times), beyond the information needed to fully describe a sample from $\mu$.
 
 %joe1
 %It is via these two scoring functions that PDGs capture other
@@ -987,9 +1014,11 @@ $\IDef{\dg M}(\mu)$ can be thought of as measuring the
 %oli1: unfortunately the guide wants it to
 As shown by \textcite{richardson2020probabilistic},
 it is via these two scoring functions that PDGs capture other
-graphical models: the distribution specified by a BN $\dg B$ is the
-unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and
-hence every positive linear combination of the two), and the
+graphical models. The distribution specified by a
+BN $\dg B$
+% Bayesian Network $\dg B$
+is the unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and
+hence every positive linear combination of the two), while the
 distribution specfied by a factor graph $\Phi$ uniquely minimizes the
 sum $\Inc_{\Phi} + \IDef{\Phi}$.
 In general, for any $\gamma > 0$, one can consider a weighted combination
@@ -1002,8 +1031,8 @@ In the limit as $\gamma \to\! 0$, there is always a unique best distribution
 %$\mu^*$
 whose score is
 % $\bbr{\dg M}_0(\mu^*) = \Inc_{\dg M}(\mu^*) = \aar{\dg M}_0 = \aar{\dg M}$.
-$\aar{\dg M}_0=\aar{\dg M}$.
-% $\aar{\dg M}$.
+% $\aar{\dg M}_0=\aar{\dg M}$.
+$\aar{\dg M}$.
 
 % The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
 % = \arg\min_\mu \bbr{\dg M}(\mu)$
@@ -1098,12 +1127,12 @@ we place the value near the edge, lightly colored and parenthesized, as in:
         node[above,pos=0.6, inner sep=1pt, outer sep=-2pt, fill=white]{$p$}
         node[below,pos=0.6, inner sep=0, outer sep=1.5pt]{${\scriptscriptstyle\color{gray}(\beta)}$}
          ++(-1,0);
-\end{tikzpicture}\,,
+\end{tikzpicture}\,.
 %
 %joe1*: I think that this is a bad idea.  Help the reader and use
 %\beta \to \inftyh.  You may be used to your notation, but the typical
 %reader will absolutely not be.
-and write ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta \to \infty$). % $\alpha$.
+Finally, we write ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta \to \infty$). % $\alpha$.
 % We will not
 % To inciate the limit of high confidence on a cpd $p$, we write an exclamation point, as in: \tikz[baseline=0.9] \draw[arr, <-] node[dpad0](X){$X$} (X) -- node[below,pos=0.6, inner sep=2pt]{$p!$} ++(-1,0);.
  % ($\beta_p \to \infty$)
@@ -1120,8 +1149,12 @@ Intuitively, believing more things can't make you any less inconsistent.
 % our workhorse lemma for deriving relationships between loss functions, captures this formally: adding edges, or increasing confidences, cannot decrease the inconsistency of a PDG.
 captures this formally: adding cpds or increasing confidences cannot decrease a PDG's inconsistency.
 
-
-\begin{linked}{lemma}{!}%[monotonicity of inconsistency]
+\newsavebox\olibox
+\sbox\olibox{$\aar{\;\cdot\;}$}
+\begin{linked}[{Monotonicity of
+		% $\langle\!\\langle\,\cdot\,\rangle\!\rangle$}]
+		\usebox\olibox}]
+		{lemma}{!}
 	\label{lemma!}
  	% For all pdgs $\dg M$ and $\dg M'$, with respective confidence vectors $\beta$ and $\beta'$,
 	% and all $\gamma > 0$,
@@ -1168,8 +1201,9 @@ This tool is sufficient to derive many interesting relationships between loss fu
 % Let's start with a simple example.
 % We start with a simple example.
 Suppose you believe that $X$ is distributed according to $p(X)$,
-and also that it (certainly) equals some value $x$. These beliefs are consistent if $p(X\!\!=\!x) =\! 1$ and become more inconsistent
-%(in our sense)
+and also that it (certainly) equals some value $x$. These beliefs are consistent if $p(X\!\!=\!x) =\! 1$ 
+% and become more inconsistent
+but become less so
  as $p(X\!\!=\!x)$ decreases.
 In fact, this inconsistency
 is equal to
@@ -1266,7 +1300,7 @@ happens to be the standard measure of discrepency between the two%
 % One concern is that it does not model the whole state of affairs; we train probabilstic models models with more than one sample.
 Still, we have a ways to go before this amounts to any more than a curiosity.
 One concern is that this picture is incomplete; we train probabilistic models with more than one sample.
-What if we replace $x$ with an empirical distribution on many samples?
+What if we replace $x$ with an empirical distribution over many samples?
 % The first step in the proof of \cref{prop:pdg-Ix} is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
 {
 \def\xsamp{{\mathcal D}}
@@ -1300,7 +1334,7 @@ What if we replace $x$ with an empirical distribution on many samples?
 			\draw[arr2, <-] (X) --
                 node[above,pos=0.6,inner sep=2pt]{${\datadist\xsamp}$}
                 node[below,pos=0.65,inner sep=2pt]
-                    {${\color{gray}\scriptscriptstyle\xsamp}$}
+                    {${\color{gray}\scriptscriptstyle(\infty)}$}
              ++(1.2, 0);
 				%\overset{\{\beta = \infty\}}
 		\end{tikzpicture}
@@ -1359,25 +1393,32 @@ What if we replace $x$ with an empirical distribution on many samples?
 % Other choices of $\beta$ are natural in other contexts, and we will see in \cref{sec:statdist} that they correspond to other losses. (For instance when $\beta_p = \beta_{\datadist\xsamp} = \nicefrac12$, the result is the Bhattacharyya distance, rather than the cross entropy.)
 % The only choice we've made in specifying the PDG of \cref{prop:expected-surprise} are the confidences.
 Essentially the only choices we've made in specifying the PDG of \cref{prop:expected-surprise} are the confidences.
-But $\mathrm{CrossEntropy}(\datadist\xsamp,p)$ is the expected code length per sample
+% But
+But
+$\mathrm{CrossEntropy}(\datadist\xsamp,p)$
+% the cross entropy of $p$ with respect to $\datadist\xsamp$
+is the expected code length per sample
 from $\datadist\xsamp$, when using codes optimized for the (incorrect) distribution $p$.
 % TODO fixme. DO I need Citation? Also, this is perhaps not the best
 % citation for the claim.
 % \parencite{shore1980relent}.
-So implicitly, a modeler using cross-entropy has already articulated a belief the data distribution is the ``true one''.
-To get the same effect from a PDG, the modeler must make this belief explicit by placing infinite certainty in $\datadist\xsamp$.
-
+So implicitly, a modeler using cross-entropy has already articulated a belief the data distribution $\datadist\xsamp$ is the ``true one''.
+To get the same effect from a PDG, the modeler must make this belief explicit by
+% placing infinite certainty in $\datadist\xsamp$.
+placing infinite confidence in $\datadist\xsamp$.
+% setting the confidence $\beta$ for $\datadist\xsamp$ to $\infty$.
 
 
 % We now consider an orthogonal generalization of \cref{prop:pdg-Ix}, in which the sample $x$ is only a partial observation of a joint model $p(X,Z)$.
 % In this case, we might hope to recover the \emph{marginal} surprise, since $Z$ does not interact with the observation. % ---  in \cref{prop:marginal-ll}.
-Now consider an orthogonal generalization of \cref{prop:pdg-Ix}, in which the sample $x$ is only a partial observation of a joint model $p(X,Z)$.
+Now consider an orthogonal generalization of \cref{prop:pdg-Ix}, in which the sample $x$ is only a partial observation of $(x,z)$ from a joint model $p(X,Z)$.
 % In this case, we get the \emph{marginal} information, as $Z$ does not interact with the observation. % ---  in \cref{prop:marginal-ll}.
 
 \begin{linked}{prop}{marginal-ll}
-	If $p(X,Z)$ is a joint distribution, the information content of the partial observation $X=x$
+	If $p(X,Z)$ is a joint distribution, then the information content of the partial observation $X=x$
 	% , or the marginal negative log likelihood of $x$,
 	is given by
+	\vskip-4ex
 	\begin{equation}
 	 	% \I_p(x) = \log \frac{1}{p(x)} =
 	 	\I_p[X\!\!=\!x] =
@@ -1401,11 +1442,12 @@ Now consider an orthogonal generalization of \cref{prop:pdg-Ix}, in which the sa
 	\end{equation}
 \end{linked}
 
-Intuitively, the inconsistency of the PDG on the right of \eqref{eq:mll} is localized to $X$, where the observation conflicts with the distribution; other variables don't make a difference.
+Intuitively, the inconsistency of the PDG on the
+right side of \eqref{eq:mll} is localized to $X$, where the observation $x$ conflicts with $p(X)$; other variables don't make a difference.
 % The natural generalization with both partial observations and multiple samples also holds; we defer treatment to the appendix.
 The multi-sample partial-observation generalization also holds; see \cref{appendix:more-crossent}.
 % Just as \cref{prop:expected-surprise} generalizes \cref{prop:pdg-Ix}, there is
-% a multi-sample analogue of analog of \Cref{prop:marginal-ll} .
+% a multi-sample analog of analog of \Cref{prop:marginal-ll} .
 % Furthermore, $p$ is the qualitative model we have in mind, and so we set $\alpha_p = 1$
  % by considering more than one sample at once,
 
@@ -1417,7 +1459,7 @@ The multi-sample partial-observation generalization also holds; see \cref{append
 So far we have considered models of an unconditional distribution $p(X)$.
 Because they are unconditional, such models must describe how to generate a complete sample $X$ without input, and so are called \emph{generative}; the process of training them is called \emph{unsupervised} learning \parencite{elts_stat_learn2009}.
 % Contrast this with the (more common) \emph{supervised} setting, in which we train \emph{discriminative} models to predict $Y$ from $X$, from labeled samples $\{(x_i,y_i)\}_i$.
-In the (more common) \emph{supervised} setting, we train \emph{discriminative} models to predict $Y$ from $X$, from labeled samples $\{(x_i,y_i)\}_i$.
+In the (more common) \emph{supervised} setting, we train \emph{discriminative} models to predict $Y$ from $X$, via labeled samples $\{(x_i,y_i)\}_i$.
 There, cross entropy loss is perhaps even more dominant---and it is essentially the inconsistency of a PDG consisting of the predictor $h(Y|X)$ together with high-confidence data.
 {\def\xysamp{{\mathcal D}}
 \begin{linked}[Cross Entropy, Supervised]
@@ -1432,9 +1474,11 @@ There, cross entropy loss is perhaps even more dominant---and it is essentially 
 	%%oli1: Not really. I was hesitant to use sets because samples could repeat, but it's
 	%%	kind of irrelevant. I'll expand it in the standard way
     % distribution $\datadist\xysamp$ of a set $\xysamp$ of samples is equal to
-    distribution $\datadist\xysamp$ of a dataset $\xysamp = \{(x_i, y_i)\}_{i=1}^{m}$ is equal to
+    distribution $\datadist\xysamp$ of a dataset $\xysamp = \{(x_i, y_i)\}_{i=1}^{m}$
+	% is equal to
+	equals
     the cross-entropy loss (minus the empirical uncertainty in $Y$
-    given $X$, a constant that depends only on $\xysamp$). That is,
+    given $X$, a constant depending only on $\xysamp$). That is,
 	\[ \aar**{
 		\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
@@ -1492,8 +1536,8 @@ There, cross entropy loss is perhaps even more dominant---and it is essentially 
 % Moreover, refining the discretization size $k$ of a discretized approximation $\tilde p_k(X)$ also contributes a constant that depends only on $k$.
 %     % \cref{prop:pdg-Ix,prop:expected-surprise,prop:marginal-ll,prop:pdg-loglikelihood,prop:supervised-cross-entropy}
 % % only in a constant that depends only on $k$.
-% % But this constant is irrelevant for optimization, justifying the use of the continuous analogues (such as $- \log p(x)$ for a pdf $p(x)$) as loss functions.
-% Such constants are irrelevant for optimization, justifying the use of the continuous analogues as loss functions.
+% % But this constant is irrelevant for optimization, justifying the use of the continuous analogs (such as $- \log p(x)$ for a pdf $p(x)$) as loss functions.
+% Such constants are irrelevant for optimization, justifying the use of the continuous analogs as loss functions.
 % %TODO Verify that this is dealt with in an accurate way.
 % \end{remark}
 
@@ -1555,13 +1599,14 @@ Simple evaluation metrics, such as the accuracy of a classifier, or the mean squ
         \end{aligned}
 	\end{equation}
 \end{linked}
-\vspace{-1ex}
+% \vspace{-1ex}
+\vskip-2.5ex
 %joe1*: you need to give a reference for all this, and to discuss
 %accuracy and what it's capturing *before* you state the theorem.
-%TODO
+%DONE
 % It is common to think of accuracy as a property of a hypothesis $h$
 % (with some dependence on the true labeling function $f$ and the data distribution $d$), even though it is symmetric in $f$ and $g$%
-One often speaks of the accuracy of a hypothesis $h$ (leaving the true labels $f$ and empirical distribution $D$ implicit).
+One often speaks of the accuracy of a hypothesis $h$, leaving the true labels $f$ and empirical distribution $D$ implicit.
 %, even though its expression is symmetric in $f$ and $h$%
 %oli2: unnecessary
 %, in part because we change the predictor more than the labels.
@@ -1569,9 +1614,11 @@ One often speaks of the accuracy of a hypothesis $h$ (leaving the true labels $f
 % The correspondence of \Cref{prop:accuracy} graphically depicts this symmmetry, and also a more subtle phenomenon: a particularly strong dependence on the distribution of inputs.
 % In fact, the inconsistency of the PDG in \eqref{eq:accuracy-pdg} is scaled by the confidence of $D$, but does not depend at all on the confidences in $h$ or $f$.
 % \Cref{prop:accuracy} graphically depicts this symmmetry, a more subtle phenomenon: a particularly strong dependence on the distribution of inputs.
-But in some sense, $D(X)$ plays a more primary role: the inconsistency in \eqref{eq:accuracy-pdg} is scaled by the confidence in $D$, and does not depend at all on the confidences in $h$ or $f$.
+% Yet in some sense,
+Yet there is a sense in which 
+$D(X)$ plays a more primary role: the inconsistency in \eqref{eq:accuracy-pdg} is scaled by the confidence in $D$, and does not depend at all on the confidences in $h$ or $f$.
 %
-%\TODO[needs a lot of cleanup]
+%\DONE[needs a lot of cleanup]
 % Why should this be the case? The deterministic nature of $f$ and $h$ encodes extreme confidence (to anthropomorphise: $f$ thinks it impossible that $Y \ne f(X)$, because that event has probability zero).
 Why is this the case? Because $f$ is deterministic, codes optimized for it cannot express a sample $(x,y)$ such that $y \ne f(x)$, and so a joint distribution $\mu$ incurs infinite cost if $\mu(x,y) > 0$.
 The same is true for $h$, so
@@ -1589,20 +1636,21 @@ In other words, the optimal distribution $\mu^*$ throws out incorrect samples, s
 % informs how we should update our predictor $h(Y\,|\,X)$, which
 %joe1*: Where did non-differentiability come from?  This is totally
 %out of the blue.    You should fget rid of it.
-%TODO
+%DONE
 % reflects the non-differentiability of the accuracy (or zero-one loss)
 % This illustrates why accuracy is a poor loss function for training a model $h$.
 % This illustrates why accuracy (the 0-1 loss) gives no gradient information for training $h$.
-This illustrates why accuracy gives no gradient information for training $h$ (only $D$).
+This illustrates why accuracy gives no gradient information for training $h$ (only for $D$).
 % with respect to $h$.
 % Note that this is
-Note that this is precisely
+% Note that this is precisely
+This is precisely
 % the opposite of how we captured cross entropy in \cref{prop:supervised-cross-entropy}:
 the opposite of how cross entropy played out in \cref{prop:supervised-cross-entropy}:
  there we were unwilling to budge on either the true labels or input distribution, and the optimal distribution told us how to modify $h$.
 %
-%
-Even these simple observations---the lack of gradient information, and relationships to
+
+Observe how even properties of these simple metrics---the lack of gradient information, and relationships to
  	other metrics%
 	% ---are clarified by focusing on the model.
 	---are clarified by an underlying model.
@@ -1644,7 +1692,7 @@ MSE is also the inconsistency of believing that
 % $f$ and $h$ control the mean of a unit Gaussian.
 %oli1: fixed
 the labels and predictor have Gaussian noise---%
-often a reasonable assumption due to the central limit theorem.
+often a reasonable assumption because of the central limit theorem.
 
 \begin{linked}[MSE as Inconsistency]{prop}{MSE}% \label{coro:MSE}
 	\begin{align*}
@@ -1739,7 +1787,7 @@ In the appendix, we treat general Gaussian predictors, with arbitrary variances 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{REGULARIZERS AND PRIORS}
 \label{sec:regularizers}
-Regularizers are extra terms added to loss funtions, which provide a source of inductive bias on model parameters.
+Regularizers are extra terms added to loss funtions, which provide a source of inductive bias towards simple model parameters.
 There is a well-known correspondence between using a regularizer and
 doing maximum \emph{a posteriori} inference with a prior,%
 % \footnote{A more detailed account can be found in the appendix.}
@@ -1757,7 +1805,7 @@ in which L2 regularization corresponds to a Gaussian prior
 % and indeed adding such a distribution to the PDG gives an extra term in the consistency, equal to the L2 regularizer.
 while L1 regularization corresponds to a Laplacian prior \parencite{williams1995bayesian}.
 Note that the ability to make principled modeling choices about regularizers is a primary benefit of this correspondence.
-Our approach provides another justification of it.
+Our approach provides a new justification of it.
 % This correspondence is even clearer when using PDGs. We now give our own formuulation of this result: adding a prior to the PDG results in the corresponding regularization term in the inconsistency.
 
 \begin{linked}{prop}{regularized}
@@ -1830,7 +1878,7 @@ which is the L2 regularized version of \cref{prop:expected-surprise}.
 Moreover, the regularization strength corresponds exactly to the confidence $\beta$.
 What about other priors? It is not difficult to see that if we use a (discretized) unit Laplacian prior, $q(\theta) \propto \exp(-|\theta|)$, the second term instead becomes $\beta |\theta_0|$, which is L1 regularization.
 More generally, to consider a complexity measure $U(\theta)$, we need only include the Gibbs distribution $\Pr_U(\theta) \propto \exp(-U(\theta))$ into our PDG.
-%% TODO revistit %%%%% True. But helpful??
+%% TODONE revistit %%%%% True. But helpful??
 % And if we lift the requirement that $\theta$ be a point mass, the optimal distribution over $\theta$ is the posterior distribution after a Baysian update.
 %
 % We remark that there is nothing special about cross entropy here;
@@ -1957,6 +2005,7 @@ any of the objectives we describe can be regularized in this way.
 	\label{fig:statdistmap}
 \end{figure*}
 %%%%%%%%%%%%%%
+
 Suppose you are concerned with a single variable $X$. One friend has told you that it is distributed according to $p(X)$; another has told you that it follows $q(X)$. You adopt both beliefs. Your mental state will be inconsistent if (and only if) $p \ne q$, with more inconsistency the more $p$ and $q$ differ.
 Thus the inconsistency of a PDG comprising $p$ and $q$ is a measure of divergence.
 %
@@ -2009,9 +2058,12 @@ We start with a familiar one.
 	= \beta\, \kldiv pq .
 \]
 \end{prop}
+\vskip-1.3ex
 This result gives us an intuitive interpretation of the asymmetry of relative entropy / KL divergence, and a prescription about when it makes sense to use it.
 $\kldiv p q$ is the inconsistency of a mental state containing both $p$ and $q$, when absolutely certain of $p$ (and not willing to budge on it).
-This concords with the standard intuition that $\kldiv pq$ reflects the amount of information required to change $q$ into $p$, which is why we call it the relative entropy ``from $q$ to $p$''.
+This concords with the standard intuition that $\kldiv pq$ reflects the amount of information required to change $q$ into $p$, which is why
+% some pronounce it in reverse, calling it
+it is usually called the relative entropy ``from $q$ to $p$''.
 
 
 % In general, we derive the following form for the inconsistency of a PDG whose contents are distributions $p(X)$ and $q(X)$, for arbitrary confidences.
@@ -2020,8 +2072,11 @@ We now consider the general case of a PDG comprising $p(X)$ and $q(X)$ with arbi
 \begin{linked}{lemma}{pdgdiv}
 	% The PDG divergence $\thickD^{\mathrm{PDG}}_{(r,s)}(p, q)$,
     % The inconsistency of a PDG containing $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$
-    The inconsistency of a PDG comprising $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$
+    The inconsistency
+	$\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{{\color{gray}(r,s)}}(p\Vert q)$
+	of a PDG comprising $p(X)$ with confidence $r$ and $q(X)$ with confidence $s$
     is given in closed form by
+	\vspace{-1ex}
     \[
 		% \thickD^{\mathrm{PDG}}_{(r,s)}(p, q) :=
         \aar[\bigg]{\!\!\begin{tikzpicture}[baseline = -0.75ex]
@@ -2047,6 +2102,7 @@ We now consider the general case of a PDG comprising $p(X)$ and $q(X)$ with arbi
     % \qquad\text{where}\qquad \xi:= \beta_p+\beta_q
     \]
 \end{linked}
+\vskip-1ex
 
 
 
@@ -2054,6 +2110,7 @@ We now consider the general case of a PDG comprising $p(X)$ and $q(X)$ with arbi
 
 Of the many generalizations of KL divergence, R\'enyi divergences, first characterized by Alfr\'ed R\'enyi \citeyear{renyi1961measures} are perhaps the most significant, as few others have found either application or an interpretation in terms of coding theory \parencite{van2014renyi}.
 The R\'enyi divergence of order $\alpha$ between two distributions $p(X)$ and $q(X)$ is given by
+\vspace{-1ex}
 \begin{equation}
 	\thickD_\alpha\infdivx p q := \frac{1}{1- \alpha} \log \sum_{x \in \V(X)} p(x)^\alpha q(x)^{1-\alpha}.  \label{eq:renyi}
 \end{equation}
@@ -2071,7 +2128,8 @@ Concretely, every symmetric, continuous measure that additively separates over i
 is of the form \eqref{eq:renyi} for some $\alpha$ \parencite{renyi1961measures}.
 It follows from \cref{lemma:pdgdiv} that
 % varying the confidences of our two-distribution PDG carves out almost the same class:
-carves out almost the same class:
+% the inconsistency of our two-distribution PDG carves out almost the same class as we vary the confidences:
+% carves out almost the same class:
 % every R\'enyi divergence is the inconsistency of some PDG of this form, and
 every R\'enyi divergence is a PDG divergence, and
 every (non-limiting) PDG divergence is a (scaled) R\'enyi divergence.
@@ -2105,7 +2163,7 @@ every (non-limiting) PDG divergence is a (scaled) R\'enyi divergence.
             &=
             s \cdot \thickD_{\frac{r}{r+s}}\infdivx{p}{q}
         % \qquad \text{and} \qquad
-        \\[-0.3em]\text{and}\qquad
+        \\[-1ex]\text{and}\qquad
         \thickD_{\alpha}\infdivx{p}{q}
         &=
         % \thickD^{\mathrm{PDG}}_{\left(\frac{\alpha}{1-\alpha}, 1\right)}(p, q).
@@ -2128,9 +2186,14 @@ every (non-limiting) PDG divergence is a (scaled) R\'enyi divergence.
         \end{tikzpicture}\!}
     \end{align*}
 \end{coro}
+\vskip-1.4ex
 
-However, the two classes are not identical, because the PDG divergences admit extra limit points. One of the biggest differences is that the reverse KL divergence $\kldiv q p$ is not a Renyi entropy of the form $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$. This lack of symmetry has led others \parencite[e.g.,][]{cichocki2010families} to instead work with a re-scaled symmetric version of the R\'enyi entropy, called $\alpha$-divergence%
-, which as an additional factor of $\frac1\alpha$.
+However, the two classes are not identical, because the PDG divergences have extra limit points. 
+One big difference is that the reverse KL divergence $\kldiv q p$ is not a R\'enyi divergence $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$.
+% One big difference is that the reverse KL divergence $\kldiv q p$ is not a R\'enyi divergence $\thickD_\alpha\infdivx p q$ for any value (or limit) of $\alpha$.
+This lack of symmetry has led others \parencite[e.g.,][]{cichocki2010families}
+% to instead work with a re-scaled symmetric version of the R\'enyi entropy, called $\alpha$-divergence, which as an additional factor of $\frac1\alpha$.
+to work instead with a symmetric variant called $\alpha$-divergence, rescaled by an additional factor of $\frac1\alpha$.
 % \eqref{eq:alphadiv}  (although sometimes the term is used for the same quantity without the logarithm).
 The relationships between these quantities can be seen in \cref{fig:statdistmap}.
 
@@ -2202,8 +2265,11 @@ What about more complex graphs?
 For a start, the usual notion of a conditional divergence
 % $\thickD_{\bullet}\big(p(\!Y\!|\!X\!) \,\Vert\, q(\!Y\!|\!X\!) \,|\, r(\!X\!)\big)$
 \def\ns{\mskip-1.5mu}
-$\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
-\!:=\! \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)$
+$
+\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
+\!:=\!
+ \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)
+$
 % straightforwardly falls out of PDGs of the form
 falls out of PDGs of the form
 \vskip-3ex
@@ -2232,10 +2298,11 @@ falls out of PDGs of the form
 \vskip-2ex
 % and in general,
 % The inconsistency of a PDG can be viewed as a vast generalization of these divergences to arbitrary structured objects.
-\Cref{lemma!}, together with minor structural manipulation, gives visual proofs of standard divergence properties. Such a proof of the Data Processing Inequality can be seen in  \Cref{fig:dpi-vis-proof}.
-And in general, PDG inconsistency can be viewed as a vast generalization of these divergences to arbitrary structured objects.
-
-
+% \Cref{lemma!}, together with minor structural manipulation, gives visual proofs of standard divergence properties.
+Such graphs are also useful intermediates.
+% \Cref{lemma!} in conjunction with structural manipulation, yields visual proofs of many properties of these divergences.
+\Cref{lemma!}, plus some structural manipulation, yields visual proofs of many divergence properties; a proof of the data-processing inequality can be seen in \Cref{fig:dpi-vis-proof}.
+In general, PDG inconsistency can be viewed as a vast generalization of divergences to arbitrary structured objects.
 
 \begin{figure*}
 	\tikzset{ci2/.style={inner sep=2pt, align=center}}%
@@ -2371,7 +2438,9 @@ And in general, PDG inconsistency can be viewed as a vast generalization of thes
 
 The fact that the incompatibility of $\dg M$ with a \emph{specific} joint distribution $\mu$ is an upper bound on the inconsistency is not a deep one, but it is of a variational flavor.
 % % but it does yield an efficient approximate inference procedure for PDGs: choose a tractable parametric family $\mathcal P$ of joint distributions $\mu$, and optimize \eqref{eq:semantics}. Making this precise is the focus of a parallel work.
-Here, we focus on the more surprising converse:  PDG semantics capture general aspects of variational inference and provide a graphical proof language for it.
+Here, we focus on the more surprising converse:  PDG semantics capture general aspects of variational inference and provide
+a graphical proof language for it.
+% a graphical language for reasoning about it.
 
 \subsection{PDGs and Variational Approximations}
 \label{sec:variational}
@@ -2383,7 +2452,7 @@ We begin by recounting the standard development of the `Evidence Lower BOund' (E
 Suppose we have a model $p(X,Z)$, but only have access to observations of $x$.
 In service of adjusting $p(X,Z)$ to make our observations more likely, we would like to maximize $\log p(X\!\!=\!x)$, the ``evidence'' of $x$ (\Cref{prop:marginal-ll}).
 % Unfortunately, computing $p(X) = \int p(X,z)\, \mathrm d z$ requires integrating over $Z$, which can be intractable.
-Unfortunately, computing $p(x) = \sum_z p(x,z)$ requires summing over all of $Z$, which can be intractable.
+Unfortunately, computing $p(X) = \sum_z p(X,Z\!\!=\!z)$ requires summing over all of $Z$, which can be intractable.
 %
 % The variational approach is as follows: fix a family of distributions $\mathcal Q$ that is easy to sample from, choose some $q \in \mathcal Q$, and assume that $Z \sim q$.
 % ; to start, we guess $q_0(Z)$.
@@ -2433,7 +2502,7 @@ The formula for the ELBO is somewhat difficult to make sense of.%
 %mean mass functions as in Demspter-Shafer, then you must explain
 %this.  Actually, whatever you mean, you must explain it.  Idon't see
 %where this interpretation has any impact on your propositin.
-%TODO
+% DONE
 % Nevertheless, if we interpret $p$ and $q$ are mass functions, it turns
 % out that the ELBO also arises naturally as the inconsistency of the
 Nevertheless, it arises naturally as the inconsistency of the
@@ -2471,6 +2540,7 @@ appropriate PDG.
 		.
 	\]
 \end{linked}
+\vskip-1ex
 
 
 
@@ -2587,12 +2657,15 @@ The second PDG has more edges so it is clearly at least as inconsistent. Further
 
 An autoencoder is a probabilistic model intended to compress a
 variable $X$ (e.g., an image) to a compact latent representation
-%joe1: another run-on
-%$Z$, and its structure is given  by two conditional distributions:
-$Z$. Its structure is given by two conditional distributions:
+$Z$.
+% $Z$ (e.g., a vector).
+Its structure is given by two conditional distributions:
 an encoder $e(Z | X)$, and a decoder $d(X | Z)$.
 Of course, not all pairs of cpds fill this role equally well.
-Perhaps most importantly, we would like to have low \emph{reconstruction error} \eqref{eq:rec}---when we decode an encoded image, we would like it to be reasonably similar to the original.
+% Perhaps most importantly, we would like to have low
+One important consideration is the
+% \emph{reconstruction error} \eqref{eq:rec}---when we decode an encoded $x$, we would like it to be reasonably similar to the original.
+\emph{reconstruction error} \eqref{eq:rec}: when we decode an encoded image, we would like it to resemble the original.
 \vspace{-0.5em}
 \begin{equation}
 	% \mathrm{Rec}(x) := \!\! \Ex_{z \sim e \mid x} \, \underbrace{\,\mathrm I_{d\mid z}(x)~\vphantom{\Big|}}_{\mathclap{\left(\;\substack{\text{additional bits required to}\\\text{decode $x$ from $z$, its encoding}}\;\right)}}
@@ -2601,8 +2674,8 @@ Perhaps most importantly, we would like to have low \emph{reconstruction error} 
 	\mathrm{Rec}(x) := \!\!\!\!\! \Ex_{z \sim e(Z|x)} \smash{\underbrace{\mathrm I_{d(\!X\!|z)}(x)\vphantom{\Big|}}_{\mathclap{\left(\;\substack{\text{additional bits required to}\\\text{decode $x$ from its encoding  $z$}}\;\right)}}}
 	\!= \sum_z e(z \,|\, x) \log \frac1{d(x \,|\, z)}\label{eq:rec}
 \end{equation}
-\vspace{0.5ex}
-
+\vspace{0.0ex}
+%
 % It just so happens that $\mathrm{Rec}(x) =
 % \aar*{\begin{tikzpicture}[center base]
 %     \node[dpad0] (Z) {$Z$};
@@ -2618,22 +2691,23 @@ Perhaps most importantly, we would like to have low \emph{reconstruction error} 
 % \end{tikzpicture}}$.
 % Note the similarity to the cross entropy objective from before, except in place of our
 
-There are other desiderata as well. It would be nice if the
-distribution on $Z$ had a nice form---perhaps factoring into
-independent features, which we might use to describe $X$. We encode
+
+%DONE reclaim space
+% There are other desiderata as well. It would be nice if the distribution on $Z$ had a nice form---perhaps factoring into independent features, which we might use to describe $X$. 
+There are other desiderata as well. Perhaps good latent representations $Z$ have uncorrelated components, and are normally distributed. 
 %joe1*: I don't see how beliefs can encode wishes at all. Wishes are
 %captured by utilities, not probabilities.  I'm lost.
 %oli1: the whole point is that probabilities/objectives
 % are a blurred line. I'll tweak the wording a little.
 % this wish in the form of a belief $p(Z)$, known as a variational
-this wishful thinking as a belief $p(Z)$, known as a variational
-prior.
+% We encode this kind of wishful thinking as a belief $p(Z)$, known as a variational prior.
+We encode such wishful thinking as a belief $p(Z)$, known as a variational prior.
 
 The data of a \emph{variational} auto-encoder
 \parencite{kingma2013autoencoding}
 consists of $e(Z|X)$, $d(X|Z)$, and $p(Z)$.
-The encoder $e(Z|X)$ can be used as a variational approximation of $Z$, differing from $q(Z)$ of \Cref{sec:variational} only in that it can depend on $X$. Here, the analogue of the ELBO becomes
-\vspace{-0.5em}
+The encoder $e(Z|X)$ can be used as a variational approximation of $Z$, differing from $q(Z)$ of \Cref{sec:variational} only in that it can depend on $X$. Here, the analog of the ELBO becomes
+\vspace{-0.5ex}
 \begin{align*}
 	\mathrm{ELBO}_{p,e,d}(x) :=&
 		% \Ex_{z \sim e|x}
@@ -2642,16 +2716,21 @@ The encoder $e(Z|X)$ can be used as a variational approximation of $Z$, differin
 		% &= \Ex_{z \sim e|x}\left[ \log \frac{p(z)}{e(z\mid x)}  \right] - \Ex_{z \sim e|x} \log \frac1{d(x\mid z)} \\
 		=& - \mathrm{Rec}(x) - \kldiv{e(Z|x)}{p}.
 \end{align*}
+\vspace{-3ex}
 
 This gives us the following analog of \cref{prop:pdg-elbo-x}.
 
 \begin{linked}{prop}{pdg-elbo-vae}
-	The VAE objective for a sample $x$
+	The VAE loss of a sample $x$
     % \dfootnote{\label{fn:multisample}See appendix for a multi-sample analog.}
-    is the inconsistency of the PDG containing the encoder $e$ (with high confidence, as it defines the encoding), decoder $d$ prior $p$, and $x$.
+    is the inconsistency of the PDG comprising the encoder
+	$e$
+	(with high confidence, as it defines the encoding),
+	decoder
+	$d$, prior $p$, and $x$.
 	That is,
     % \vspace{-1.8em}
-    \vspace{-1em}
+    \vspace{-3ex}
 	\[
 	-\mathrm{ELBO}_{p,e,d}(x) =
 	 \aar*{
@@ -2675,73 +2754,130 @@ This gives us the following analog of \cref{prop:pdg-elbo-x}.
 				++(-0.9, 0);%
 		\end{tikzpicture}}.
  	\]
-    \vspace{-2em}
+    \vspace{-4ex}
 \end{linked}
 
 
+%DONE text needs cleaning up. 
 % \subsection{Intuitive Proofs of Variational Bounds}\label{sec:variational-bounds}
-\Cref{prop:pdg-elbo-vae,prop:pdg-elbo-vae-whole} can be used to derive another variational bound. Once again, the addition of the edge $e$ cannot decrease the inconsistency (\cref{lemma!}), but believing it with high confidence does make it possible to know the encoding of a sample, making inference tractable.
-This results in the following simple visual proof:
+%
+% \Cref{prop:pdg-elbo-vae,prop:pdg-elbo-vae-whole} can be used to derive another variational bound. Once again, the addition of the edge $e$ cannot decrease the inconsistency (\cref{lemma!}), but believing it with high confidence does make it possible to know the encoding of a sample, making inference tractable.
+% We now use \Cref{prop:pdg-elbo-vae,prop:marginal-ll,lemma!} to derive another variational bound:
+We now give a visual proof of the analogous variational bound.
+Let $\Pr_{p,d}(X,Z) := p(Z)d(X|Z)$ be
+% the joint distribution arising from decoding samples from the prior. Then,
+the distribution that arises from decoding the prior. Then:
 %joe1: the layout here needs to be improved
-%TODO
-~~$- \log \Pr(x) =$
-\vspace{-1.2em}
-\[
-	\aar[\bigg]{\begin{tikzpicture}[baseline=-0.5ex]
-	   \node[dpad0] (Z) {$Z$};
-	   \node[dpad0,right=.6 of Z] (X) {$X$};
-	   \draw[arr2, ->] (Z) to[bend left=30]
-		   node[above]{$ d$} (X);
-	   \draw[arr2, <<-] (X) --
-		   node[above,pos=0.8]{$ x$}
-		   ++(0.9, 0);
-	   \draw[arr2, <-] (Z) --
-		   node[above,pos=0.6]{$ p$}
-		   ++(-0.9, 0);%
+%DONE
+% ~~$- \log \Pr(x) =$
+% \vspace{-1.2em}
+% \[
+% 	\aar[\bigg]{\begin{tikzpicture}[baseline=-0.5ex]
+% 	   \node[dpad0] (Z) {$Z$};
+% 	   \node[dpad0,right=.6 of Z] (X) {$X$};
+% 	   \draw[arr2, ->] (Z) to[bend left=30]
+% 		   node[above]{$ d$} (X);
+% 	   \draw[arr2, <<-] (X) --
+% 		   node[above,pos=0.8]{$ x$}
+% 		   ++(0.9, 0);
+% 	   \draw[arr2, <-] (Z) --
+% 		   node[above,pos=0.6]{$ p$}
+% 		   ++(-0.9, 0);%
+% 	\end{tikzpicture}}
+%  	\le
+%  	\aar*{
+%    \begin{tikzpicture}[center base]
+%        \node[dpad0] (Z) {$Z$};
+%        \node[dpad0,right=.7 of Z] (X) {$X$};
+%        \draw[arr2, ->] (X) to[bend left=50]
+%            node[above, inner sep=2pt]{$e$}
+%            node[below, inner sep=2pt]{${\color{gray}\scriptscriptstyle(\infty)}$}
+%            (Z);
+%        \draw[arr2, ->] (Z) to[bend left=30]
+%            node[above]{$ d$} (X);
+%        \draw[arr2, <<-] (X) --
+%            node[above,pos=0.8]{$ x$}
+%            ++(0.9, 0);
+%        \draw[arr2, <-] (Z) --
+%            node[above,pos=0.6]{$ p$}
+%            ++(-0.9, 0);%
+%    \end{tikzpicture}}
+% \]
+% \vskip-1.2em
+% $= -\mathrm{ELBO}_{p,e,d}(x).$
+% \vspace{-1.2em}
+\begin{align*}
+	\log \frac{1}{\displaystyle\!\Pr_{p,d}(\mskip-1.5mux\mskip-1.5mu)\!} \!=\!
+	% - \log {\Pr(x)} = 
+	% \qquad &\\
+	% \aar[\Bigg]
+	\aar**
+	{\begin{tikzpicture}[baseline=2.1ex]
+			% [baseline=-0.5ex]
+		\node[dpad0] (Z) {$Z$};
+		\node[dpad0,right=.4 of Z] (X) {$X$};
+		\draw[arr2, ->] (Z) to[bend left=50,looseness=1.5]
+			node[above]{$ d$} (X);
+		\draw[arr2, <<-] (X) --
+			% node[above,pos=0.8]{$x$} ++(0.9, 0);
+			node[left,pos=0.8,inner sep=2pt]{$x$} ++(0.2, 0.8);
+		\draw[arr2, <-] (Z) --
+			% node[above,pos=0.6]{$p$} ++(-0.9, 0);%
+			% node[left,pos=0.6,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
+			node[right,pos=0.7,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
 	\end{tikzpicture}}
- 	\le
- 	\aar*{
-   \begin{tikzpicture}[center base]
-       \node[dpad0] (Z) {$Z$};
-       \node[dpad0,right=.7 of Z] (X) {$X$};
-       \draw[arr2, ->] (X) to[bend left=50]
-           node[above, inner sep=2pt]{$e$}
-           node[below, inner sep=2pt]{${\color{gray}\scriptscriptstyle(\infty)}$}
-           (Z);
-       \draw[arr2, ->] (Z) to[bend left=30]
-           node[above]{$ d$} (X);
-       \draw[arr2, <<-] (X) --
-           node[above,pos=0.8]{$ x$}
-           ++(0.9, 0);
-       \draw[arr2, <-] (Z) --
-           node[above,pos=0.6]{$ p$}
-           ++(-0.9, 0);%
+	&\!\le\!
+	% \aar[\Bigg]
+	\aar**
+	{\begin{tikzpicture}[baseline=2.1ex]
+			% [center base]
+		\node[dpad0] (Z) {$Z$};
+		\node[dpad0,right=.7 of Z] (X) {$X$};
+		\draw[arr2, ->] (X) to[bend left=0]
+			node[above, inner sep=2pt]{$e$}
+			node[below, inner sep=1pt, pos=0.4]
+				{${\color{gray}\scriptscriptstyle(\!\infty\!)}$}
+			(Z);
+		\draw[arr2, ->] (Z) to[bend left=50,looseness=1.5]
+			node[above]{$ d$} (X);
+		\draw[arr2, <<-] (X) --
+			% node[above,pos=0.8]{$x$} ++(0.9, 0);
+			node[left,pos=0.8,inner sep=2pt]{$x$} ++(0.2, 0.8);
+		\draw[arr2, <-] (Z) --
+			% node[left,pos=0.6,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
+			node[right,pos=0.7,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
    \end{tikzpicture}}
-\]
-\vskip-1.2em
-$= -\mathrm{ELBO}_{p,e,d}(x).$
-Here $\Pr(X)$ is the marginal of $p(Z)d(X | Z)$ on $X$.
+   % \\&\qquad
+   \!=\! \shortminus\!\mathop{\mathrm{E\mskip-0.5muL\mskip-0.6muB\mskip-0.7muO}}\limits_{p,e,d}(\mskip-1.5mux\mskip-1.5mu).
+\end{align*}
+
+The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-vae}, and the inequality is \cref{lemma!}.
+% Here $\Pr(X)$ is the marginal of $p(Z)d(X | Z)$ on $X$.
 % The appendix contains multi-sample analogs of both propositions and the bound.
-See the appendix for multi-sample analogs of the bound and both propositions.
+% See the appendix for multi-sample analogs of the bound and both propositions.
+% See the appendix for multi-sample analogs of the bound and \cref{prop:pdg-elbo-vae}.
+% For multi-sample analogs of the bound and \cref{prop:pdg-elbo-vae}, see the appendix.
+See the appendix for multi-sample analogs of the bound and \cref{prop:pdg-elbo-vae}.
+% See the appendix for multi-sample analogs of the bound and \cref{prop:pdg-elbo-x,prop:pdg-elbo-vae}.
 % We give multi-sample analogs of both propositions and the bound in the appendix.
 
-\subsection{\texorpdfstring{$\beta$}{beta}-VAE Objective}
+\subsection{The \texorpdfstring{$\beta$}{beta}-VAE Objective}
+\label{sec:betavae}
 
 The ELBO is not the only objective that has been used to train networks with a VAE structure.
-In the most common variant,
-\textcite{higgins2016beta}
-%have argued
-argue
-that one might want to weight the reconstruction error \eqref{eq:rec} and
+% In the most common variant, \textcite{higgins2016beta} argue that one might want to weight the reconstruction error \eqref{eq:rec} and the KL term differently.  They suggest an objective of the form
+In the most common variant, due to \textcite{higgins2016beta},
+one weights the reconstruction error \eqref{eq:rec} and
 % the KL term
-the `KL term'
-differently.  They suggest an objective of the form
-\vskip-1.2em
+the `KL term' differently, resulting in a loss function of the form
+% \vskip-3ex
+\vspace{-0.5ex}
 \[
-	\beta\text{-}\mathrm{ELBO}_{p,e,d}(x) := \mathrm{Rec}(x) - \beta \kldiv{e(Z|x)}{p},
+	\beta\text{-}\mathrm{ELBO}_{p,e,d}(x) := - \mathrm{Rec}(x) - \beta \kldiv{e(Z|x)}{p},
 \]
-\vskip-0.5em
-which when $\beta = 1$ is the ELBO as before. The authors view $\beta$ as a regularization strength, and argue that
+% \vspace{-2ex}
+\vskip-1.5ex
+which, when $\beta \!=\! 1$, is the ELBO as before. The authors view $\beta$ as a regularization strength, and argue that
 % in some cases, you can do better with a stronger prior.
 % it helps to have a stronger prior in some cases.
 % sometimes helps to put more stock in the prior.
@@ -2750,7 +2886,9 @@ it sometimes helps to have a stronger prior.
 Sure enough, the $\beta$-VAE objective is the inconsistency of the same
 PDG as before, but with confidence $\beta$ in $p(Z)$.%
 	% \footnote{The two parameters even share a name, both coming from thermodynamic $\beta$ (inverse temperature).}
-	\footnote{Both names originate in thermodynamic coldness $\beta$.}
+	%TODO can I get my footnote also???
+	% \footnote{Both names originate in thermodynamic coldness $\beta$.}
+	% \footnote{They even share a name due to a common origin: thermodynamic coldness $\beta$.}
 
 
 \section{FREE ENERGY AND INCONSISTENCY}
@@ -2789,10 +2927,11 @@ $\alpha_J, \beta_J := \theta_J$.
 % If every factor is normalized and every variable is an edge target,
 If the factors are normalized and all variables are edge targets,
 then $Z_\Psi \le 1$,
-so $-\log Z_\Psi$ is non-negative,
-% so $-\log Z_\Psi \ge 0$,
-% and measures how far away the product of factors is from being normalized.
-and measures how far the product of factors is from being a probability distribution.
+% so $-\log Z_\Psi$ is non-negative, and
+% so $-\log Z_\Psi \ge 0$, and
+so $\log \frac{1}{Z_\Psi} \ge 0$
+%  measures how far away the product of factors is from being normalized.
+measures how far the product of factors is from being a probability distribution.
 % Thus, it is in some sense a measure of inconsistency of a factor graph.
 % So it is in some sense a measure of the factor graph's inconsistency.
 So in a sense, it measures $\Psi$'s inconsistency.
@@ -2809,13 +2948,15 @@ So in a sense, it measures $\Psi$'s inconsistency.
 
 % Outside of computer science, such factored exponential families form
 % the mathematical backbone of statistical mechanics.
-% % TODO reword
+% % DONE reword
 % In this setting, $- \log Z_{\Psi}$ is the Heimholtz free energy.
 % The exponential families generated by weighted factor graphs
-The exponential families generated by factor graphs and their weights $\boldsymbol\theta$
+% The exponential families generated by factor graphs and their weights $\boldsymbol\theta$
+The exponential families generated by weigted factor graphs 
 are a cornerstone of statistical mechanics, where $- \log Z_{\Psi}$ is known as the (Heimholz) free energy.
 %TODO: ADD A SENTENCE
-The principle of
+It is also an especially natural quantity to minimize:
+the principle of
 free-energy minimization has been enormously succesful in describing
 of not only chemical and biological systems \parencite{chipot2007free}, but also cognitive ones \parencite{friston2009free}.
 %DONE: CITATIONS
@@ -2824,91 +2965,159 @@ of not only chemical and biological systems \parencite{chipot2007free}, but also
 % be obtained by taking various partial derivatives of $Z_\Psi$, and calculating the partition function is closely related to infering marginal distributions \cite{}.
 
 % \section{COST AS INCONSISTENCY?}
-\section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG A L\kern-0.05emO\kern-0.02emSS}
+% \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG A L\kern-0.05emO\kern-0.02emSS}
+% \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEER A L\kern-0.05emO\kern-0.02emSS?}
+% \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG L\kern-0.05emO\kern-0.02emSSES} %% TOO LONG
+% \section{ON R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG} 
+% \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emER\kern-0.03emS\kern-0.03emE-EN\kern-0.07emG\kern-0.05emINE\kern-0.03emERIN\kern-0.07emG \kern-0.07emA \kern-0.07em L\kern-0.05emO\kern-0.02emS\kern-0.05emS?}%% Can't get it to work. TOO long.
+\section{REVERSE-ENGINEERING LOSS?}
+% \section{ON WORKING BACKWARDS}
+% \section{ON WORKING BACKWARDS FROM LOSS}
 % \section{REVERSE ENGINEERING LOSSES}
 
-% \def\Truth{\texttt{T}}
-% \def\trut{\texttt{t}}
-% \def\truf{\texttt{f}}
 \def\Truth{{\tt T}}
 \def\trut{{\tt t}}
 \def\truf{{\tt f}}
 
-% TODO Fixme
+% Is it possible to get \emph{every} expression out of the inconsistency?
+% Is it possible to make an arbitrary loss function  $\ell(X)$ appear as an inconsistency?
+% Is it possible to make an arbitrary loss function appear as an inconsistency?
+Given an arbitrary loss function $\ell(X)$, can we find a PDG that gives rise to it?
+% To a first approximation, it may seem that the answer is yes.
+% To a first approximation, the answer seems to be yes.
+To a first approximation, the answer appears to be yes.
+%
+% Just as including probabilistic information is not a matter of multiplication, inconsistency is not a mere matter of addition.
+%
+%
+% ABORT
 % We promised a ``universal'' loss function.
-When we promised a ``universal'' loss function, we meant that we had a single function that works in all scenarios, not that it could turn into any loss.
+% When we promised a ``universal'' loss function, we meant that we had a single function that works in all scenarios, not that it could turn into any loss.
 % We have delivered one that is a relatively choiceless, universal construction.
-
-One can add the variable $\Truth$, whose values are $\{\trut, \truf\}$, and the event $\Truth \!\!=\! \trut$, to any PDG without affecting its semantics.
+%
+% One can add the variable $\Truth$, whose values are $\{\trut, \truf\}$, and the event $\Truth \!\!=\! \trut$, to any PDG without affecting its semantics.
+Without affecting its semantics, one may add the variable $\Truth$ that takes values $\{\trut, \truf\}$, and the event $\Truth \!\!=\! \trut$, to any PDG.
+% Without affecting its semantics, one may add to any PDG the variable $\Truth$ that takes values $\{\trut, \truf\}$, and the event $\Truth \!\!=\! \trut$.
+%
 % Now, given any non-negative function
-Now, given a cost function
-$c: \V(X) \to \mathbb R_{\ge 0}$,
-% $f(X)$,
-define the cpd $\tilde c(\Truth |X)$ by
+Now, given a
+cost function $c: \V(X) \to \mathbb R^{\ge 0}$,
+% cost function $c(X) \ge 0$,
+% non-negative cost function,
+% function $f(X)$,
+define the cpd $\hat c(\Truth |X)$ by
 $
-	\tilde c(\trut | x) := \exp( - c(x)).
+	\hat c(\trut | x) := \exp( - c(x)).
 $
-$\tilde c$ ties cost to inconsistency, by threatening to generate the falsehood {\tt f}, in proportion to cost.
+% $\hat c$ ties the value of $X$ to inconsistency by threatening to generate the falsehood {\tt f}, with probability dependent on the cost of $X$.
+% By threatening to generate the falsehood {\tt f}, in proporition to the cost of $X$, $\hat c$ ties the value of $X$ to inconsistency.
+% By threatening to generate the falsehood {\tt f}, with probability dependent on the cost of $X$, $\hat c$ ties the value of $X$ to inconsistency.
+By threatening to generate the falsehood {\tt f} with probability dependent on the cost of $X$, $\hat c$ ties the value of $X$ to inconsistency.
+% So $\aar{\!\begin{tikzpicture}[center base]
+% 			\node[dpadinline] (X) at (0,0) {$X$};
+% 			\node[dpadinline] (2) at (1.1,0) {$\Truth$};
+% 
+% 			\draw[arr2] (X) to
+% 				node[above, pos=0.4,inner sep=2pt]{$\hat c$}
+% 				% node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(\beta)}$}
+% 				(2);
+% 			\draw[arr2, <<-] (X) to
+% 				node[above, pos=0.6, inner sep=2pt]{$x$}
+% 				% node[below, pos=0.6, inner sep=2pt]
+% 					% {${\color{gray}\scriptscriptstyle(\mskip-2mu\infty\mskip-2mu)}$}
+% 				+(-0.9, 0);
+% 			\draw[arr2, <<-] (2) to
+% 				node[above, inner sep=2pt, pos=0.6]
+% 					{\trut}
+% 				+(0.9,0);
+% 		\end{tikzpicture}\!}
+% 	 	= \!
+% 		% \beta \Ex_{x\sim p}c(x).
+% 		c(x)$, and
 % \TODO
 \begin{linked}{prop}{expected-cost}
-	Given a distribution $p(X)$ and a cost $c$,
+	% Given a distribution $p(X)$ and a cost $c$,
 	% \def\binvar{\mathbbm 2}
-	\[
-		\aar*{\begin{tikzpicture}[center base]
+	% \[
+	\!
+	\( \displaystyle
+		\aar*{\!\begin{tikzpicture}[center base]
 			\node[dpad0] (X) at (0,0) {$X$};
-			\node[dpad0] (2) at (1.2,0) {$\Truth$};
+			\node[dpad0] (2) at (1.1,0) {$\Truth$};
 
 			\draw[arr2] (X) to
-				node[above, pos=0.4,inner sep=2pt]{$\tilde c$}
-				node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(\beta)}$}
+				node[above, pos=0.4,inner sep=2pt]{$\hat c$}
+				% node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(\beta)}$}
 				(2);
 			\draw[arr2, <-] (X) to
 				node[above, pos=0.6, inner sep=2pt]{$p$}
-				node[below, pos=0.6, inner sep=2pt]{${\color{gray}\scriptstyle(\infty)}$}
+				node[below, pos=0.6, inner sep=2pt]
+					{${\color{gray}\scriptscriptstyle(\mskip-2mu\infty\mskip-2mu)}$}
 				+(-1, 0);
 			\draw[arr2, <<-] (2) to
 				node[above, inner sep=2pt, pos=0.6]
-					% {\texttt{true}}
 					{\trut}
-					% {$1$}
-				+(1,0);
-
-		\end{tikzpicture}}
-	 	=
-		\beta \Ex_{x\sim p}c(x).
-	\]
+				+(0.9,0);
+		\end{tikzpicture}\!}
+	 	= \!
+		% \beta \Ex_{x\sim p}c(x).
+		\Ex_{x\sim p}\! c(x).
+	% \]
+	\)
 \end{linked}
-So \emph{every} cost function arises as an inconsistency.
+% So \emph{every} cost function arises as an inconsistency.
 % But it is still not possible to slap on loss functions without tyranical micromanagement.
 % But it is still not easy to simply reverse-engineer functions without micromanagement bordering on tyrany.
 % reverse-engineer PDGs from loss functions. ...
 % But this trick is not enough to simply reverse-engineer loss functions and work with them as before.
-% But that doesnt mean \ldots TODO.
-But we still can't simply
+% But we still can't simply
+% But inconsistency is a global property: one cannot simply ``emit it'' and trust that it will collect additively; the PDG squirms and contorts to disperse it.
 % Above, we had to set $\beta_p := \infty$.
 % Above, setting $\beta_p := \infty$ was necessary.
-Setting $\beta_p := \infty$ above was necessary, for example.
-%TODO: For other\beta
+% Setting $\beta_p := \infty$ above was necessary, for example. 
+% But inconsistency is a global property: one cannot simply ``emit it'' and trust that it will collect additively; the PDG squirms and contorts to disperse it.
+% However, setting $\beta_p := \infty$ is necessary.
+Setting confidence $\beta_p := \infty$ may not be realistic since we're still training the model $p$, but it is necessary to recover $\Ex_p c$.%
+%$\ell$.
+\footnote{If $\beta_p$ were instead equal to $1$, we would have obtained $-\log \Ex_p \exp(-c(\!X\!))$, with optimal distribution $\mu(\!X\!) \!\ne\! p(\!X\!)$.}
+% (  )
+Every gadget that generates inconsistency based on the value of $X$ (such as this one) also works in reverse: the PDG squirms, contorting the probability of $X$ to disperse the inconsistency.
+One cannot cannot simply ``emit inconsistency'' 
+without affecting the probabilistic part of the model,
+as one does with value in an influence diagram \parencite{influencediagrams}.
+%TODO CITE
+% and expect to collect it
 %
-But even specify everything with $\beta =\infty$ may not be enough to nail everything down.
-To illustrate, consider the following PDG $\dg{SL}$, which is
+% additively without affecting the model.
+% without affecting the optimal probabilities.
+%
+% In more complex settings, even setting every $\beta$ to $\infty$ may not be enough.
+% In more complex settings, even setting every $\beta := \infty$ may not be enough to prevent the squirming.
+Even setting every $\beta := \infty$ may not be enough to prevent the squirming.
+% To illustrate, consider the following PDG $\dg{SL}$, which is
 % a modification of the PDG in \Cref{prop:supervised-cross-entropy}
 % the natural modification of the PDG in \Cref{prop:supervised-cross-entropy}
-the analogous modification of PDG in \Cref{prop:supervised-cross-entropy}, and models $\dg S$upervised $\dg L$earning
-for an arbitrary loss function $\ell$ (assume $\ell(y,y') \ge 0$ with equality iff $y=y'$).
-\def\mypdg{\dg{S}\!\dg{L}}
+% To illustrate, consider the analogous modification of PDG in \Cref{prop:supervised-cross-entropy}, which models the setup of supervised learning with an arbitrary loss function $\ell$.
+\def\mypdg{\dg{S}}
+To illustrate, consider a model of the supervised learning setting, with data $\mathcal D$, model $h$, and an arbitrary loss function $\ell$. Define:
+\vspace{-1ex}
+% \def\mypdg{\dg{S}\!\dg{L}}
+% \def\mypdg{\dg{S}\!\mathrm{Learn}}
 \[
 	\mypdg
 	:=
 	% \aar*{
-	\begin{tikzpicture}[center base]
+	\begin{tikzpicture}[baseline=4ex]
 		\begin{scope}[xscale=1.2]
-			\node[dpad0] (X) at (0,0) {$X$};
+			\node[dpad0] (X) at (0.3,0) {$X$};
 			\node[dpad0] (Yt) at (1,1) {$Y$};
-			\node[dpad0,align=center] (Yp) at (1,0) {$\vphantom{Y}\smash{\hat Y}$};
-			\node[dpad0] (2) at (2,0) {$\Truth$};
+			% \node[dpad0,align=center] (Yp) at (1,0) {$\vphantom{Y}\smash{\hat Y}$};
+			% \node[dpad0,align=center] (Yp) at (1,0) {$\vphantom{Y}\smash{Y'}$};
+			\node[dpad0,align=center] (Yp) at (1.4,0) {$\vphantom{Y}\smash{Y'}$};
+			\node[dpad0] (2) at (2,1) {$\Truth$};
 
 			\coordinate (dstart) at (-0.1,0.9);
+			% \coordinate (tstart) at (2,0.9);
 		\end{scope}
 
 		% \draw[arr2] (X) to
@@ -2919,26 +3128,36 @@ for an arbitrary loss function $\ell$ (assume $\ell(y,y') \ge 0$ with equality i
 		% 	node[above, pos=0.6, inner sep=2pt]{$p$}
 		% 	node[below, pos=0.6, inner sep=2pt]{${\color{gray}\scriptstyle(\infty)}$}
 		% 	+(-1, 0);
-		\unmergearr[arr2]{dstart}{X}{Yt}
-			\node[above=2pt of center-dstartXYt] {$\datadist\xysamp$};
-			\node[below right=2pt and 0.5pt of center-dstartXYt, inner sep=0pt, rotate=30]
-				{${\color{gray}\scriptscriptstyle(\infty)}$};
+		\unmergearr[arr1]{dstart}{X}{Yt}
+			\node[above=2pt of center-dstartXYt, xshift=-2pt] {$\datadist\xysamp$};
+			\node[below right=2.0pt and -0.4pt of center-dstartXYt, inner sep=0pt, rotate=25]
+				{${\color{gray}\scriptscriptstyle(\mskip-2mu\infty\mskip-2mu)}$};
 
 		\mergearr[arr2]{Yt}{Yp}{2}
-			\node[above=2pt of center-YtYp2] {$\tilde\ell$};
+			\node[above=2pt of center-YtYp2] {$\hat\ell$};
 
 		\draw[arr2] (X) to
-			node[above, inner sep=2pt] {$p$}
+			node[above, inner sep=2pt,pos=0.4] {$h$}
+			node[below, inner sep=2pt,pos=0.4]
+				{${\color{gray}\scriptscriptstyle(\mskip-2mu\infty\mskip-2mu)}$}
 			(Yp);
 		\draw[arr2, <<-] (2) to
 			node[right, inner sep=2pt, pos=0.6]
-				% {\texttt{true}}
 				{\trut}
-				% {$1$}
-			+(0,1);
+			% +(0,1);
+			+(0,-1);
 	\end{tikzpicture}
 	% }
 	% = \beta \Ex_{x\sim p}c(x).
+	\quad\;\text{and}\qquad
+	% L := \Ex_{x,y\sim \mathcal D}\Ex_{y' \sim p|x}\ell(y,y')
+	L := \;\;\mathop{\scalebox{1.2}{$\Ex$}}\limits_{\substack{%
+		\vphantom{x}\\
+		\mathllap{(x,y)} \sim \mathrlap{\datadist\xysamp} \\
+		\mathllap{y'} \sim \mathrlap{p(Y'|\,x)}} }
+	 \;\big[\ell(y,y')\big].
+	 %
+	 \vspace{-1.5ex}
 \]
 
 %TODO
@@ -2955,20 +3174,71 @@ for an arbitrary loss function $\ell$ (assume $\ell(y,y') \ge 0$ with equality i
 % or bending the definition for a strange anti-causal parameter.
 %
 % You might think this will simply give you expected loss here, but it does not. It gives you something better.
+%varsha:
+% \textbf{Punchline}: 
+% \TODO[PUNCHLINE: it's not enough.]
+% 
+%
 Given \Cref{prop:expected-cost},
-you might think that $\aar{\mypdg}$ is the expected classifier loss $L := \Ex_{x,y\sim \mathcal D}\Ex_{y' \sim p|x}\ell(y,y')$, but this is not so. It is arguably nicer.
-The optimal $p(Y|x)$ by minimizing $L$ is a point mass on the label $y^*_x$ with minimal expected loss given $x$, but the optimal $p$ according to $\aar{\mypdg}$ is $\datadist\xysamp(Y|X)$, which is \emph{calibrated} \parencite{}.
-We can still get $L$ as $\aar{\mypdg}_\infty$ by strictly enforcing the causal picture (i.e., setting $\alpha_p, \alpha_{\datadist\xysamp} := 1$).
+one might imagine $\aar{\mypdg} = L$,
+% the expected classifier loss,
+but this is not so.
+% but we accidentally obtained something nicer.
+% But $\aar{\mypdg}$ is arguably nicer.
+In some ways, $\aar{\mypdg}$ is actually preferable.
+% But $\aar{\mypdg}$ is not such a bad loss either.
+% But perhaps we should not be so quick to write off $\aar{\mypdg}$.
+% Although we should not be so quick to overlook $\aar{\mypdg}$.
+% the optimal $p(Y|X)$ by minimizing $L$ is a point mass on the label $y^*_X$ that minimizes expected loss given $X$, but the optimal $p(Y|X)$ according to $\aar{\mypdg}$ is $\datadist\xysamp(Y|X)$,%
+% \footnote{assuming $\ell(y,y') \ge 0$ with equality iff $y=y'$} 
+%
+The optimal $h(Y'|X)$ according to $L$ is
+% a point mass on the label $y^*_X$ minimizing expected loss, 
+a degenerate cpd that places all mass on the label $y^*_X$ minimizing expected loss, 
+while the optimal $h(Y'|X)$ according to $\aar{\mypdg}$ is $\datadist\xysamp(Y|X)$,
+	% \footnote{assuming $\ell(y,y') \ge 0$ with equality iff $y=y'$} 
+which means it is \emph{calibrated} \parencite{dawid1982well}.
+If, in addition, we set $\alpha_p, \alpha_{\datadist\xysamp} := 1$ and strictly enforce the qualitative picture,
+finally no more squirming is possible, as we arrive at
+	% \footnote{which means also setting $\alpha_p, \alpha_{\datadist\xysamp} := 1$}
+% we still get $L = \aar{\mypdg}_\infty$.
+$\displaystyle\lim_{\gamma\to\infty}\aar{\mypdg}_\gamma = L$.
+% (see the appendix.)
+\vspace{-0.5ex}
 
+% But now we've roped in the global parameter $\gamma$
+% To summarize, working backwards requires indicating absolute certainty in strange modeling assumptions.
+% To summarize, working backwards requires making strange choices, and indicating absolute certainty in them.
+To summarize:
+% while going from model to loss function seems to give the right loss function at every turn, generalizing properly to new information,
+% working backwards requires nailing down behavior with absolute certainty, so that it does not change in response to your loss.
+% reverse-engineering a loss function is possible, but requires making all modeling choices with absolute certainty, including some questionable ones.
+% working backwards from loss to PDG is possible, but requires indicating absolute certainty in all modeling choices, including some questionable ones.
+working backwards from loss to PDG, although possible, may require reporting absolute certainty in all modeling choices, including some questionable ones.
+% This leaves zero margin for error.
+% indicating absolute certainty in them.
+In the end, we must confront our modeling choices;
+good loss functions come from good models.
+% good loss functions come from good models, and not the other way around.
+% In the end, we must all confront our modeling choices; the only difference here is that they are on display.
+% Good loss functions come from good models.
+
+% Good loss functions come from good models, and you will be hard pressed to explain assumptions if you work like this.
+%
+% Working in this way is possible, but requires a tyrnanical level of micromanagement. 
+% When all is said and done, we must then confront our modeling assumptions. Why do you believe the cpd $\hat \ell$? What does it mean?
+% And what's wrong with the simpler model without $\hat\ell$ or $\Truth$ when $Y = Y'$, which gives us cross entropy?
+%
 % In the PDG world, you get nice things by default, and have to make bad modeling assumptions to reduce it to what you had before.
-
+%
+%
 % Varhsa:
 % Good loss functions come out of good models. Corresponding PDG will have hard to explain structure.
-
+%
 % What's going on here?
 % It is impossible to specify a cost
 % without affecting internal infemum of the inconsistency.
-
+%
 % \begin{linked}{prop}{loss-into-pdg}
 % 	% \def\binvar{\mathbbm 2}
 % 	% \def\binvar{B}
@@ -3013,7 +3283,7 @@ many standard loss functions, including some non-trivial ones.
 In each case, the appropriate loss is a simple consequence of carefully articulating modeling assumptions.
 Viewing loss functions in this way also has beneficial side effects, including an intuitive visual proof language for reasoning about the relationships between them.
 
-%joe1*: I *strongly* suggest removing this paragraph.   You have
+%joe1*: I *strongly* suggest remactuallyg this paragraph.   You have
 %provided no evidence whatsoever that what you are doing is in the
 %spirit of cognitive dissonance (which is about how an agent handles
 %conflicting beliefs, largely by ignoring upsetting information).
@@ -3022,12 +3292,16 @@ Viewing loss functions in this way also has beneficial side effects, including a
  % blurring the line between model and objective.
 
 %oli1: reduced.
-Our ``universal loss function'', which blurs the line between model and objective function, may be of particular interest to the AI safety community.
+This ``universal loss function'',
+which provides a principled way of choosing a loss function, 
+% which blurs the line between model and objective function,
+may be of particular interest to the AI safety community.
 % and may be relevant to the those interested in AI alignment.
 % will be of substantial interest to the AI safety community.
 
 
-\subsubsection*{Acknowledgements}
+% TODO Fill out acknowledgements
+% \subsubsection*{Acknowledgements}
 % All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.
 % To preserve the anonymity, please include acknowledgments \emph{only} in the camera-ready papers.
 
@@ -3058,6 +3332,7 @@ Our ``universal loss function'', which blurs the line between model and objectiv
 \onecolumn
 \appendix
 
+\ifappendix
 \section{THE FINE PRINT FOR PROBABILITY DENSITIES}
 \label{appendix:density}
 % \begin{remark} \label{remark:continuous}
@@ -3103,8 +3378,8 @@ On the other hand, this choice of scale ultimately amounts to an additive consta
 Moreover, beyond a certain point, decreasing the discretization size $k$ of a discretized approximation $\tilde p_k(X)$ \emph{also} contributes a constant that depends only on $k$.
     % \cref{prop:pdg-Ix,prop:expected-surprise,prop:marginal-ll,prop:pdg-loglikelihood,prop:supervised-cross-entropy}
 % only in a constant that depends only on $k$.
-% But this constant is irrelevant for optimization, justifying the use of the continuous analogues (such as $- \log p(x)$ for a pdf $p(x)$) as loss functions.
-But such constants are irrelevant for optimization, justifying the use of the continuous analogues as loss functions.
+% But this constant is irrelevant for optimization, justifying the use of the continuous analogs (such as $- \log p(x)$ for a pdf $p(x)$) as loss functions.
+But such constants are irrelevant for optimization, justifying the use of the continuous analogs as loss functions.
 
 
 The bottom line is that these results hold for EVERY discretization --- but in the limit as the discretization becomes smaller, the relevant quantity may diverge.
@@ -3115,7 +3390,7 @@ However, this divergence stems from an additive constant, which is irrelevant fo
 \subsection{Full Characterization of Gaussian Predictors}
 The more general result, which is most clearly articulated in terms of a power mean.
 
-\begin{defn}%[power mean]
+\begin{defn}[Weighted Power Mean]
 	The weighted power mean $\mathrm M^w_p(\mathbf r)$ of the collection of real numbers $\mathbf r = r_1, \ldots, r_n$ with respect to the convex weights $w = w_1, \ldots, w_n$ satisfying $\sum_iw_i = 1$, is given by
 	\[ \mathrm M^w_p(\mathbf r) := \Big(\sum_{i=1}^n w_i (r_i)^p \Big)^{\frac1p}.\]
 	We omit the superscript as a shorthand for the uniform weighting $w_i = \nicefrac{1}{N}$.
@@ -3286,7 +3561,7 @@ We now present the promised multi-sample analogs from \cref{sec:variational}.
 		\end{tikzpicture}} + \H(\datadist\xsamp). \]
 \end{linked}
 
-\Cref{prop:expected-surprise,prop:pdg-elbo-vae-whole} then give us an analog of the visual bounds in the body of the main paper \cref{sec:variational-bounds} for many i.i.d. datapoints at once, with only a single application of the inequality:
+\Cref{prop:expected-surprise,prop:pdg-elbo-vae-whole} then give us an analog of the visual bounds in the body of the main paper (\cref{sec:variational}) for many i.i.d. datapoints at once, with only a single application of the inequality:
 \begin{align*}
 	- \log \Pr(\xsamp) = - \log \prod_{i=1}^m \left(\Pr(x^{(i)})\right) =
 	- \frac1{m}\sum_{i = 1}^m \log \Pr(x^{(i)})   = &\\
@@ -3460,9 +3735,10 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 \end{lproof}
 
 
-
+\Cref{prop:many-equal-simple} is a generalization of \Cref{prop:expected-surprise}, so we prove them at the same time.
+\recall{prop:expected-surprise}
 \recall{prop:many-equal-simple}
-\begin{lproof} \label{proof:many-equal-simple}
+\begin{lproof} \label{proof:many-equal-simple}\label{proof:expected-surprise}
 	The equality of 1 and 2 is standard. The equality of 3 and 4 can be seen by the fact that in the limit of infinite confidence on $\datadist\xsamp$, the optimal distribution must also equal $\datadist\xsamp$, so the least inconsistency is attained at this value.
 	Finally it remains to show that the first two and last two are equal:
 	\begin{align*}
@@ -3574,7 +3850,7 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 	It is well known that the conditional distribution
 	% $D \mid E \propto \mathbbm1[E] D(X) = \frac{1}{D(E)} \mathbbm1[E] D(X) $
 	$D \mid E \propto \delta_E(X) D(X) = \frac{1}{D(E)} \delta_E(X) D(X) $
-	 satisfies this property uniquely (see, for instance, \cite{halpernRAU}). Let $f\!=\!h$ denote the event that $f$ and $h$ agree. Then we calculate
+	 satisfies this property uniquely (see, for instance, \cite{RAU}). Let $f\!=\!h$ denote the event that $f$ and $h$ agree. Then we calculate
 	\begin{align*}
 		\aar*{\begin{tikzpicture}[center base]
 				\node[dpad0] (Y) {$Y$};
@@ -3640,6 +3916,12 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 	\TODO[FINISH PROOF]
 
 
+\end{lproof}
+
+
+\recall{prop:MSE}
+\begin{lproof}\label{proof:MSE}
+	An immediate corolary of \Cref{prop:inc-two-gaussians}.
 \end{lproof}
 
 \recall{lemma:pdgdiv}
@@ -3801,7 +4083,7 @@ Now, we formally state and prove the more general result for $\beta$-VAEs.
 	We showed in the orignal paper (Corolary 4.4.1) that
 	\[ \theelt \bbr{(\UPDGof{\Phi}, \theta, \theta)}^*_1 = \Pr\nolimits_{\Phi, \theta}(\mat w)
 		= \frac{1}{Z_\Psi} \prod_{j} \phi_j(\mat w_j)^{\theta_j}. \]
-	Recall the statement of Prop 4.6 from the original paper,
+	Recall the statement of Prop 4.6 from \textcite{richardson2020probabilistic}:
 	\begin{equation}\label{eqn:nice-score-repeated}
 		\bbr{\dg M}_\gamma(\mu) = \Ex_{\mat w \sim \mu}\! \Bigg\{ \sum_{ X \xrightarrow{\!\!L} Y  } \bigg[\,
 		   \!\beta_L \log \frac{1}{\bp(y^{\mat w} |x^{\mat w})} +
@@ -3838,13 +4120,27 @@ Now, we formally state and prove the more general result for $\beta$-VAEs.
 	\end{align*}
 \end{lproof}
 
+
+\recall{prop:expected-cost}
+\begin{lproof}\label{proof:expected-cost}
+	
+	\TODO[]
+
+\end{lproof}
+
+\subsection*{Additional Proofs for Unnumbered Claims}
+
+\TODO[ DPI PROOF ]
+
+\TODO[ DPI PROOF ]
+
 \section{More Notes}
 \subsection{Surprise}
 A common justification for using $\I_p(x)$ as a cost for updating a probabilistic model $p(x)$ based on an observed sample $x$, is that by minimizing it, you  ``maximize the probability of seeing your data''.%
 %
  	\footnote{this justification should not be taken too seriously  without constraints on $p$, because the optimal value of $p$  is $\delta_x$, which does not generalize.}
 But this explanation applies just as well to $-p(x)$. Why include the logarithm?
-There are plenty of answers to this question; among them: $\I_p$ is convex in $p$, it decomposes products into arguably simpler sums, is more numerically stable, has a well-defended physical analogue in thermodynamics, and is a primative of information theory.
+There are plenty of answers to this question; among them: $\I_p$ is convex in $p$, it decomposes products into arguably simpler sums, is more numerically stable, has a well-defended physical analog in thermodynamics, and is a primative of information theory.
 
 For those after a quick and rigorous justification (as opposed to handwaving or a thermodynamics textbook), none of these answers are entirely satisfying.
 They suggest that $\I_p$ has certain nice properties, but not that it enjoys them uniquely, or that no other loss function satisfies nicer ones.
@@ -3855,4 +4151,5 @@ Although PDG semantics themselves require non-trivial justification%
 Why use the surprise $\I_p(x)$, to measure the loss of a model $p(X)$ on sample $x$? Because it is the inconsistency of simultanously believing $X = x$ and $X \sim p$.
 
 
+\fi% ends \ifappendix
 \end{document}
