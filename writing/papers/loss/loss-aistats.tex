@@ -384,6 +384,9 @@
 	\makeatother
 		\newcounter{proofcntr}
 		\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
+		
+		\usepackage{cancel}
+		\newcommand{\Cancel}[2][black]{{\color{#1}\cancel{\color{black}#2}}}
 
 		\usepackage{tcolorbox}
 		\tcbuselibrary{most}
@@ -3478,17 +3481,23 @@ It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and stric
 			% \draw (current bounding box.north east) rectangle (current bounding box.south west);
 		\end{tikzpicture}\!} %\hspace{-2cm}&\\
 		 \! &=
-		  	\frac12
-			\Ex\nolimits_D \!\!\left[
-		 	{\mathrm {HM}}(\beta_1, \beta_2)
-				\frac12
-			\left( \frac{\mu_1 - \mu_2}
-		 		{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)} \right)^{\!\!2}
-			+ {\mathrm {AM}}(\beta_1, \beta_2) \log
-				\frac
-				{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)}
-				{\mathrm {GM}_{\hat\beta}(\sigma_1,\sigma_2)}
-		 \right] \numberthis\label{eq:2gaussians} \\
+		  	% \frac12
+			% \Ex\nolimits_D \!\!\left[
+		 	% {\mathrm {HM}}(\beta_1, \beta_2)
+			% 	\frac12
+			% \left( \frac{\mu_1 - \mu_2}
+		 	% 	{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)} \right)^{\!\!2}
+			% + {\mathrm {AM}}(\beta_1, \beta_2) \log
+			% 	\frac
+			% 	{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)}
+			% 	{\mathrm {GM}_{\hat\beta}(\sigma_1,\sigma_2)}
+		 	% \right] 
+			\Ex_{D}\left[
+    			(\beta_1 \!+\! \beta_2) \log \frac
+    				{ \mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2) }
+    				{ \mathrm{GM}_{\hat\beta}(\sigma_1,\sigma_2) }
+    			+ \frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{ \mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2} \right]
+		 \numberthis\label{eq:2gaussians} \\
 		 % &\hspace{-2cm}
 		 % % \color{gray}
 		 % = \Ex_{x \sim D} \left[
@@ -3958,17 +3967,22 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 					 	\frac{\beta_2}{2} \left( \frac{y-h(x)}{s(x)} \right)^2 \\
 					+ \beta_1 \log( t(x) \sqrt{2\pi}) &+ \beta_2 \log( s(x) \sqrt{2\pi})
 					\end{array}
-					\right].
+					\right]. \numberthis\label{eq:gauss-startform}
 	\end{align*}
-	At this point, we make use of the fact that the sum of two parabolas is itself a parabola. Concretely, we apply \Cref{claim:parabola-reparam}, whose statement and proof are at the end of the present proof, to rewrite the two terms on the top right of the previous equation. Following the claim, define
+	At this point, we would like make use of the fact that the sum of two parabolas is itself a parabola, so as to combine the two terms on the top right of the previous equation.
+	Concretely, we claim (\Cref{claim:parabola-reparam}, whose proof is at the end of the present one), that if we define
 	\[
 		g(x) := \frac{\beta_1 t(x)^2 f(x) + \beta_2 s(x)^2 h(x)}
 		{\beta_1 t(x)^2 + \beta_2 s(x)^2}
 	% $and $
 	\quad\text{and}\quad
-		\tilde \sigma(x) :=  \frac{s(x)t(x)}{\sqrt{\beta_1 t(x)^2+\beta_2s(x)^2}}.
+		\tilde \sigma(x) :=  \frac{s(x)t(x)}{\sqrt{\beta_1 t(x)^2+\beta_2s(x)^2}},
 	\]
-	Applying \cref{claim:parabola-reparam} leaves us with:
+	then
+	\[ \frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2
+	= \left(\frac{y-g}{\tilde\sigma}\right)^2
+	+ \frac{\beta_1\beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} (f-h)^2. \]
+	Applying this to \eqref{eq:gauss-startform} leaves us with:
 	\begin{align*}
 		\aar{\dg M}
 			&= \inf_\mu \Ex_{x\sim D}\Ex_{y \sim\mu|x}
@@ -4182,10 +4196,11 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 			+ \frac12\frac{\beta_1\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2}\, \Big(f(x)-h(x)\Big)^{\!2} \numberthis\label{eq:gauss-finalform}
 		\right]
 	\end{align*}
-	Whew! Taking the square root out of the log proves the tedious technical half of the proposition.
-	Now, we massage it into into a more readable form.
+	Whew! Pulling the square root of the logarithm proves complex
+	second half of the proposition.
+	Now, we massage it into into a (slightly) more readable form.
 
-	To start, let $\hat\beta$ without the subscript denote the vector $(\hat\beta_2,\hat\beta_1) = (\frac{\beta_2}{\beta_1+\beta_2}, \frac{\beta_1}{\beta_1+\beta_2})$, which we will use for weighted means.
+	To start, write $\sigma_1$ (the random variable) in place of $s(x)$ and $\sigma_2$ in place of $t(x)$. Let $\hat\beta$ without the subscript denote the vector $(\hat\beta_2,\hat\beta_1) = (\frac{\beta_2}{\beta_1+\beta_2}, \frac{\beta_1}{\beta_1+\beta_2})$, which we will use for weighted means.
 	The $\hat\beta$-weighted arithmetic, geometric ($p=0$), and quadratic ($p=2$) means of $\sigma_1$ and $\sigma_2$ are:
 	% \begin{align*}
 	\[
@@ -4195,17 +4210,20 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 		\mathrm{QM}_{\hat \beta}(\sigma_1, \sigma_2) =
 			\sqrt{{\hat\beta_2 \sigma_1^2 + \hat\beta_1 \sigma_2^2}}.
 	\]
-	So now we can write $\xi(x)$ as
+	So, now we can write $\xi(x)$ as
 	\begin{align*}
 		\frac12 \frac{\beta_1\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2}\, \Big(f(x)-h(x)\Big)^{\!2}
 		&=
 		\frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \frac{\beta_1+\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2}\, \Big(f(x)-h(x)\Big)^{\!2}\\
 		&=
 		\frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{1}{\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^2 \Big(f(x)-h(x)\Big)^{\!2}\\
-		&= \frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2} \\
-		% &= \frac{2\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{2\,\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2}.
+		&= \frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2};
+			% &\hspace{-1in}\text{[since $\mu_1$ and $\mu_2$ are the rvs for $f(x)$ and $g(x)$]} 
+			%\\
+		% &= \frac{2\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{2\,\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2}
 	\end{align*}
-	Which means \eqref{eq:gauss-midform} can be written as
+	in the last step, we have replaced $f(x)$ and $g(x)$ with their respective random variables $\mu_1$ and $\mu_2$. 
+	As a result, \eqref{eq:gauss-midform} can be written as
 	\begin{align*}
 		\aar{\dg M} &=\! \Ex_{x\sim D}\left[
 			(\beta_1 \!+\! \beta_2) \log \frac
@@ -4234,63 +4252,165 @@ As a specific case (i.e., effectively by setting $\beta_p := 0$), we get the rec
 		% 	- \log \mathrm{GM}_{\hat\beta}(\sigma_1, \sigma_2)
 		% 	\right)
 	\end{align*}
-	\ldots which is slightly more comprehensible, and proves the proposition statement.
+	\ldots which is perhaps more comprehensible, and proves the first half of our proposition.
 	% \end{align*}
 	% \xi(x) =
 	% \frac{\beta_1\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2}\, \Big(f(x)-h(x)\Big)^{\!2}
-
-
-	\begin{claim} \label{claim:parabola-reparam}
-	 	The sum of two functions that are unshifted parabolas as functions of $y$ (i.e., both functions are of of the form $k(y-a)^2$), is itself a (possibly shifted) parabola of $y$ (and of the form $k'(y-a')+b'$).
-		More concretely, and adapted to our usage above, the following algebraic relation holds:
-		\[
-			\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2
-			= \left(\frac{y-g}{\tilde\sigma}\right)^2
-			+ \frac{\beta_1\beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} (f-h)^2,
-			%the next line is an  equally valid version of the previous line.
-			% + \frac{\beta_1\beta_2\, \tilde\sigma^2}{\sigma_1^2 \sigma_2^2} (f-h)^2,
-			%
-			 % = \left(\frac{\beta_1}{\sigma_1^2} + \frac{\beta_2}{\sigma_2^2}\right)
-			 % 	\left(Y - \left(
-				% 	\frac{\sigma_2^2 \beta_1}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} f
-				% 	+\frac{\sigma_1^2 \beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} h \right)\right)^2
-				% + \frac{\beta_1\beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} (f-h)^2.
-		\]
-		where
-		\[
-			g := \frac{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
+\end{lproof}
+\begin{claim} \label{claim:parabola-reparam}
+	The sum of two functions that are unshifted parabolas as functions of $y$ (i.e., both functions are of of the form $k(y-a)^2$), is itself a (possibly shifted) parabola of $y$ (and of the form $k'(y-a')+b'$).
+	More concretely, and adapted to our usage above, the following algebraic relation holds:
+	\[
+		\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2
+		= \left(\frac{y-g}{\tilde\sigma}\right)^2
+		+ \frac{\beta_1\beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} (f-h)^2,
+		%the next line is an  equally valid version of the previous line.
+		% + \frac{\beta_1\beta_2\, \tilde\sigma^2}{\sigma_1^2 \sigma_2^2} (f-h)^2,
+		%
+		 % = \left(\frac{\beta_1}{\sigma_1^2} + \frac{\beta_2}{\sigma_2^2}\right)
+		 % 	\left(Y - \left(
+			% 	\frac{\sigma_2^2 \beta_1}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} f
+			% 	+\frac{\sigma_1^2 \beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} h \right)\right)^2
+			% + \frac{\beta_1\beta_2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} (f-h)^2.
+	\]
+	where
+	\[
+		g := \frac{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
+			{\beta_1\sigma_2^2 + \beta_2 \sigma_1^2}
+		\quad\text{and}\quad
+		\tilde\sigma := \left(\frac{\beta_1}{\sigma_1^2} + \frac{\beta_2}{\sigma_2^2} \right)^{-\nf12}
+			= \frac{\sigma_1\sigma_2}{\sqrt{\beta_1\sigma_2^2+\beta_2\sigma_1^2}}.
+	\]
+\end{claim}
+\begin{lproof}
+	Expand terms and complete the square. Starting from the left hand side, we have
+	\begin{align*}
+		&\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2  \\
+		% &= \frac{\beta_1}{\sigma_1^2} y^2
+		% 		-2\frac{\beta_1}{\sigma_1^2}yf  + \frac{\beta_1}{\sigma_1^2}f^2
+		% 	+\frac{\beta_2}{\sigma_2^2} y^2 - 2\frac{\beta_2}{\sigma_2^2} y h + +\frac{\beta_2}{\sigma_2^2} h^2 \\
+		&=
+		\frac{\beta_1}{\sigma_1^2}(y^2 - 2yf + f^2) + \frac{\beta_2}{\sigma_2^2}(y^2-2yh + h^2) \\
+		&= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
+		 - 2\left(\frac{\beta_1 f}{\sigma_1^2}+\frac{\beta_2 h}{\sigma_2^2}\right)y + \left(\frac{\beta_1 f^2}{\sigma_1^2} + \frac{\beta_2 h^2}{\sigma_2^2}\right)\\
+		&= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
+			-2\left(\frac{\beta_1 f}{\sigma_1^2} +\frac{\beta_2 h}{\sigma_2^2}\right)y+
+			\left(\frac{\beta_1 f^2}{\sigma_1^2} + \frac{\beta_2 h^2}{\sigma_2^2}
+			-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+		\right)
+		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} 
+			\numberthis\label{eq:gaus-mid2}
+		% &= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
+		% 	-2\left(\frac{\beta_1\,f}{\sigma_1^2} +\frac{\beta_2\,h}{\sigma_2^2}\right)y+\left(\frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
+		% 	-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+		% \right)
+		% +\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+	\end{align*}
+	where in the last step we added and removed the same term. 
+	The third term needs the most work. Isolating it and getting a common denominator gives us:		
+	\begin{align*}
+		& \frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
+		-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} \\
+		&= \frac
+				{\beta_1\,f^2 (\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) \sigma_2^2}
+				{\sigma_1^2 (\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_2^2} 
+			+ \frac
+				{\beta_2\,h^2(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_1^2}
+				{\sigma_2^2(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_1^2}
+			- \frac
+				{\beta_1\beta_2(f^2 - 2 f h + h^2)(\sigma_1^2\sigma_2^2)}
+				{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)} \\
+		&= \frac {
+				\beta_1^2\sigma_2^4 f^2
+				+ \Cancel[blue]{ \beta_1\beta_2\sigma_2^2 \sigma_1^2 f^2}
+				+ \Cancel[red]{ \beta_1\beta_2 \sigma_1^2\sigma_2^2 h^2}
+				+ \beta_2^2\sigma_1^4 h^2
+				- \Cancel[blue]{\beta_1\beta_2 \sigma_1^2\sigma_2^2 f^2 }
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
+				- \Cancel[red]{\beta_1\beta_2 \sigma_1^2\sigma_2^2 h^2}
+			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)} \\
+		&= \frac {
+				\beta_1^2\sigma_2^4 f^2
+				+ \beta_2^2\sigma_1^4 h^2
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
+			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)}.
+	\end{align*}
+	Substituting this expression into the third term of \eqref{eq:gaus-mid2}, while simultaneously computing common denominators for the first and second terms, yields
+	\begin{equation}
+		% \frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2  
+		% 	=
+		% \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right)
+		\!\left(\!	\frac{\beta_1\sigma_2^2 + \beta_2 \sigma_1^2}
+				{\sigma_1^2\sigma_2^2}  \!\right)\!  y^2
+			% -2\left(\frac{\beta_1 f}{\sigma_1^2} + \frac{\beta_2 h} {\sigma_2^2}\right) y +
+		- 2 \! \left(\!\frac
+			{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
+			{\sigma_1^2\sigma_2^2} \!\right)\! y
+		+
+		% \left(
+			\frac {
+				\beta_1^2\sigma_2^4 f^2
+				+ \beta_2^2\sigma_1^4 h^2
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
+			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)}
+		% \right)
+		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}.
+		\label{eq:gauss-mid3}
+	\end{equation}
+	% It now suffices to show first three terms are equal to 
+	% $(\frac{y-g}{\tilde\sigma})^2$.
+	On the other hand, using the definitions of $g$ and $\tilde \sigma$, we compute:
+	\begin{align*}
+		 \left(\frac{y-g}{\tilde\sigma}\right)^2
+		 &=  \left(
+				\frac{\beta_1\sigma_2^2 + \beta_2\sigma_1^2}{\sigma_1^2\sigma_2^2}
+			\right) \left(
+				y -	\frac
+				{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
 				{\beta_1\sigma_2^2 + \beta_2 \sigma_1^2}
-			\quad\text{and}\quad
-			\tilde\sigma := \left(\frac{\beta_1}{\sigma_1^2} + \frac{\beta_2}{\sigma_2^2} \right)^{-\nf12}
-				= \frac{\sigma_1\sigma_2}{\sqrt{\beta_1\sigma_2^2+\beta_2\sigma_1^2}}.
-		\]
-	\end{claim}
-	\begin{lproof}
-		Expand terms and complete the square. Starting from the left hand side, we have
-		\begin{align*}
-			&\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2  \\
-			% &= \frac{\beta_1}{\sigma_1^2} y^2
-			% 		-2\frac{\beta_1}{\sigma_1^2}yf  + \frac{\beta_1}{\sigma_1^2}f^2
-			% 	+\frac{\beta_2}{\sigma_2^2} y^2 - 2\frac{\beta_2}{\sigma_2^2} y h + +\frac{\beta_2}{\sigma_2^2} h^2 \\
-			&=
-			\frac{\beta_1}{\sigma_1^2}(y^2 - 2yf + f^2) + \frac{\beta_2}{\sigma_2^2}(y^2-2yh + h^2) \\
-			&= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
-			 - 2\left(\frac{\beta_1\,f}{\sigma_1^2}+\frac{\beta_2\,h}{\sigma_2^2}\right)y + \left(\frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}\right)\\
-			&= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
-	 			-2\left(\frac{\beta_1\,f}{\sigma_1^2} +\frac{\beta_2\,h}{\sigma_2^2}\right)y+\left(\frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
-				-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
-			\right)
-			+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
-			% &= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
-	 		% 	-2\left(\frac{\beta_1\,f}{\sigma_1^2} +\frac{\beta_2\,h}{\sigma_2^2}\right)y+\left(\frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
-			% 	-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
-			% \right)
-			% +\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
-		\end{align*}
-		We ndo an
-
-	\TODO[FINISH SUB-PROOF]
-	\end{lproof}
+			\right)^2 \\
+			&=  \left(
+				\frac{\beta_1\sigma_2^2 + \beta_2\sigma_1^2}{\sigma_1^2\sigma_2^2}
+			\right) \left(
+				y^2  -	2y\frac
+				{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
+				{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+				+\frac
+				{\beta_1^2 \sigma_2^4 f^2 + \beta_2^2 \sigma_1^4 h^2
+					+2 \beta_1 \beta_2 \sigma_2^2 \sigma_1^2\, f  h}
+				{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)^2}
+			\right) \\
+			&=  
+				\left(\frac{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2  
+				- 2\left(\frac
+					{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
+					{\sigma_1^2\sigma_2^2}\right)y
+				+\frac
+				{\beta_1^2 \sigma_2^4 f^2 + \beta_2^2 \sigma_1^4 h^2
+					+2 \beta_1 \beta_2 \sigma_2^2 \sigma_1^2\, f  h}
+				{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)(\sigma_1^2\sigma_2^2)}
+			% \\
+			% &=  
+			% 	\left(\frac{\beta_1 \sigma_2^2}{\sigma_1^2\sigma_2^2}
+			% 	 	+ \frac{\beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2  
+			% 	- 2\left(
+			% 		\frac {\beta_1 \sigma_2^2 f}{\sigma_1^2\sigma_2^2}
+			% 		 + \frac{\beta_2 \sigma_1^2 h} {\sigma_1^2\sigma_2^2}
+			% 	\right)y
+			% 	+\frac{\beta_1^2 \sigma_2^4 f^2}
+			% 	 	{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)(\sigma_1^2\sigma_2^2)}
+			% 	+ \frac{\beta_2^2 \sigma_1^4 h^2}
+			% 		{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)(\sigma_1^2\sigma_2^2)}
+			% 	+ \frac{ 2 \beta_1 \beta_2 \sigma_2^2 \sigma_1^2\, f  h}
+			% 		{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)(\sigma_1^2\sigma_2^2)}
+	\end{align*}
+	\ldots which is precisely the first 3 terms of \eqref{eq:gauss-mid3}. Putting it all together, we have shown that
+	\[
+		\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2 =
+		\left(\frac{y-g}{\tilde\sigma}\right)^2 
+		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} 
+	\]
+	as desired.
 \end{lproof}
 
 
