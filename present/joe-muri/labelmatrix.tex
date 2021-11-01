@@ -1,0 +1,59 @@
+\usepackage{environ}
+\usepackage{xstring}
+
+% Wow this works I'm brilliant
+\def\wrapwith#1[#2;#3]{
+	\expandarg\IfSubStr{#1}{,}{
+		\expandafter#2{\expandarg\StrBefore{#1}{,}}
+		\expandarg\StrBehind{#1}{,}[\tmp]
+		\xdef\tmp{\expandafter\unexpanded\expandafter{\tmp}}
+		#3
+		\wrapwith{\tmp}[#2;{#3}]
+	}{ \expandafter#2{#1} }
+}
+\def\hwrapcells#1[#2]{\wrapwith#1[#2;&]}
+\def\vwrapcells#1[#2]{\wrapwith#1[#2;\\]}
+\NewEnviron{mymathenv}{$\BODY$}
+
+\newcommand{\smalltext}[1]{\text{\footnotesize#1}}
+\newsavebox{\idxmatsavebox}
+\def\makeinvisibleidxstyle#1#2{\phantom{\hbox{#1#2}}}
+\newenvironment{idxmatphant}[4][\color{gray!60}\smalltext]{%
+	\def\idxstyle{#1}
+	\def\colitems{#3}
+	\def\rowitems{#2}
+	\def\phantitems{#4}
+	\begin{lrbox}{\idxmatsavebox}$%$\begin{mymathenv}
+	\begin{matrix}  \begin{matrix} \hwrapcells{\colitems}[\idxstyle]  \end{matrix}
+		% &\vphantom{\idxstyle\colitems}
+		\\[-0.25em]
+		\left[
+		\begin{matrix}
+			\hwrapcells{\phantitems}[\expandafter\makeinvisibleidxstyle\idxstyle]  \\[-1.2em]
+	}{
+		\end{matrix}\right]		&\hspace{-0.8em}\begin{matrix*}[l] \vwrapcells{\rowitems}[\idxstyle] \end{matrix*}\hspace{0.1em}%
+	\end{matrix}%
+	$%\end{mymathenv}
+	\end{lrbox}%
+	\raisebox{0.75em}{\usebox\idxmatsavebox}
+%	\vspace{-0.5em}
+}
+
+\newenvironment{idxmat}[3][\color{gray}\smalltext]
+	{\begingroup\idxmatphant[#1]{#2}{#3}{#3}}
+	{\endidxmatphant\endgroup}
+
+\newenvironment{sqidxmat}[2][\color{gray}\smalltext]
+	{\begingroup\idxmat[#1]{#2}{#2}}
+	{\endidxmat\endgroup}
+
+
+%%%%%%%%%%%%
+% better alignment for cases
+\makeatletter
+\renewenvironment{cases}[1][l]{\matrix@check\cases\env@cases{#1}}{\endarray\right.}
+\def\env@cases#1{%
+	\let\@ifnextchar\new@ifnextchar
+	\left\lbrace\def\arraystretch{1.2}%
+	\array{@{}#1@{\quad}l@{}}}
+\makeatother
