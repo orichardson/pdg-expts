@@ -392,22 +392,27 @@ In the remainder of the paper, we lay the foundations for tractable approximatio
 % \section{Preliminaries}
 \subsection*{Notation and PDGs}
 Before we get to the central material, we first inroduce some new notation and conventions. We now write $\SD{\dg M}$ to denote
-the set of distributions consistent with a PDG $\dg M$, rather than $\bbr{\dg M}_{\textrm{sd}}$. We view a cpd $p(Y \mid X)$ as a special case of a PDG with
+the set of distributions consistent with a PDG $\dg M$.%
+	\footnote{In \cite{richardson2020probabilistic}, this set of consistent distributions was denoted $\bbr{\dg M}_{\textrm{sd}}$.}
+We view a cpd $p(Y \mid X)$ as a special case of a PDG with
 a single edge $X \to Y$ annotated with the cpd $p$, and taking
 default weights $\alpha_p = 0$, and $\beta_p = 1$. In cases where we wish
 to indicate other weights, we indicate the modifications with a parameter
 assignment. For instance, to give a PDG consisting of the cpd $p$, attached to
 a value of $\alpha_p$ equal to $\alpha_0$, and
 a value of $\beta_p$ equal to $\beta_0$, we might write
-$ p^{(\alpha:\alpha_0;\beta : \beta_0)} $.
+$ p^{(\alpha:\alpha_0;\beta : \beta_0)} $, or in abbrevaited form as $p^{(\alpha_0;\beta_0)}$.
+% If only one parameter is given, it is \beta.
 Often we will want to describe limiting PDGs with infinite quantitative confidence $\beta$; we will use an explanation point to convey this briefly, so that $p!$ is shorthand for
 $\lim_{t \to \infty} p^{(\beta:t)}$.
 %
+
 We call two PDGs $\dg A$ and $\dg B$ \emph{compatible} if they agree
 on the values of any variables they have in common --- that is, if
 $\V^{\dg A}(X) = \V^{\dg B}(X)$ for all $X \in \N^{\dg A} \cap \N^{\dg B}$.
 %
-If $\dg A$ and $\dg B$ are compatible PDGs, we write $\dg A \bundle \dg B$ to indicate the PDG consisting of the disjoint union of all edges, in which each edge $L$ retains its associated parameters $\bp$, $\alpha_L$, and $\beta_L$.
+If $\dg A$ and $\dg B$ are compatible PDGs, we write $\dg A \bundle \dg B$ to indicate the PDG with the union of the variables and the \emph{disjoint} union of all edges, where each edge $L$ retains its associated parameters $\bp$, $\alpha_L$, and $\beta_L$.
+Similarly, we write $\dg A \cap \dg B$ for the PDG with the intersection of the variables
 
 \section{Inference and Dynamics via Inconsistency}
 % \subsection*{Inconsistency}
@@ -694,7 +699,9 @@ So if we choose a nice class of test distributions $\mathcal M \subset \Delta(\d
 
 Moreover, since $\bbr{\dg M}_\gamma(\mu)$ is strictly convex in $\dg M$ and $\gamma$-strongly convex in $\mu$, this procedure gives a family of inference algorithms for PDGs in line with standard algorithms used to train neural networks.
 
-To give a taste of the full power of the connection, we note that from \Cref{prop:sementics-via-inconsistency}, it follows that this entire procedure is just minimizing the inconsistency of a single PDG $\aar{\dg M \bundle \mu}$, where $\mu$ has very high confidence.
+% To give a taste of the full power of the connection,
+% Because of the
+ we note that from \Cref{prop:sementics-via-inconsistency}, it follows that this entire procedure is just minimizing the inconsistency of a single PDG $\aar{\dg M \bundle \mu}$, where $\mu$ has very high confidence.
 Thus, this approach to inference may be summarized as follows.
 
 \begin{quotation} \it
@@ -706,9 +713,24 @@ Thus, this approach to inference may be summarized as follows.
 
 The Markov Property
 
-\begin{prop}
-	If $\beta_L > \alpha_L$)
+\begin{prop}[Marov Property for PDGs]
+	Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
+	Then for all $\gamma > 0$, we have that
+	\[
+	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+			% \subset
+			~\models~
+		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+		\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+	\]
+	That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
+
 \end{prop}
+\begin{proof}
+	Choose $\mu \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$.
+	% Choose $\mu \in \mu^*_\gamma (\dg M_1 \bundle \dg M_2)$.
+	Let $\mu' := \mu(\N_1) \mu(\N_2)$
+\end{proof}
 
 
 \subsection{Experiments}
@@ -893,7 +915,7 @@ We can define a transformation $\mathrm T : \mathcal Q \to \mathcal Q$ by
 	% 		\beta_L \log \frac{q(Y\mid X)}{\bp(Y \mid X)} \right]
 	% 	+ \left[ \sum_{\ed LXY} \alpha_L \H_{q}(Y \mid X) \right]
 	% 	- \H(q').
-% 
+%
 \]
 That is, we assume that it has some of the information-theoretic properties that make
 
@@ -1284,12 +1306,12 @@ We will make use of the implicit function theorem in the next result.
 \recall{prop:condition-by-inc}
 \begin{lproof}\label{proof:condition-by-inc}
 	To simplify notation, let $f := \bbr{\dg M}_\gamma$. Since in general $\bbr*{\dg M \bundle (B = b)}_\gamma^*$ and $\bbr{\dg M}_\gamma^* \mathbin{\big|} (B=b)$ are sets of distributions, we prove inclusion in both directions.
-	
+
 		\textbf{Claim: $\bbr*{\dg M \bundle (B = b)}_\gamma^* \subset \bbr{\dg M}_\gamma^* \mathbin{\big|} (B=b)$.~}
-	
-	Our goal is to prove that, for every optimizer $p \in \bbr{\dg M \bundle (B\!=\!b)}^*_\gamma$, there is 
+
+	Our goal is to prove that, for every optimizer $p \in \bbr{\dg M \bundle (B\!=\!b)}^*_\gamma$, there is
 	$q \in \bbr{\dg M}^*$ such that $q \mid (B\!=\!b) = p$.
-	
+
 	% It suffices to prove that $$
 \end{lproof}
 
