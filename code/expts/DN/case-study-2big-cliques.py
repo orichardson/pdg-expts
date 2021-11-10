@@ -71,20 +71,36 @@ def incidef(data):
     toret = np.zeros((len(data), 2))
     for i,d in enumerate(data):
         dist.data = d.reshape(M.dshape)
-        toret[i,:] = [np.log(M.Inc(dist).real), M.IDef(dist)]
-        # toret[i,:] = [M.Inc(dist).real, -dist.H(...)]
+        # toret[i,:] = [(M.Inc(dist).real), M.IDef(dist)]
+        # toret[i,:] = [np.log(np.abs(M.Inc(dist).real)+1E-18), M.IDef(dist)]
+        toret[i,:] = [M.Inc(dist).real, -dist.H(...)]
     return toret
 
 randomdists = [RJD.random(M.varlist) for i in range(100)]
+extremedists = []
+extremedistsGS = []
 
+for i in range(50):
+    d = np.ones(M.dshape).reshape(-1) * 1E-10
+    d[np.random.randint(0,len(d))] = 1
+    dd = RJD(d/d.sum(), M.varlist)
+    extremedists.append(dd)
+    print(i)
+    
+    dGS = M.iter_GS_ordered('shuffle', counterfactual_recalibration=True, init=dd.clone(), max_iters=2000)
+    extremedistsGS.append(dGS)
+
+# extremedistsGS[0][B]
 %matplotlib tk
 ## pca=
 pca_view(random_consist=dists, 
     factor_prod = [product], 
     correct=[P], 
-    GS_init_ϕ=[μGS_fp],
+    # GS_init_ϕ=[μGS_fp],
     truly_random=randomdists, 
-    GS_init_ϕ_trace= μGS_fp_iters[:10]+μGS_fp_iters[10::30],
+    # extreme_dists = extremedists,
+    extreme_dists_GS = extremedistsGS,
+    # GS_init_ϕ_trace= μGS_fp_iters[:10]+μGS_fp_iters[10::30],
     arrows=False, transform=incidef)
 plt.xlabel("Inconsistency")
 plt.ylabel("Information Deficiency ($\\alpha=1$)")
