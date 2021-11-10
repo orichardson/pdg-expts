@@ -89,14 +89,16 @@ mu2_mcmc_ordered[C|B] - M2[C|B]
 
 # from collections import defaultdict
 # counts = defaultdict(lambda: 0)
-counts = np.ones(M2.dshape)
+# counts = np.ones(M2.dshape)
+counts = np.zeros(M2.dshape)
 # μemperical = RJD(, M2.varlist)
 μemperical = M2.genΔ(RJD.unif)
 
 incs = []
 
-for s in M2.MCMC(3000):
+for s in M2.MCMC(60000):
     # print(s)
+    # print("*"*10)
     # counts[''.join(s.values())] += 1
     # print(tuple(v.ordered.index(s[v.name]) for v in M2.atomic_vars))
     counts[tuple(v.ordered.index(s[v.name]) for v in M2.atomic_vars)] += 1
@@ -109,19 +111,39 @@ for s in M2.MCMC(3000):
 incs = np.array(incs)
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
-    y_smooth = np.convolve(y, box, mode='same')
+    y_smooth = np.convolve(y, box, mode='valid')
     return y_smooth
 
 from matplotlib import pyplot as plt
-plt.plot(smooth(incs,2))
+plt.semilogy(smooth(incs,3)[5000:])
 
 print(incs)
 
-
 μemperical[C,B|A]
+μemperical[A]
 φ2[C,B|A]
+M2.Inc(μemperical).real
+M2.Inc(μ)
+
 regions = [['p'],['q']]
 
+
+## We can generate random consistent distributions.
+dists = M2.random_consistent_dists(200)
+plt.semilogy(sorted([1E-16+M2.Inc(d).real for d in dists]),'-o')
+
+
+#### !!! Look! I can estimate the dimensionality of the subspace!
+from numpy.linalg import svd
+consistmatrix = np.stack(tuple(d.data.reshape(-1) for d in dists))
+consistmatrix.shape
+U,Σ,VT = svd(consistmatrix)
+
+sum(Σ > 1E-5) # 14
+2*3*5 -2*2 -4*3 # also 14
+
+M2['q']
+# plt.semilogy(sorted([M2.Inc(d).real for d in M2.random_consistent_dists(50)]),'-o')
 
 ########### A ----> B <------- C ############
 M3 = PDG()
