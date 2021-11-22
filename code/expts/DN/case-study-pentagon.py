@@ -72,8 +72,8 @@ def incidef(data):
     for i,d in enumerate(data):
         dist.data = d.reshape(M.dshape)
         # toret[i,:] = [(M.Inc(dist).real), M.IDef(dist)]
-        # toret[i,:] = [np.log(np.abs(M.Inc(dist).real)+1E-18), M.IDef(dist)]
-        toret[i,:] = [M.Inc(dist).real, -dist.H(...)]
+        toret[i,:] = [np.log(np.abs(M.Inc(dist).real)+1E-18), M.IDef(dist)]
+        # toret[i,:] = [M.Inc(dist).real, -dist.H(...)]
     return toret
 
 randomdists = [RJD.random(M.varlist) for i in range(100)]
