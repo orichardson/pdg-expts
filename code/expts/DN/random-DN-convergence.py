@@ -22,15 +22,16 @@ p = CPT.from_matrix(A, B, np.array([[0.7, 0.3], [0.4, 0.6]]))
 q = CPT.from_matrix(B, C, np.array([[0.7, 0.3], [0.4, 0.6]]))
 r = CPT.from_matrix(C, A, np.array([[0.7, 0.3], [0.4, 0.6]]))
 
-p@q
+(p.to_numpy()@q.to_numpy())@(r.to_numpy())
+p.to_numpy()@(q.to_numpy()@r.to_numpy())
 
 
 M_pqr = PDG()
 M_pqr += p,q,r
 
-M_pqr.update_all_weights(a=0.1)
+M_pqr.update_all_weights(a=1.3)
 
-μ = M_pqr._torch_opt_inc(gamma=1E-2,optimizer='SGD', ret_losses=False, iters=2000)
+μ = M_pqr._torch_opt_inc(gamma=1E-3,optimizer='SGD', ret_losses=False, iters=2000)
 μ.npify()[C|B]
 μ2 = M_pqr.optimize_score(1E-8)
 # μ = 
