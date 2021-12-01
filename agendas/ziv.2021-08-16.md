@@ -18,4 +18,4 @@ Is there a sense in which there's an underlying optimality criterion?
 
 ISIT Feburary.
 
-Would be cool if first publication to nail down graphical model stuff (AI stats maybe). Then send to information theoretic venue; say that you can understand relationships between divergences this way. Good to pin down with graphical model perspective first. 
+Would be cool if first publication to nail down graphical model stuff (AI stats maybe). Then send to information theoretic venue; say that you can understand relationships between divergences this way. Good to pin down with graphical model perspective first.
