@@ -132,6 +132,9 @@
 		\newcommand{\N}{\mathcal N}
 		\newcommand{\Ed}{\mathcal E}
 
+        \newcommand{\balpha}{\boldsymbol\alpha}
+        \newcommand{\bbeta}{\boldsymbol\beta}
+
 		\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
 		\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
 		\newcommand{\dg}[1]{\mathbdcal{#1}}
@@ -194,47 +197,189 @@
 		\makeatother
 
 
+% take off one-page restriction, for draft
+\makeatletter
+	\gdef\@outputpage{%
+	  \stepcounter{pagecount}%
+	  \ifnum\value{pagecount}>1\relax%
+	    % Do not output the page
+	    \PackageWarning{aistats_author_response}{Only one page allowed! Discarding any extra output.}
+	  \else \fi
+	  \latex@outputpage%
+	}
+	\makeatother
+
 \begin{document}
-\textbf{Modeling Workflow.}
 
 
 \textbf{Confidences.}
-Reviewers \#5 and \#7 raise an important aspect in which the presentation could be improved: we ought to give more intuition about the confidence parameters, and $\beta$ in particular.
+Reviewers \#5 and \#7 raise an important weakness of the presentation: we ought to say more about the confidence parameters, particularly $\beta$.
 % $\beta$ (and clarify the auxiliary role of $\alpha$).
-Choosing $\beta=0$ for a cpd $p$ means that $p$ is effectively ignored, in the sense that a PDG is semantically equivalent to one without $p$.  On the other hand, setting $\beta$ to a large real number (or $\infty$) indicates high (or absolute) confidence in $p$.  This is particularly appropriate if $p$ is a trusted empirical distribution and the other edges of the cpd are randomly initialized neural networks.   In other cases, different choices of $\beta$ may be appropriate; perhaps one has a very good pre-trained model ($q$) and partially corrupted data ($p$).
-% In such a case, we might give both $p$ and $q$ the same confidence, and thereby obtain the Bhattacharya distance, a symmetric measure that is less sensitive
-We might then give both $p$ and $q$ the same confidence, and thereby obtain the Bhattacharya distance: a symmetric divergence measure that, in contrast with cross entropy, does not give unbounded loss when the model states the data has low probability.
-We refer to Figure 1 for a detailed picture of how different choices of $\beta$
-impact the choice of loss function for divergences and generative models.
+% Choosing $\beta=0$ for a cpd $p$ means that $p$ is effectively ignored, in the sense that a PDG is semantically equivalent to one without $p$.
+%TODO:
+% doesn't matter WHICH cpd (could replace)
+% this PDG becomes equivalent to the same PDG without the edge labeled $p$.
+Chosing $\beta=0$ in a cpd $p$
+%of a PDG $\dg M$ is
+means that $p$ is effectively ignored, in the sense that such a PDG is semantically equivalent to one in which the edge is attached to a different cpd $q \ne p$.
+%
+On the other hand, setting $\beta$ to a large real number (or $\infty$) indicates high (or absolute) confidence in $p$.  This is particularly appropriate if $p$ is a trusted empirical distribution and the other edges are randomly initialized networks.
+In other cases, different choices of $\beta$ may be appropriate, such as in the concrete example below.
+% perhaps one has a very good pre-trained model ($q$) and partially corrupted training data ($p$).
+% % In such a case, we might give both $p$ and $q$ the same confidence, and thereby obtain the Bhattacharya distance, a symmetric measure that is less sensitive
+% We might then give both $p$ and $q$ the same confidence, say $\nf k2$,
+% % to obtain $k$ times
+% to obtain inconsistency equal to $k$ times
+% % the Bhattacharya distance: a symmetric measure that punishes cases where the model does not generate a training point ($p \ll q$) less severely.
+% % the Bhattacharya distance: a loss that punishes cases where the model does not generate a training point ($\exists x. p(x) \ll q(x)$) less severely.
+% the Bhattacharya distance: a loss that is much smaller if the model does not generate a training point ($\exists x. p(x) \ll q(x)$).
 
+% Read Figure 1 with this interpretation of $p$ and $q$ for a detailed map of how the choice of $\beta$
+Review Figure 1 with this interpretation of $p$ and $q$ for a map of how the choice of $\beta$
+% impacts the choice of loss function for generative models and divergences.
+impacts the loss function.
+%
+% The case
 
-Reviewer \#7 also asks specifically about the choices of $\beta$ in Prop 11. The short answer is that the choices reflect the rationale for doing variational inference in the first place. It is difficult to compute the inconsistency of the PDG with only $x$ and $p$, so out of pragmatics one guesses $q(Z)$ to draw samples of $Z$;  but this only helps if we insist that $Z$ is distributed according to $q$ (i.e., we set $\beta_q := \infty$). At this point, changing $\beta_p$ from 1 to some $k \in \mathbb R$ simply multiplies the inconsistency by $k$, as discussed above; the default value of $\beta=1$ is simply a convenient choice of units.
+% what does more precise selection of \alpha mean?
+% - Result for BNs hold for \alpha=1
+% - Factor graphs hold when \alpha propto \beta
+% - all other results hold for all values of \alpha.
 
-
-Reviewer \#7 asks about our choice of default values of $\beta=1$ and $\alpha=0$.
-The default choice of $\beta = 1$ is essentially a convenient choice of units---a default of $\beta =2$ would behave the same way, since doubling every $\beta$ simply doubles the inconsistency.  What’s important are the magnitudes of $\beta$ relative to each other (and to $\gamma$, for $\gamma$-inconsistency).
+% Reviewer \#7 asks about our choice of default values of $\beta\!=\! 1$ and $\alpha\!=\! 0$.
+Reviewer \#7 asks about our choice of default values of $\beta$ and $\alpha$.
+% The default $\beta\!=\!  1$ is essentially a convenient choice of units---a default of $\beta \!=\! 2$ would behave the same way, since doubling every $\beta$ simply doubles the inconsistency.
+The default $\beta\!=\! 1$ is just a convenient choice of units---what’s important are the magnitudes of $\beta$ relative to each other (and to $\gamma$, for $\gamma$-inconsistency).
 % (and to $\gamma>0$, for $\gamma$-inconsistency).
 % \textbf{Alphas.}
+%%% v0
 % The default choice of $\alpha$ is even \emph{less} consequential, because $\alpha$ does not affect the inconsistency $\aar{\dg M}$ (it only affects the $\gamma$-inconsistency $\aar{\dg M}_\gamma$ for $\gamma > 0$, which we use only where $\alpha$ more carefully in sections 7 and 8).
-The default choice of $\alpha$ is even \emph{less} consequential, because $\alpha$ does not affect the inconsistency $\aar{\dg M}$, but only the $\gamma$-inconsistency $\aar{\dg M}_\gamma$ for $\gamma > 0$, which is used only in sections 7 and 8 and with more precise selection of $\alpha$.
-It follows that all results in Sections 2-6 also hold for every setting of $\alpha$, including ones that better reflect one's belief in the functional dependencies.
-We chose to set $\alpha=0$ by default because it is a neutral choice that doesn’t suggest any particular causal model.%
-	\footnote{Observe: when $\alpha = 0$, the qualitative scoring function ($\IDef{}$) reduces to negative entropy, and so in the quantitative limit ($\gamma \to 0$) the best distribution will be the one of maximum entropy among those that minimize incompatibility.}
-Still, as Reviewer \#7 points out, we describe some scenarios where a modeler might be certain of the functional dependencies, which, confusingly, clashes with this default.
-To fix this, we intend to explain more clearly that $\gamma$-inconsistency can only depend on $\alpha$ if $\gamma > 0$, remove the default value, and slightly rephrase the proposition statements so it is clear they apply to the class of PDGs that are identical up to choice of $\alpha$.
+%%% v1
+% The default choice of $\alpha$ is even \emph{less} consequential, because $\alpha$ does not affect the inconsistency $\aar{\dg M}$, but only the $\gamma$-inconsistency $\aar{\dg M}_\gamma$ for $\gamma > 0$, which is used only in sections 7 and 8 and with more precise selection of $\alpha$.
+%%% v2
+% The default choice of $\alpha$ is even \emph{less} consequential, because $\alpha$ does not affect the inconsistency $\aar{\dg M}$---only the $\gamma$-inconsistency $\aar{\dg M}_\gamma$ for $\gamma > 0$.
+%%% v3: deleted altogether, moved to next sentence
+%
+% Although we find zero to be the most natural default, it is
+% We chose a default of $\alpha=0$ becuase we view it as the the most neutral choice%
+% We chose a default of $\alpha\!=\! 0$ becuase it is relatively neutral%
+% We chose a default of $\alpha\!=\! 0$ to suggest minimal impact%
+We chose a default of $\alpha\!=\! 0$ to suggest a lack of causal modeling%
+% \ but in retrospect,
+% (the qualitative score reduces to negative entropy)%
+, but in retrospect it was a mistake to have a default at all; %---%
+% as Reviewer \#7 points out, $\alpha\!=\! 0$ default is inappropriate in cases where the modeler ought to be more confident of the functional dependencies.
+as Reviewer \#7 points out, $\alpha\!=\! 0$ is inappropriate when the modeler has reason to be confident in a functional dependence.
+%
+% This issue is easly fixed though, since all results hold for every choice of alpha except in the two places where we explicitly choose a different value of $\alpha$.
+% This is a problem, but only a superficial one: our results hold for every choice of alpha except
+This is only a superficial problem.
+% Because $\aar{\dg M}$ does not depend on $\balpha$,
+Since $\aar{\dg M}$ does not depend on $\balpha$,
+% Our results hold for all choices of $\balpha$, except for in Prop 13 where we explicitly set $\balpha \!=\! \bbeta$ to get the correspondence with factor graphs, and at the end of \S8 where we set $\alpha \!=\! 1$ to enforce independence.
+Our results hold for all choices of $\balpha$, except the two places where we use $\gamma$-inconsistency: in Prop 13 where we explicitly set $\balpha \!=\! \bbeta$ to get the correspondence with factor graphs, and at the end of \S8 where we set $\alpha \!=\! 1$ to enforce independence.
+%\cite{richardson2020probabilistic}.
+% Richardson and Halpern (2021).
+% (only Proposition 14, and the discussion in Section 9).
+%
+% The first is Prop 14, where we set $\balpha = \bbeta$, which is the case where the correspondence between PDGs and factor graphs holds; the second is in the discussion after Prop 15, where we set $\alpha=1$, which is necessary for the first part of the PDG to capture the independencies of the BN.
+%
+%% The correspondence with BNs (which are PDGs with zero inconsistency) holds for all choices of $\bbeta$ but requires $\balpha = \mat 1$ along the causal graph.
+% The PDG parameter $\balpha$ is quite interesting, but we are hoping to defer a serious discussion of it to another paper where we can properly address its connections with causality.
 
-\textbf{Non-standard PDG Losses.}
-Reviewers \#4 and \#5 ask for an example where the PDG gives a non-standard loss that is in some sense better than what a practitioner might think to use.
+ % which is used only in sections 7 and 8 and with more precise selection of $\alpha$. The correspondence with BNs only holds when $\balpha = 1$ and
 
+% It follows that all results in Sections 2-6 also hold for every setting of $\alpha$, including ones that better reflect one's belief in the functional dependencies.
+% We chose to set $\alpha=0$ by default because it is a neutral choice that doesn’t suggest any particular causal model.%
+	% \footnote{Observe: when $\alpha = 0$, the qualitative scoring function ($\IDef{}$) reduces to negative entropy, and so in the quantitative limit ($\gamma \to 0$) the best distribution will be the one of maximum entropy among those that minimize incompatibility.}
+% Still, as Reviewer \#7 points out, we describe some scenarios where a modeler might be certain of the functional dependencies, which, confusingly, clashes with this default.
+% To fix this, we intend to explain more clearly that $\gamma$-inconsistency can only depend on $\alpha$ if $\gamma > 0$, remove the default value, and slightly rephrase the proposition statements so it is clear they apply to the class of PDGs that are identical up to choice of $\alpha$.
+
+
+%% DONE: Use the word confidence. You're acting as thoough you're highly confident.
+% Don't bring up units. Haven't used the word "units".  "As long as you choose a positive real number, and qualitatively it acts the same.
+% at a minimum, need a sentence giving an interpretation of \beta as money per bit of error.
+% two concerns: if answer this way, highlights the issue that it's
+% another
+
+Reviewer \#7 also asks specifically about the choices of $\beta$ in Prop 11.
+% The short answer is that the choices reflect the rationale for doing variational inference in the first place. It is difficult to compute the inconsistency of the PDG with only $x$ and $p$, so out of pragmatics one guesses $q(Z)$ to draw samples of $Z$;  but this only helps if we insist that $Z$ is distributed according to $q$ (i.e., we set $\beta_q := \infty$). At this point, changing $\beta_p$ from 1 to some $k \in \mathbb R$ simply multiplies the inconsistency by $k$, as discussed above; the default value of $\beta=1$ is simply a convenient choice of units.
+In short, it reflects the assumptions made by the variational approach: by computing the loss with a Monte Carlo estimate of $Z$ sampled from $q$, one acts as if highly confident in $q$.
+% Now, as above, selecting $\beta_p=1$ is essentially just a concise choice of units.
+Now, as above, the default selection of $\beta_p=1$ is just a concise choice of units.
+% by changing $\beta_p$ from 1 to some $k \in \mathbb R$ simply scales the inconsistency by $k$ widthout changing the shape of the loss function.
+
+\textbf{Worked Example.}
+Reviewers \#4 and \#5 ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
+
+
+% \textbf{Cases where PDGs and the Standard Diverge.}
+\textbf{Discrepency betwen PDG inconsistency and common losses.}
+% Reviewers \#4 and \#5 ask for an example where the PDG gives a non-standard loss that is in some sense better than what a practitioner might think to use.
+Reviewers \#4 and \#5 ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
+% Before that, we'd like to first give the field some credit: in settings where a loss function is standard, it is usually for good reason.
+First, we'd like to give the field credit: in settings where a loss function is standard, it is usually for good reason.
+%
+%
+%%% REVIEW: Fold back in?
+% Our experience suggests that minimizing the inconsistency of the appropriate PDG is always desirable, but is sometimes impractical. It may not have a closed-form expression, or be expensive to compute (e.g., the marginal surprisal in Prop 4, if $|\V(Z)|$ is large).
+% Yet, as in Section 6.1, PDGs can still clarify the extra modeling assumptions we make for tractability.
+%% Yet, as in Section 6.1, PDGs can still describe the modeling assumptions we use to gain tractability.
+
+% Now for the examples: one non-standard, and one impractical.
+Now for the examples.
+Suppose we would like to train a predictor network $h(Y|X)$ a partially corrupted emperical distribution $d(X,Y)$, and an analytical model $q(X, Y)$.
+One first approach in applied ML might be to use the sum of the two cross entropies:
+% $- 2 \Ex_{x,y \sim {\nf12(d + q)}} \log h(y|x)$. This fits $h$ to the mixture $\frac12 (d + q)$,
+$- 2 \Ex_{m} \log h(Y|X)$, where $m := \nf12(d + q)$. This loss fits $h$ to $m$, effectively
+treating $d$ and $q$ as disjoint; the redundancy is not used to correct errors.
+A second approach: use something like
+% $\mathcal L = \sum_{x\sim } h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}$
+$\smash{\Ex_{x\sim m} h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}}$.
+Now the optimal predictor predictor will be $h_x \propto d_x q_x$, which is uncalibrated: if the data and model agree exactly ($d \!=\! q$), then for all $x$ we would want $h \!=\! q(Y|x)$, but instead we get $h(Y|x) \propto q(Y|x)^2$, which is overconfident.
+By contrast, the inconsistency of a PDG containing $q, d$, and $h$, gives an optimal predictor  proporitional to the $\beta$-weighted geometric mean of $q$ and $d$.
+% Note that both approaches also arise from PDGs, corresponding to different models.
+% Both losses of the initial approach also arise from PDGs, and the lack of calibration in the second stems from strange modeling assumptions.
+The discussion at the end of \S8 and Appendix C.1.2 gives another example in which PDGs unexpectedly yield a calibrated loss.
+% In our telling, this is backwards, since the losses of both approaches also come from PDGs, but less reasonable ones
 
 \textbf{Motivating VAEs.}
 Reviewer \#3 points out that a VAE is already associated with a graphical model.
 % While this is true, that graphical model is only a simple Bayesian Network made up of the prior and decoder; and encodes neither the encoder nor the loss function---it is associated with the VAE for good reason, but falls short of capturing it.  Our observation: simply include the encoder in addition (as is only possible in a PDG), and one also captures the loss function for free.
 While this is true, that graphical model only partially describes the VAE, as it consists of the prior and decoder, but not the encoder.
 % Our observation: simply include the encoder as well, as is only possible in a PDG, since the encoder and prior might be inconsistent with each other), to also obtains the loss function for free.
-Only in a PDG can we include both the prior and encoder, since they might be inconsistent with another.
-Moreover, we get the loss function for free, as the inconsistency of the resulting PDG.
+Only with a PDG can we model both the prior and encoder, as the two might be inconsistent.
+Moreover, we get the loss function for free by doing so, as the resulting inconsistency.
+%
+%TODO: do I want space here?
+%
+Reviewer \#3 also pushes back on our claim that the ELBO is difficult to motivate,
+% with reference to
+citing
+the fact that the ELBO is a tractable lower bound on the log likelihood (a simple derivation that we give in Section 6.1).  This is indeed the standard motivation,
+but it is arguably incomplete---%
+% but we find it unsatisfying---%
+the constant
+% $-\infty$
+\texttt{FLOAT\_MIN}
+satisfies these criteria, but is still a poor loss function.
+Of possibly many lower bounds, why use this one? What does the ELBO represent? Does it have units? Why is it negative?  Why use the logarithm instead of another concave function?
+% There are good answers to these questions, but not, in our view, simple ones.
+There are good answers to these questions, but not, in our view, simple ones.
 
-Reviewer \#3 also pushes back on our claim that the ELBO is difficult to motivate, with reference to the fact that the ELBO is a tractable lower bound on the log likelihood (a simple derivation that we give in Section 6.1).   This is indeed the standard motivation, but it is arguably incomplete---the constant zero satisfies these criteria, but is a poor loss function nonetheless. Of the many lower bounds on the log likelihood, some of which are both tractable and tight, why use this one? What does the ELBO itself mean? Does it have units? Why is it negative?  Why use the logarithm instead of another concave function?  There are good answers to these questions, but not, in our view, simple ones.
 
+
+\textbf{A PDG Modeling Workflow.}
+Reviewer \#3 asks whether there's a contribution here beyond pedagogy that could aid learning or inference.
+Reviewer \#4 wants more discussion on the advantages of seeing losses through the same lens, while Reviewer \#6 wonders where to go from here.
+%
+We think it possible that PDGs will replace the entire modeling workflow.
+Beyond what we've shown here, PDGs can already describe network architectures, datasets, straight-line code.
+% We suspect we will also be able to fold in databases
+% And, unlike other approaches, one can design them from the middle outwards, without always needing to have a consistent data-generating process.
+Unlike other approaches, they can be easily recombined, built from the middle outwards, without a consistent data-generating process.
+What's missing, of course, are automated inference procedures, and tooling.
+On its own, this paper may be only good for pedagaogy and for defending a choice of loss function---but stay tuned.
+
+% \usebibliography
 \end{document}
