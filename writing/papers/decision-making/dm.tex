@@ -15,15 +15,57 @@
             \item  a conditional utility function $U_L(Y|X)$%
                 \footnote{Note: right now, this is just a joint utility function $U(X,Y)$ because of currying, unless we do something clever}%
             ;
-            \item and a relative importance $\lambda_L$.
+            \item and a relative importance $\lambda_L$.  \qedhere
         \end{itemize}
     \end{defn}
+
+    By analogy with the PDG semantics, the next thing we want is a semantics that scores joint utility functions $U : \V(\dg U) \to \mathbb R$, based on how compatible they are with the partial conditional utilities along the edges. 
     
-    Looking only at the utility side of this, we can score joint jutility functions $\mathbf U : \V(\dg {UM}) \to \mathbb R$ with the semantics
+    First, we need a way to measure how different utility functions are. That is,  Suppose $U(X)$ and $V(X)$ are two utility functions on $X$, then we want some function $\thickD(U,V) \ge 0$ such that $\thickD(U,U) = 0$, that assigns higher numbers to pairs of functions that are, in some sense, ``more different''.
     
+    Putting aside the precise choice of $\thickD$ we can write the semantics as 
     \begin{equation}
-        \bbr{\dg U} =
-             \sum_{\ed LXY \in \UEd}\sum_{(x,y) \in \V(XY)} \lambda_L \Big( U(y|x) - \mathcal U \Big)
+        \bbr{\dg U}(U) =
+             % \sum_{\ed LXY \in \UEd} \lambda_L \Big( U(y|x) - \mathcal U \Big)
+             % \sum_{\omega \in \V(\N)}\sum_{\ed LXY \in \UEd} \lambda_L\, \thickD\Big( U_L(Y(\omega) |X(\omega)),  U(\omega) \Big)
+             \sum_{\ed LXY \in \UEd} \lambda_L\, \sum_{\substack{x \in \V(X)\\z \in \V(\N\setminus XY)}}
+             \thickD\Big( U_L(Y | x),  U(x,Y,z) \Big)
     \end{equation}
+
+    Note this implicitly has a uniform measure baked into it. More generally (and compactly) for a fixed measure $\mu$:
+    \begin{equation}
+        \bbr{\dg U}(U) =
+             \sum_{\ed LXY \in \UEd} \lambda_L\, \Ex_{\substack{x \sim \mu(X)\\\mat z \sim \mu(\N\setminus XY)}}
+             \thickD\Big( U_L(Y | x),  U(x,Y, \mat z) \Big)
+    \end{equation}
+    
+    Or, if it's not necessary that the utilities be equal for all other values $\mat z$, but only on average, as was the case for PDGS, we get:
+    \begin{equation}
+        \bbr{\dg U}(U) =
+             \sum_{\ed LXY \in \UEd} \lambda_L\, \Ex_{x \sim \mu(X)}
+             \thickD\Big( U_L(Y | x),  \Ex_{\mat z \sim \mu(\N\setminus XY)}U(x,Y, \mat z) \Big)
+    \end{equation}
+
+     
+    Now, back to the problem at hand --- what should we use for $\thickD$? Because we only take utility functions seriously up to positive affine transformations, one desirable feature is to be invariant to affine transformations.
+    
+    Here are some possibilities:
+    
+    \begin{enumerate}
+    \item \begin{equation*}
+        \thickD(U, V) := \inf_{\substack{a > 0\\b \in \mathbb R}}  \frac{1}{|\V(X)|}\sum_{x \in \V(X)} \Big| a U(x) + b - V(x) \Big|^2
+        \end{equation*}
+        This definition has some problems. First, it is $V$'s units -- so if V contains large numbers, then the divergence will be large. 
+    \item Assume $U$ and $V$ have minimum zero and maximum 1, and take 
+    \[ \thickD(U,V) := \big\Vert U - V \big\Vert^2_2 = \Ex_\mu \Big[(U(X) - V(X))^2\Big]  \]
+    \item Take only ratios of utility differences:
+    \[ \thickD(U,V) := \Ex_{\substack{x \sim \mu \\ x' \sim \mu}} \left( 1-  \frac{U(x) - U(x')}{V(x)- V(x')}\right)^2
+    \]
+    \item Again that $U$ and $V$ have min zero and max one. Define the correlation as $\mathrm{Cor}(U,V) := \Ex_{mu}[U(X)V(X)]$ and take 
+    \[
+        \thickD(U,V) := \log \mathrm{Cor}(U,V) = \log \Ex_\mu [U(X) V(X)]
+    \]
+
+\end{enumerate}
 
 \end{document}
