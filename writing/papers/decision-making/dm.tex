@@ -13,7 +13,7 @@
         Also as before, it has labeled edges $\UEd = \{ \ed {L}XY \} $. But instead of encoding cpds with confidences, they give utilities: for each edge $\ed LXY \in \UEd$, we have 
         \begin{itemize}
             \item  a conditional utility function $U_L(Y|X)$%
-                \footnote{Note: right now, this is just a joint utility function $U(X,Y)$ because of currying, unless we do something clever}%
+                % \footnote{Note: right now, this is just a joint utility function $U(X,Y)$ because of currying, unless we do something clever}%
             ;
             \item and a relative importance $\lambda_L$.  \qedhere
         \end{itemize}
@@ -35,7 +35,7 @@
     Note this implicitly has a uniform measure baked into it. More generally (and compactly) for a fixed measure $\mu$:
     \begin{equation}
         \bbr{\dg U}(U) =
-             \sum_{\ed LXY \in \UEd} \lambda_L\, \Ex_{\substack{x \sim \mu(X)\\\mat z \sim \mu(\N\setminus XY)}}
+             \sum_{\ed LXY \in \UEd} \lambda_L\, \Ex_{\substack{x,\mat z \sim \mu(\N \setminus Y)}}
              \thickD\Big( U_L(Y | x),  U(x,Y, \mat z) \Big)
     \end{equation}
     
@@ -43,7 +43,7 @@
     \begin{equation}
         \bbr{\dg U}(U) =
              \sum_{\ed LXY \in \UEd} \lambda_L\, \Ex_{x \sim \mu(X)}
-             \thickD\Big( U_L(Y | x),  \Ex_{\mat z \sim \mu(\N\setminus XY)}U(x,Y, \mat z) \Big)
+             \thickD\Big( U_L(Y | x),  \Ex_{\mat z \sim \mu(\N\setminus XY|x)}U(x,Y, \mat z) \Big)
     \end{equation}
 
      
@@ -52,14 +52,21 @@
     Here are some possibilities:
     
     \begin{enumerate}
-    \item \begin{equation*}
+    \item A silly first approach: try to find an affine transformation, parameterized by $a > 0$, $b \in \mathbb R$, such that $a U + b = V$. 
+     \begin{equation*}
         \thickD(U, V) := \inf_{\substack{a > 0\\b \in \mathbb R}}  \frac{1}{|\V(X)|}\sum_{x \in \V(X)} \Big| a U(x) + b - V(x) \Big|^2
         \end{equation*}
-        This definition has some problems. First, it is $V$'s units -- so if V contains large numbers, then the divergence will be large. 
+        This definition has some problems: most egregiously, it is $V$'s units -- so if V contains large numbers, then this measure will will also be large. So in particular it is not invariant to affine transformations in its second argument. One fix:
+        \[
+        \thickD(U, V) := \inf_{\substack{a > 0\\b \in \mathbb R}}  \frac{1}{|\V(X)|}\sum_{x \in \V(X)} \Big| a U(x) + b - \frac1a V(x) \Big|^2
+        \]
     \item Assume $U$ and $V$ have minimum zero and maximum 1, and take 
     \[ \thickD(U,V) := \big\Vert U - V \big\Vert^2_2 = \Ex_\mu \Big[(U(X) - V(X))^2\Big]  \]
-    \item Take only ratios of utility differences:
-    \[ \thickD(U,V) := \Ex_{\substack{x \sim \mu \\ x' \sim \mu}} \left( 1-  \frac{U(x) - U(x')}{V(x)- V(x')}\right)^2
+    \item If $U$ is an affine transform of $V$, then the ratio of differences $\frac{U(x) - U(x')}{V(x)- V(x')}$ should be a constant independent of $x,x'$. We can measure its departure from the constant function by:
+    \[
+        % \thickD(U,V) := \Ex_{\substack{x \sim \mu \\ x' \sim \mu}} \left( 1-  \frac{U(x) - U(x')}{V(x)- V(x')}\right)^2
+        \thickD(U,V) := \Ex_{\substack{x' \sim \mu \\ x \sim \mu}} \log \frac{U(x) - U(x')}{V(x)- V(x')} - 
+         \log \bigg(\Ex_{\substack{x' \sim \mu \\ x \sim \mu}}\frac{U(x) - U(x')}{V(x)- V(x')} \bigg)
     \]
     \item Again that $U$ and $V$ have min zero and max one. Define the correlation as $\mathrm{Cor}(U,V) := \Ex_{mu}[U(X)V(X)]$ and take 
     \[
