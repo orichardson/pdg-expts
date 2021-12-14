@@ -1,0 +1,334 @@
+
+\usepackage{mathtools} %also loads amsmath
+\usepackage{amssymb, bbm}
+
+%\usepackage{blkarray} % for matrices with labels
+\usepackage{microtype}
+\usepackage{relsize}
+\usepackage{environ}% http://ctan.org/pkg/environ; for capturing body as a parameter for idxmats
+\usepackage{tikz}
+	\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
+	\usetikzlibrary{cd}
+	
+	\pgfdeclaredecoration{arrows}{draw}{
+		\state{draw}[width=\pgfdecoratedinputsegmentlength]{%
+			\path [every arrow subpath/.try] \pgfextra{%
+				\pgfpathmoveto{\pgfpointdecoratedinputsegmentfirst}%
+				\pgfpathlineto{\pgfpointdecoratedinputsegmentlast}%
+			};
+	}}
+	%%%%%%%%%%%%
+	\tikzset{AmpRep/.style={ampersand replacement=\&}}
+	\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+	
+	\tikzset{dpadded/.style={rounded corners=2, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+	\tikzset{active/.style={fill=blue, fill opacity=0.1}}
+	\tikzset{square/.style={regular polygon,regular polygon sides=4, rounded corners = 0}}
+	\tikzset{octagon/.style={regular polygon,regular polygon sides=8, rounded corners = 0}}
+	
+	
+	\tikzset{alternative/.style args={#1|#2|#3}{name=#1, circle, fill, inner sep=1pt,label={[name={lab-#1},gray!30!black]#3:\scriptsize #2}} }
+	
+	
+	\tikzset{bpt/.style args={#1|#2}{alternative={#1|#2|above}} }
+	\tikzset{tpt/.style args={#1|#2}{alternative={#1|#2|below}} }
+	\tikzset{lpt/.style args={#1|#2}{alternative={#1|#2|left}} }
+	\tikzset{rpt/.style args={#1|#2}{alternative={#1|#2|right}} }
+	\tikzset{pt/.style args={#1}{alternative={#1|#1|above}} }
+	
+
+	\tikzset{mpt/.style args={#1|#2}{name=#1, circle, fill, inner sep=1pt,label={[name={lab-#1},gray]\scriptsize #2}} }
+	\tikzset{pt/.style args={#1}{name=#1, circle, fill, inner sep=1pt,label={[name={lab-#1},gray]\scriptsize #1}} }
+	
+		
+		 %\foreach \x in {#1}{(\x) (lab-\x) } 
+		 
+	\tikzset{Dom/.style args={#1 (#2) around #3}{dpadded, name=#2, label={[name={lab-#2},align=center] #1}, fit={ #3 } }}
+	\tikzset{bDom/.style args={#1 (#2) around #3}{dpadded, name=#2, label={[name={lab-#2},align=center]below:#1}, fit={ #3 } }}
+	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
+	\tikzset{archain/.style args={#1}{arr, every arrow subpath/.style={draw,arr, #1}, decoration=arrows, decorate}}
+	%\tikzset{every label/.append style={text=red, font=\scriptsize}}
+	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
+	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+	
+	
+	\newcommand\cmergearr[4]{
+		\draw[arr,-] (#1) -- (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
+	\newcommand\mergearr[3]{
+		\coordinate (center-#1#2#3) at (barycentric cs:#1=1,#2=1,#3=1.2);
+		\cmergearr{#1}{#2}{#3}{center-#1#2#3}
+	}
+	\newcommand\cunmergearr[4]{
+		\draw[arr,-, , shorten >=0] (#1) -- (#4);
+		\draw[arr, shorten <=0] (#4) -- (#2);
+		\draw[arr, shorten <=0] (#4) -- (#3);
+	}
+	\newcommand\unmergearr[3]{
+		\coordinate (center-#1#2#3) at (barycentric cs:#1=1.2,#2=1,#3=1);
+		\cunmergearr{#1}{#2}{#3}{center-#1#2#3}
+	}
+
+	
+	\usetikzlibrary{matrix}
+	\tikzset{toprule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] 
+	            (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east);%
+	        }
+	    },
+	    bottomrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+	        }
+	    },
+	    leftrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north west) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south west);%
+	        }
+	    },
+	    rightrule/.style={%
+	        execute at end cell={%
+	            \draw [line cap=rect,#1] (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.north east) -- (\tikzmatrixname-\the\pgfmatrixcurrentrow-\the\pgfmatrixcurrentcolumn.south east);%
+	        }
+	    },
+	    table with head/.style={
+		    matrix of nodes,
+		    row sep=-\pgflinewidth,
+		    column sep=-\pgflinewidth,
+		    nodes={rectangle,minimum width=2.5em, outer sep=0pt},
+		    row 1/.style={toprule=thick, bottomrule},
+  	    }
+	}
+
+	
+
+\NewEnviron{ctikzpicture}{\begin{center}\expandafter\begin{tikzpicture}\BODY\end{tikzpicture}\end{center}}
+%\newenvironment{ctikzpicture}
+%	{\begin{center}\begin{tikzpicture}}
+%	{\end{tikzpicture}\end{center}}
+
+\usepackage{color}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+
+\usepackage[colorlinks=true, citecolor=deepgreen]{hyperref}
+
+
+\usepackage{trimclip}
+\usepackage{stmaryrd}
+\SetSymbolFont{stmry}{bold}{U}{stmry}{m}{n}
+
+\makeatletter
+\DeclareRobustCommand{\shortto}{%
+	\mathrel{\mathpalette\short@to\relax}%
+}
+
+\newcommand{\short@to}[2]{%
+	\mkern2mu
+	\clipbox{{.5\width} 0 0 0}{$\m@th#1\vphantom{+}{\shortrightarrow}$}%
+}
+\makeatother
+
+
+\usepackage{amsthm, thmtools}
+\usepackage{
+	nameref,%\nameref
+	hyperref,%\autoref
+	% n.b. \Autoref is defined by thmtools
+%	cleveref,% \cref
+	% n.b. cleveref after! hyperref
+}
+
+%\usepackage[noabbrev,nameinlink]{cleveref}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=magenta}
+
+\begingroup
+\makeatletter
+\@for\theoremstyle:=definition,remark,plain\do{%
+	\expandafter\g@addto@macro\csname th@\theoremstyle\endcsname{%
+		\addtolength\thm@preskip\parskip
+	}%
+}
+\endgroup
+\makeatother
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{coro}{Corollary}[theorem]
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{conj}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+%\newtheorem{defn}{Definition}[section]
+\newtheorem*{defn*}{Definition}
+%\newtheorem{examplex}{Example}
+%\newenvironment{example}
+%	{\pushQED{\qed}\renewcommand{\qedsymbol}{$\triangle$}\examplex}
+%	{\popQED\endexamplex%\vspace{-1.6em}\rule{2cm}{0.7pt}\vspace{0.5em}}
+%}
+\declaretheorem[name=Definition,numberwithin=section,qed=$\square$]{defn}
+\declaretheorem[name=Construction,qed=$\square$,sibling=defn]{constr}
+\declaretheorem[qed=$\square$]{example}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+% In case these theorem definitions are not appropriate... 
+% create a \cleartheorem command.
+% https://tex.stackexchange.com/a/296184/191268
+\makeatletter
+\def\cleartheorem#1{%
+	\expandafter\let\csname#1\endcsname\relax
+	\expandafter\let\csname c@#1\endcsname\relax
+}
+\def\clearthms#1{ \@for\tname:=#1\do{\cleartheorem\tname} }
+\makeatother
+%%
+
+
+\usepackage{xstring}
+\usepackage{enumitem}
+
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+	#1\;\delimsize\|\;#2%
+}
+\newcommand{\thickD}{I\mkern-8muD}
+\newcommand{\kldiv}{\thickD\infdivx}%D_\mathrm{KL}
+
+
+
+
+
+
+\makeatletter
+\@ifpackageloaded{stix}{%
+}{%
+	\DeclareFontEncoding{LS2}{}{\noaccents@}
+	\DeclareFontSubstitution{LS2}{stix}{m}{n}
+	\DeclareSymbolFont{stix@largesymbols}{LS2}{stixex}{m}{n}
+	\SetSymbolFont{stix@largesymbols}{bold}{LS2}{stixex}{b}{n}
+	\DeclareMathDelimiter{\lBrace}{\mathopen} {stix@largesymbols}{"E8}%
+	{stix@largesymbols}{"0E}
+	\DeclareMathDelimiter{\rBrace}{\mathclose}{stix@largesymbols}{"E9}%
+	{stix@largesymbols}{"0F}
+}
+\makeatother
+
+\DeclarePairedDelimiter{\ccbr}{\lBrace}{\rBrace}
+\DeclarePairedDelimiter{\bbr}{\llbracket}{\rrbracket}
+\DeclarePairedDelimiter{\ppr}{\llparenthesis}{\rrparenthesis}
+%\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+%\newcommand\duplicat[1]{\gdef\mylist{}\foreach \x in {#1}{\xdef\mylist{\mylist (\x) (lab-\x) }}\mylist} %% this doesn't work :((
+\newcommand\lab[1]{(#1)(lab-#1)}
+
+
+\newcommand{\CI}{\mathrel{\perp\mspace{-10mu}\perp}}
+\newcommand\E{\mathop{\mathbb E}}
+\let\Horig\H
+\renewcommand\H{\mathrm{H}}
+
+%\newcommand{\newbracketcmd}[2]{ \newcommand{\csname#1\endcsname}{{\color{##2}\ \!\Large\smash{\textbf{[}}{\normalsize\textsc{##1:} #1}\ \!\smash{\textbf{]}}}} }
+\newcommand{\todo}[1]{{\color{red}\ \!\Large\smash{\textbf{[}}{\normalsize\textsc{todo:} #1}\ \!\smash{\textbf{]}}}}
+\newcommand{\note}[1]{{\color{blue}\ \!\Large\smash{\textbf{[}}{\normalsize\textsc{note:} #1}\ \!\smash{\textbf{]}}}}
+\newcommand{\moveme}[1]{{\color{purple}\ \!\Large\smash{\textbf{[}}{\normalsize\textsc{moveme:} #1}\ \!\smash{\textbf{]}}}}
+
+\newcommand\geqc{\succcurlyeq}
+\newcommand\leqc{\preccurlyeq}
+\newcommand\mat[1]{\mathbf #1}
+\newcommand{\indi}[1]{\mathbbm{1}_{\left[\vphantom{\big[}#1 \vphantom{\big]}\right]}}
+\newcommand\m[1]{\mathbf m_{\mathsf #1}}
+\def\cpm#1(#2|#3){\mathbf #1 \left[ #2 \middle|#3\right]}
+
+
+%\newcommand\recall[0]{\expandarg\cref{#0}:\vspace{-2em} \begingroup\small\color{gray!79!black}\begin{quotation} \expandafter\csname #0\endcsname* \end{quotation}\endgroup }
+
+%%%%%%%%%%%%%% FROM AAAI PAPAER %%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
+
+\newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+\newcommand{\V}{\mathcal V}
+\newcommand{\N}{\mathcal N}
+\newcommand{\Ed}{\mathcal E}
+\newcommand{\pdgvars}[1][]{(\N#1, \Ed#1, \V#1, \mat p#1, \beta#1)}
+\newcommand{\pdgunit}{\mathrlap{\mathit 1} \mspace{2.3mu}\mathit 1}
+
+\newcommand\Pa{\mathbf{Pa}}
+\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
+\newcommand\Inc{\mathit{Inc}}
+\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
+\newcommand{\WFGof}[1]{\Psi_{{#1}}}
+\newcommand{\FGof}[1]{\Phi_{{#1}}}
+\newcommand{\Gr}{\mathcal G}
+\newcommand\GFE{\mathit{G\mkern-4mu F\mkern-4.5mu E}}
+
+\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+
+\newcommand{\dg}[1]{\mathbdcal{#1}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%OMG THIS WORKS
+
+\def\wrapwith#1[#2;#3]{
+	\expandarg\IfSubStr{#1}{,}{
+		\expandafter#2{\expandarg\StrBefore{#1}{,}}
+		\expandarg\StrBehind{#1}{,}[\tmp] 
+		\xdef\tmp{\expandafter\unexpanded\expandafter{\tmp}}
+		#3
+		\wrapwith{\tmp}[#2;{#3}]
+	}{ \expandafter#2{#1} }
+}
+\def\hwrapcells#1[#2]{\wrapwith#1[#2;&]}
+\def\vwrapcells#1[#2]{\wrapwith#1[#2;\\]}
+
+
+\newcommand{\smalltext}[1]{\text{\footnotesize#1}}
+\newsavebox{\idxmatsavebox}
+\def\makeinvisibleidxstyle#1#2{\phantom{\hbox{#1#2}}}
+\newenvironment{idxmatphant}[4][\color{gray}\smalltext]{%
+	\def\idxstyle{#1}
+	\def\colitems{#3}
+	\def\rowitems{#2}
+	\def\phantitems{#4}
+	\begin{lrbox}{\idxmatsavebox}$
+	\begin{matrix}  \begin{matrix} \hwrapcells{\colitems}[\idxstyle]  \end{matrix} \\[0.1em]
+		\left[ 
+		\begin{matrix}
+			\hwrapcells{\phantitems}[\expandafter\makeinvisibleidxstyle\idxstyle]  \\[-1em]
+	}{
+		\end{matrix}\right]		&\hspace{-0.5em}\begin{matrix*}[l] \vwrapcells{\rowitems}[\idxstyle] \end{matrix*}
+	\end{matrix}
+	$\end{lrbox}
+	\raisebox{0.75em}{\usebox\idxmatsavebox}
+%	\vspace{-0.5em}
+}
+
+\newenvironment{idxmat}[3][\color{gray}\smalltext]
+	{\begingroup\idxmatphant[#1]{#2}{#3}{#3}}
+	{\endidxmatphant\endgroup}
+
+\newenvironment{sqidxmat}[2][\color{gray}\smalltext]
+	{\begingroup\idxmat[#1]{#2}{#2}}
+	{\endidxmat\endgroup}
+	
+	
+%%%%%%%%%%%%
+% better alignment for cases
+\makeatletter
+\renewenvironment{cases}[1][l]{\matrix@check\cases\env@cases{#1}}{\endarray\right.}
+\def\env@cases#1{%
+	\let\@ifnextchar\new@ifnextchar
+	\left\lbrace\def\arraystretch{1.2}%
+	\array{@{}#1@{\quad}l@{}}}
+\makeatother
+
+
+\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
