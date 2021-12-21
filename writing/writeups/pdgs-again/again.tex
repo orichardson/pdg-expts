@@ -136,6 +136,9 @@
     	\crefname{defn}{Definition}{Definitions}
     	\crefname{prop}{Proposition}{Propositions}
         \crefname{issue}{Issue}{Issues}
+        
+    \relax %%% %SETS %%%%
+        \newcommand{\BaseMeas}{\mathbf{BasedMeas}}
 
     \relax %%%%%%%%% GENERAL MACROS %%%%%%%%
         \let\Horig\H
@@ -188,8 +191,10 @@
     	\newcommand{\Ed}{\mathcal A {(\color{red}\text{not }\mathcal E)}}
     	\newcommand{\Ar}{\mathcal A}
         
-        \newcommand{\src}{\mathbf{src}}
-        \newcommand{\tgt}{\mathbf{tgt}}
+        \newcommand{\bsrc}{\mathbf{Trc}}
+        \newcommand{\btgt}{\mathbf{Tgt}}
+        \newcommand{\src}{\mathrm{Src}}
+        \newcommand{\tgt}{\mathrm{Tgt}}
 
         \newcommand{\balpha}{\boldsymbol\alpha}
         \newcommand{\bbeta}{\boldsymbol\beta}
@@ -370,7 +375,7 @@
 
 % \twocolumn
 \setlength\parskip{1ex}
-% \usepackage[margin=1.2in]{geometry}
+\usepackage[margin=1.0in]{geometry}
 
 % \usepackage{arabtex}
 
@@ -382,17 +387,61 @@
 %       in terms of diagrams of the right shape
 % ? (gamma) Inc + (1-gamma) IDef version
 % - Free Energy is added to IDef, so it is positive.
-
+%
 %
 % IDEALLY
 % - characterize a universal property of PDGs 
 % - and their inconsistency (which is superlinear / concave)
 
-% 
-%
+    The idea is to start from the beginning, in a more advanced way, clarifying the underlying mathematics, and showing the meanings of the parameters in 
+    
+    \section{Foundations}
+    
+    \begin{defn}[Measurable Space]
+        A measurable space is a pair $(X, \mathcal F_X)$, where $X$ is a set, and   $\mathcal F_X$ is a sigma-algebra over $X$, which is to say a set of subsets of $X$, containing the empty set, and closed under countable union, intersection, and complement with respect to $X$.
+        The elements of $\mathcal F_X$ are referred to as measurable sets.
+    \end{defn}
+    
+    \begin{defn}[Measure]
+        A \emph{measure} $\lambda$ over a measurable space $(X, \mathcal F)$ is a function $\lambda : \mathcal F \to \mathbb R \cup \{\infty\}$, with the follwing properties.
+        \begin{itemize}[itemsep=0pt]
+            \item \textbf{Null Empty Set.} $\lambda(\emptyset) = 0$
+            \item \textbf{Non-negativity.} $\lambda(U) \ge 0$ for all $U \in \mathcal F$
+            \item \textbf{Countable additivity.} For every coutable collection $\{U_i\}$ of pairwise disjoint measurable sets $U_i \in \mathcal F$, we have that
+             $\sum_{i} \lambda(U_i) = \lambda(\sqcup_i U_i)$
+        \end{itemize}
+        If  $\lambda(X) = 1$, then $\lambda$ is a \emph{probability} measure. 
+    \end{defn}
+    
+    \begin{defn}[Measurable Functions]
+        If $\mathcal X  = (X, \mathcal F)$, and $\mathcal Y = (Y, \mathcal G)$ are two measurable spaces, a measurable function $f : \mathcal X \to \mathcal Y$ is a function $f: X \to Y$ on the underlying spaces, such that 
+         $f^{-1}(U) \in \mathcal F$ for every $U \in \mathcal G$.
+    \end{defn}
+    
+    \begin{defn}[Markov Kernels]
+        If $\mathcal X  = (X, \mathcal F)$, and $\mathcal Y = (Y, \mathcal G)$ are two measurable spaces, a Markov Kernel $\kappa : \mathcal X \to \mathcal Y$, often written as ``$\kappa(Y|X)$'', is a function $\kappa : X \times \mathcal G \to \mathbb R$, such that
+        \begin{enumerate}
+            \item For every $x \in X$, the map $\kappa(x, -) : \mathcal U \to [0,1]$ is a probability measure. (So $\kappa$ is also a cpd.)
+            \item For every $U \in \mathcal G$, the map $\kappa(-, U) : X \to [0,1]$ is a measurable function from $\mathcal X$ to the Borell space $[0,1]$;
+    \end{enumerate}
+    \end{defn}
+    
+    \begin{defn}[category of measurable spaces with base measure]
+        Let $\BaseMeas$ be the category of measureable spaces with a base measure, and Marov kernels with respec to the base measure.
+        Concretely,
+        \begin{align*}
+            \mathrm{ob}~\BaseMeas &= \Big\{ \text{pairs}~(\mathcal X, \lambda),
+                ~\text{where $\mathcal X$ is a mesurable space, and $\lambda$ is a measure on $\mathcal X$} \Big\}%\\
+        \end{align*}
+            % \BaseMeas(\lambda(X), \mu(Y)) &= \Big\{ \text{Markov Kernels $p(Y|X)$ such that} \\
+            % 
+            %     & \Big\}    
+            % \end{align*}
+        and the morphisms $\BaseMeas((\mathcal X, \lambda), (\mathcal Y, \mu))$ from $(\mathcal X, \lambda)$ to $(\mathcal X, \mu)$
+    \end{defn}
 
     \begin{defn}
-        A \emph{PDG structure}, or qualitative PDG, is a weighted directed graph $(\N, \A, \src, \tgt, \balpha)$, where $\N$ is the set of nodes, $\A$ is a set of arrows, the maps  $\src, \tgt: \A \to \N$ give the respective sources and targets of each arrow,  and $\balpha : \A \to \mathbb R$ is a real-valued weight for each arrow.
+        A \emph{PDG structure}, or qualitative PDG, is a weighted directed (multi)-graph $(\N, (\Ar, \src, \tgt), \balpha)$, where $\N$ is the set of nodes, while $\Ar$ together with the maps  $\src, \tgt: \Ar \to \N$ is a set of arrows betwen elements of $\N$ (For $a \in \mathcal A$, $\src(a)$ is the node at the source of the arrow, and $\tgt(a)$ is the node at the tail),  and $\balpha : \Ar \to \mathbb R$ gives a real-valued weight for each arrow.
     \end{defn}
     
     % \begin{defn}
@@ -405,7 +454,10 @@
     % \end{itemize}
     
     \begin{defn}
-        A PDG over a structure $(\N, \A, \src,\tgt, \balpha)$ is a functor $\mathrm{Paths}(\N,\A)$
+        An \emph{unweighted PDG} over a structure $(\N, \Ar, \src,\tgt, \balpha)$ is a functor $\mathrm{Paths}(\N,\Ar)$
+        \[ 
+            {\dg M} = (\V, \mat p)  : \mathrm{Free}(\N, \Ar) \to  \BaseMeas
+        \] 
     \end{defn}    
     
     
