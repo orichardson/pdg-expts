@@ -10,30 +10,30 @@
 
 \begin{document}
 	\section{Partial CPDs}
-	Suppose we want to encode only part of a cpd. Suppose $A, B$ are variables, and we want to say that if $A$ takes a particular value $a^*$, then $B$ is distributed according to some distribution $p(B)$. 	
+	Suppose we want to encode only part of a cpd. Suppose $A, B$ are variables, and we want to say that if $A$ takes a particular value $a^*$, then $B$ is distributed according to some distribution $p(B)$.
 	This is a little bit like the usual cpd that we would attach to an edge $A \to B$---it is a conditional belief on $B$ given $A$---but only for one particular value of $A$. By contrast, to supply a cpd $p(B | A)$ for such an edge, you would need to give a distribution on $B$ for \emph{all} values of $A$.
 	It turns out that the PDG formalism, without modification, is still expressive to allow you to specify this kind of information, with a little bit of extra structure which does not affect the semantics.
-	
+
 	Concretely, let's return to our example: we want to articulate a belief that $B \sim p$ if $A = a^*$, and say nothing otherwise.  We do this by introducing an auxiliary variable $X$, that can take a special value indicating that $A = a^*$, or any value of $B$. Now, supposing that $X$ takes the special value if and only if $A=a^*$, and otherwise takes the value of $B$, then there's a clear choice of distribution on $B$ given $X$: if $X$ takes its special value, we $\Pr(B) = p$. Otherwise, $\Pr(B)$ is a point mass on the value $b$. And this value of $X$ an be calculated from joint values of $B$ and $A$.  This PDG is illustrated below, with $\V(B) = \{b_1, b_1, \ldots b_n\}$.
-	
+
 	\begin{center}
 		\begin{tikzpicture}[center base]
 			\node[dpadded] (A) at (0,-0.5){$A$};
 			\node[dpadded, right=1.5 of A](B){$B$};
-			
+
 			\node[tpt={astar|$a^*$}] at (0.2,1.5) {};
 			\node[tpt={b1|$b_1$},right=0.35 of astar]{};
 			\node[tpt={b2|$b_2$},right=0.2 of b1]{};
 			\node[right=0.2 of b2] (bdots){$\cdots$};
 			\node[tpt={bn|$b_n$},right=0.2 of bdots]{};
-			
-			\node[Dom={$X$[label distance=-2em, xshift=-1.0em] (X) 
+
+			\node[Dom={$X$[label distance=-2em, xshift=-1.0em] (X)
 				around {\lab{astar}\lab{b1}\lab{bn}(1,1.65)}} ] {};
-			
-			
+
+
 			\mergearr[->>]{A}{B}{X}
 			\node[below=2pt of center-ABX]{$\varphi$};
-			
+
 			\draw[arr2] (X) to node[above right,yshift=-3pt]{$p$ or $b$} (B);
 		\end{tikzpicture}
 		\hspace{1cm}
@@ -48,59 +48,59 @@
 					\delta_{B=b} & \text{if $X = b$}
 				\end{cases}
 			\end{align*}
-			
+
 		\end{minipage}
 	\end{center}
 	\medskip
-	
+
 		This construction works because of the cycle, which in some sense peeks at the future to see the value of $B$ just in case $A \ne a^*$ and we don't want to indicate anything about the probability distribution on $B$. We now formalize the way in which it ``works'', semantically.
-	
-	
+
+
 		\begin{prop}[Semantics work appropriately]
 			\label{prop:sem1}
 		Let $\dg M$ be the PDG above.
 		\begin{enumerate}
-			\item 
+			\item
 				A distribution $\mu(A,B)$ shares marginals on $A$ and $B$ with some distribution $\mu(A,B,X)$ consistent with $\dg M$ if and only if $\mu(B \mid A = a^*) = p$.
 %				 That is,
-%				\[ \Big\{ \mu(A,B) ~\Big|~ \mu(A,B,X) \in \SD{\dg M}\Big\} = 
+%				\[ \Big\{ \mu(A,B) ~\Big|~ \mu(A,B,X) \in \SD{\dg M}\Big\} =
 %					\Big\{\mu(A,B) ~\Big|~ \mu(B\mid A \!=\! a^*) = p \Big\} .\]
 			\item The incompatibility of $\dg M$ with a distribution $\mu(A,B,X)$ that satisfies $\varphi$ is the just the expected diveregence between $B$ and $\mu$ when $A = a^*$. It is also the incompatibility of $\mu$ with the PDG $A \xrightarrow{q} B$ where $q(B|A = a^*) = p$ and $q(B \mid A = a'\ne a^*) = \mu(B\mid a')$, and is given explicitly by
 				\[ \Inc_{\dg M}(\mu:\Delta(ABX)) = \begin{cases}
 					+\infty& \text{if~}\mu(X \ne \varphi(A,B)) >0 \\
 					\Ex_\mu \Big[ \mathbbm1[{A\!=\!a^*}]  \kldiv{\mu(B\mid A\!=\!a^*)}{p} \Big] & \text{~otherwise.}
 				\end{cases} \]
-			
+
 			\item $\IDef{\dg M}(\mu)$ is the $\mu$-expected-surprise in discovering that either $A= a^*$ (if it occurs), or the full sample $(a,b)$ if $A \ne a^*$. That is,
 				\[ \IDef{\dg M}(\mu) =  \mu(A = a^*) \I_\mu[A = a^*] + \mu(A \ne A^*) \H(\mu \mid A = a^*). \]
-			
-			\item Regarding the PDG as a categorical diagram, its limit is the set consisting of $(a^*)$ and joint samples $(a,b)$ for $a \ne a$.  That is, 
+
+			\item Regarding the PDG as a categorical diagram, its limit is the set consisting of $(a^*)$ and joint samples $(a,b)$ for $a \ne a$.  That is,
 			\[ \lim \dg M = \{(a,b) : a \ne a^*, b \in B\} \cup \{ (a^*) \} \]
 		\end{enumerate}
 	\end{prop}
 	\medskip
 	\clearpage
 	\section{Guard Variables}
-	
+
 	We now show how to build a similar widget for a guard, not unlike the widget used to compile hypergraphs to PDGs with regular edges. This time, let's consider the scenario where there's a third, binary variable $G$ representing a guard, and you have a cpd $p(B \mid A) $ which you only believe if the guard is true. We can represent this with a similar widget.
-	
+
 	\begin{center}
 		\begin{tikzpicture}[center base]
 			\node[dpadded] (A) at (0,-0.5){$A$};
 			\node[dpadded, right=1.5 of A](B){$B$};
 			\node[dpadded, above=1 of A](G){$G$};
-			
+
 %			\node[dpadded, inner sep=0.8em, label={[label distance=-1.5em,shading = axis, top color=white, bottom color=black!04, xshift=2.2em]145:$G\,{?}A\,{:}\,B$}, text=gray] (GAB) at (3,1.5) {$\cong \V(A) \sqcup \V(B)$};
 			\node[dpadded, inner sep=0.8em, label={[label distance=-1.5em,shading = axis, top color=white, bottom color=black!04, xshift=-1.0em]145:$X$}, text=gray] (GAB) at (3,1.5) {$\cong \V(A) \sqcup \V(B)$};
-%			
-			
+%
+
 %			\mergearr[->>]{A}{B}{GAB}
 			\coordinate (cent) at (1.2, 0.5);
 			\draw[arr,-] (A) -- (cent) to[] (B);
 			\draw[arr,->>] (G) to[bend right] (cent) -- (GAB.south west);
 %			\node[below=2pt of cent]{$G\,{?}A\,{:}\,B$};
 			\node[below=2pt of cent]{$\varphi$};
-			
+
 			\draw[arr2] (GAB) to node[above right,yshift=-3pt]{$p$ or $b$} (B);
 		\end{tikzpicture}
 		\hspace{1cm}
@@ -112,17 +112,17 @@
 					\delta_{B=b} & \text{if } X = b \\
 				\end{cases}
 			\end{align*}
-			
+
 		\end{minipage}
 	\end{center}
 
-	With this widget, we can make all knowledge conditional, and 
-	
+	With this widget, we can make all knowledge conditional, and
+
 	\begin{prop}
 		Semantic properties analogous to \Cref{prop:sem1} hold for guard variables.
 	\end{prop}
 	\begin{prop}
 		A widget encoding a guard variable $G$ for a link $A \to B$, together with a belief $(\to G)$ that the guard is always true, is semantically equivalent to the original link $A \to B$, without a guard.
 	\end{prop}
-	
+
 \end{document}

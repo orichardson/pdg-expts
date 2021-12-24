@@ -51,9 +51,14 @@
 				\draw[arr, #1, shorten <=0] (#5) -- (#4);
 				}
 			\newcommand\unmergearr[4][]{
-				\coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
+				% \coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
+				\coordinate (center-#2#3#4) at (barycentric cs:#2=2,#3=1,#4=1);
 				\cunmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
 				}
+			\newcommand\lab[1]{(#1)(lab-#1)}
+			\tikzset{alternative/.style args={#1|#2|#3}{name=#1, circle, fill, inner sep=1pt,label={[name={lab-#1},gray!30!black, inner sep=1pt]#3:\scriptsize #2}} }
+			\tikzset{tpt/.style args={#1|#2}{alternative={#1|#2|below}} }
+			\tikzset{Dom/.style args={#1[#2] (#3) around #4}{dpadded, name=#3, label={[name={lab-#3},align=center,label distance=-1.9em, shading = axis, top color=white, bottom color=black!04, #2]120:#1}, fit={ #4 }, inner sep=0.5em}}
 
 	\relax % Most oli packages
 	    \usepackage{mathtools}
@@ -198,22 +203,25 @@
 
 
 % take off one-page restriction, for draft
-\makeatletter
-	\gdef\@outputpage{%
-	  \stepcounter{pagecount}%
-	  \ifnum\value{pagecount}>1\relax%
-	    % Do not output the page
-	    \PackageWarning{aistats_author_response}{Only one page allowed! Discarding any extra output.}
-	  \else \fi
-	  \latex@outputpage%
-	}
-	\makeatother
+% \makeatletter
+% 	\gdef\@outputpage{%
+% 	  \stepcounter{pagecount}%
+% 	  \ifnum\value{pagecount}>1\relax%
+% 	    % Do not output the page
+% 	    \PackageWarning{aistats_author_response}{Only one page allowed! Discarding any extra output.}
+% 	  \else \fi
+% 	  \latex@outputpage%
+% 	}
+% 	\makeatother
+
+\definecolor{revcolor}{rgb}{0.5, 0.5, 0.0}
+\newcommand\revc[1]{{\color{revcolor}#1}}
 
 \begin{document}
 
 
 \textbf{Confidences.}
-Reviewers \#5 and \#7 raise an important weakness of the presentation: we ought to say more about the confidence parameters, particularly $\beta$.
+\revc{Reviewers \#5} and \revc{\#7} raise an important weakness of the presentation: we ought to say more about the confidence parameters, particularly $\beta$.
 % $\beta$ (and clarify the auxiliary role of $\alpha$).
 % Choosing $\beta=0$ for a cpd $p$ means that $p$ is effectively ignored, in the sense that a PDG is semantically equivalent to one without $p$.
 %TODO:
@@ -223,8 +231,20 @@ Chosing $\beta=0$ in a cpd $p$
 %of a PDG $\dg M$ is
 means that $p$ is effectively ignored, in the sense that such a PDG is semantically equivalent to one in which the edge is attached to a different cpd $q \ne p$.
 %
-On the other hand, setting $\beta$ to a large real number (or $\infty$) indicates high (or absolute) confidence in $p$.  This is particularly appropriate if $p$ is a trusted empirical distribution and the other edges are randomly initialized networks.
-In other cases, different choices of $\beta$ may be appropriate, such as in the concrete example below.
+On the other hand, setting $\beta$ to a large real number (or $\infty$) indicates high (or absolute) confidence in $p$.  This is particularly appropriate if $p$ is a trusted empirical distribution
+% from a huge number of samples.
+and the other edges are randomly initialized networks.
+% In other cases, such as the one detailed below, different choices of $\beta$ may be appropriate for the data distribution.
+In other cases (see below), a different choice of $\beta$ may be appropriate.
+% impacts the choice of loss function for generative models and divergences.
+Figure 1 doubles as a map of how $\beta$
+affects the loss for generative models.
+
+
+% for instance, if the model is
+% for instance, the Bhattacharya distance: a loss that is much smaller if the the model does not generate a training point ($\exists x. p(x) \ll q(x)$).
+% Read Figure 1 with this interpretation of $p$ and $q$ for a detailed map of how the choice of $\beta$
+% we give a concrete example below.
 % perhaps one has a very good pre-trained model ($q$) and partially corrupted training data ($p$).
 % % In such a case, we might give both $p$ and $q$ the same confidence, and thereby obtain the Bhattacharya distance, a symmetric measure that is less sensitive
 % We might then give both $p$ and $q$ the same confidence, say $\nf k2$,
@@ -234,10 +254,6 @@ In other cases, different choices of $\beta$ may be appropriate, such as in the 
 % % the Bhattacharya distance: a loss that punishes cases where the model does not generate a training point ($\exists x. p(x) \ll q(x)$) less severely.
 % the Bhattacharya distance: a loss that is much smaller if the model does not generate a training point ($\exists x. p(x) \ll q(x)$).
 
-% Read Figure 1 with this interpretation of $p$ and $q$ for a detailed map of how the choice of $\beta$
-Review Figure 1 with this interpretation of $p$ and $q$ for a map of how the choice of $\beta$
-% impacts the choice of loss function for generative models and divergences.
-impacts the loss function.
 %
 % The case
 
@@ -247,7 +263,7 @@ impacts the loss function.
 % - all other results hold for all values of \alpha.
 
 % Reviewer \#7 asks about our choice of default values of $\beta\!=\! 1$ and $\alpha\!=\! 0$.
-Reviewer \#7 asks about our choice of default values of $\beta$ and $\alpha$.
+\revc{Reviewer \#7} asks about our choice of default values of $\beta$ and $\alpha$.
 % The default $\beta\!=\!  1$ is essentially a convenient choice of units---a default of $\beta \!=\! 2$ would behave the same way, since doubling every $\beta$ simply doubles the inconsistency.
 The default $\beta\!=\! 1$ is just a convenient choice of units---what’s important are the magnitudes of $\beta$ relative to each other (and to $\gamma$, for $\gamma$-inconsistency).
 % (and to $\gamma>0$, for $\gamma$-inconsistency).
@@ -269,7 +285,7 @@ We chose a default of $\alpha\!=\! 0$ to suggest a lack of causal modeling%
 % (the qualitative score reduces to negative entropy)%
 , but in retrospect it was a mistake to have a default at all; %---%
 % as Reviewer \#7 points out, $\alpha\!=\! 0$ default is inappropriate in cases where the modeler ought to be more confident of the functional dependencies.
-as Reviewer \#7 points out, $\alpha\!=\! 0$ is inappropriate when the modeler has reason to be confident in a functional dependence.
+as \revc{Reviewer \#7} points out, $\alpha\!=\! 0$ is inappropriate when the modeler has reason to be confident in a functional dependence.
 %
 % This issue is easly fixed though, since all results hold for every choice of alpha except in the two places where we explicitly choose a different value of $\alpha$.
 % This is a problem, but only a superficial one: our results hold for every choice of alpha except
@@ -277,7 +293,7 @@ This is only a superficial problem.
 % Because $\aar{\dg M}$ does not depend on $\balpha$,
 Since $\aar{\dg M}$ does not depend on $\balpha$,
 % Our results hold for all choices of $\balpha$, except for in Prop 13 where we explicitly set $\balpha \!=\! \bbeta$ to get the correspondence with factor graphs, and at the end of \S8 where we set $\alpha \!=\! 1$ to enforce independence.
-Our results hold for all choices of $\balpha$, except the two places where we use $\gamma$-inconsistency: in Prop 13 where we explicitly set $\balpha \!=\! \bbeta$ to get the correspondence with factor graphs, and at the end of \S8 where we set $\alpha \!=\! 1$ to enforce independence.
+our results hold for all choices of $\balpha$, except for the two places where we use $\gamma$-inconsistency: in Prop 13 where we explicitly set $\balpha \!=\! \bbeta$ to get the correspondence with factor graphs, and at the end of \S8 where we set $\alpha \!=\! 1$ to enforce independence, as where PDGs capture BNs.
 %\cite{richardson2020probabilistic}.
 % Richardson and Halpern (2021).
 % (only Proposition 14, and the discussion in Section 9).
@@ -302,23 +318,202 @@ Our results hold for all choices of $\balpha$, except the two places where we us
 % two concerns: if answer this way, highlights the issue that it's
 % another
 
-Reviewer \#7 also asks specifically about the choices of $\beta$ in Prop 11.
+% Reviewer \#7 also asks specifically about the choices of $\beta$ in Prop 11.
 % The short answer is that the choices reflect the rationale for doing variational inference in the first place. It is difficult to compute the inconsistency of the PDG with only $x$ and $p$, so out of pragmatics one guesses $q(Z)$ to draw samples of $Z$;  but this only helps if we insist that $Z$ is distributed according to $q$ (i.e., we set $\beta_q := \infty$). At this point, changing $\beta_p$ from 1 to some $k \in \mathbb R$ simply multiplies the inconsistency by $k$, as discussed above; the default value of $\beta=1$ is simply a convenient choice of units.
-In short, it reflects the assumptions made by the variational approach: by computing the loss with a Monte Carlo estimate of $Z$ sampled from $q$, one acts as if highly confident in $q$.
+\revc{Reviewer \#7} also asks specifically about the choice of $\beta$ in Prop 11.
+% For Reviewer \#7: the choice of $\beta$ in
+In short, it reflects assumptions made by the variational approach: by taking the expectation over $q$, one acts as if highly confident in $q$.
 % Now, as above, selecting $\beta_p=1$ is essentially just a concise choice of units.
-Now, as above, the default selection of $\beta_p=1$ is just a concise choice of units.
+% Now, as above, the default selection of $\beta_p=1$ is just a concise choice of units.
 % by changing $\beta_p$ from 1 to some $k \in \mathbb R$ simply scales the inconsistency by $k$ widthout changing the shape of the loss function.
 
-\textbf{Worked Example.}
-Reviewers \#4 and \#5 ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
+% \begin{minipage}{0.90\textwidth}
+\textbf{A Concrete Example.}
+% TODO: Is this right?
+\revc{Reviewer \#3} asks how this fits into a modeling workflow, while
+\revc{Reviewers \#4 and \#5} ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
+When a loss function is standard in some context, it is usually for good reason---but with enough moving parts, cobbling standards together may not be ideal.
+% But sometimes, the standard  loss is used in a different context.
+Suppose we want to train a predictor network $h(Y|X)$ from two sources of information: partially corrupted data with emperical distribution $d(X,Y)$, and a simulation with distribution $s(X,Y)$.
+If the simulation is excellent and the data unsalvagable, we would have high confidence in $s$ and low confidence in $d$, which amounts to training with cross entropy from $s$%
+% (i.e., $-\Ex_s \log h(Y|X)$).
+, $\Ex_s [\log \nf1{h(Y|X)}]$.
+Conversely, we would use cross entropy from $d$ if the simulation were bad and the data mostly intact.
+% ($\Ex_d \log h(Y|X)$).
+% A slightly less standard situation occurs when we are equally confident in both
+% The situation becomes more interesting one is not so confident in either.
+% What if neither totally dominates the other?
+What if we're not so confident in either?
+
+% \textbf{Backwards.}
+One approach a practitioner might find attractive is to make a dataset from samples of both $s$ and $d$%
+% (from $\lambda_s N$, $\lambda_d N$ samples),
+, or equivalently, train with a conic combination $\mathcal L_1 := \lambda_0 \Ex_{s} \log \nf{1}{h(Y|X)} + \lambda_1 \Ex_{d} \nf{1}{ \log h(Y|X)}$ of the two previous cross entropies, where $\lambda_0, \lambda_1 \ge 0$.
+Either way, this amounts to training $h$ with cross entropy with respect to the  mixture $\lambda_0 s + \lambda_1 d$.
+Doing so treats $d$ and $q$ as disjoint, and so redundancy in $d$ and $s$ is not used to correct errors---a fact on display when we present the modeling choices in PDG form: $\mathcal L_1 = \aar{\dg M_1}$. In $\dg M_1$, the swich variable $Z$ changes whether samples come from $s$ or $d$
+% with probability $\lambda(Z) := \frac{1}{\lambda_0\!+\!\lambda_1}[\substack{\lambda_0\\\lambda_1}]$.
+with respective probabilities $\lambda(Z\!=\!0) = \frac{\lambda_0}{\lambda_0 + \lambda_1}$ and
+$\lambda(Z\!=\!1) = \frac{\lambda_1}{\lambda_0 + \lambda_1}$.
+% INSERT-REF.
+
+\vspace{-2.5ex}
+\[
+\dg M_1 :=
+\begin{tikzpicture}[center base]
+	% \node[dpad0] (Z) at (-0.2,0) {$Z$};
+	\node[tpt={z0|$0$}] at (-0.5,0.1) {};
+	\node[tpt={z1|$1$},right=0.15 of z0]{};
+	\node[Dom={$Z$[label distance=-1.5ex, xshift=1.0em] (Z)
+		around {\lab{z0}\lab{z1}}} ] {};
+
+	% \node[dpad0,align=center] (XY) at (1.8,0) {$XY$}; %{$X$\\[-0.3ex]$Y$};
+	\node[dpad0] (X) at (1.8, 0.6) {$X$};
+	\node[dpad0] (Y) at (1.8, -0.6) {$Y$};
+	\coordinate (xyz) at (1.3, 0);
+	\draw[arr1, <-] (Z) to
+		node[above, pos=0.6]{$\lambda$}
+		% node[above, pos=0.6]{$\frac{1}{\lambda_0+\lambda_1}[\lambda_0, \lambda_1]$}
+		node[below,inner sep=1pt, pos=0.6]{${\color{gray}\scriptstyle( \infty )}$}
+		+(-1.3, 0);
+	% \node at (-1,-0.6) {\small where $\lambda(Z) = \frac{\lambda_Z}{\lambda_0+\lambda_1}$};
+	% \node at (0,-0.6) {\small where $\lambda(Z) \propto \lambda_Z$};
+	\draw[arr1] (X) to node[right,pos=0.4]{$h$} (Y);
+	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
+		% node[fill=white, inner sep=0pt, pos=0.55]
+		% node[inner sep=1pt, pos=0.55]
+		node[above, inner sep=1pt, pos=0.55]
+			% {$Z?d:s$}
+		% {$\begin{bmatrix}d \text{ if } Z\\[-0.3ex] s \text{ else}\end{bmatrix}$}
+		{$\begin{matrix}d \text{ if } Z\!\!=\!\!1\\[-0.3ex]
+			% s \text{ else}\end{matrix}$}
+			\text{else }s\end{matrix}$}
+		% node[above, inner sep=2pt, pos=0.68]
+		% 	{${\color{gray}\scriptscriptstyle(r)}$}
+		node[below,inner sep=1pt]{${\color{gray}\scriptstyle( \infty )}$}
+		(xyz);
+	\draw[arr2, shorten <=0pt] (xyz) to (X);
+	\draw[arr2, shorten <=0pt] (xyz) to (Y);
+\end{tikzpicture}
+% \text{where }
+% \lambda(Z) =  \frac{1}{\lambda_0\!+\!\lambda_1}
+% \begin{bmatrix}
+% 	\lambda_0 \\\lambda_1
+% \end{bmatrix}
+\qquad
+\dg M_2 :=
+\begin{tikzpicture}[center base]
+	\node[dpad0] (X) at (0, 0.6) {$X$};
+	\node[dpad0] (Y) at (0, -0.6) {$Y$};
+	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$}
+			% node[below=0pt,inner sep=1pt,rotate=90]{${\color{gray}\scriptstyle(\!\alpha{:}0\!)}$}
+			node[right=0pt,inner sep=1pt]{${\color{gray}\scriptstyle(\alpha{:}0)}$}
+		(Y);
+
+	\coordinate (d0) at (1.8, 0);
+	\coordinate (s0) at (-1.3, 0);
+	\node[above left=1pt and 0.5em of d0] {$d$};
+	\node[below left=0pt and -1em of d0]{${\color{gray}\scriptstyle
+		\renewcommand{\arraystretch}{.8}
+		\begin{pmatrix} \scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta:1 \end{pmatrix}}$};
+	\node[above right=1pt and 0.5em of s0] {$s$};
+	\node[below right=0pt and -1em of s0]{${\color{gray}\scriptstyle
+		\renewcommand{\arraystretch}{.8}
+		\begin{pmatrix}\scriptstyle
+		\alpha: 1 \\[-0.2ex] \scriptstyle \beta: 1 \end{pmatrix}}$};
+
+	\unmergearr{s0}XY
+	\unmergearr{d0}XY
+% 	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
+% 		node[fill=white, inner sep=0pt, pos=0.55]
+% 			% {$Z?d:s$}
+% 			{$\begin{bmatrix}d\\[-0.3ex] s\end{bmatrix}$}
+% 		% node[above, inner sep=2pt, pos=0.68]
+% 		% 	{${\color{gray}\scriptscriptstyle(r)}$}
+% 		(xyz);
+% 	\draw[arr2, shorten <=0pt] (xyz) to (X);
+% 	\draw[arr2, shorten <=0pt] (xyz) to (Y);
+% ode[dpad0] (X) {};
+\end{tikzpicture}
+\qquad
+% \dg M_2 :=
+% \begin{tikzpicture}
+% 	\node[dpad0] (X) {};
+% \end{tikzpicture}
+% \qquad
+\dg M_3 :=
+\begin{tikzpicture}[center base]
+	\node[dpad0] (X) at (0, 0.6) {$X$};
+	\node[dpad0] (Y) at (0, -0.6) {$Y$};
+	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$} (Y);
+
+	\coordinate (d0) at (1.3, 0);
+	\coordinate (s0) at (-1.3, 0);
+	\node[above left=1pt and 0.5em of d0] {$d$};
+	\node[below left=0pt and 0.2em of d0]{${\color{gray}\scriptstyle( \lambda_1 )}$};
+	\node[above right=1pt and 0.5em of s0] {$s$};
+	\node[below right=0pt and 0.2em of s0]{${\color{gray}\scriptstyle( \lambda_0 )}$};
+
+	\unmergearr{s0}XY
+	\unmergearr{d0}XY
+% 	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
+% 		node[fill=white, inner sep=0pt, pos=0.55]
+% 			% {$Z?d:s$}
+% 			{$\begin{bmatrix}d\\[-0.3ex] s\end{bmatrix}$}
+% 		% node[above, inner sep=2pt, pos=0.68]
+% 		% 	{${\color{gray}\scriptscriptstyle(r)}$}
+% 		(xyz);
+% 	\draw[arr2, shorten <=0pt] (xyz) to (X);
+% 	\draw[arr2, shorten <=0pt] (xyz) to (Y);
+% ode[dpad0] (X) {};
+\end{tikzpicture}
+\qquad
+\]
+\vspace{-2ex}
+
+% A second approach: use something like
+% % $\mathcal L = \sum_{x\sim } h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}$
+% $\smash{\Ex_{x\sim m} h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}}$.
+Our practitioner now tries a different approach: draw data samples $(x,y) \sim d$ but discount $h$'s surprisal when the simulator finds the point unlikely, via loss $\mathcal L_2 := \Ex_{d} [s(\mkern-2muX\!,\!Y\mkern-2mu) \log \nf1{h(Y|X)}]$.
+This is the cross entropy with respect to the (unnormalized) product density $ds$, which in many ways is appropriate.
+However, by this metric, the optimal predictor $h^*(Y|x) \propto d(Y|x) s(Y|x)$ is uncalibrated.
+If the data and simulator agree ($d \!=\! s$), then we would want $h(Y|x) \!=\! s(Y|x)$ for all $x$, but instead we get $h^*(Y|x) \propto s(Y|x)^2$.
+So $h^*$ is overconfident.
+What went wrong?
+% $\mathcal L_2$ is not easily written as an inconsistency using $s,h,$ and $d$, but it can be written as the 1-inconsistency
+% $\mathcal L_2$ cannot be written as an inconsistency unless we also take the quailtative score into account, in which case it equals $\aar{\dg M_2}_1$.
+% $\aar{\dg M_2 \text{ with } \alpha_d,\alpha_s \!:=\!1;~\alpha_h\!:=\!0}_1$.
+% $\aar{\dg M_2 \text{ with } \alpha_d,\alpha_s \!:=\!1;~\alpha_h\!:=\!0}_1$.
+% Although $\balpha$ is not the focus of the present paper, these values are problematic: they indicate an overdetermination of $X \times Y$, and as a consequence $h^*$ is more deterministic than it should be.
+The simplest PDG account of $\mathcal L_2$ is the 1-inconsistency $\aar{ \dg M_2 }_1$, but the values of $\balpha$ in $\dg M_2$ indicate an over-determination of $XY$ (it's determined in two ways),
+  and so $h^*$ is more deterministic than it should be.
+By contrast, $\aar{\dg M_3}$ does not have this issue: its optimal $h$ is proportional the $\lambda$-weighted geometric mean of $s$ and $d$.
+% Both losses of the initial approach also arise from PDGs, and the lack of calibration in the second stems from strange modeling assumptions.
+The discussion at the end of \S8 and Appendix C.1.2 gives another calibration example.
+% We will add this example to the appendix as well.
+% This example addresses Reviewer \#3's concern: thinking about what's going on is more than pedagogy; it is a valuable first step in the modeling workflow!
+% For \revc{Reviewer \#4}: viewing losses through the same lens like this makes it possible to analyze and choose loss functions uniformly, as we say in the introduction.
+% To address \revc{Reviewer #3}: this ; describing what's going on is a valuable safeguard first step in the modeling workflow.
+To address \revc{Reviewers \#3 and \#4}: this unified view can suggest more appropriate loss functions and better approaches to a problem; clear thinking is not just about pedagogy.
+% In our telling, this is backwards, since the losses of both approaches also come from PDGs, but less reasonable ones
+
+
+% \textbf{With a PDG.}
+% the Bhattacharya distance: a loss that is much smaller if the t. does not generate a training point ($\exists x. p(x) \ll q(x)$).
+% % the Bhattacharya distance: a symmetric measure that punishes cases where the model does not generate a training point ($p \ll q$) less severely.
+% % the Bhattacharya distance: a loss that punishes cases where the model does not generate a training point ($\exists x. p(x) \ll q(x)$) less severely.
+%
+% If the $\beta_s = \beta_q$, then the loss function that arises are
+% If the $p,q$ have corresponding confidences $\beta_p$ and $\beta_q$, then the cpd $h(Y|X)$ that minimizes the inconsistency will be proportional to $p(Y|X)^{\beta_P} q(Y|X)^{\beta_q}$.
+% So, it will be smaller if there's
+
 
 
 % \textbf{Cases where PDGs and the Standard Diverge.}
-\textbf{Discrepency betwen PDG inconsistency and common losses.}
-% Reviewers \#4 and \#5 ask for an example where the PDG gives a non-standard loss that is in some sense better than what a practitioner might think to use.
-Reviewers \#4 and \#5 ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
-% Before that, we'd like to first give the field some credit: in settings where a loss function is standard, it is usually for good reason.
-First, we'd like to give the field credit: in settings where a loss function is standard, it is usually for good reason.
+% \textbf{Discrepency betwen PDG inconsistency and common losses.}
+% % Reviewers \#4 and \#5 ask for an example where the PDG gives a non-standard loss that is in some sense better than what a practitioner might think to use.
+% Reviewers \#4 and \#5 ask for a practical example in which it is common to use one function, but a different, (better) one arises from the appropriate PDG.
+% % Before that, we'd like to first give the field some credit: in settings where a loss function is standard, it is usually for good reason.
+% First, we'd like to give the field credit: in settings where a loss function is standard, it is usually for good reason.
 %
 %
 %%% REVIEW: Fold back in?
@@ -326,25 +521,18 @@ First, we'd like to give the field credit: in settings where a loss function is 
 % Yet, as in Section 6.1, PDGs can still clarify the extra modeling assumptions we make for tractability.
 %% Yet, as in Section 6.1, PDGs can still describe the modeling assumptions we use to gain tractability.
 
-% Now for the examples: one non-standard, and one impractical.
-Now for the examples.
-Suppose we would like to train a predictor network $h(Y|X)$ a partially corrupted emperical distribution $d(X,Y)$, and an analytical model $q(X, Y)$.
-One first approach in applied ML might be to use the sum of the two cross entropies:
-% $- 2 \Ex_{x,y \sim {\nf12(d + q)}} \log h(y|x)$. This fits $h$ to the mixture $\frac12 (d + q)$,
-$- 2 \Ex_{m} \log h(Y|X)$, where $m := \nf12(d + q)$. This loss fits $h$ to $m$, effectively
-treating $d$ and $q$ as disjoint; the redundancy is not used to correct errors.
-A second approach: use something like
-% $\mathcal L = \sum_{x\sim } h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}$
-$\smash{\Ex_{x\sim m} h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}}$.
-Now the optimal predictor predictor will be $h_x \propto d_x q_x$, which is uncalibrated: if the data and model agree exactly ($d \!=\! q$), then for all $x$ we would want $h \!=\! q(Y|x)$, but instead we get $h(Y|x) \propto q(Y|x)^2$, which is overconfident.
-By contrast, the inconsistency of a PDG containing $q, d$, and $h$, gives an optimal predictor  proporitional to the $\beta$-weighted geometric mean of $q$ and $d$.
-% Note that both approaches also arise from PDGs, corresponding to different models.
-% Both losses of the initial approach also arise from PDGs, and the lack of calibration in the second stems from strange modeling assumptions.
-The discussion at the end of \S8 and Appendix C.1.2 gives another example in which PDGs unexpectedly yield a calibrated loss.
-% In our telling, this is backwards, since the losses of both approaches also come from PDGs, but less reasonable ones
+% % Now for the examples: one non-standard, and one impractical.
+% Now for the examples.
+% Suppose we would like to train a predictor network $h(Y|X)$ a partially corrupted emperical distribution $d(X,Y)$, and an analytical model $q(X, Y)$.
+% One first approach in applied ML might be to use the sum of the two cross entropies:
+% % $- 2 \Ex_{x,y \sim {\nf12(d + q)}} \log h(y|x)$. This fits $h$ to the mixture $\frac12 (d + q)$,
+% $- 2 \Ex_{m} \log h(Y|X)$, where $m := \nf12(d + q)$.
+% This loss fits $h$ to $m$, effectively
+% treating $d$ and $q$ as disjoint; the redundancy is not used to correct errors.
+
 
 \textbf{Motivating VAEs.}
-Reviewer \#3 points out that a VAE is already associated with a graphical model.
+\revc{Reviewer \#3} points out that a VAE is already associated with a graphical model.
 % While this is true, that graphical model is only a simple Bayesian Network made up of the prior and decoder; and encodes neither the encoder nor the loss function---it is associated with the VAE for good reason, but falls short of capturing it.  Our observation: simply include the encoder in addition (as is only possible in a PDG), and one also captures the loss function for free.
 While this is true, that graphical model only partially describes the VAE, as it consists of the prior and decoder, but not the encoder.
 % Our observation: simply include the encoder as well, as is only possible in a PDG, since the encoder and prior might be inconsistent with each other), to also obtains the loss function for free.
@@ -353,33 +541,42 @@ Moreover, we get the loss function for free by doing so, as the resulting incons
 %
 %TODO: do I want space here?
 %
-Reviewer \#3 also pushes back on our claim that the ELBO is difficult to motivate,
+\revc{Reviewer \#3} also pushes back on our claim that the ELBO is difficult to motivate,
 % with reference to
 citing
-the fact that the ELBO is a tractable lower bound on the log likelihood (a simple derivation that we give in Section 6.1).  This is indeed the standard motivation,
+the fact that the ELBO is a tractable lower bound on the log likelihood (a simple derivation that we review in Section 6.1).  This is indeed the standard motivation,
 but it is arguably incomplete---%
 % but we find it unsatisfying---%
-the constant
-% $-\infty$
-\texttt{FLOAT\_MIN}
-satisfies these criteria, but is still a poor loss function.
-Of possibly many lower bounds, why use this one? What does the ELBO represent? Does it have units? Why is it negative?  Why use the logarithm instead of another concave function?
+% the constant
+% % $-\infty$
+% \texttt{FLOAT\_MIN}
+a constant encoding the smallest representable number on a computer
+% satisfies these criteria,
+is a tractable lower bound,
+but still a poor loss function.
+Of possibly many lower bounds, why use this one? What does the ELBO represent?
+% Does it have units?
+Why is it negative?
+Why use the logarithm instead of another concave function?
 % There are good answers to these questions, but not, in our view, simple ones.
-There are good answers to these questions, but not, in our view, simple ones.
+Such questions are all easy to answer with PDG semantics. There are other answers to these questions, but not, in our view, simple ones.
 
 
+\textbf{What Now?} \revc{Reviewers \#5 and \#6} wonder where to go from here. Among other things, we are working out solid grounding of $\balpha$ in causality,  tractable inference algorithms for PDGs, and a view of probabilistic databases as PDGs.
 
-\textbf{A PDG Modeling Workflow.}
-Reviewer \#3 asks whether there's a contribution here beyond pedagogy that could aid learning or inference.
-Reviewer \#4 wants more discussion on the advantages of seeing losses through the same lens, while Reviewer \#6 wonders where to go from here.
-%
-We think it possible that PDGs will replace the entire modeling workflow.
-Beyond what we've shown here, PDGs can already describe network architectures, datasets, straight-line code.
-% We suspect we will also be able to fold in databases
-% And, unlike other approaches, one can design them from the middle outwards, without always needing to have a consistent data-generating process.
-Unlike other approaches, they can be easily recombined, built from the middle outwards, without a consistent data-generating process.
-What's missing, of course, are automated inference procedures, and tooling.
-On its own, this paper may be only good for pedagaogy and for defending a choice of loss function---but stay tuned.
+
+% \textbf{A PDG Modeling Workflow.}
+% Reviewer \#3 asks whether there's a contribution here beyond pedagogy that could aid learning or inference.
+% Reviewer \#4 wants more discussion on the advantages of seeing losses through the same lens,
+% while Reviewer \#6 wonders where to go from here.
+% %
+% We think it possible that PDGs will replace the entire modeling workflow.
+% Beyond what we've shown here, PDGs can already describe network architectures, datasets, straight-line code.
+% % We suspect we will also be able to fold in databases
+% % And, unlike other approaches, one can design them from the middle outwards, without always needing to have a consistent data-generating process.
+% Unlike other approaches, they can be easily recombined, built from the middle outwards, without a consistent data-generating process.
+% What's missing, of course, are automated inference procedures, and tooling.
+% On its own, this paper may be only good for pedagaogy and for defending a choice of loss function---but stay tuned.
 
 % \usebibliography
 \end{document}
