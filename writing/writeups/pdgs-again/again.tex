@@ -1,6 +1,4 @@
-
 \documentclass[twoside]{article} % PREAMBLE
-
     \relax % Controls
         \newif\ifmarginprooflinks
         	\marginprooflinkstrue
@@ -137,6 +135,9 @@
     	\crefname{defn}{Definition}{Definitions}
     	\crefname{prop}{Proposition}{Propositions}
         \crefname{issue}{Issue}{Issues}
+        
+    \relax %%% %SETS %%%%
+        \newcommand{\BaseMeas}{\mathbf{BasedMeas}}
 
     \relax %%%%%%%%% GENERAL MACROS %%%%%%%%
         \let\Horig\H
@@ -185,7 +186,14 @@
     	\newcommand{\bP}[1][L]{\mat{P}\ssub{#1}}
     	\newcommand{\V}{\mathcal V}
     	\newcommand{\N}{\mathcal N}
-    	\newcommand{\Ed}{\mathcal E}
+        %replace this!
+    	\newcommand{\Ed}{\mathcal A {(\color{red}\text{not }\mathcal E)}}
+    	\newcommand{\Ar}{\mathcal A}
+        
+        \newcommand{\bsrc}{\mathbf{Trc}}
+        \newcommand{\btgt}{\mathbf{Tgt}}
+        \newcommand{\src}{\mathrm{Src}}
+        \newcommand{\tgt}{\mathrm{Tgt}}
 
         \newcommand{\balpha}{\boldsymbol\alpha}
         \newcommand{\bbeta}{\boldsymbol\beta}
@@ -366,255 +374,190 @@
 
 % \twocolumn
 \setlength\parskip{1ex}
+\usepackage[margin=1.0in]{geometry}
 
-\usepackage{parskip}
-\usepackage[margin=1in]{geometry}
+% \usepackage{arabtex}
+
 
 \begin{document}
-    What do the confidence parameters $\balpha$ and $\bbeta$ mean? 
-    I will give a number of different answers to this question.
-    
-    
-% \section{}
-% What matters is the values of $\beta$ relative to one another
-    
-\section{Trust and Dominance}\label{sec:trust-dominance}
-    % One simple solution to \cref{issue:conflictconfidence} is to slightly alter the names and interpretations of the parameters $\balpha, \bbeta$, so as to clarify their differences and their roles in the model.
-    % Indeed, even if we do provide an explanation of the parameters in terms of more basala
-    % 
-    % if we are to retain the PDG semantics the way that they currently work.
-    % 
-    % I propose calling $\bbeta$ ``trust'', and $\balpha$ ``dominance''.
-    
-    
-    \subsection{Trust}
-    
-    We have said before that what's important is not the absolute value of $\beta_L$, but rather the values of $\beta$ relative to one another (and to $\gamma$).
-    
 
+% THE CONCRETE, DOABLE PLAN
+% - PDG definition given more carefully in general setting (measurable spaces), 
+%       in terms of diagrams of the right shape
+% ? (gamma) Inc + (1-gamma) IDef version
+% - Free Energy is added to IDef, so it is positive.
+%
+%
+% IDEALLY
+% - characterize a universal property of PDGs 
+% - and their inconsistency (which is superlinear / concave)
+
+    The idea is to start from the beginning, in a more advanced way, clarifying the underlying mathematics, and showing the meanings of the parameters in 
     
-    \textbf{Measuring Trust.}    
-    % We measure trust in $\bbeta$ disutility per error.
-    % Each unit of discrepency a highly trusted information and reality is painful (the pain of betrayed trust).
-    One way of measuring trust ($\beta$) is in units of disutility per error: errors in highly trusted information are painful, while it violations of untrusted information do not cause pain. 
-    Recall that utilities behave identically when scaled uniformly by a positive constant.
-    So, units of disutils per error reflect the fact that scaling every $\beta$ (and $\gamma$) by a positive constant $k$ results in qualitatively identical semantics: whether one distribution scores higher than another does not depend on this choice of scale. 
+    \section{Foundations}
     
-    To be a little more careful, we may want to regard beliefs (probabilistic information and confidence) as separate from utility.  
-    % In this interperetation, the mathematics is the same, but rather than utility, we now turn to the (higher order) \emph{negative log likelihood} (NLL), which we submit is an analog of disutility for beliefs. 
-    To this end, we consider an analog of disutility for beliefs --- that is, an ``unlikeliness'' function $V(\mu)$ on joint distributions, which takes larger values the less likely we think $\mu$ is. The scoring function of a PDG is an example of such a function. 
-    Now, given such a function $V(\mu)$ and some constant $k$, consider the following transformation of it:
-    \[ \Pr(\mu) \propto \exp( -k V(\mu)).\]
-    This way of turning ``unlikeliness/badness'' into probabilitiy distributions is standard and well-justified in statistical mechanics, where it is known as a Boltzman distribution.
-    This transformation is invertable. Given the higher order probability $\Pr(\mu)$, we can write $V(\mu) = - k \log \Pr(\mu) + C$ for some constant $C$.  Note that as $k \to \infty$, $\Pr(\mu)$ becomes concentrated entirely on the minimizer(s) of $V$, so if $V$ has a unique minimum, $\Pr$ becomes a point mass on the least-bad distribution $\mu^*$. Note also that the $C$ is destroyed when we normalize the distribution $\Pr$, and scaling of $V(\mu)$ by a positive constant doesn't affect the limit as $k \to \infty$ --- so the constants $C$ and $k$ absorb positive affine transformations, which is one reason we liken it to a utility.
     
-    In any case, if we're interested in modeling a higher-order distribution $\Pr(\mu)$; we have now seen that it suffices to model $V(\mu)$ instead, since it contains the same information. 
-        
-    With this context in mind, let's return to $\beta$.  
-    % We have a collection of cpds, each of which has confidence. 
-    % We're trying to build $V(\mu)$, from a collection of cpds and confidences.
-    % $\beta_L$
-    In the context of a PDG, the modeler has given a collection of cpds and a value indicating how much to trust each one. 
-    Given only this information, it seems natural that distributions $\mu$ that are ``further away'' from a cpd should be less likely, and more so if the cpd is highly trusted. So:
-    \begin{enumerate}
-        \item A large value of $\beta_L$, which states that the cpd $p \ssub L(Y|X)$ is highly trusted, means that distributions $\mu$ that deviate from it significantly are very unlikely. 
-        \item A value of $\beta_L = 0$ indicates that the associated cpd $p\ssub L(Y|X)$ is \emph{un}trusted should not influence the calculus, and may as well be replaced with another. 
-        \item Negative values of $\beta_L$ indicate that being close to the cpd $p\ssub L(Y|X)$ makes a distribution $\mu$ \emph{less} likely, indicating that $p$ is actively \emph{dis}trusted.
+    \subsection{Category Theory}
+    \begin{defn}[Free category of a graph]
+        If $G = (N, A)$ is a directed (multi) graph with nodes $N$ and arrows $A$, the \emph{free category generated by $G$} is the category $\mathrm{Paths}(N,A)$ whose objects are the elements of $N$, and whose set of morphisms from $x$ to $y$, for $x,y \in N$, is the collection of paths from $x$ to $y$.
+        % , generated by the arrows of $A$ and identity self-loops from variables to themselves. 
+        % 
+        % \begin{align*}
+        %     \mathrm{ob}~
+        % \end{align*}
+    \end{defn}
+    
+    \subsection{Measure Theory}
+    
+    \begin{defn}[Measurable Space]
+        A measurable space is a pair $(X, \mathcal F_X)$, where $X$ is a set, and   $\mathcal F_X$ is a sigma-algebra over $X$, which is to say a set of subsets of $X$, containing the empty set, and closed under countable union, intersection, and complement with respect to $X$.
+        The elements of $\mathcal F_X$ are referred to as measurable sets.
+    \end{defn}
+    
+    \begin{defn}[Measure]
+        A \emph{measure} $\lambda$ over a measurable space $(X, \mathcal F)$ is a function $\lambda : \mathcal F \to \mathbb R \cup \{\infty\}$, with the follwing properties.
+        \begin{itemize}[itemsep=0pt]
+            \item \textbf{Null Empty Set.} $\lambda(\emptyset) = 0$
+            \item \textbf{Non-negativity.} $\lambda(U) \ge 0$ for all $U \in \mathcal F$
+            \item \textbf{Countable additivity.} For every coutable collection $\{U_i\}$ of pairwise disjoint measurable sets $U_i \in \mathcal F$, we have that
+             $\sum_{i} \lambda(U_i) = \lambda(\sqcup_i U_i)$
+        \end{itemize}
+    \end{defn}
+    
+    \begin{defn}
+        Consider a measure $\lambda$ on a mesurable space $\mathcal X = (X, \mathcal F)$.
+        \begin{enumerate}
+            \item If $\lambda(X) = 1$, then $\lambda$ is a \emph{probability} measure. \\
+            \item If $\lambda(U) > 0$ for every non-empty set $U \in \mathcal F$, then $\lambda$ is \emph{strictly positive}.
+            \item The measure $\lambda$ is called \emph{$\sigma$-finite} if $X$ can be
+            covered with a countable set of sets with finite measures --- that is, if
+            there exist countable sequence $(A_1, A_2, \ldots ) \subset \mathcal F$ the
+            such that each $\lambda(A_i) < \infty$ is finite, and $X = \cup_{i=1}^{\infty}
+            A_i$.
+        \end{enumerate}
+    \end{defn}
+    
+    \begin{defn}[absolute continuity]
+        If $\mu$ and $\nu$ are measures over a space $(X, \mathcal F)$, 
+        we say that $\mu$ is absolutely continuous with respect to $\nu$, denoted $\nu \ll \mu$, if, for every $U \in \mathcal F$ such that $\nu(U) = 0$, we also have $\mu(U) = 0$. 
+    \end{defn}
+    
+    \begin{defn}[Measurable Functions]
+        If $\mathcal X  = (X, \mathcal F)$, and $\mathcal Y = (Y, \mathcal G)$ are two measurable spaces, a measurable function $f : \mathcal X \to \mathcal Y$ is a function $f: X \to Y$ on the underlying spaces, such that 
+        $f^{-1}(U) \in \mathcal F$ for every $U \in \mathcal G$.
+    \end{defn}
+    
+    \begin{defn}[Markov Kernels]
+        If $\mathcal X  = (X, \mathcal F)$, and $\mathcal Y = (Y, \mathcal G)$ are two measurable spaces, a Markov Kernel $\kappa : \mathcal X \to \mathcal Y$, which we sometimes write as ``$\kappa(Y|X)$'', is a function $\kappa : X \times \mathcal G \to \mathbb R$, such that
+        \begin{enumerate}
+            \item For every $x \in X$, the map $\kappa(x, -) : \mathcal U \to [0,1]$ is a probability measure. (So $\kappa$ is also a cpd.)
+            \item For every $U \in \mathcal G$, the map $\kappa(-, U) : X \to [0,1]$ is a measurable function from $\mathcal X$ to the Borell space $[0,1]$
+            --- or, more explicitly, for every open set $S \subset [0,1]$, and $U \in \mathcal G$, we have that
+            $\{x : \kappa(x,U) \in S\} \in \mathcal F$. 
     \end{enumerate}
+    \end{defn}
     
-    In some sense, $\beta_L$ is a curvature of the higher order probability distribution $\Pr(\mu)$
-    To reiterate, the absolute scale doesn't matter; what matters is the values of $\beta$ relative to one another. This begs the following question:
-    
-    % We can make this more concrete once we decide how to measure this divergence between $\mu$ and a given cpd. The PDG formalism uses relative entropy, in which case the units of 
-    % 
-    % and weights $\beta$, which define an unlikeliness by 
-    % \[ V(\mu) := \Inc(\mu) = \sum_L \mathrm \] 
-    
+    \begin{defn}[category of measurable spaces with base measure]
+        Let $\BaseMeas$ be the category of measureable spaces with a base measure, and Marov kernels with respec to the base measure.
+        Concretely,
+        the objects of $\BaseMeas$ are pairs $(\mathcal X, \lambda)$, where $\mathcal X$ is a mesurable space, and $\lambda$ is a strictly positive and $\sigma$-finite measure on $\mathcal X$.
+        % \begin{align*}
+        %     \mathrm{ob}~\BaseMeas &= \Big\{ \text{pairs}~(\mathcal X, \lambda),
+        %         ~\text{where $\mathcal X$ is a mesurable space, and $\lambda$ is a measure on $\mathcal X$} \Big\}%\\
+        % \end{align*}
+            % \BaseMeas(\lambda(X), \mu(Y)) &= \Big\{ \text{Markov Kernels $p(Y|X)$ such that} \\
+            % 
+            %     & \Big\}    
+            % \end{align*}
+        % and for objects $(X,\mathcal F_X \lambda_X)$ and
+         % $(\mathcal Y = (Y,\mathcal G), \mu_X)$, 
+        and the collection of morphisms from 
+        $(X,\mathcal F_X, \lambda_X)$ to $(Y, \mathcal F_Y, \lambda_Y)$ is the 
+        set of Markov Kernels $\kappa : \mathcal X \to \mathcal Y$
+        % such that 
+        % % $\mu \ll \kappa(x)$ for all $x$.        
+        % $\kappa(x,-) \ll \lambda_Y$ for all $x$.        
+        %   $\BaseMeas(, (\mathcal Y, \mu))$ from $(\mathcal X, \lambda)$ to $(\mathcal X, \mu)$
+        % are Markov Kernels $\kappa : \mathcal X \to \mathcal Y$ such that 
         
-    % \textbf{Beta as a dual vector.}
-    \textbf{What does it mean to say that $\beta_p = 2 \beta_{q}$?}
-    That a cpd $p$ is twice as trusted as a cpd $q$? 
-        
-    \begin{itemize}
-        \item If $p$ and $q$ turn out to be in conflict, so that we have to choose between them, we put twice as much stock in $p$ as in $q$. 
-        \item If both $p$ and $q$ turn out to be equally wrong, the pain of betrayal after having trusted $p$ is twice that of the betrayal of $q$.
-    \end{itemize}
+        Composition is given by Lebesgue Integration: for Markov Kernels $p(Y|X) : \mathcal X \to \mathcal Y$ and $q(Z|Y) : \mathcal Y \to \mathcal Z$, define
+        $(p \circ q) : \mathcal X \to \mathcal Z$  (i.e., $p \circ q : X \times \mathcal F_Z \to [0,1]$) by:
+        \begin{align*}
+            (p\circ q)(x, U) :=& \int_{\mathcal Y}
+                q(-, U)
+                \mathrm d p(x,-);
+                % \overbrace{q(-, U)}^{\mathcal Y\text{-measurable function}}
+                % \mathrm d \overbrace{p(x,-)}^{\text{a measure of }\mathcal Y}
+        \end{align*}
+        we prove below that this definition gives rise to another , but note that it typechecks, since $q(-,U)$ is a $\mathcal Y$-measurable function, and $p(x,-)$ is a measure on $\mathcal Y$. 
+        % for $U \in \mathcal F_Z$
+        The identities are given by
+        \begin{align*}
+        \mathrm{id}_{\mathcal X}(x, U) &= \begin{cases}
+                1 & \text{ if }x \in U \\ 0 & \text{otherwise}
+            \end{cases}
+        \end{align*}
+        % {\color{red} !! this is problematic; such kernels are not absolutely continuous with respect to any base measure!}
+    \end{defn}
     
-    While these explanations are intuitive on some level, they are not very concrete. 
-    In the first case, we have to explain how to measure ``stock''; in the second, we have to explain how to measure ``pain of betrayal''.  The choice of measure here, which is necessary to make this concrete, turns out to essentially be the same as the choice of distance measure between probability distributions in PDG semantics.
-    
-    To illustrate, let $\thickD$ be some abstract measure of divergence. 
-    With the data of the PDG, consider the following estimate of the unlikeliness, as a linear combination of the basis functions $\{ \kldiv-{p_L}$ for $L \in \Ed$: 
-    \[
-        V(\mu) := \Inc(\mu) = \sum_{\ed LXY} \beta_L \kldiv{\mu}{p},
-    \]
-    and $\bbeta$ describes the cofficients of the basis functions. 
-    So, we may also think of $\beta$ as the linear regression coefficients of some internal model of $V(X)$, with respect to each of the cpds in the PDG. 
-    
-    Trust may then be described in units of unlikeliness ($V(\mu)$) per unit of divergence.  In the standard presentation of PDGs, $\thickD$ is relative entropy (measured in bits), in which case trust is measured in per unlikeliness (which you could measure in dollars or euros with a betting game) per bit of error.     
-    So, what does it mean to say that $\beta_p = 2 \beta_{q}$? 
-    It means that, all else being equal, a distribution $\mu$ is regarded as twice as unlikely per unit of distance from $p$ as it is per unit distance from $q$. 
-    
-    
-    \textbf{Relationships to Other Quantities.}
-    This notion of trust is not entirely new; it has deep connections to a number of other very standard concepts throughout mathematics.
-    
-    \begin{enumerate}
-        \item \textbf{Regression Coefficients.} [TODO]
-        
-        \item \textbf{Dual Vectors in Support Vector Machines.} This is arguably an application of the previous point. A support vector machine describes a hypothesis as a linear combinations of some of the training examples (the ``support vectors''). The standard 
-        
-        \item \textbf{Coefficient of Boltzman Rationality.} [TODO]
-        
-        \item \textbf{Thermodynamic Coldness (inverse temperature).} [TODO]
-        
-    \end{enumerate}
-        
-    
-    
-    \textbf{So, how should one choose values of $\beta$?}
-    
-    
-    We will give a few different approaches, but ultimately, $\beta$ is a primitive concept. If you had a higer order probability distribution $\Pr(\mu)$ over probability distributions, you should encode that into your PDG directly.
-    If you have a probability that the information is trustworthy, you should encode that directly as well.  
-    
-    That said, one can derive $\beta$ as the optimal linear regression coefficients with respect to the basis Distance functions.
-    (although this is a computationally expensive and a sub-optimal modling choice if you already have $\Pr(\mu)$). 
-    
-    
-    % Of course, every edge of any encoding requires a $\beta$; with a PDG, you may specify 
-    
-    
+    % \begin{fact}
+    %     All morphisms 
+    % \end{fact}
 
+    \section{PDGs}
+    \begin{defn}
+        A \emph{PDG structure}, or qualitative PDG, is a weighted directed (multi)-graph $(\N, (\Ar, \src, \tgt), \balpha)$, where $\N$ is the set of nodes, while $\Ar$ is a set of arrows. The maps  $\src, \tgt: \Ar \to \N$, which are usually left implicit, give the nodes at the tail (source) of the arrow, and the head (target) of each arrow, respectively. 
+    \end{defn}
+    
+    \begin{defn}
+        A \emph{weighted PDG structure} $(\N, \Ar, \balpha)$ is a PDG structure $(\N, \Ar)$ together with a $\sigma$-algebra $\mathcal F_{\!\Ar}$ on the space of agents, and a measure $\alpha(\mathcal A)$. 
+    \end{defn}
+    
+    % \begin{defn}
+    A  (weighted) \emph{PDG hyper-structure} is a PDG structure, is the same thing except $\src$ and $\tgt$ can take sets of variables from $\N$.
+    We are often more interested in directed hyper-edges than regular directed arcs, but in many contexts the two presentations are equivalent.
+    
+    % \end{defn}
+    % \begin{itemize}
+    %     \item $\A$ a set of agents
+    %     \item 
+    % \end{itemize}
+    
+    \begin{defn}
+        An \emph{unweighted PDG} $\dg N$ over a structure $(\N, \Ar)$ is a functor
+        % $\mathrm{Paths}(\N,\Ar)$
+        \[ 
+            {\dg N} = (\V, \mat p)  : \mathrm{Paths}(\N, \Ar) \to  \BaseMeas
+        \] 
+        whose action on objects $\N$ is written $\V(X)$, and whose action on the generating morphisms $\ed aXY \in \Ar$ is written $\mat p_a(Y|X)$.
+    \end{defn}   
+    
+    
+    \begin{defn}[PDG]
+        A PDG $\dg M$ over a structrure $(\N, \Ar)$ is an unweighted PDG $(\V, \mat p)$ over $(\N, \Ar)$, together with 
+        \[ 
+            \mathrm{Paths}(\N, \Ar) \to \BaseMeas
+        \]
+    \end{defn}
+    
+    
+    \subsection{Semantics}
+    Given a weighted PDG structure $(\N, \Ar, \balpha)$, consider the scoring function 
+    \begin{align*}
+        \IDef{} : 
+    \end{align*}
 
     
-    \textbf{Some additional thoughts on the word ``trust''.}
-    \begin{itemize}
-        \item It is a close synonym of ``confidence'', which was the original presentation.
-
-        \item It also has a standard meaning in terms of capital: a trust is in some sense a financial asset, often in the form of a portfolio of investments optimized for stability. Its magnitude can be measured in dollars.
-        Furthermore, an investment portfolio in some sense reflects probabilistic beliefs (they are bets about what is likely to go up and down in value), and because the point is stability, the capital is concentrated in beliefs one has high confidence in.
-
-        \item Interpreting $\beta$ as ``pain of betrayal arising from inaccuracy'' gives us an intuitive meaning if it is negative: the vindication of seeing information you actively \emph{distrust} proven wrong.
-    \end{itemize}
-
-
-
-
-
-    \subsection{Dominance}
-    % Dominance, on the other hand, is unitless; it is specified relative to    
-    % Dominance, on the other hand, is relative to
-    While we have described $\beta_L$ as trust, or ``quantitative confidence'' in the cpd $p_L$,
-    $\alpha_L$ is its qualitative analog: ``qualitative confidence'' in the functional relationship ``$Y$ determines X'' implicit in the edge $\ed LXY$.
-        
-    First, the techincal way in which $\balpha$ is analogous to $\bbeta$. 
-    Just as $\bbeta$ can be thought of as the optimal regression coefficients for a set of divergence basis functions, $\balpha$ are the optimal coefficients for additional basis functions: the uncertainties along each edge.
     
-    
-    \textbf{How to set $\balpha$}
-
-    [TODO]
-    
+    \section{A Computational Model}
+    There are agents $\mathcal A$; 
     \begin{center}
         \begin{tikzpicture}
-            \draw[thick, <->] (-2.5,0) -- (2.5, 0);
-            \foreach \x in {-2.0, -1.5, ..., 2.0} {
-                \draw[thin] (\x, 0.1) -- (\x,-0.1);
-            }
-            \foreach \x in {-2, -1, 1, 2} {
-                \draw[thin] (\x, 0.1) -- (\x,-0.1) node[below]{$\x$};
-            }
-            \draw[thick] (0,0.2) -- (0,-0.2) node[below] {$0$};
-            \node at  ( 0 , 0.4) {$\alpha$};
-            \node[font=\small] at ( 1.8, 0.4) {dominance};
-            \node[font=\small] at (-1.8, 0.4) {interrogation};
-
+            
         \end{tikzpicture}
     \end{center}
-
-    % \TODO
-    % Interrogative strength.    
-
-\section{The System}
-    Let $\mathcal A$ be a collection of agents, each with certain beleifs. 
+    % \]
     
     
-\section{The Betting Game}
-    Suppose there are two agents, that are aware of the same set of concepts, corresponding to the variables $\mathbf X = (\N, \V)$. 
-    Agent 1's beliefs are given by the PDG 
-    % $\dg M_1 = (\N, \Ed^1, \V, \mat p^1, \balpha^1, \bbeta^1)$,
-    $\dg M_1 = (\mat X, \Ed^1,\balpha^1, \mat p^1, \bbeta^1)$,
-    while agent 2's beliefs are given by the PDG
-    % $\dg M_2 = (\N, \Ed^2, \V, \mat p^2, \balpha^2, \bbeta^2)$.  
-    $\dg M_2 = (\mat X, \Ed^2,\balpha^2, \mat p^2, \bbeta^2)$.
-    
-    Recall that for any cpd $\bp(Y|X)$, the optimal code for communicating $Y$ from samples of $X$ have length $\I^{Y|X}_{\bp} := - \log {\bp(Y|X)}$.
-    
-    First, you bet
-    
-    Now, suppose that in reality, variables are distributed according to some joint distribution $\rho(\mathbf X)$. 
-     
-     
-
-\appendix
-
-
-
-\section{}
-
-% \subsubsection{On Subjectivenss of Utility: Is it a Problem?}
-% \label{disutility:subjective}
-% 
-% The whole point of (expected) utility is that you can use it to numerically compare outcomes in goodness. It comes with the
-% 
-% It is true that utility is not comparable across different people, but really the point is that the pain of betrayal of one belief versus another can be traded off.
-% The actual values of the numbers can be different and you can have an equivalent model\footnote{for instance, one can always double $\bbeta$ and $\gamma$ to double the scoring function, resulting in the same optima and qualitative features}.
-
-
-
-
-\section{Scraps}     
-
-\begin{align*}
-   \bbr{\dg M}_\gamma(\mu) = 
-   \Ex_{\mu}\left[
-       \braket[\Big]{\bbeta^{\dg M}}{\I_{\dg M}- \I_{\mu}}
-       + \gamma
-       \braket[\Big]{\balpha^{\dg M} - \balpha^{\mu}} {\I_\mu - \I_\lambda}
-   \right]
-\end{align*}
-
-\[
-% \bbr[\Big]{(\rho, \gamma) \models \dg M_1 \to \dg M_2 }  = 
-\mathcal U_{(\rho, \gamma)}\Big(\dg M_2 \gets \dg M_1 \Big)  = 
-   % \Ex_{\rho}\left[
-   %     \braket[\Big]{\bbeta^{\dg M_1}}{\I_{\dg M_1}- \I_{\dg M_2}}
-   %     + \gamma
-   %     \braket[\Big]{\balpha^{\dg M_1} - \balpha^{\dg M_2}} {\I_\rho - \I_\lambda}
-   % \right]
-   \Ex_{\rho}\left[
-       \braket[\Big]{\bbeta^{1}}{\I_{\dg M_1}- \I_{\dg M_2}}
-       + \gamma
-       \braket[\Big]{\balpha^{1} - \balpha^{2}} {\I_\rho + (\mathbbm1[\alpha^2 \!<\!0] - \mathbbm1[\alpha^1\!<\!0])\I_\lambda}
-   \right]
-\]
-
-Or, without the strangeness with the sign of $\alpha$:
-\[
-% \bbr[\Big]{(\rho, \gamma) \models \dg M_1 \to \dg M_2 }  = 
-\mathcal U_{(\rho, \gamma)}\Big(\dg M_2 \gets \dg M_1 \Big)  = 
-   % \Ex_{\rho}\left[
-   %     \braket[\Big]{\bbeta^{\dg M_1}}{\I_{\dg M_1}- \I_{\dg M_2}}
-   %     + \gamma
-   %     \braket[\Big]{\balpha^{\dg M_1} - \balpha^{\dg M_2}} {\I_\rho - \I_\lambda}
-   % \right]
-   \Ex_{\rho}\left[
-       \braket[\Big]{\bbeta^{1}}{\I_{\dg M_1}- \I_{\dg M_2}}
-       + \gamma
-       \braket[\Big]{\balpha^{1} - \balpha^{2}} {\I_\rho - \I_\lambda}
-   \right]
-\]
-
 
 \end{document}
