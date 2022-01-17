@@ -1,8 +1,6 @@
-
 def LIR( M : PDG, subgraphs, order = "random" ):
     for A,C in subgraphs:
         
-
 
 
 if __name__ == '__main__':
