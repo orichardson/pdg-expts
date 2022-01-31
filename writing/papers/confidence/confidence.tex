@@ -36,7 +36,8 @@ Nevertheless, we submit that in many cases---and especially in more subjective o
 
 \subsection*{Our Approach}
 % Here is the idea: if you are confident in $X$, then you are 
-The idea is to view confidence as a property of an update, not as a property of a point of view. 
+The idea is to view confidence as a property of an update, not as a property of a point of view.  
+In this telling
 This allows us to distinguish between ...
 
 \begin{example}
@@ -58,15 +59,17 @@ Let $X$ be a binary random variable, and suppose you have a prior probability $p
 \subsection*{Issues To Address}
 \begin{enumerate}
     \item The difference between having confidence in \emph{a source} and confidence in a particular \emph{fact}.  Is one more general than the other? 
-
-\end{enmerate}
+\end{enumerate}
     
 Some intuitive features we might want to capture:
 \begin{enumerate}
     
     \item \textbf{Trust Dynamics.} If a trusted source tells you something you already believe, your confidence in them goes up (maybe). Certainly if a source tells you something you know to be wrong, your confidence in the source goes down.  Whether or not you adopt the 
     
-    Also, if you ultimately end up adopting the belief, and later end up with a more coherent picture of the world, your trust in the source should go way up --- it's reasonable to place the most trust in sources that tell you true things that conflict with your current beliefs. 
+    Also, if you ultimately end up adopting the belief, and later end upwith a more coherent picture of the world, your trust in the source should go way up. 
+    This is because in the end we want to place the most trust in sources that tell you the truth, not what you expect (or want) to hear.
+    
+    A source that tells you only exactly what you already believe ``artificially'' increases your confidence but does not actually provide you any information, unless they came to hold the same views independently. 
     
     \item 
     \item 
@@ -76,38 +79,69 @@ Some intuitive features we might want to capture:
 \def\X{\mathcal X}
 Let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ is a $\sigma$-algebra over $X$, and let $\Delta \X$ denote the set of probability measures over $\X$.
 
+Suppose further that we have divergence function $d : X \times X \to \mathbb R^+$ on $X$, with the property that $d(x,y) = 0$ iff $x = y$. 
+For \emph{sets} $A \subset X$, let $d(x, A) := \inf_{a \in A} d(x,a)$ and $d(A, x) := \inf_{a \in A} d(a,x)$ be the smallest divergence .
+We say that $A$ and $B$ are independent if $d(A, b) = d(a, B)$ for all $a\in A$ and $b \in B$. 
+
 We are interested in updating rules
 \[ 
     F: (\text{Confidence} : \mathbb R) \times (\text{Event} : \mathcal A) \to (\Delta\X  \to \Delta \X) 
 \]
-which describe how to update beliefs about $X$, when you a 
+which describe how to update beliefs about $X$, with the new information, at a certain level of trust. We write $F^\beta_A : \Delta\X \to \Delta X$ for the update function for a given piece of information $A$ at confidence $\beta$.
 
-If $F$ is an update rule, we write $F^\beta_A : \Delta\X \to \Delta X$ for
-  
-
-satisfying the following axioms:
+We would like update rules to satisfy the following axioms:
 
 For all $A \in \mathcal A$, and all $\beta,\beta_1, \beta_2 \in \mathbb R$
-\begin{enumerate}[label=U\arabic{*}.]
+\begin{enumerate}[label=UR\arabic{*}.,nosep]
     % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
-    \item \textbf{(zero)~} $F^{0}_A  =  \mathrm{Id}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = (\Pr)$ for all $\Pr \in \Delta\X$.)
-    \item \textbf{(additivity)~} $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
-    
-    \item \textbf{(absolute certainty)~} $\displaystyle \lim_{\beta\to\infty} F^\beta_A (\Pr) = \Pr|A$
+    \item  $F^{0}_A  =  \mathrm{Id}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = (\Pr)$ for all $\Pr \in \Delta\X$.) 
+        \hfill \textbf{(zero)}
+    \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
+        \hfill \textbf{(additivity)}
+    \item $\displaystyle \lim_{\beta\to\infty} F^\beta_A (\Pr) = \Pr|A$
+        \hfill \textbf{(absolute certainty)}
 \end{enumerate}
 
-\begin{enumerate}[resume,label=U\arabic{*}.]
-    \item \textbf{(decomposition)~} If $A$ and $B$ are independent, then $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
+\begin{enumerate}[resume,label=UR\arabic{*}.]
+    \item If $A$ and $B$ are independent, then $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
+        \hfill \textbf{(decomposition)}
 \end{enumerate}
 
-We can also consider the variant
+We can also consider the weaker variant
 \begin{enumerate}
     % \item[U3$'$.]  \textbf{(effectiveness)~} $\supp F^\infty_A (\Pr) \subset A $
     \item[U3$'$.]  \textbf{(effectiveness)~} $F^\infty_A (\Pr)(A) = 1$
 
 \end{enumerate}
 
-\section{Higher Order Probability Measures}
+
+\subsection*{Cannoncial Update Rule}
+The canonical Update Rule is given by
+\begin{align*}
+    F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta d(x, A)) \\
+    F^\beta_A(\Pr) &= B \mapsto \frac{1}{\Ex_{\Pr}[\exp(-\beta d(x,A))]}\int
+        1_B(x) \, \exp(-\beta d(x, A)) \,\mathrm d\Pr(x)
+    %    
+\end{align*}
+\begin{prop}
+    The cannonical update rule satisfies UR1-4.
+\end{prop}
+
+
+\section{Examples}
+\subsection{Gaussians}
+Consider the case where $\X$ is the set of real numbers with the Borell $\sigma$-algebra, and $d(x,y) := (x-y)^2$.
+Then the cannoncial update rule corresponds to multiplying by a Gaussian density, whose variance is $\nicefrac1\beta$. 
+
+Furthermore, applying it to a distribution which is already Gaussian with mean $\mu$ and variance $\sigma^2$, we find that
+\begin{align*}
+    F^{\beta}_{X=b}(\mathcal N(\mu, \sigma^2))(x) &\propto
+     \exp\left\{ - \frac12 \frac{(x-\mu)^2}{ \sigma^2 } - \beta(x-b)^2\right\}
+\end{align*}
+which is itself a Gaussian with mean equal to the weighted average of $\mu$ and $\beta$, and variance  
+
+
+\subsection{Higher Order Probability Measures}
 Consider the following ways of extracting an (ordinary) probability measure $\mu(\Omega)$
 from a higher order probability $\Pr(\mu(\Omega))$.
 
@@ -133,7 +167,7 @@ from a higher order probability $\Pr(\mu(\Omega))$.
 \end{enumerate}
  
 
-
+\section{Epistemic Entrenchment and Confidence}
 \section{Weighted Probability Measures}
 
 
