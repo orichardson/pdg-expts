@@ -36,8 +36,8 @@ M += 'r', CPT.make_random(C,A)
 # μ1 = M.optimize_score(1E-12)
 μ1 = M.optimize_score(0)
 ϕ = M.factor_product()
-μ2 = M._torch_opt_inc(0, extraTemp=0, iters=500, constraint_penalty=0,
-    representation="gibbs").npify()
+μ2 = M._torch_opt_inc(0, extraTemp=0, iters=3000, constraint_penalty=0, \
+    representation="gibbs", lr=3E-2).npify()
 
 
 M.Inc(μ1)
@@ -66,7 +66,8 @@ M.Inc(μ_cvr), M.IDef(μ_cvr)
 μ2 // μ_cvr
 μ_cvr // μ2
 
-# μ2.data.min()
+μ2.data.min()
+μ_cvr.data.min()
 
 # Question: why is μ1//μ2 less than zero, given that both sum to 1?
 μ1 // μ2
