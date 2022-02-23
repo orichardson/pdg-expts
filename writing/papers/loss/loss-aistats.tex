@@ -1,5 +1,5 @@
 \documentclass[twoside]{article}
-
+\pdfoutput=1
 % CONTROLS
 \newif\ifappendix
 	\appendixtrue
@@ -29,8 +29,8 @@
 		\usepackage[american]{babel}
 		\usepackage{csquotes}
 		\usepackage[backend=biber, style=authoryear]{biblatex}
-		\DeclareLanguageMapping{american}{american-apa}
 		% \usepackage[backend=biber,style=authoryear,hyperref=true]{biblatex}
+		\DeclareLanguageMapping{american}{american-apa}
 		\addbibresource{refs.bib}
 		% \listfiles
 
@@ -212,11 +212,17 @@
 		\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
 	    \theoremstyle{plain}
 	    \newtheorem{theorem}{Theorem}
-		\newtheorem{coro}{Corollary}[theorem]
-	    \newtheorem{prop}[theorem]{Proposition}
+		% \newtheorem{coro}{Corollary}[theorem]
+	    % \newtheorem{prop}[theorem]{Proposition}
+		% \newtheorem{lemma}[theorem]{Lemma}
+		\declaretheorem[name=Corollary,parent=theorem]{coro}
+	    \declaretheorem[name=Proposition,sibling=theorem,postheadhook={%
+		% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
+			}]{prop}
+		\declaretheorem[name=Lemma,sibling=theorem]{lemma}
+		%
 	    \newtheorem{claim}{Claim}
 	    \newtheorem{remark}{Remark}
-	    \newtheorem{lemma}[theorem]{Lemma}
 	    \theoremstyle{definition}
 	    % \newtheorem{defn}{Definition}
 	    % \declaretheorem[name=Definition]{defn}
@@ -345,8 +351,12 @@
 		\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
 		   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
 		   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
-		   {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
-		   \else\fi}
+		   {\ifthmt@thisistheone%
+		   	\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi% same as before
+			%except with also marginparbox
+			% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
+		   \else\fi%
+		   }
 		   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure
 		\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
 		   {\csname end#2\endcsname}
@@ -358,6 +368,17 @@
 		   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
 
 	   	\setlength\marginparwidth{1.55cm}
+		%
+		%https://tex.stackexchange.com/questions/78519/vspace-in-marginpar-adds-unwanted-vertical-space
+		% \newcommand{\fixedmarginpar}[2]{%
+	  	% 	\setbox1=\vtop{#2}\marginpar{\vspace{-\ht1}\vspace{#1}#2}%
+		% }
+		\let\oldmarginpar\marginpar
+	    \renewcommand{\marginpar}[1]{%
+	        \leavevmode%
+	        \oldmarginpar{#1}%
+	        \ignorespacesafterend\ignorespaces}
+		\newsavebox\marginprooflinkbox
 		\newenvironment{linked}[3][]{%
 			\def\linkedproof{#3}%
 			\def\linkedtype{#2}%
@@ -372,10 +393,13 @@
 			% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
 			% 	}%
 	        % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
-			\ifmarginprooflinks
-			\marginpar{%
+			\ifmarginprooflinks%
+			% \fixedmarginpar{2ex}{%
+			\sbox\marginprooflinkbox{%
 				% \vspace{-3em}% %% for bottom
-				\vspace{1.5em}
+				% \vspace{1.5em} %% original size; but now I have small props
+				% \vspace{2ex}%
+				% \vspace{9ex}%
 				\centering%
 				\hyperref[proof:\linkedproof]{%
 	            % \hyperref[proof:#3]{
@@ -384,12 +408,16 @@
 					% proof of \\\,\linkedtype~\ref*{\linkedtype:\linkedproof}
 					link to\\[-0.15em]
 					proof
-				\end{tabular}}\,}{$\Big]$}}~
-				}%
+				\end{tabular}}\,}{$\Big]$}}~}
 			\fi
 	        \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
+			\ifmarginprooflinks\marginpar{\vspace{-1ex}\usebox\marginprooflinkbox}\fi%
+	        % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
 	        }%
-			{\endrestatable%
+			{
+			% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
+			\sbox\marginprooflinkbox{}
+			\endrestatable%
 			}
 		\makeatother
 			\newcounter{proofcntr}
@@ -546,6 +574,8 @@
 	arise for free out of uncontroversial modeling assumptions%
 	---as do simple graphical proofs of their corresponding bounds.
 	Finally, we observe that inconsistency becomes the log partition function (free energy) in the setting where PDGs are factor graphs.
+	% We observe that inconsistency becomes the log partition function (free energy) in the setting where PDGs are factor graphs.
+	% Finally, we illustrate how our approach may yield better loss functions in new settings.
 \end{abstract}
 
 \section{INTRODUCTION}
@@ -1361,7 +1391,7 @@ generative models
 	the surprisal $\I_p[X\!\!=\!x]$.
 	% of the event $X\!\!=\!x$
 	That is,
-	\vspace{-2ex}
+	\vspace{-1.5ex}
 	% \vskip-1ex
 	\[
 		\I_p[X\!\!=\!x]
@@ -1377,7 +1407,7 @@ generative models
 		\end{tikzpicture}
 		}.
 	\]
-	\vspace{-1ex}
+	\vspace{-1.5ex}
 	%oli2:
 	(Recall that $\aar{\dg M}$ is the inconsistency of the P\kern-1ptD\kern-1ptG $\dg M$%
 % 		;here, $\dg M = $ \begin{tikzpicture}[center base]
@@ -1426,10 +1456,16 @@ happens to be the standard measure of discrepency between the two%
 Still, we have a ways to go before this amounts to any more than a curiosity.
 One concern is that this picture is incomplete; we train probabilistic models with more than one sample.
 What if we replace $x$ with an empirical distribution over many samples?
+% \newpage
+
+% A
+% \newpage%
+% \vskip-10ex
+%
 % The first step in the proof of \cref{prop:pdg-Ix} is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
-{
-\def\xsamp{{\mathcal D}}
-\begin{linked}{prop}{expected-surprise}
+{%
+\def\xsamp{{\mathcal D}}%
+\begin{linked}{prop}{expected-surprise}%
 	% Given a model
     % determining a probability distribution with mass function
 	If
@@ -1696,7 +1732,6 @@ Simple evaluation metrics, such as the accuracy of a classifier, and the mean sq
 	% The inconsistency of believing all three is
 	the log accuracy of $h$. That is,
 	\vskip-4ex
-
 	\begin{equation}\label{eq:accuracy-pdg}
 		\aar*{\!\!\!\begin{tikzpicture}[center base]
 				\node[dpad0] (Y) {$Y$};
@@ -1727,7 +1762,8 @@ Simple evaluation metrics, such as the accuracy of a classifier, and the mean sq
 	\end{equation}
 \end{linked}
 % \vspace{-1ex}
-\vskip-2.5ex
+% \vskip-2.5ex
+\vskip-1.5ex
 %joe1*: you need to give a reference for all this, and to discuss
 %accuracy and what it's capturing *before* you state the theorem.
 %DONE
@@ -1849,7 +1885,7 @@ often a reasonable assumption because of the central limit theorem.
 		% 	\draw[arr2, <-] (X) to node[pos=0.6, above]{$D!$} +(-1.1, 0);
 		% \end{tikzpicture}}
 		% &=
-		\aar**{\!\!\!\begin{tikzpicture}[center base]
+		\aar**{\!\!\!\!\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
 			\node[dpad0,left=2.2 of Y] (X) {$X$};
 			\node[dpad0,above right=0.1 and 0.7 of X] (mf) {$\mu_f$};
@@ -1872,9 +1908,10 @@ often a reasonable assumption because of the central limit theorem.
 			\draw[arr2, ->] (mf) to[bend left=0]
 				node[pos=0.3, above right=0]{$\mathcal N_1$} (Y);
 			% \draw[arr2, <-] (X) to node[pos=0.6, above]{$D$} +(-1.1, 0);
-		\end{tikzpicture}\!\!}
+		\end{tikzpicture}\!\!\!}
 		\begin{aligned}
-        = \frac12\Ex\nolimits_D \!\big| f(X) - h(X) \big|^2 \\
+        = \frac12\Ex\nolimits_D \!\big| f(\mskip-1muX\mskip-1mu) - h(\mskip-1muX\mskip-1mu) \big|^2 \\
+        % = \frac12\Ex_D \!\big| f(X) - h(X) \big|^2 \\
 		 =: \mathrm{MSE}_D( f, h )\,,\;
         \end{aligned}
         %\numberthis\label{eq:mse}
@@ -2410,14 +2447,25 @@ These divergences correspond to PDGs with only two edges and one variable.
 What about more complex graphs?
 % For a start, it is not difficult to see that the usual notion of conditional divergences
 % For a start, the usual notion of conditional divergences
-For a start, the usual notion of a conditional divergence
+% For a start, the usual notion of a conditional divergence
+For a start, conditional divergences
 % $\thickD_{\bullet}\big(p(\!Y\!|\!X\!) \,\Vert\, q(\!Y\!|\!X\!) \,|\, r(\!X\!)\big)$
+\vspace{-1.5ex}
 \def\ns{\mskip-1.5mu}
-$
-\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
-\!:=\!
- \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)
-$
+% $
+% \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
+% \!:=\!
+%  \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)
+% $
+\[
+\thickD^{\ns\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}\ns\ns\Big(\ns p(\ns Y \ns|\ns X \ns) \ns\,\Big\Vert\,\ns q(\ns Y \ns|\ns X\ns) \ns\,\Big|\,\ns r(\ns X\ns)\!\Big)
+\!:=\!\!
+ \displaystyle \Ex_{x\sim r} \!\! \ns \thickD^{\ns\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}
+ % \ns(
+ \ns\ns\Big(\ns
+ p(\ns Y \ns|x) \ns\ns\,\Big\Vert\,\ns\ns q(\ns Y \ns|x)\!\Big)
+\]
+\vskip-2ex
 % straightforwardly falls out of PDGs of the form
 % falls out of PDGs of the form
 can be represented straightforwardly as
@@ -2443,7 +2491,7 @@ can be represented straightforwardly as
 % 			{${\color{gray}\scriptscriptstyle(s)}$}
 % 		(Y);
 % \end{tikzpicture}\,.
-\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p \,\Vert\, q \,|\, r\ns)
+\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}\ns(p \,\Vert\, q \,|\, r\ns)
  = \aar*{
 \begin{tikzpicture}[center base]
 	\node[dpad0] (X) at (0,0) {$X$};
@@ -2469,7 +2517,8 @@ can be represented straightforwardly as
 }
 \,.
 \]
-\vskip-2ex
+\vskip-1ex
+
 % and in general,
 % The inconsistency of a PDG can be viewed as a vast generalization of these divergences to arbitrary structured objects.
 % \Cref{lemma!}, together with minor structural manipulation, gives visual proofs of standard divergence properties.
@@ -2793,6 +2842,7 @@ we now give a simple and visually intuitive proof of the bound traditionally use
 % 		\right)
     \!=\! -\!\mathop{\mathrm{E\mskip-0.5muL\mskip-0.5muB\mskip-0.5muO}}\limits_{p,q}(\mskip-1.5mux\mskip-1.5mu).
 \]
+
 % $= - \mathrm{ELBO}_{p,q}(x)$.
 % \footnotemark[\thefootnote]~
 The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-x} respectively.
@@ -3330,7 +3380,9 @@ If the data and simulator agree ($d \!=\! s$), then we would want $h(Y|x) \!=\! 
 So $h^*$ is overconfident.
 What went wrong?
 % $\mathcal L_2$ is not easily written as a (quantitative) inconsistency,
-$\mathcal L_2$ cannot be written as a (purely quantitative) inconsistency
+% $\mathcal L_2$ cannot be written as a (purely quantitative) inconsistency
+% $\mathcal L_2$ cannot be written as the inconsistency
+$\mathcal L_2$ cannot be written as the (ordinary $\gamma\!=\!0$) inconsistency
 of a PDG containing only $s,h$, and $d$,
 but for a large fixed $\gamma$, it is essentially the $\gamma$-inconsistency
 % but using the factor graph correspondence, it can be written as the 1-inconsistency
@@ -3617,7 +3669,8 @@ Given an \emph{arbitrary} loss function, can we find a PDG that gives rise to it
 % The answer is yes, but not without unsavory modeling choices that compose poorly.
 % The answer is yes---but not without unsavory modeling choices.
 % The answer appears to be yes---but not in a satisfying way.
-The answer appears to be yes---but not without making unsavory modeling choices.
+% The answer appears to be yes---but not without making unsavory modeling choices.
+The answer appears to be yes---although not without making unsavory modeling choices.
 % To a first approximation, the answer appears to be yes.
 %
 % Just as including probabilistic information is not a matter of multiplication, inconsistency is not a mere matter of addition.
@@ -3884,12 +3937,13 @@ further handicapping our ability to compose this model with others.
 % while desirable behavior as we compose pieces of models together (\Cref{sec:datsim}),
 % while the losses generated by composing PDGs,
 % To summarize: while the inconsistency of a composite model often seems to be the ``right'' loss function,
-To summarize: while model inconsistency generates appropriate loss functions,
+To summarize: while model inconsistency readily generates appropriate loss functions,
 % encoding loss functions as PDGs may not yeild nice models.
 % the reverse does not work as well.
 the converse does not work as well.
 % Although reverse-enerineering a loss is possible, doing so may require making questionable modeling choices with absolute certainty, resulting brittle model with gimped potential for composition.
-Reverse-enerineering a loss may require making questionable modeling choices with absolute certainty, resulting in brittle models with limited potential composition.
+Reverse-enerineering a loss may require making questionable modeling choices with absolute
+certainty, resulting in brittle models with limited potential for composition.
 % This leaves zero margin for error.
 % indicating absolute certainty in them.
 In the end, we must confront our modeling choices;
@@ -3940,19 +3994,18 @@ good loss functions come from good models.
 % \end{linked}
 % So,
 %
-%TODO
+%DONE
 % Yeah sure you can get any loss function but if you look at the corresponding PDG it makes no sense
 
 
 \section{FINAL REMARKS}
 
-% TODO
+% DONE
 % Varsha says: punchline is missing
 % not clear that you should use this to check your modeling assumptions
 
 % We have now seen that PDG semantics not only capture structured objects such as Bayesian Networks and Factor Graphs as in \textcite{richardson2020probabilistic},
 % but in the same stroke also generate
-%TODO
 %joe2: replace with
 % but also can be used to generate
 % but in the same stroke also generate
