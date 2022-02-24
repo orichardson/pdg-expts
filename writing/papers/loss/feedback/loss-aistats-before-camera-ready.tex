@@ -1,479 +1,444 @@
 \documentclass[twoside]{article}
-\pdfoutput=1
+
 % CONTROLS
 \newif\ifappendix
 	\appendixtrue
 	% \appendixfalse
 \newif\ifbody\bodytrue
 \newif\ifmarginprooflinks
-	% \marginprooflinkstrue
-	\marginprooflinksfalse
+	\marginprooflinkstrue
+	% \marginprooflinksfalse
 
-\relax %Header
+\usepackage{aistats2022} % aistats formatting
+    % If your paper is accepted, change the options for the package
+    % aistats2022 as follows:
+    %
+    %\usepackage[accepted]{aistats2022}
+    %
+    % This option will print headings for the title of your paper and
+    % headings for the authors names, plus a copyright note at the end of
+    % the first column of the first page.
 
-	\usepackage[accepted]{aistats2022} % aistats formatting
-	    % If your paper is accepted, change the options for the package
-	    % aistats2022 as follows:
-	    %
-	    %\usepackage[accepted]{aistats2022}
-	    %
-	    % This option will print headings for the title of your paper and
-	    % headings for the authors names, plus a copyright note at the end of
-	    % the first column of the first page.
+    % If you set papersize explicitly, activate the following three lines:
+    %\special{papersize = 8.5in, 11in}
+    %\setlength{\pdfpageheight}{11in}
+    %\setlength{\pdfpagewidth}{8.5in}
 
-	    % If you set papersize explicitly, activate the following three lines:
-	    %\special{papersize = 8.5in, 11in}
-	    %\setlength{\pdfpageheight}{11in}
-	    %\setlength{\pdfpagewidth}{8.5in}
+	\usepackage[american]{babel}
+	\usepackage{csquotes}
+	\usepackage[backend=biber, style=authoryear]{biblatex}
+	\DeclareLanguageMapping{american}{american-apa}
+	% \usepackage[backend=biber,style=authoryear,hyperref=true]{biblatex}
+	\addbibresource{refs.bib}
+	% \listfiles
 
-		\usepackage[american]{babel}
-		\usepackage{csquotes}
-		\usepackage[backend=biber, style=authoryear]{biblatex}
-		% \usepackage[backend=biber,style=authoryear,hyperref=true]{biblatex}
-		\DeclareLanguageMapping{american}{american-apa}
-		\addbibresource{refs.bib}
-		% \listfiles
+	\DeclareFieldFormat{citehyperref}{%
+	  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
+	  \bibhyperref{#1}}
 
-		\DeclareFieldFormat{citehyperref}{%
-		  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
-		  \bibhyperref{#1}}
+	\DeclareFieldFormat{textcitehyperref}{%
+	  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
+	  \bibhyperref{%
+	    #1%
+	    \ifbool{cbx:parens}
+	      {\bibcloseparen\global\boolfalse{cbx:parens}}
+	      {}}}
 
-		\DeclareFieldFormat{textcitehyperref}{%
-		  \DeclareFieldAlias{bibhyperref}{noformat}% Avoid nested links
-		  \bibhyperref{%
-		    #1%
-		    \ifbool{cbx:parens}
-		      {\bibcloseparen\global\boolfalse{cbx:parens}}
-		      {}}}
+	\savebibmacro{cite}
+	\savebibmacro{textcite}
 
-		\savebibmacro{cite}
-		\savebibmacro{textcite}
+	\renewbibmacro*{cite}{%
+	  \printtext[citehyperref]{%
+	    \restorebibmacro{cite}%
+	    \usebibmacro{cite}}}
 
-		\renewbibmacro*{cite}{%
-		  \printtext[citehyperref]{%
-		    \restorebibmacro{cite}%
-		    \usebibmacro{cite}}}
+	\renewbibmacro*{textcite}{%
+	  \ifboolexpr{
+	    ( not test {\iffieldundef{prenote}} and
+	      test {\ifnumequal{\value{citecount}}{1}} )
+	    or
+	    ( not test {\iffieldundef{postnote}} and
+	      test {\ifnumequal{\value{citecount}}{\value{citetotal}}} )
+	  }
+	    {\DeclareFieldAlias{textcitehyperref}{noformat}}
+	    {}%
+	  \printtext[textcitehyperref]{%
+	    \restorebibmacro{textcite}%
+	    \usebibmacro{textcite}}}
 
-		\renewbibmacro*{textcite}{%
-		  \ifboolexpr{
-		    ( not test {\iffieldundef{prenote}} and
-		      test {\ifnumequal{\value{citecount}}{1}} )
-		    or
-		    ( not test {\iffieldundef{postnote}} and
-		      test {\ifnumequal{\value{citecount}}{\value{citetotal}}} )
-		  }
-		    {\DeclareFieldAlias{textcitehyperref}{noformat}}
-		    {}%
-		  \printtext[textcitehyperref]{%
-		    \restorebibmacro{textcite}%
-		    \usebibmacro{textcite}}}
+	% \renewbibmacro*{cite}{%
+	% 	\printtext[bibhyperref]{%
+	%     \iffieldundef{shorthand}
+	%       {\ifthenelse{\ifnameundef{labelname}\OR\iffieldundef{labelyear}}
+	%          {\usebibmacro{cite:label}%
+	%           \setunit{\printdelim{nonameyeardelim}}}
+	%          {\printnames{labelname}%
+	%           \setunit{\printdelim{nameyeardelim}}}%
+	%        \usebibmacro{cite:labeldate+extradate}}
+	%       {\usebibmacro{cite:shorthand}}}}
+	%
+	% \renewbibmacro*{citeyear}{%
+	%   \printtext[bibhyperref]{%
+	%     \iffieldundef{shorthand}
+	%       {\iffieldundef{labelyear}
+	%          {\usebibmacro{cite:label}}
+	%          {\usebibmacro{cite:labeldate+extradate}}}
+	%       {\usebibmacro{cite:shorthand}}}}
+	%
+	% \renewbibmacro*{textcite}{%
+	%   \ifnameundef{labelname}
+	%     {\iffieldundef{shorthand}
+	%        {\printtext[bibhyperref]{%
+	%           \usebibmacro{cite:label}}%
+	%         \setunit{%
+	%           \global\booltrue{cbx:parens}%
+	%           \printdelim{nonameyeardelim}\bibopenparen}%
+	%         \ifnumequal{\value{citecount}}{1}
+	%           {\usebibmacro{prenote}}
+	%           {}%
+	%         \printtext[bibhyperref]{\usebibmacro{cite:labeldate+extradate}}}
+	%        {\printtext[bibhyperref]{\usebibmacro{cite:shorthand}}}}
+	%     {\printtext[bibhyperref]{\printnames{labelname}}%
+	%      \setunit{%
+	%        \global\booltrue{cbx:parens}%
+	%        \printdelim{nameyeardelim}\bibopenparen}%
+	%      \ifnumequal{\value{citecount}}{1}
+	%        {\usebibmacro{prenote}}
+	%        {}%
+	%      \usebibmacro{citeyear}}}
+	%
+	% \renewbibmacro*{cite:shorthand}{%
+	%   \printfield{shorthand}}
+	%
+	% \renewbibmacro*{cite:label}{%
+	%   \iffieldundef{label}
+	%     {\printfield[citetitle]{labeltitle}}
+	%     {\printfield{label}}}
+	%
+	% \renewbibmacro*{cite:labeldate+extradate}{%
+	%   \printlabeldateextra}
+	% \DeclareCiteCommand{\parencite}
+	%   {\usebibmacro{prenote}}
+	%   {\usebibmacro{citeindex}%
+	%    \printtext[bibhyperref]{(\usebibmacro{cite})}}
+	%   {\multicitedelim}
+	%   {\usebibmacro{postnote}}
+	\DeclareCiteCommand{\brakcite}
+	  {\usebibmacro{prenote}}
+	  {\usebibmacro{citeindex}%
+	   \printtext[bibhyperref]{[\usebibmacro{cite}]}}
+	  {\multicitedelim}
+	  {\usebibmacro{postnote}}
 
-		% \renewbibmacro*{cite}{%
-		% 	\printtext[bibhyperref]{%
-		%     \iffieldundef{shorthand}
-		%       {\ifthenelse{\ifnameundef{labelname}\OR\iffieldundef{labelyear}}
-		%          {\usebibmacro{cite:label}%
-		%           \setunit{\printdelim{nonameyeardelim}}}
-		%          {\printnames{labelname}%
-		%           \setunit{\printdelim{nameyeardelim}}}%
-		%        \usebibmacro{cite:labeldate+extradate}}
-		%       {\usebibmacro{cite:shorthand}}}}
-		%
-		% \renewbibmacro*{citeyear}{%
-		%   \printtext[bibhyperref]{%
-		%     \iffieldundef{shorthand}
-		%       {\iffieldundef{labelyear}
-		%          {\usebibmacro{cite:label}}
-		%          {\usebibmacro{cite:labeldate+extradate}}}
-		%       {\usebibmacro{cite:shorthand}}}}
-		%
-		% \renewbibmacro*{textcite}{%
-		%   \ifnameundef{labelname}
-		%     {\iffieldundef{shorthand}
-		%        {\printtext[bibhyperref]{%
-		%           \usebibmacro{cite:label}}%
-		%         \setunit{%
-		%           \global\booltrue{cbx:parens}%
-		%           \printdelim{nonameyeardelim}\bibopenparen}%
-		%         \ifnumequal{\value{citecount}}{1}
-		%           {\usebibmacro{prenote}}
-		%           {}%
-		%         \printtext[bibhyperref]{\usebibmacro{cite:labeldate+extradate}}}
-		%        {\printtext[bibhyperref]{\usebibmacro{cite:shorthand}}}}
-		%     {\printtext[bibhyperref]{\printnames{labelname}}%
-		%      \setunit{%
-		%        \global\booltrue{cbx:parens}%
-		%        \printdelim{nameyeardelim}\bibopenparen}%
-		%      \ifnumequal{\value{citecount}}{1}
-		%        {\usebibmacro{prenote}}
-		%        {}%
-		%      \usebibmacro{citeyear}}}
-		%
-		% \renewbibmacro*{cite:shorthand}{%
-		%   \printfield{shorthand}}
-		%
-		% \renewbibmacro*{cite:label}{%
-		%   \iffieldundef{label}
-		%     {\printfield[citetitle]{labeltitle}}
-		%     {\printfield{label}}}
-		%
-		% \renewbibmacro*{cite:labeldate+extradate}{%
-		%   \printlabeldateextra}
-		% \DeclareCiteCommand{\parencite}
-		%   {\usebibmacro{prenote}}
-		%   {\usebibmacro{citeindex}%
-		%    \printtext[bibhyperref]{(\usebibmacro{cite})}}
-		%   {\multicitedelim}
-		%   {\usebibmacro{postnote}}
-		\DeclareCiteCommand{\brakcite}
-		  {\usebibmacro{prenote}}
-		  {\usebibmacro{citeindex}%
-		   \printtext[bibhyperref]{[\usebibmacro{cite}]}}
-		  {\multicitedelim}
-		  {\usebibmacro{postnote}}
+	% If you use natbib package, activate the following three lines:
+    % \usepackage[round]{natbib}
+    % \renewcommand{\bibname}{References}
+    % \renewcommand{\bibsection}{\subsubsection*{\bibname}}
 
-		% If you use natbib package, activate the following three lines:
-	    % \usepackage[round]{natbib}
-	    % \renewcommand{\bibname}{References}
-	    % \renewcommand{\bibsection}{\subsubsection*{\bibname}}
+    % If you use BibTeX in apalike style, activate the following line:
+    % \bibliographystyle{apalike}
 
-	    % If you use BibTeX in apalike style, activate the following line:
-	    % \bibliographystyle{apalike}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+	\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
+	\usetikzlibrary{cd}
 
-	\usepackage[dvipsnames]{xcolor}
-	\usepackage{tikz}
-		\usetikzlibrary{positioning,fit,calc, decorations, arrows, shapes, shapes.geometric}
-		\usetikzlibrary{cd}
+	%%%%%%%%%%%%
+	\tikzset{AmpRep/.style={ampersand replacement=\&}}
+	\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
+	\tikzset{paperfig/.style={center base,scale=0.9, every node/.style={transform shape}}}
 
-		%%%%%%%%%%%%
-		\tikzset{AmpRep/.style={ampersand replacement=\&}}
-		\tikzset{center base/.style={baseline={([yshift=-.8ex]current bounding box.center)}}}
-		\tikzset{paperfig/.style={center base,scale=0.9, every node/.style={transform shape}}}
+	% Node Stylings
+	\tikzset{dpadded/.style={rounded corners=2, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
+	\tikzset{dpad0/.style={outer sep=0.05em, inner sep=0.3em, draw=gray!75, rounded corners=4, fill=black!08, fill opacity=1, align=center}}
+	\tikzset{dpadinline/.style={outer sep=0.05em, inner sep=2.5pt, rounded corners=2.5pt, draw=gray!75, fill=black!08, fill opacity=1, align=center, font=\small}}
 
-		% Node Stylings
-		\tikzset{dpadded/.style={rounded corners=2, inner sep=0.7em, draw, outer sep=0.3em, fill={black!50}, fill opacity=0.08, text opacity=1}}
-		\tikzset{dpad0/.style={outer sep=0.05em, inner sep=0.3em, draw=gray!75, rounded corners=4, fill=black!08, fill opacity=1, align=center}}
-		\tikzset{dpadinline/.style={outer sep=0.05em, inner sep=2.5pt, rounded corners=2.5pt, draw=gray!75, fill=black!08, fill opacity=1, align=center, font=\small}}
+ 	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
+	\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
 
-	 	\tikzset{dpad/.style args={#1}{every matrix/.append style={nodes={dpadded, #1}}}}
-		\tikzset{light pad/.style={outer sep=0.2em, inner sep=0.5em, draw=gray!50}}
+	\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
+	\tikzset{arr0/.style={draw, ->, thick, shorten <=0pt, shorten >=0pt}}
+	\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
+	\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
 
-		\tikzset{arr/.style={draw, ->, thick, shorten <=3pt, shorten >=3pt}}
-		\tikzset{arr0/.style={draw, ->, thick, shorten <=0pt, shorten >=0pt}}
-		\tikzset{arr1/.style={draw, ->, thick, shorten <=1pt, shorten >=1pt}}
-		\tikzset{arr2/.style={draw, ->, thick, shorten <=2pt, shorten >=2pt}}
-
-		\newcommand\cmergearr[5][]{
-			\draw[arr, #1, -] (#2) -- (#5) -- (#3);
-			\draw[arr, #1, shorten <=0] (#5) -- (#4);
-			}
-		\newcommand\mergearr[4][]{
-			\coordinate (center-#2#3#4) at (barycentric cs:#2=1,#3=1,#4=1.2);
-			\cmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
-			}
-		\newcommand\cunmergearr[5][]{
-			\draw[arr, #1, -, shorten >=0] (#2) -- (#5);
-			\draw[arr, #1, shorten <=0] (#5) -- (#3);
-			\draw[arr, #1, shorten <=0] (#5) -- (#4);
-			}
-		\newcommand\unmergearr[4][]{
-			\coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
-			\cunmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
-			}
-		\newcommand\lab[1]{(#1)(lab-#1)}
-		\tikzset{alternative/.style args={#1|#2|#3}{name=#1, circle, fill, inner sep=1pt,label={[name={lab-#1},gray!30!black, inner sep=1pt]#3:\scriptsize #2}} }
-		\tikzset{tpt/.style args={#1|#2}{alternative={#1|#2|below}} }
-		\tikzset{Dom/.style args={#1[#2] (#3) around #4}{dpadded, name=#3, label={[name={lab-#3},align=center,label distance=-1.9em, shading = axis, top color=white, bottom color=black!04, #2]120:#1}, fit={ #4 }, inner sep=0.5em}}
-
-	\relax % Most packages
-	    % \usepackage[utf8]{inputenc}
-	    \usepackage{mathtools}
-	    \usepackage{amssymb}
-			\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
-	    % \usepackage{parskip}
-	    % \usepackage{algorithm}
-	    \usepackage{bbm}
-		\usepackage{lmodern}
-		% \usepackage{times}
-	    \usepackage{faktor}
-	    % \usepackage{booktabs}
-		% \usepackage[margin=1in]{geometry}
-	    \usepackage{graphicx}
-	    \usepackage{scalerel}
-	    \usepackage{enumitem}
-	    \usepackage{nicefrac}\let\nf\nicefrac
-
-	    \usepackage{color}
-	    %\usepackage{stmaryrd}
-	    \usepackage{hyperref} % Load before theorems...
-	        \hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=green!50!black}
-
-	\usepackage{amsthm,thmtools} % Theorem Packages
-		\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
-	    \theoremstyle{plain}
-	    \newtheorem{theorem}{Theorem}
-		% \newtheorem{coro}{Corollary}[theorem]
-	    % \newtheorem{prop}[theorem]{Proposition}
-		% \newtheorem{lemma}[theorem]{Lemma}
-		\declaretheorem[name=Corollary,parent=theorem]{coro}
-	    \declaretheorem[name=Proposition,sibling=theorem,postheadhook={%
-		% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
-			}]{prop}
-		\declaretheorem[name=Lemma,sibling=theorem]{lemma}
-		%
-	    \newtheorem{claim}{Claim}
-	    \newtheorem{remark}{Remark}
-	    \theoremstyle{definition}
-	    % \newtheorem{defn}{Definition}
-	    % \declaretheorem[name=Definition]{defn}
-	    \declaretheorem[name=Definition, qed=$\square$]{defn}
-
-		\crefname{defn}{Definition}{Definitions}
-		\crefname{prop}{Proposition}{Propositions}
-
-	\relax %%%%%%%%% GENERAL MACROS %%%%%%%%
-	    \let\Horig\H
-		\let\H\relax
-		\DeclareMathOperator{\H}{\mathrm{H}} % Entropy
-		\DeclareMathOperator{\I}{\mathrm{I}} % Information
-		\DeclareMathOperator*{\Ex}{\mathbb{E}} % Expectation
-		\DeclareMathOperator*{\EX}{\scalebox{1.5}{$\mathbb{E}$}}
-
-	    \newcommand{\mat}[1]{\mathbf{#1}}
-	    \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
-			#1\;\delimsize\|\;#2%
+	\newcommand\cmergearr[5][]{
+		\draw[arr, #1, -] (#2) -- (#5) -- (#3);
+		\draw[arr, #1, shorten <=0] (#5) -- (#4);
 		}
-		\newcommand{\thickD}{I\mkern-8muD}
-		\newcommand{\kldiv}{\thickD\infdivx}
-		\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
-
-		\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
-		% \newcommand{\datadist}[1]{p_\text{data}}
-
-		\makeatletter
-		\newcommand{\subalign}[1]{%
-		  \vcenter{%
-		    \Let@ \restore@math@cr \default@tag
-		    \baselineskip\fontdimen10 \scriptfont\tw@
-		    \advance\baselineskip\fontdimen12 \scriptfont\tw@
-		    \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
-		    \lineskiplimit\lineskip
-		    \ialign{\hfil$\m@th\scriptstyle##$&$\m@th\scriptstyle{}##$\hfil\crcr
-		      #1\crcr
-		    }%
-		  }%
+	\newcommand\mergearr[4][]{
+		\coordinate (center-#2#3#4) at (barycentric cs:#2=1,#3=1,#4=1.2);
+		\cmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
 		}
-		\makeatother
-		\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
-
-	\relax %%%%%%%%%   PDG  MACROS   %%%%%%%%
-		\newcommand{\ssub}[1]{_{\!_{#1}\!}}
-		% \newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
-		% \newcommand{\bP}[1][L]{\mat{P}_{\!_{#1}\!}}
-		\newcommand{\bp}[1][L]{\mat{p}\ssub{#1}}
-		\newcommand{\bP}[1][L]{\mat{P}\ssub{#1}}
-		\newcommand{\V}{\mathcal V}
-		\newcommand{\N}{\mathcal N}
-		\newcommand{\Ed}{\mathcal E}
-
-	    \newcommand{\balpha}{\boldsymbol\alpha}
-	    \newcommand{\bbeta}{\boldsymbol\beta}
-
-		\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
-		\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
-		\newcommand{\dg}[1]{\mathbdcal{#1}}
-		\newcommand{\PDGof}[1]{{\dg M}_{#1}}
-		\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
-		\newcommand\VFE{\mathit{V\mkern-4mu F\mkern-4.5mu E}}
-
-		\newcommand\Inc{\mathit{Inc}}
-		\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
-		% \newcommand{\ed}[3]{%
-		% 	\mathchoice%
-		% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
-		% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
-		% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
-		% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
-		\newcommand{\ed}[3]{#2%
-		  \overset{\smash{\mskip-5mu\raisebox{-1pt}{$\scriptscriptstyle
-		        #1$}}}{\rightarrow} #3}
-
-	    \newcommand{\nhphantom}[2]{\sbox0{\kern-2%
-			\nulldelimiterspace$\left.\delimsize#1\vphantom{#2}\right.$}\hspace{-.97\wd0}}
-			% \nulldelimiterspace$\left.\delimsize#1%
-			% \vrule depth\dp#2 height \ht#2 width0pt\right.$}\hspace{-.97\wd0}}
-		\makeatletter
-		\newsavebox{\abcmycontentbox}
-		\newcommand\DeclareDoubleDelim[5]{
-		    \DeclarePairedDelimiterXPP{#1}[1]%
-				{% box must be saved in this pre code
-					\sbox{\abcmycontentbox}{\ensuremath{##1}}%
-				}{#2}{#5}{}%
-			    %%% Correct spacing, but doesn't work with externalize.
-				% {\nhphantom{#3}{##1}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{##1}}
-				%%% Fast, but wrong spacing.
-				% {\nhphantom{#3}{~}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{~}}
-				%%% with savebox.
-			    {%
-					\nhphantom{#3}{\usebox\abcmycontentbox}%
-					\hspace{1.2pt} \delimsize#3%
-					\mathopen{}\usebox{\abcmycontentbox}\mathclose{}%
-					\delimsize#4\hspace{1.2pt}%
-					\nhphantom{#4}{\usebox\abcmycontentbox}%
-				}%
+	\newcommand\cunmergearr[5][]{
+		\draw[arr, #1, -, shorten >=0] (#2) -- (#5);
+		\draw[arr, #1, shorten <=0] (#5) -- (#3);
+		\draw[arr, #1, shorten <=0] (#5) -- (#4);
 		}
-		\makeatother
-		\DeclareDoubleDelim
-			\SD\{\{\}\}
-		\DeclareDoubleDelim
-			\bbr[[]]
-		% \DeclareDoubleDelim
-		% 	\aar\langle\langle\rangle\rangle
-		\makeatletter
-		\newsavebox{\aar@content}
-		\newcommand\aar{\@ifstar\aar@one@star\aar@plain}
-		\newcommand\aar@one@star{\@ifstar\aar@resize{\aar@plain*}}
-		\newcommand\aar@resize[1]{\sbox{\aar@content}{#1}\scaleleftright[3.8ex]
-			{\Biggl\langle\!\!\!\!\Biggl\langle}{\usebox{\aar@content}}
-			{\Biggr\rangle\!\!\!\!\Biggr\rangle}}
-		\DeclareDoubleDelim
-			\aar@plain\langle\langle\rangle\rangle
-		\makeatother
-
-
-		% \DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
-		% 	{\nhphantom{\langle}{#1}\hspace{1.2pt}\delimsize\langle\mathopen{}#1\mathclose{}\delimsize\rangle\hspace{1.2pt}\nhphantom{\rangle}{#1}}
-
-	\relax %%%%% restatables and links
-		% \usepackage{xstring} % for expandarg
-		\usepackage{xpatch}
-		\makeatletter
-		\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
-		   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
-		   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
-		   {\ifthmt@thisistheone%
-		   	\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi% same as before
-			%except with also marginparbox
-			% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
-		   \else\fi%
-		   }
-		   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure
-		\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
-		   {\csname end#2\endcsname}
-		   {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
-		   {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
-
-		% \def\onlyaftercolon#1:#2{#2}
-		\newcommand{\recall}[1]{\medskip\par\noindent{\bf \Cref{thmt@@#1}.} \begingroup\em \noindent
-		   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
-
-	   	\setlength\marginparwidth{1.55cm}
-		%
-		%https://tex.stackexchange.com/questions/78519/vspace-in-marginpar-adds-unwanted-vertical-space
-		% \newcommand{\fixedmarginpar}[2]{%
-	  	% 	\setbox1=\vtop{#2}\marginpar{\vspace{-\ht1}\vspace{#1}#2}%
-		% }
-		\let\oldmarginpar\marginpar
-	    \renewcommand{\marginpar}[1]{%
-	        \leavevmode%
-	        \oldmarginpar{#1}%
-	        \ignorespacesafterend\ignorespaces}
-		\newsavebox\marginprooflinkbox
-		\newenvironment{linked}[3][]{%
-			\def\linkedproof{#3}%
-			\def\linkedtype{#2}%
-			% \reversemarginpar
-			% \marginpar{%
-			% \vspace{1.1em}
-			% % \hspace{2em}
-			% 	% \raggedleft
-			% 	\raggedright
-			% 	\hyperref[proof:\linkedproof]{%
-			% 	\color{blue!50!white}
-			% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
-			% 	}%
-	        % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
-			\ifmarginprooflinks%
-			% \fixedmarginpar{2ex}{%
-			\sbox\marginprooflinkbox{%
-				% \vspace{-3em}% %% for bottom
-				% \vspace{1.5em} %% original size; but now I have small props
-				% \vspace{2ex}%
-				% \vspace{9ex}%
-				\centering%
-				\hyperref[proof:\linkedproof]{%
-	            % \hyperref[proof:#3]{
-				\color{blue!30!white}%
-				\scaleleftright{$\Big[$}{\,\mbox{\footnotesize\centering\tt\begin{tabular}{@{}c@{}}
-					% proof of \\\,\linkedtype~\ref*{\linkedtype:\linkedproof}
-					link to\\[-0.15em]
-					proof
-				\end{tabular}}\,}{$\Big]$}}~}
-			\fi
-	        \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
-			\ifmarginprooflinks\marginpar{\vspace{-1ex}\usebox\marginprooflinkbox}\fi%
-	        % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
-	        }%
-			{
-			% \ifmarginprooflinks\marginpar{\vspace{2ex}\usebox\marginprooflinkbox}\fi%
-			\sbox\marginprooflinkbox{}
-			\endrestatable%
-			}
-		\makeatother
-			\newcounter{proofcntr}
-			\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
-
-			\usepackage{cancel}
-			\newcommand{\Cancel}[2][black]{{\color{#1}\cancel{\color{black}#2}}}
-
-			\usepackage{tcolorbox}
-			\tcbuselibrary{most}
-			\tcolorboxenvironment{lproof}{
-				% fonttitle=\bfseries,
-				% top=0.5em,
-				enhanced,
-				parbox=false,
-				boxrule=0pt,
-				frame hidden,
-				borderline west={4pt}{0pt}{blue!20!black!40!white},
-				% coltext={blue!20!black!60!white},
-				colback={blue!20!black!05!white},
-				sharp corners,
-				breakable,
-				% bottomsep at break=4cm,
-				% enlarge bottom at break by=-4cm,
-				% topsep at break=3cm,
-				% enlarge top at break by=-3cm
-			}
-			% \usepackage[framemethod=TikZ]{mdframed}
-			% \surroundwithmdframed[ % lproof
-			% 	   topline=false,
-			% 	   linewidth=3pt,
-			% 	   linecolor=gray!20!white,
-			% 	   rightline=false,
-			% 	   bottomline=false,
-			% 	   leftmargin=0pt,
-			% 	   % innerleftmargin=5pt,
-			% 	   skipabove=\medskipamount,
-			% 	   skipbelow=\medskipamount
-			% 	]{lproof}
-		%oli16: The extra space was because there was extra space in the paragraph, not
-		%because this length was too big. By breaking arrays, everything will be better.
-		\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
-
-	\relax %TODOs and footnotes
-	    \newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
-	    \newcommand{\dfootnote}[1]{%
-	        \let\oldthefootnote=\thefootnote%
-	        % \addtocounter{footnote}{-1}%
-			\setcounter{footnote}{999}
-	        \renewcommand{\thefootnote}{\textdagger}%
-	        \footnote{#1}%
-	        \let\thefootnote=\oldthefootnote%
-	    }
-		\newcommand{\dfootnotemark}{
-			\footnotemark[999]
+	\newcommand\unmergearr[4][]{
+		\coordinate (center-#2#3#4) at (barycentric cs:#2=1.2,#3=1,#4=1);
+		\cunmergearr[#1]{#2}{#3}{#4}{center-#2#3#4}
 		}
+
+\relax % Most packages
+    % \usepackage[utf8]{inputenc}
+    \usepackage{mathtools}
+    \usepackage{amssymb}
+		\DeclareMathSymbol{\shortminus}{\mathbin}{AMSa}{"39}
+    % \usepackage{parskip}
+    % \usepackage{algorithm}
+    \usepackage{bbm}
+	\usepackage{lmodern}
+	% \usepackage{times}
+    \usepackage{faktor}
+    % \usepackage{booktabs}
+	% \usepackage[margin=1in]{geometry}
+    \usepackage{graphicx}
+    \usepackage{scalerel}
+    \usepackage{enumitem}
+    \usepackage{nicefrac}\let\nf\nicefrac
+
+    \usepackage{color}
+    %\usepackage{stmaryrd}
+    \usepackage{hyperref} % Load before theorems...
+        \hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=green!50!black}
+
+\usepackage{amsthm,thmtools} % Theorem Packages
+	\usepackage[noabbrev,nameinlink,capitalize]{cleveref}
+    \theoremstyle{plain}
+    \newtheorem{theorem}{Theorem}
+	\newtheorem{coro}{Corollary}[theorem]
+    \newtheorem{prop}[theorem]{Proposition}
+    \newtheorem{claim}{Claim}
+    \newtheorem{remark}{Remark}
+    \newtheorem{lemma}[theorem]{Lemma}
+    \theoremstyle{definition}
+    % \newtheorem{defn}{Definition}
+    % \declaretheorem[name=Definition]{defn}
+    \declaretheorem[name=Definition, qed=$\square$]{defn}
+
+	\crefname{defn}{Definition}{Definitions}
+	\crefname{prop}{Proposition}{Propositions}
+
+
+
+\relax %%%%%%%%% GENERAL MACROS %%%%%%%%
+    \let\Horig\H
+	\let\H\relax
+	\DeclareMathOperator{\H}{\mathrm{H}} % Entropy
+	\DeclareMathOperator{\I}{\mathrm{I}} % Information
+	\DeclareMathOperator*{\Ex}{\mathbb{E}} % Expectation
+	\DeclareMathOperator*{\EX}{\scalebox{1.5}{$\mathbb{E}$}}
+
+    \newcommand{\mat}[1]{\mathbf{#1}}
+    \DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+		#1\;\delimsize\|\;#2%
+	}
+	\newcommand{\thickD}{I\mkern-8muD}
+	\newcommand{\kldiv}{\thickD\infdivx}
+	\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
+
+	\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
+	% \newcommand{\datadist}[1]{p_\text{data}}
+
+	\makeatletter
+	\newcommand{\subalign}[1]{%
+	  \vcenter{%
+	    \Let@ \restore@math@cr \default@tag
+	    \baselineskip\fontdimen10 \scriptfont\tw@
+	    \advance\baselineskip\fontdimen12 \scriptfont\tw@
+	    \lineskip\thr@@\fontdimen8 \scriptfont\thr@@
+	    \lineskiplimit\lineskip
+	    \ialign{\hfil$\m@th\scriptstyle##$&$\m@th\scriptstyle{}##$\hfil\crcr
+	      #1\crcr
+	    }%
+	  }%
+	}
+	\makeatother
+	\newcommand\numberthis{\addtocounter{equation}{1}\tag{\theequation}}
+
+\relax %%%%%%%%%   PDG  MACROS   %%%%%%%%
+	\newcommand{\ssub}[1]{_{\!_{#1}\!}}
+	% \newcommand{\bp}[1][L]{\mat{p}_{\!_{#1}\!}}
+	% \newcommand{\bP}[1][L]{\mat{P}_{\!_{#1}\!}}
+	\newcommand{\bp}[1][L]{\mat{p}\ssub{#1}}
+	\newcommand{\bP}[1][L]{\mat{P}\ssub{#1}}
+	\newcommand{\V}{\mathcal V}
+	\newcommand{\N}{\mathcal N}
+	\newcommand{\Ed}{\mathcal E}
+
+	\DeclareMathAlphabet{\mathdcal}{U}{dutchcal}{m}{n}
+	\DeclareMathAlphabet{\mathbdcal}{U}{dutchcal}{b}{n}
+	\newcommand{\dg}[1]{\mathbdcal{#1}}
+	\newcommand{\PDGof}[1]{{\dg M}_{#1}}
+	\newcommand{\UPDGof}[1]{{\dg N}_{#1}}
+	\newcommand\VFE{\mathit{V\mkern-4mu F\mkern-4.5mu E}}
+
+	\newcommand\Inc{\mathit{Inc}}
+	\newcommand{\IDef}[1]{\mathit{IDef}_{\!#1}}
+	% \newcommand{\ed}[3]{%
+	% 	\mathchoice%
+	% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{${#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3} %display style
+	% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptstyle {#1}}}} #3}% text style
+	% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3} %script style
+	% 	{#2\overset{\smash{\mskip-5mu\raisebox{-3pt}{$\scriptscriptstyle {#1}$}}}{\xrightarrow{\hphantom{\scriptscriptstyle {#1}}}} #3}} %scriptscriptstyle
+	\newcommand{\ed}[3]{#2%
+	  \overset{\smash{\mskip-5mu\raisebox{-1pt}{$\scriptscriptstyle
+	        #1$}}}{\rightarrow} #3}
+
+    \newcommand{\nhphantom}[2]{\sbox0{\kern-2%
+		\nulldelimiterspace$\left.\delimsize#1\vphantom{#2}\right.$}\hspace{-.97\wd0}}
+		% \nulldelimiterspace$\left.\delimsize#1%
+		% \vrule depth\dp#2 height \ht#2 width0pt\right.$}\hspace{-.97\wd0}}
+	\makeatletter
+	\newsavebox{\abcmycontentbox}
+	\newcommand\DeclareDoubleDelim[5]{
+	    \DeclarePairedDelimiterXPP{#1}[1]%
+			{% box must be saved in this pre code
+				\sbox{\abcmycontentbox}{\ensuremath{##1}}%
+			}{#2}{#5}{}%
+		    %%% Correct spacing, but doesn't work with externalize.
+			% {\nhphantom{#3}{##1}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{##1}}
+			%%% Fast, but wrong spacing.
+			% {\nhphantom{#3}{~}\hspace{1.2pt}\delimsize#3\mathopen{}##1\mathclose{}\delimsize#4\hspace{1.2pt}\nhphantom{#4}{~}}
+			%%% with savebox.
+		    {%
+				\nhphantom{#3}{\usebox\abcmycontentbox}%
+				\hspace{1.2pt} \delimsize#3%
+				\mathopen{}\usebox{\abcmycontentbox}\mathclose{}%
+				\delimsize#4\hspace{1.2pt}%
+				\nhphantom{#4}{\usebox\abcmycontentbox}%
+			}%
+	}
+	\makeatother
+	\DeclareDoubleDelim
+		\SD\{\{\}\}
+	\DeclareDoubleDelim
+		\bbr[[]]
+	% \DeclareDoubleDelim
+	% 	\aar\langle\langle\rangle\rangle
+	\makeatletter
+	\newsavebox{\aar@content}
+	\newcommand\aar{\@ifstar\aar@one@star\aar@plain}
+	\newcommand\aar@one@star{\@ifstar\aar@resize{\aar@plain*}}
+	\newcommand\aar@resize[1]{\sbox{\aar@content}{#1}\scaleleftright[3.8ex]
+		{\Biggl\langle\!\!\!\!\Biggl\langle}{\usebox{\aar@content}}
+		{\Biggr\rangle\!\!\!\!\Biggr\rangle}}
+	\DeclareDoubleDelim
+		\aar@plain\langle\langle\rangle\rangle
+	\makeatother
+
+
+	% \DeclarePairedDelimiterX{\aar}[1]{\langle}{\rangle}
+	% 	{\nhphantom{\langle}{#1}\hspace{1.2pt}\delimsize\langle\mathopen{}#1\mathclose{}\delimsize\rangle\hspace{1.2pt}\nhphantom{\rangle}{#1}}
+
+\relax %%%%% restatables and links
+	% \usepackage{xstring} % for expandarg
+	\usepackage{xpatch}
+	\makeatletter
+	\xpatchcmd{\thmt@restatable}% Edit \thmt@restatable
+	   {\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi}% Replace this code
+	   % {\ifthmt@thisistheone\csname #2\@xa\endcsname\typeout{oiii[#1;#2\@xa;#3;\csname thmt@stored@#3\endcsname]}\ifx\@nx#1\@nx\else[#1]\fi\else\csname #2\@xa\endcsname\fi}% with this code
+	   {\ifthmt@thisistheone\csname #2\@xa\endcsname\ifx\@nx#1\@nx\else[{#1}]\fi
+	   \else\fi}
+	   {}{\typeout{FIRST PATCH TO THM RESTATE FAILED}} % execute on success/failure
+	\xpatchcmd{\thmt@restatable}% A second edit to \thmt@restatable
+	   {\csname end#2\endcsname}
+	   {\ifthmt@thisistheone\csname end#2\endcsname\else\fi}
+	   {}{\typeout{FAILED SECOND THMT RESTATE PATCH}}
+
+	% \def\onlyaftercolon#1:#2{#2}
+	\newcommand{\recall}[1]{\medskip\par\noindent{\bf \Cref{thmt@@#1}.} \begingroup\em \noindent
+	   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
+
+   	\setlength\marginparwidth{1.55cm}
+	\newenvironment{linked}[3][]{%
+		\def\linkedproof{#3}%
+		\def\linkedtype{#2}%
+		% \reversemarginpar
+		% \marginpar{%
+		% \vspace{1.1em}
+		% % \hspace{2em}
+		% 	% \raggedleft
+		% 	\raggedright
+		% 	\hyperref[proof:\linkedproof]{%
+		% 	\color{blue!50!white}
+		% 	\scaleleftright{$\Big[$}{\,{\small\raggedleft\tt\begin{tabular}{@{}c@{}} proof of \\\linkedtype~\ref*{\linkedtype:\linkedproof}\end{tabular}}\,}{$\Big]$}}
+		% 	}%
+        % \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
+		\ifmarginprooflinks
+		\marginpar{%
+			% \vspace{-3em}% %% for bottom
+			\vspace{1.5em}
+			\centering%
+			\hyperref[proof:\linkedproof]{%
+            % \hyperref[proof:#3]{
+			\color{blue!30!white}%
+			\scaleleftright{$\Big[$}{\,\mbox{\footnotesize\centering\tt\begin{tabular}{@{}c@{}}
+				% proof of \\\,\linkedtype~\ref*{\linkedtype:\linkedproof}
+				link to\\[-0.15em]
+				proof
+			\end{tabular}}\,}{$\Big]$}}~
+			}%
+		\fi
+        \restatable[#1]{#2}{#2:#3}\label{#2:#3}%
+        }%
+		{\endrestatable%
+		}
+	\makeatother
+		\newcounter{proofcntr}
+		\newenvironment{lproof}{\begin{proof}\refstepcounter{proofcntr}}{\end{proof}}
+		
+		\usepackage{cancel}
+		\newcommand{\Cancel}[2][black]{{\color{#1}\cancel{\color{black}#2}}}
+
+		\usepackage{tcolorbox}
+		\tcbuselibrary{most}
+		\tcolorboxenvironment{lproof}{
+			% fonttitle=\bfseries,
+			% top=0.5em,
+			enhanced,
+			parbox=false,
+			boxrule=0pt,
+			frame hidden,
+			borderline west={4pt}{0pt}{blue!20!black!40!white},
+			% coltext={blue!20!black!60!white},
+			colback={blue!20!black!05!white},
+			sharp corners,
+			breakable,
+			% bottomsep at break=4cm,
+			% enlarge bottom at break by=-4cm,
+			% topsep at break=3cm,
+			% enlarge top at break by=-3cm
+		}
+		% \usepackage[framemethod=TikZ]{mdframed}
+		% \surroundwithmdframed[ % lproof
+		% 	   topline=false,
+		% 	   linewidth=3pt,
+		% 	   linecolor=gray!20!white,
+		% 	   rightline=false,
+		% 	   bottomline=false,
+		% 	   leftmargin=0pt,
+		% 	   % innerleftmargin=5pt,
+		% 	   skipabove=\medskipamount,
+		% 	   skipbelow=\medskipamount
+		% 	]{lproof}
+	%oli16: The extra space was because there was extra space in the paragraph, not
+	%because this length was too big. By breaking arrays, everything will be better.
+	\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
+
+\relax %TODOs and footnotes
+    \newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
+    \newcommand{\dfootnote}[1]{%
+        \let\oldthefootnote=\thefootnote%
+        % \addtocounter{footnote}{-1}%
+		\setcounter{footnote}{999}
+        \renewcommand{\thefootnote}{\textdagger}%
+        \footnote{#1}%
+        \let\thefootnote=\oldthefootnote%
+    }
+	\newcommand{\dfootnotemark}{
+		\footnotemark[999]
+	}
 
 \begin{document}
 
@@ -491,35 +456,33 @@
 %
 %\runningauthor{Surname 1, Surname 2, Surname 3, ...., Surname n}
 
-\runningtitle{Loss as the Inconsistency of a PDG: Choose Your Model, Not Your Loss}
-% \runningtitle{Loss as Inconsistency: Choose your Model, not your Loss}
-% \runningtitle{Choose your Model, not your Loss}
 \twocolumn[
-	%%  Title objectives (might not be simultaneously satisfiable)
-	%%    -focus on inconsistency.  -Naturality. -Not over-reaching.
-	%%
-	% \aistatstitle{(PDG) Inconsistency: the Universal Loss}
-	% \aistatstitle{Choose your Model, not your Loss:}
-	% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
-	% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models (Choose your Model, not your Loss)}
-	% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
-	% \aistatstitle{Inconsistency, the Universal Loss Fuction: How Loss is but the Shadow of an Inconsistent Model}
-	% \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are but  Shadows of Inconsistent Models}
-	% \aistatstitle{The One True Loss: How Our Objectives are but Shadows of Inconsistent Models}
-	%
-	% \aistatstitle{Probabilistic Dependency Graphs: Model Inconsistency as the Universal Loss Function}
-	% \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are mere shadows of Probabilistic Dependency Graphs}
-	% \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows cast by Inconsistent Probabilistic Dependency Graphs}
-	% \aistatstitle{Loss Functions are mere Shadows of Probabilistic Dependency Graphs: Choose your Model, not your Loss}
-	% \aistatstitle{Inconsistency from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
-	% \aistatstitle{Loss Functions from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
-	% \aistatstitle{ The Shadows of an Inconsistent Probabilistic Dependency Graphs: \\
-		% Choose your Model, not your Loss Function}
-	\aistatstitle{ Loss as the Inconsistency of a Probabilistic Dependency Graph: \\ Choose Your Model, Not Your Loss Function}
-	% \aistatstitle{ Probabilistic Dependency Graph Inconsistency, the Natural Loss: \\ Choose your Model, not your Loss Function}
-	\aistatsauthor{ Oliver E. Richardson }
-	\aistatsaddress{ Cornell University }
-]
+%%  Title objectives (might not be simultaneously satisfiable)
+%%    -focus on inconsistency.  -Naturality. -Not over-reaching.
+%%
+% \aistatstitle{(PDG) Inconsistency: the Universal Loss}
+% \aistatstitle{Choose your Model, not your Loss:}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models (Choose your Model, not your Loss)}
+% \aistatstitle{Loss Functions are the Shadows of Inconsistent Models}
+% \aistatstitle{Inconsistency, the Universal Loss Fuction: How Loss is but the Shadow of an Inconsistent Model}
+% \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are but  Shadows of Inconsistent Models}
+% \aistatstitle{The One True Loss: How Our Objectives are but Shadows of Inconsistent Models}
+%
+% \aistatstitle{Probabilistic Dependency Graphs: Model Inconsistency as the Universal Loss Function}
+% \aistatstitle{Inconsistency, the Universal Loss Fuction: Our Favorite Objectives are mere shadows of Probabilistic Dependency Graphs}
+% \aistatstitle{Choose your Model, not your Loss Function: Objectives are the Shadows cast by Inconsistent Probabilistic Dependency Graphs}
+% \aistatstitle{Loss Functions are mere Shadows of Probabilistic Dependency Graphs: Choose your Model, not your Loss}
+% \aistatstitle{Inconsistency from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
+% \aistatstitle{Loss Functions from Probabilistic Dependency Graphs: Choose your Model not Your Loss.}
+% \aistatstitle{ The Shadows of an Inconsistent Probabilistic Dependency Graphs: \\
+	% Choose your Model, not your Loss Function}
+\aistatstitle{ Loss as the Inconsistency of a Probabilistic Dependency Graph: \\ Choose your Model, not your Loss Function}
+% \aistatstitle{ Probabilistic Dependency Graph Inconsistency, the Natural Loss: \\ Choose your Model, not your Loss Function}
+
+
+\aistatsauthor{ Oliver E. Richardson }
+\aistatsaddress{ Cornell University } ]
 
 \begin{abstract}
     % The Abstract paragraph should be indented 0.25 inch (1.5 picas) on
@@ -574,8 +537,6 @@
 	arise for free out of uncontroversial modeling assumptions%
 	---as do simple graphical proofs of their corresponding bounds.
 	Finally, we observe that inconsistency becomes the log partition function (free energy) in the setting where PDGs are factor graphs.
-	% We observe that inconsistency becomes the log partition function (free energy) in the setting where PDGs are factor graphs.
-	% Finally, we illustrate how our approach may yield better loss functions in new settings.
 \end{abstract}
 
 \section{INTRODUCTION}
@@ -594,9 +555,8 @@ For instance, a key component of a machine learning system is a loss
 %greg1:
 % function which the system minimizes, a wide variety of which are used in pratice.
 % function which the system minimizes.
-function which the system must minimize,
-% A wide variety of losses are used in pratice.
-and a wide variety of losses are used in pratice.
+function which the system must minimize.
+A wide variety of losses are used in pratice.
 %oli2: removed examples
 % (e.g., cross entropy, square error, hinge loss, \ldots).
 % In machine learning, the objective is often called the loss function, and many different
@@ -676,25 +636,16 @@ a well-motivated measure of inconsistency  \parencite{richardson2020probabilisti
 %joe1*: perhaps add the following sentence
 %oli1: some edits
 % The goal of this paper is to show that we can use PDGs and their associated measure of inconsistency to proide a model-based ``universal'' loss function.
-% The goal of this paper is to show that PDGs and their associated inconsistency measure can provide a ``universal'' model-based loss function.
-A primary goal of this paper is to show that PDGs and their associated inconsistency measure can provide a ``universal'' model-based loss function.
+The goal of this paper is to show that PDGs and their associated inconsistency measure can provide a ``universal'' model-based loss function.
 %joe1
 %In this paper, we show that many standard objective functions---cross
 Towards this end, we show that many standard objective functions---cross
 entropy, square error, many statistical distances, the ELBO,
-regularizers, and the log partition function---%
+regularizers, and the log partition
 %joe1
 %function--- arise naturally as inconsistencies of the appropriate
-% function---arise naturally as inconsistencies of the appropriate underlying PDG.
-%joe:To me, the  sentence would sound much better as "many standard objective function  ... can be viewed as measuring the inconsistency of the appropriate
-% underlying PDG".
-% arise naturally as inconsistencies of
-% can be viewed as measuring the inconsistency of
-% arise naturally as the measure of inconsistency for
-% naturally arise by measuring the inconsistency of
-arise naturally by measuring the inconsistency of
-the appropriate underlying PDG.
-%
+function---arise naturally as inconsistencies of the appropriate
+underlying PDG.
 %joe1: I would tonie this down; also clarify what purpose you have in mind
 %This is especially surprising because PDGs were not designed for this purpose.
 This is somewhat surprising, since PDGs were not designed with the
@@ -708,11 +659,9 @@ goal of capturing loss functions at all.
 % is ok, but verbose and not as clean as I was trying for. I'm trying again.
 %% Using models (specifically, PDGs) and inconsisstency to specify an
 %% objective  may be more restrictive than using loss functions,
-% Specifying a loss function indirectly like this may be more restrictive,
-Specifying a loss function indirectly like this is in some ways more restrictive,
+Specifying a loss function indirectly like this may be more restrictive,
 but it is also more intuitive
-% (since it requires no technical familiarity with losses),
-(it no technical familiarity with losses, for instance),
+(since it requires no technical familiarity with losses),
 %joe1: what do you mean by "epistemically grounded"?  Do you mean
 %something like "and forces the agent to express their beliefs"?  If
 %so, say that.  It's much less mysterious.  The reader does not have
@@ -734,12 +683,6 @@ but it is also more intuitive
 % and admits clearer discussion in a more common language.
 and admits more grounded defense and criticism.
 % This change is analogous to a higher-level programming language, which restricts the set of legal programs but also makes programs easier to reason about, and ultimately,  even easier to write.
-%joe: would like to add: "As we shall see, modeling what is going using a PDG also allows us to describe our beliefs about what is going on and the source of the inconsistency."
-% TODO: MAYBE....
-% As we shall see, modeling what is going on using a PDG also .
-% As we will see, modeling with a PDG can also give insight into the source of this inconsistency.
-
-
 
 For a particularly powerful demonstration, consider the variational
 %joe1: you nee4 a reference here
@@ -817,7 +760,7 @@ and the monotonicity of R\'enyi divergence.
 % In the coming sections, we will show in more detail how this concept of inconsistency, beyond simply providing a forgiving and intuitive modeling framework, reduces exactly to many standard objectives used in machine learning, measures of statistical distance, and also demonstrate that this framework clarifies the relationships between them, by providing simple clear derivations of otherwise opaque inequalities.
 % In the coming sections, we will show in more detail how this concept of inconsistency, beyond simply providing a permissive and intuitive modeling framework, reduces exactly to many standard objectives used in machine learning, measures of statistical distance, and also demonstrate that this framework clarifies the relationships between them, by providing simple clear derivations of otherwise opaque inequalities.
 In the coming sections, we show in more detail how this concept of inconsistency, beyond simply providing a permissive and intuitive modeling framework, reduces exactly to many standard objectives used in machine learning and to measures of statistical distance.
- We demonstrate that this framework clarifies the relationships between them, by providing clear derivations of otherwise opaque inequalities.
+ We demonstrate that this framework clarifies the relationships between them, by providing simple and clear derivations of otherwise opaque inequalities.
 % we can capture regularizers in a way that justifies a well-known connection between priors and regularizers
 
 % %joe1: in general, it's bad form to have a single subsection.  It also
@@ -855,9 +798,7 @@ denotes the conditional marginal of $\mu$ on  $Y$ given $X$.
 % For instance, a given a conditional probability measure $\Pr$ on $Y$ given $X$, with a mass function $p$, we write  $p(Y\mid X)$ for the cpd $(x,y) \mapsto p.\text{pmf}(y \mid x)$.
 Depending on which we find clearer in context, we write either $\Ex_\mu f$ or $\Ex_{\omega \sim \mu} f(\omega)$ for expectation of $f : \Omega \to \mathbb R$ over a distribution $\mu$ with outcomes $\Omega$.
 We write $\kldiv\mu\nu = \Ex_\mu \log \frac{\mu}{\nu}$ for the relative entropy (KL Divergence) of $\nu$ with respect to $\mu$,
-%TODO: FIXME: add qualifier
-% and for finitely supported $\mu$,
-% and for finitely supported $\mu$,
+and for finitely supported $\mu$,
 % and identifying $\mu$ with its mass function,
 we write $\H(\mu) := \Ex_\mu \log\frac1\mu$ for the entropy of $\mu$, $\H_\mu(X):= \H(\mu(X))$ for the marginal entropy on a variable $X$, and $\H_\mu(Y \mid X):= \Ex_\mu \log \nicefrac1{\mu(Y|X)}$ for the conditional entropy of $Y$ given $X$.
 
@@ -869,32 +810,18 @@ directed graph with cpds attached to it. While this data is attached
 to the \emph{nodes} of a BN, it is attached to the \emph{edges} of a PDG.
 % Concretely, while in a BN, the variable $X$ is associated with the distribution $\Pr_X(X \mid \mathbf{Pa}(X))$ on $X$ given its parents, an edge $\ed LXY$ of a PDG is associated with a distribution $\Pr(Y \mid X)$.
 % As a result, a PDG of shape $X \to Y \leftarrow Z$ gives a cpd $p(Y\mid X)$ on $Y$ given $X$ and also (separately) a cpd $q(Y \mid Z)$ on $Y$ given $Z$, while a BN of the same shape has a single cpd $\Pr(Y \mid X,Z)$ on $Y$ given joint values of $X,Z$.
-%
-% For instance, a PDG of shape
-% % \vspace{-2ex}
-% % \[
-% $
-% % X\!~\!\to\!~\!Y\!~\!\leftarrow\!~\!Z
-% X \to Y \leftarrow Z
-% $
-% % \]
-% % \vskip-3ex
-% contains both a cpd $p(Y | X)$ and (separately) a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X$ and $Z$.
-For instance, a BN of shape
-$ X \!\to\! Y \!\leftarrow\! Z $
-contains a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X$ and $Z$,
-% while a PDG of the same shape contains both a cpd $p(Y | X)$ and, separately, a cpd $q(Y | Z)$.
-while a PDG of the same shape contains two cpds $p(Y | X)$ and $q(Y | Z)$.
-% The latter interpretation is strictly more expressive, and can also encode joint dependence with an extra variable.
-% This second interpretation is more expressive.
-% This second interpretation is more expressive; one can encode joint dependence with a joint variable $XZ$ and projection edges.
-% The second approach is strictly more expressive, and can encode joint dependence with an extra variable.
-The second approach is strictly more expressive, and can encode joint dependence with an extra variable.
-% In addition, a PDG allows for variable expression of confidence.
-% The other significant feature of a PDG is that all information is weighted by confidence parameters.
-% Importantly, all information in a PDG can be given variable weight.
-% A second important feature: all information in a PDG can be expressed with variable confidence.
-All information in a PDG can be expressed with variable confidence.
+For instance, a PDG of shape
+% \vspace{-2ex}
+% \[
+$
+% X\!~\!\to\!~\!Y\!~\!\leftarrow\!~\!Z
+X \to Y \leftarrow Z
+$
+% \]
+% \vskip-3ex
+contains both a cpd $p(Y | X)$ and (separately) a cpd $q(Y | Z)$, while a BN of the same shape has a single cpd $\Pr(Y | X,Z)$ on $Y$ given joint values of $X$ and $Z$.
+The first interpretation is more expresive, and can encode joint dependence with an extra variable and pair of edges.
+% Formally, the syntax of a PDG is given in \cref{defn:pdg}.
 We now restate the formal definition.
 % from \cite{richardson2020probabilistic}.
 
@@ -903,7 +830,7 @@ We now restate the formal definition.
     \label{defn:pdg}
 	A Probabilistic Dependency Graph (PDG)
 	% A \emph{probabilistic dependency graph} (PDG)
-	is a tuple $\dg M = (\N,\Ed,\V,\mat p, \balpha, \bbeta)$, where
+	is a tuple $\dg M = (\N,\Ed,\V,\mat p, \boldsymbol\alpha, \boldsymbol\beta)$, where
     \vspace{-1em}
 	%joe1: You seem to have worked hard on this, and I found it ugly.  I think bullets are much more helpful
 	%oli1: The bullets look better than I thought.
@@ -951,11 +878,10 @@ We now restate the formal definition.
 		%joe1
 		%\item[$\boldsymbol\beta$]
 		\item $\boldsymbol\beta$
-		associates to each edge $L$ a number $\beta_L$,
+		associates to each edge $L$ a real number $\beta_L$,
 		% associates to each edge $L$ a number $\beta\ssub L \in \mathbb R \cup \{\infty\}$,
 		% the modeler's subjective confidence in the reliability of
-		% the modeler's trust in the reliability of
-		the modeler's confidence in the reliability of
+		the modeler's trust in the reliability of
 	    % indicating the agent's trust in the reliability of
 		%added now that there's an extra line
 		the cpd
@@ -967,187 +893,11 @@ We now restate the formal definition.
     \end{itemize}%
 \end{defn}
 
-How should one choose parameters $\bbeta$ and $\balpha$?
-A choice of $\beta\ssub L=0$ means that the cpd $p\ssub L$ is effectively ignored, in the sense that such a PDG is equivalent to one in which the edge is attached to a different cpd $q \ne p\ssub L$.
-% On the other hand, setting $\beta$ to a large real number (or $\infty$) indicates high (or absolute) confidence in $p$.  This may be particularly appropriate if $p$ is a trusted empirical distribution.
-On the other hand, a large value of $\beta\ssub L$ (or $\infty$) indicates high (or absolute) confidence in the cpd. By default, we suppose $\beta\!=\! 1$, which is just a convenient choice of units---what’s important are the magnitudes of $\beta$ relative to one another.
-% $\balpha$, which plays a relatively minor role here, represents certainty in the causal structure of the graph, and is typically in $[0,1]$.
-The parameter $\balpha$, typically in $[0,1]$, represents certainty in the causal structure of the graph, and plays only a minor role in this paper.
-% $\balpha$ represents certainty in the causal structure of the graph, typically lies in $[0,1]$ and plays a relatively minor role in this paper.
-
-
-
-Like other graphical models, PDGs have semantics in terms of joint distributions $\mu$ over all variables.
-% Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions $\mu$, which measure the discrepency between $\dg M$ and $\mu$. The \emph{incompatibility} of $\mu$ with respect to $\dg M$, which measures the quantitative discrepency between $\mu$ and the cpds of $\dg M$, is given by
-Most directly, a PDG $\dg M$ determines two scoring functions on joint
-%joe1
-%distributions $\mu$. For us, the more important of the two is the
-distributions $\mu$. For the purposes of this paper, the more
-important of the two is
-%oli3: added
-% $\Inc_{\dg M}(\mu)$,
-the \emph{incompatibility} of $\mu$ with respect to $\dg M$, which
-measures the
-% \emph{quantitative}
-quantitative
-discrepency between $\mu$ and
-% the cpds of $\dg M$ and is given by
-$\dg M$'s cpds, and is given by
-\begin{equation}
-	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
-    % \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
-    % \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L  \Ex\nolimits_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
-    \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L  \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
-	% \label{eq:semantics}
-    \label{eq:inc}
-\end{equation}
-\vskip-2ex
-% For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ for all $\mu$, and we can also set $\gamma=0$ to ignore it explicitly.
-% There is more than one coherent interpretation of this expression; here is one based on codes.
-% The relative entropy $\thickD(\mu\Vert p)$ is a measure of divergence
-Relative entropy $\thickD(\mu\Vert p)$ measures divergence
-% The relative entropy $\thickD(\mu\Vert p)$ is a measure of divergence
-% It is well known that $\thickD(\mu\Vert p)$ is a measure of divergence
-between $\mu$ and $p$,
-% which can be interpreted as overhead (in extra bits per sample)
-% that can be viewed as the overhead (in extra bits per sample)
-and can be viewed as the overhead (in extra bits per sample)
-of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \parencite{mackay2003information}.
-% $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
-%joe1
-%But if one uses edges in proportion to the condfidence one has in
-But if one uses edges in proportion to the confidence one has in
-% them, then $\mu$'s violations of high-confidence cpds are compounded,
-them, then inefficiencies for of high-confidence cpds are compounded,
-and hence more costly.
-% So $\Inc_{\dg M}(\mu)$ measures the total expected excess cost of
-% So $\Inc_{\dg M}(\mu)$ measures the total expected overhead of
-% So $\Inc_{\dg M}(\mu)$ measures the expected excess cost of
-So $\Inc_{\dg M}(\mu)$ measures the total excess cost of
-%using the cpds of $\dg M$ in proportion to their confidences, in a
-%joe1: PDGs don't hae confidences; modelers do
-% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
-%oli1: this is more lengthy, and I think an overly pedantic distinction,
-% since we've alredy said confidences are "associated to edges"
-% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them,
-% using $\dg M$'s cpds in proportion to the confidence the modeler has in them,
-% using $\dg M$'s cpds in proportion to their confidences $\bbeta$,
-using $\dg M$'s cpds in proportion to their confidences $\bbeta$,
-when worlds are distributed according to $\mu$.
-% in a world drawn from $\mu$.
-% in expectation over $\mu$.
-%
-% In general, we do not know the true distribution $\mu$, only the model $\dg M$, which we interpret as charitably as possible
-% (even though it might be inconsistent).
-% In general, we do not know the true distribution $\mu$, only the model $\dg M$.
-% So, under the assumption that
-
-% The \emph{inconsistency} of $\dg M$, denoted
-The \emph{inconsistency} of $\dg M$,
-% The (purely quantitative) \emph{inconsistency} of $\dg M$,
-% The \emph{inconsistency} of a PDG $\dg M$,
-denoted
-$\aar{\dg M}$,
-% is the smallest possible incompatibility with any distribution
-%joe1
-%    is the smallest possible incompatibility with any distribution.
-%oli1: reverse order.
-% is the smallest possible incompatibility of the PDG $\dg M$ with any distribution.
-% is the smallest possible incompatibility of any distribution with respect to $\dg M$:
-% is the smallest possible incompatibility of any distribution with $\dg M$:
-is the smallest possible incompatibility of $\dg M$ with any distribution:
-$\aar{\dg M} := \inf_\mu \Inc_{\dg M}(\mu)$.
-% \[
-%     \aar{\dg M} := \inf_\mu \Inc_{\dg M}(\mu)
-% 	\quad
-% 	\smash{\bigg(} \!\!
-% 	= \inf_\mu \Ex_{\mu}  \sum_{\ed LXY} \!\! \beta\ssub L \log \smash{\frac{\mu(Y|X)}{\bp(Y|X)} \bigg)}
-% 	.
-% \]
-This quantity, which does not depend on $\balpha$, is the primary focus of this paper.
-
-% \vspace{-2ex}
-The second scoring function defined by a PDG $\dg M$, called the \emph{I}nformation \emph{Def}iciency, measures the {qualitative} discrepency between $\dg M$ and $\mu$, and is given by
-\vskip-3ex
-\[
-	\IDef{\dg M}(\mu) := -\H(\mu) + \sum_{\ed LXY} \alpha\ssub L \H_\mu(Y\mid X).
-\]
-\vskip-2ex
-% Although less important,
-$\IDef{\dg M}(\mu)$ %, which plays only a minor role in this paper,
-% can be thought of as measuring the
-% can be thought of as the
-can be thought of as the
-% additional entropy in the $\mu$ beyond what one would expect from the link structure alone, and captures
-% (weighted) number of bits
-information
-% needed to separately describe the target of each edge $L$ given its source
-needed to separately describe the target of each edge $L$ given the value of its source
-% (weighted by $\balpha$)
-(weighted by $\alpha\ssub L$)
-% ($\alpha_L$ times),
-beyond the information needed to fully describe a sample from $\mu$.
-
-%joe1
-%It is via these two scoring functions that PDGs capture other
-% As shown in \cite{richardson2020probabilistic},
-%oli1: unfortunately the guide wants it to
-As shown by \textcite{richardson2020probabilistic},
-it is via these two scoring functions that PDGs capture
-other graphical models.
-% these two scoring functions give PDGs a semantics that generalizes
-% other graphical models.
-The distribution specified by a BN $\dg B$
-% Bayesian Network $\dg B$
-is the unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and
-hence every positive linear combination of the two), while the
-distribution specfied by a factor graph $\Phi$ uniquely minimizes the
-sum $\Inc_{\Phi} + \IDef{\Phi}$.
-In general, for any $\gamma > 0$, one can consider a weighted combination
-\(
-    \bbr{\dg M}_\gamma(\mu) \!:= \Inc_{\dg M}(\mu) + \gamma\; \IDef{\dg M}(\mu),
-\)
-for which there is a corresponding $\gamma$-inconsistency $\aar{\dg M}_\gamma := \inf_\mu \bbr{\dg M}_\gamma(\mu)$.
-% It is shown in \cite{richardson2020probabilistic} that
-In the limit as $\gamma \to\! 0$, there is always a unique best distribution
-%$\mu^*$
-whose score is
-% $\bbr{\dg M}_0(\mu^*) = \Inc_{\dg M}(\mu^*) = \aar{\dg M}_0 = \aar{\dg M}$.
-% $\aar{\dg M}_0=\aar{\dg M}$.
-% $\aar{\dg M}$,
-$\aar{\dg M}$.
-% which we will sometimes distinguish by calling it the purely quantitative inconsistency.
-
-% The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
-% = \arg\min_\mu \bbr{\dg M}(\mu)$
-% exists and is unique for small enough $\gamma$, and also in the limit as $\gamma$ goes to zero;
-% we write $\bbr{\dg M}^*$, without a subscript, to indicate this limiting best joint distribution.
-% It is via this joint distribution that PDGs generalize other graphical models
-
-% here we argue that the scoring function \eqref{eq:semantics} encodes useful information beyond its minimizer.
-
-% The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, and is denoted $\aar{\dg M}_\gamma$.
-% Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$, and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$.
-% Any such formula can be interpreted litterally by setting $\gamma = 0$, and our results can be extended for other values of $\gamma$ with more careful treatmeant of the qualitative half of the picture.
-% In a select few places, we will point out the qualitative term.
- % := \inf_\mu \bbr{\dg M}(\mu)$.
-
-
-%joe1:
-%Now, some short-hand.
-% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.
-%oli1:
-% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.
-% We now present some shorthand to simplify the presentation.
-We now present some shorthand to clarify the presentation.
-% We often conflate a cpd's symbol with its edge label,
-% We generally take the edge label to be the same as the cpd's symbol with its edge label,
 We typically conflate a cpd's symbol with its edge label,
 %oli3:
 % so we draw
 % and draw
-% drawing
-thus drawing
+drawing
 the PDG with a single edge attached to $f(Y|X)$ as
 \begin{tikzpicture}[center base]
 	\node[dpadinline] (X) at (0,0) {$X$};
@@ -1165,9 +915,7 @@ For instance, we draw
 %oli2:
 %
 % \\
-\\[-0.5ex]
-% $\quad$
-\phantom{aa}
+\\[-0.0ex]
 % \[
 	% p(Y|X,Z)~
 	% \text{as}~
@@ -1196,7 +944,6 @@ For instance, we draw
         \cunmergearr[arr1] {above}{A}{B}{center}
         \node[above left=0pt and 0pt of center,inner sep=2pt]{$q$};
 	\end{tikzpicture}\,.
-\\
 %
 %joe1*: you need to SLOW DOWN here and reimnd the reader what these
 %pictures are saying.  They do not have access to your mind
@@ -1205,7 +952,146 @@ For instance, we draw
 %
 % An unconditional distribution $p(X)$ can be given by associating it to a hyper-edge $\emptyset \to \{X\}$, or directly by \cref{defn:pdg} by taking its source to be a ``variable'' that can only take on one possible value.
 % We will not make much use of $\alpha$ here, so $\mat p$ and $\beta$ are the most important
+
+Like other graphical models, PDGs have semantics in terms of joint distributions $\mu$ over all variables.
+% Most directly, a PDG $\dg M$ determines two scoring functions on joint distributions $\mu$, which measure the discrepency between $\dg M$ and $\mu$. The \emph{incompatibility} of $\mu$ with respect to $\dg M$, which measures the quantitative discrepency between $\mu$ and the cpds of $\dg M$, is given by
+Most directly, a PDG $\dg M$ determines two scoring functions on joint
+%joe1
+%distributions $\mu$. For us, the more important of the two is the
+distributions $\mu$. For the purposes of this paper, the more
+important of the two is
+%oli3: added
+% $\Inc_{\dg M}(\mu)$,
+the \emph{incompatibility} of $\mu$ with respect to $\dg M$, which
+measures the
+% \emph{quantitative}
+quantitative
+discrepency between $\mu$ and
+% the cpds of $\dg M$ and is given by
+$\dg M$'s cpds, and is given by
+\begin{equation}
+	% \bbr{\dg M}_\gamma(\mu) = \gamma \IDef{\dg M}(\mu) +  \sum_{\ed LXY} \Ex_{x \sim \mu(X)} \beta_L \kldiv[\Big]{\mu(Y\mid x)}{\bp(Y \mid x)}
+    \Inc_{\dg M}(\mu)\! := \!\!\!\sum_{\ed LXY}\!\! \beta\ssub L \!\cdot\!\!\! \Ex_{{x \sim \mu(\mskip-2.6muX\mskip-2mu)}} \kldiv[\Big]{\mu(Y|\, x)}{\bp(Y |\, x)}.
+	% \label{eq:semantics}
+    \label{eq:inc}
+\end{equation}
+\vskip-2ex
+% For the examples here, we can select $\alpha$ such that $\IDef{\dg M}(\mu) = 0$ for all $\mu$, and we can also set $\gamma=0$ to ignore it explicitly.
+% There is more than one coherent interpretation of this expression; here is one based on codes.
+It is well known that $\thickD(\mu\Vert p)$ is a measure of divergence
+between $\mu$ and $p$,
+% which can be interpreted as overhead (in extra bits per sample)
+that can be viewed as the overhead (in extra bits per sample)
+of using codes optimized for $p$, when in fact samples are distributed according to $\mu$ \parencite{mackay2003information}.
+% $\Inc_{\dg M}$ penalizes a candidate distribution $\mu$ for every deviation from a cpd $\bp[L](Y\mid X)$, in proporition to the number of bits needed to transmit samples from $\mu(Y\mid X)$ with a code optimized for the agent's belief $\bp[L](Y\mid X)$, scaled by the confidence of the edge
+%joe1
+%But if one uses edges in proportion to the condfidence one has in
+But if one uses edges in proportion to the confidence one has in
+them, then $\mu$'s violations of high-confidence cpds are compounded,
+and hence more costly.
+% So $\Inc_{\dg M}(\mu)$ measures the total expected excess cost of
+% So $\Inc_{\dg M}(\mu)$ measures the total expected overhead of
+% So $\Inc_{\dg M}(\mu)$ measures the expected excess cost of
+So $\Inc_{\dg M}(\mu)$ measures the total excess cost of
+%using the cpds of $\dg M$ in proportion to their confidences, in a
+%joe1: PDGs don't hae confidences; modelers do
+% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them, in a
+%oli1: this is more lengthy, and I think an overly pedantic distinction,
+% since we've alredy said confidences are "associated to edges"
+% using the cpds of $\dg M$ in proportion to the confidence the modeler has in them,
+using $\dg M$'s cpds in proportion to the confidence the modeler has in them,
+% in a world drawn from $\mu$.
+in expectation over $\mu$.
 %
+% In general, we do not know the true distribution $\mu$, only the model $\dg M$, which we interpret as charitably as possible
+% (even though it might be inconsistent).
+% In general, we do not know the true distribution $\mu$, only the model $\dg M$.
+% So, under the assumption that
+
+% The \emph{inconsistency} of $\dg M$, denoted
+The \emph{inconsistency} of $\dg M$,
+% The \emph{inconsistency} of a PDG $\dg M$,
+denoted
+$\aar{\dg M}$,
+% is the smallest possible incompatibility with any distribution
+%joe1
+%    is the smallest possible incompatibility with any distribution.
+%oli1: reverse order.
+% is the smallest possible incompatibility of the PDG $\dg M$ with any distribution.
+% is the smallest possible incompatibility of any distribution with respect to $\dg M$:
+% is the smallest possible incompatibility of any distribution with $\dg M$:
+is the smallest possible incompatibility of $\dg M$ with any distribution:
+\[
+    \aar{\dg M} := \inf_\mu \Inc_{\dg M}(\mu)
+	\quad
+	\smash{\bigg(} \!
+	= \inf_\mu \Ex_{\mu}  \sum_{\ed LXY} \beta\ssub L \log \smash{\frac{\mu(Y|X)}{\bp(Y|X)} \bigg)}
+	.
+\]
+
+\vspace{-2ex}
+The second scoring function defined by a PDG $\dg M$, called information deficiency, measures the \emph{qualitative} discrepency between $\dg M$ and $\mu$, and is given by
+\vskip-3ex
+\[
+	\IDef{\dg M}(\mu) := -\H(\mu) + \sum_{\ed LXY} \alpha\ssub L \H_\mu(Y\mid X).
+\]
+\vskip-2ex
+% Although less important,
+$\IDef{\dg M}(\mu)$ %, which plays only a minor role in this paper,
+% can be thought of as measuring the
+can be thought of as the
+% additional entropy in the $\mu$ beyond what one would expect from the link structure alone, and captures
+% (weighted) number of bits
+information
+needed to separately describe the target of each edge $L$ given its source ($\alpha_L$ times), beyond the information needed to fully describe a sample from $\mu$.
+
+%joe1
+%It is via these two scoring functions that PDGs capture other
+% As shown in \cite{richardson2020probabilistic},
+%oli1: unfortunately the guide wants it to
+As shown by \textcite{richardson2020probabilistic},
+it is via these two scoring functions that PDGs capture other
+graphical models. The distribution specified by a
+BN $\dg B$
+% Bayesian Network $\dg B$
+is the unique one that minimizes both $\Inc_{\dg B}$ and $\IDef{\dg B}$ (and
+hence every positive linear combination of the two), while the
+distribution specfied by a factor graph $\Phi$ uniquely minimizes the
+sum $\Inc_{\Phi} + \IDef{\Phi}$.
+In general, for any $\gamma > 0$, one can consider a weighted combination
+\(
+    \bbr{\dg M}_\gamma(\mu) \!:= \Inc_{\dg M}(\mu) + \gamma\; \IDef{\dg M}(\mu),
+\)
+for which there is a corresponding $\gamma$-inconsistency $\aar{\dg M}_\gamma := \inf_\mu \bbr{\dg M}_\gamma(\mu)$.
+% It is shown in \cite{richardson2020probabilistic} that
+In the limit as $\gamma \to\! 0$, there is always a unique best distribution
+%$\mu^*$
+whose score is
+% $\bbr{\dg M}_0(\mu^*) = \Inc_{\dg M}(\mu^*) = \aar{\dg M}_0 = \aar{\dg M}$.
+% $\aar{\dg M}_0=\aar{\dg M}$.
+$\aar{\dg M}$.
+
+% The \emph{best} distribution by this metric (the one with the smallest loss), denoted $\bbr{\dg M}_\gamma^*$,
+% = \arg\min_\mu \bbr{\dg M}(\mu)$
+% exists and is unique for small enough $\gamma$, and also in the limit as $\gamma$ goes to zero;
+% we write $\bbr{\dg M}^*$, without a subscript, to indicate this limiting best joint distribution.
+% It is via this joint distribution that PDGs generalize other graphical models
+
+% here we argue that the scoring function \eqref{eq:semantics} encodes useful information beyond its minimizer.
+
+% The value of \eqref{eq:semantics} achieved by this optimal distribution is called the \emph{inconsistency} of $\dg M$, and is denoted $\aar{\dg M}_\gamma$.
+% Because we can essentially set $\IDef{} = 0$ with certain neutral choices of $\alpha$, and because $\IDef{}$ is not the focus of this paper, we will often drop the subscript $\gamma$.
+% Any such formula can be interpreted litterally by setting $\gamma = 0$, and our results can be extended for other values of $\gamma$ with more careful treatmeant of the qualitative half of the picture.
+% In a select few places, we will point out the qualitative term.
+ % := \inf_\mu \bbr{\dg M}(\mu)$.
+
+
+%joe1:
+%Now, some short-hand.
+% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.
+%oli1:
+% We noe present some shorthand and abbreviations t hat makes the prsentation of PDGs simpler.
+We now present some shorthand to simplify the presentation.
 % By default, all cpds are associated with confidence $\beta = 1$.
 %%joe1: do we actually ever do it?
 %%oli1:
@@ -1249,11 +1135,9 @@ hence it may be associated to an edge and drawn simply as
 		% node[fill=white, fill opacity=1, pos=0.60, inner sep=1pt]{$x$} +(-1,0);
 		node[above, pos=0.60, inner sep=1pt]{$x$} +(-1,0);
 \end{tikzpicture}\,.
-%oli: REMOVED
-% By default, edges have $\beta = 1$,
-% which is just a convenient choice of units---what’s important are the magnitudes of $\beta$ relative to each other (and to $\gamma$, for $\gamma$-inconsistency).
+%oli2: added:
+By default, edges have $\alpha = 0$ and $\beta = 1$.
 To specify a confidence $\beta \ne 1$,
-%
 %joe1*: why a lighter color?  This makes it harder to read, and does
 %not help (at least, not me) in any way.  I strongly recommend that
 %you don't use a lighter color
@@ -1277,17 +1161,15 @@ we place the value near the edge, lightly colored and parenthesized, as in:
 \begin{tikzpicture}[center base]
 	\node[dpad0, inner sep=2.5pt, rounded corners=2.5pt](X){\small $X$};
     \draw[arr, <-]  (X) --
-        node[above,pos=0.62, inner sep=1pt, outer sep=-2pt, fill=white]{$p\!$}
-        node[below,pos=0.55, inner sep=0, outer sep=1.5pt]{${\scriptscriptstyle\color{gray}(\beta)}$}
+        node[above,pos=0.6, inner sep=1pt, outer sep=-2pt, fill=white]{$p$}
+        node[below,pos=0.6, inner sep=0, outer sep=1.5pt]{${\scriptscriptstyle\color{gray}(\beta)}$}
          ++(-1,0);
-\end{tikzpicture}\,,
+\end{tikzpicture}\,.
 %
 %joe1*: I think that this is a bad idea.  Help the reader and use
 %\beta \to \inftyh.  You may be used to your notation, but the typical
 %reader will absolutely not be.
-% Finally, we write ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta \to \infty$). % $\alpha$.
-% and write ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta\!\to\! \infty$). % $\alpha$.
-and we write ${\scriptstyle\color{gray}(\infty)}$ for the limit of high confidence ($\beta\!\to\! \infty$). % $\alpha$.
+Finally, we write ${\scriptstyle\color{gray}(\infty)}$ to denote the limit of high confidence ($\beta \to \infty$). % $\alpha$.
 % We will not
 % To inciate the limit of high confidence on a cpd $p$, we write an exclamation point, as in: \tikz[baseline=0.9] \draw[arr, <-] node[dpad0](X){$X$} (X) -- node[below,pos=0.6, inner sep=2pt]{$p!$} ++(-1,0);.
  % ($\beta_p \to \infty$)
@@ -1340,7 +1222,7 @@ captures this formally: adding cpds or increasing confidences cannot decrease a 
 \end{linked}
 \vspace{-1ex}
 
-As we will see, this tool is sufficient to derive many interesting relationships between loss functions.
+This tool is sufficient to derive many interesting relationships between loss functions.
 % \section{SIMPLE INFORMATION-THEORETIC OBJECTIVES AS INCONSISTENCY}
 % \section{INFORMATION-THEORETIC EXPRESSIONS AS INCONSISTENCY}
 % \section{SURPRISE AS INCONSISTENCY}
@@ -1391,7 +1273,7 @@ generative models
 	the surprisal $\I_p[X\!\!=\!x]$.
 	% of the event $X\!\!=\!x$
 	That is,
-	\vspace{-1.5ex}
+	\vspace{-2ex}
 	% \vskip-1ex
 	\[
 		\I_p[X\!\!=\!x]
@@ -1407,7 +1289,7 @@ generative models
 		\end{tikzpicture}
 		}.
 	\]
-	\vspace{-1.5ex}
+	\vspace{-1ex}
 	%oli2:
 	(Recall that $\aar{\dg M}$ is the inconsistency of the P\kern-1ptD\kern-1ptG $\dg M$%
 % 		;here, $\dg M = $ \begin{tikzpicture}[center base]
@@ -1456,16 +1338,10 @@ happens to be the standard measure of discrepency between the two%
 Still, we have a ways to go before this amounts to any more than a curiosity.
 One concern is that this picture is incomplete; we train probabilistic models with more than one sample.
 What if we replace $x$ with an empirical distribution over many samples?
-% \newpage
-
-% A
-% \newpage%
-% \vskip-10ex
-%
 % The first step in the proof of \cref{prop:pdg-Ix} is no longer valid, but we can get the same effect by being extremely confident in the data distribution.
-{%
-\def\xsamp{{\mathcal D}}%
-\begin{linked}{prop}{expected-surprise}%
+{
+\def\xsamp{{\mathcal D}}
+\begin{linked}{prop}{expected-surprise}
 	% Given a model
     % determining a probability distribution with mass function
 	If
@@ -1732,6 +1608,7 @@ Simple evaluation metrics, such as the accuracy of a classifier, and the mean sq
 	% The inconsistency of believing all three is
 	the log accuracy of $h$. That is,
 	\vskip-4ex
+
 	\begin{equation}\label{eq:accuracy-pdg}
 		\aar*{\!\!\!\begin{tikzpicture}[center base]
 				\node[dpad0] (Y) {$Y$};
@@ -1762,8 +1639,7 @@ Simple evaluation metrics, such as the accuracy of a classifier, and the mean sq
 	\end{equation}
 \end{linked}
 % \vspace{-1ex}
-% \vskip-2.5ex
-\vskip-1.5ex
+\vskip-2.5ex
 %joe1*: you need to give a reference for all this, and to discuss
 %accuracy and what it's capturing *before* you state the theorem.
 %DONE
@@ -1778,30 +1654,22 @@ One often speaks of the accuracy of a hypothesis $h$, leaving the true labels $f
 % In fact, the inconsistency of the PDG in \eqref{eq:accuracy-pdg} is scaled by the confidence of $D$, but does not depend at all on the confidences in $h$ or $f$.
 % \Cref{prop:accuracy} graphically depicts this symmmetry, a more subtle phenomenon: a particularly strong dependence on the distribution of inputs.
 % Yet in some sense,
-% Yet this result suggests that there is a sense in which
-% Yet there is a sense in which
-Yet \Cref{prop:accuracy} suggests that there is a sense in which
-$D(X)$ plays the primary role: the inconsistency in \eqref{eq:accuracy-pdg} is scaled by the confidence in $D$, and does not depend on the confidences in $h$ or $f$.
+Yet there is a sense in which
+$D(X)$ plays a more primary role: the inconsistency in \eqref{eq:accuracy-pdg} is scaled by the confidence in $D$, and does not depend at all on the confidences in $h$ or $f$.
 %
 %\DONE[needs a lot of cleanup]
 % Why should this be the case? The deterministic nature of $f$ and $h$ encodes extreme confidence (to anthropomorphise: $f$ thinks it impossible that $Y \ne f(X)$, because that event has probability zero).
-% Why is this the case? Because $f$ is deterministic, codes optimized for it cannot express a sample $(x,y)$ such that $y \ne f(x)$, and so a joint distribution $\mu$ incurs infinite cost if $\mu(x,y) > 0$.
-Why should this be this the case?
-% No matter how
-% Because $f$ is deterministic, using codes optimized for $f$ to express $(x,y)$ such that $y \ne f(x)$ is not just expensive, it is impossible---no matter how much inefficiency we're willing to tolerate.
-Expressing $(x,y)$ such that $y \ne f(x)$ with codes optimized for $f$ is not just inefficient, but impossible.
+Why is this the case? Because $f$ is deterministic, codes optimized for it cannot express a sample $(x,y)$ such that $y \ne f(x)$, and so a joint distribution $\mu$ incurs infinite cost if $\mu(x,y) > 0$.
 The same is true for $h$, so
-% The same is true for $h$, so the confidences of $f$ and $h$ don't matter, and
 % So the only way to selectively choose samples to make things consistent is to select a distribution $\mu$ on \emph{inputs}, so that it is always the case that $f(x) = h(x)$.
 we can only consider $\mu$
-such that $\mu(f \!=\! h) \!=\! 1$.
-% , a restriction which in turn generates inconsistency equal to $D$'s surprisal that $h$ is correct.
+such that $\mu(f \!=\! h) \!=\! 1$, a restriction which
 % to restrict to $\mu(X)$ for which $\mu(f = h = Y) = 1$.
 % This restriction
 % in turn generates inconsistency with $D(X)$.
+in turn generates inconsistency equal to $D$'s surprisal that $h$ is correct.
 % In other words, the only way to reduce inconsistency smoothly is to throw out samples that don't fit, not to change the hypothesis $h$.
-% In other words, the optimal distribution $\mu^*$ throws out incorrect samples, so its conditional $\mu^*(Y|x)$ is undefined unless $h(x)$ is already correct.
-In other words, the only way to form a joint distribution \emph{at all} compatible with both the predictor $h$ and the labels $f$, is to throw out samples that the predictor gets wrong---and the cost of throwing out samples scales with your confidence in $D$, not in $h$.
+In other words, the optimal distribution $\mu^*$ throws out incorrect samples, so its conditional $\mu^*(Y|x)$ is undefined unless $h(x)$ is already correct.
 % to change $h(Y|X)$.
 % But it is the direction that we want to pull $\Pr(Y| X)$ that
 % informs how we should update our predictor $h(Y\,|\,X)$, which
@@ -1811,30 +1679,22 @@ In other words, the only way to form a joint distribution \emph{at all} compatib
 % reflects the non-differentiability of the accuracy (or zero-one loss)
 % This illustrates why accuracy is a poor loss function for training a model $h$.
 % This illustrates why accuracy (the 0-1 loss) gives no gradient information for training $h$.
-% This illustrates why accuracy gives no gradient information for training $h$.
-This illustrates why accuracy gives no gradient information for training $h$.
-% (only for $D$).
+This illustrates why accuracy gives no gradient information for training $h$ (only for $D$).
 % with respect to $h$.
 % Note that this is
-It is worth noting that this is precisely
-% This is precisely
+% Note that this is precisely
+This is precisely
 % the opposite of how we captured cross entropy in \cref{prop:supervised-cross-entropy}:
-the opposite of what happened in \cref{prop:supervised-cross-entropy}: there we were unwilling to budge on the input distribution, and
-% the optimal distribution told us how to modify $h$.
-the inconsistency scaled with the confidence in $h$.
+the opposite of how cross entropy played out in \cref{prop:supervised-cross-entropy}:
+ there we were unwilling to budge on either the true labels or input distribution, and the optimal distribution told us how to modify $h$.
 %
 
-% Observe how even properties of these simple metrics---the lack of gradient information, and relationships to
-%  	other metrics%
-% 	% ---are clarified by focusing on the model.
-% 	---are clarified by an underlying model.
+Observe how even properties of these simple metrics---the lack of gradient information, and relationships to
+ 	other metrics%
+	% ---are clarified by focusing on the model.
+	---are clarified by an underlying model.
  % We reiterate that the  . Observe that the model
  % Each of our these insights
-Observe how even properties of these simple metrics---%
-relationships with one another and features of gradients%
-	% ---are clarified by focusing on the model.
-	% ---are clarified by an underlying model.
-	---can be clarified by an underlying model.
 
 
 % \begin{prop}[Cosine similarity as inconsistency]
@@ -1885,7 +1745,7 @@ often a reasonable assumption because of the central limit theorem.
 		% 	\draw[arr2, <-] (X) to node[pos=0.6, above]{$D!$} +(-1.1, 0);
 		% \end{tikzpicture}}
 		% &=
-		\aar**{\!\!\!\!\begin{tikzpicture}[center base]
+		\aar**{\!\!\!\begin{tikzpicture}[center base]
 			\node[dpad0] (Y) {$Y$};
 			\node[dpad0,left=2.2 of Y] (X) {$X$};
 			\node[dpad0,above right=0.1 and 0.7 of X] (mf) {$\mu_f$};
@@ -1908,10 +1768,9 @@ often a reasonable assumption because of the central limit theorem.
 			\draw[arr2, ->] (mf) to[bend left=0]
 				node[pos=0.3, above right=0]{$\mathcal N_1$} (Y);
 			% \draw[arr2, <-] (X) to node[pos=0.6, above]{$D$} +(-1.1, 0);
-		\end{tikzpicture}\!\!\!}
+		\end{tikzpicture}\!\!}
 		\begin{aligned}
-        = \frac12\Ex\nolimits_D \!\big| f(\mskip-1muX\mskip-1mu) - h(\mskip-1muX\mskip-1mu) \big|^2 \\
-        % = \frac12\Ex_D \!\big| f(X) - h(X) \big|^2 \\
+        = \frac12\Ex\nolimits_D \!\big| f(X) - h(X) \big|^2 \\
 		 =: \mathrm{MSE}_D( f, h )\,,\;
         \end{aligned}
         %\numberthis\label{eq:mse}
@@ -2167,7 +2026,6 @@ any of the objectives we describe can be regularized in this way.
 			node[above, align=center, inner sep=2pt,
 				label={[yshift=-1ex,xshift=1ex]\footnotesize\color{gray!50} $-$Min Entropy}]
 			{$- \log \sup \frac pq$};
-			% {$\inf \log \frac qp$};
 
 
 
@@ -2310,7 +2168,7 @@ standard postulates for Shannon entropy due to
 Concretely, every symmetric, continuous measure that additively separates over independent events, and with a certain ``mean-value property'', up to scaling,
 % is a R\'enyi divergence \eqref{eq:renyi} for some $\alpha$, up to scaling \cite{renyi1961measures}.
 is of the form \eqref{eq:renyi} for some $\alpha$ \parencite{renyi1961measures}.
-It follows from \Cref{lemma:pdgdiv} that
+It follows from \cref{lemma:pdgdiv} that
 % varying the confidences of our two-distribution PDG carves out almost the same class:
 % the inconsistency of our two-distribution PDG carves out almost the same class as we vary the confidences:
 % carves out almost the same class:
@@ -2321,7 +2179,6 @@ every (non-limiting) PDG divergence is a (scaled) R\'enyi divergence.
 %joe1: you[r talk about Renyi entropy and Renyi divergence.  Do you
 %mean entropy?
 %oli1: The divergence is more general; I'll just refer to that for consistency.
-\newpage
 \begin{coro}[R\'enyi Divergences]
 	% xx
     % \vskip-1em
@@ -2447,78 +2304,40 @@ These divergences correspond to PDGs with only two edges and one variable.
 What about more complex graphs?
 % For a start, it is not difficult to see that the usual notion of conditional divergences
 % For a start, the usual notion of conditional divergences
-% For a start, the usual notion of a conditional divergence
-For a start, conditional divergences
+For a start, the usual notion of a conditional divergence
 % $\thickD_{\bullet}\big(p(\!Y\!|\!X\!) \,\Vert\, q(\!Y\!|\!X\!) \,|\, r(\!X\!)\big)$
-\vspace{-1.5ex}
 \def\ns{\mskip-1.5mu}
-% $
-% \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
-% \!:=\!
-%  \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)
-% $
-\[
-\thickD^{\ns\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}\ns\ns\Big(\ns p(\ns Y \ns|\ns X \ns) \ns\,\Big\Vert\,\ns q(\ns Y \ns|\ns X\ns) \ns\,\Big|\,\ns r(\ns X\ns)\!\Big)
-\!:=\!\!
- \displaystyle \Ex_{x\sim r} \!\! \ns \thickD^{\ns\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}
- % \ns(
- \ns\ns\Big(\ns
- p(\ns Y \ns|x) \ns\ns\,\Big\Vert\,\ns\ns q(\ns Y \ns|x)\!\Big)
-\]
-\vskip-2ex
+$
+\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|\ns X \ns) \,\Vert\, q(\ns Y \ns|\ns X\ns) \,|\, r(\ns X\ns)\ns)
+\!:=\!
+ \displaystyle \Ex_{x\sim r} \! \thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{r,s}\ns(p(\ns Y \ns|x) \,\Vert\, q(\ns Y \ns|x)\!\big)
+$
 % straightforwardly falls out of PDGs of the form
-% falls out of PDGs of the form
-can be represented straightforwardly as
+falls out of PDGs of the form
 \vskip-3ex
 % \!
 \[
-% \begin{tikzpicture}[center base]
-% 	\node[dpad0] (X) at (0,0) {$X$};
-% 	\node[dpad0] (Y) at (1.25,0) {$Y$};
-% 	\draw[arr1, <-] (X) --
-% 		node[above, pos=0.55, inner sep=2pt]{$r$}
-% 		node[below, pos=0.55, inner sep=2pt]{${\color{gray}\scriptscriptstyle(\infty)}$}
-% 		+(-1,0);
-% 	\draw[arr1] (X) to[bend left=25, inner sep=1pt]
-% 		node[fill=white, inner sep=1pt, pos=0.35] {$p$}
-% 		node[above, inner sep=2pt, pos=0.68]
-% 			{${\color{gray}\scriptscriptstyle(r)}$}
-% 		(Y);
-% 	\draw[arr1] (X)
-% 		to[bend right=25]
-% 		node[fill=white, inner sep=1pt,pos=0.35] {$q$}
-% 		node[below, inner sep=2pt, pos=0.68]
-% 			{${\color{gray}\scriptscriptstyle(s)}$}
-% 		(Y);
-% \end{tikzpicture}\,.
-\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{(r,s)}\ns(p \,\Vert\, q \,|\, r\ns)
- = \aar*{
 \begin{tikzpicture}[center base]
 	\node[dpad0] (X) at (0,0) {$X$};
-	\node[dpad0] (Y) at (1.65,0) {$Y$};
-	\draw[arr, <-] (X) --
+	\node[dpad0] (Y) at (1.25,0) {$Y$};
+	\draw[arr1, <-] (X) --
 		node[above, pos=0.55, inner sep=2pt]{$r$}
 		node[below, pos=0.55, inner sep=2pt]{${\color{gray}\scriptscriptstyle(\infty)}$}
-		+(-1.2,0);
-	\draw[arr] (X) to[bend left=25, inner sep=1pt]
-		% node[fill=white, inner sep=2pt, pos=0.35] {$p$}
-		node[above, inner sep=2pt, pos=0.35] {$p$}
+		+(-1,0);
+	\draw[arr1] (X) to[bend left=25, inner sep=1pt]
+		node[fill=white, inner sep=1pt, pos=0.35] {$p$}
 		node[above, inner sep=2pt, pos=0.68]
 			{${\color{gray}\scriptscriptstyle(r)}$}
 		(Y);
-	\draw[arr] (X)
+	\draw[arr1] (X)
 		to[bend right=25]
-		% node[fill=white, inner sep=2pt,pos=0.35] {$q$}
-		node[below, inner sep=2pt,pos=0.35] {$q$}
+		node[fill=white, inner sep=1pt,pos=0.35] {$q$}
 		node[below, inner sep=2pt, pos=0.68]
 			{${\color{gray}\scriptscriptstyle(s)}$}
 		(Y);
-\end{tikzpicture}
-}
-\,.
+\end{tikzpicture}\,.
 \]
-\vskip-1ex
-
+\vskip-2ex
 % and in general,
 % The inconsistency of a PDG can be viewed as a vast generalization of these divergences to arbitrary structured objects.
 % \Cref{lemma!}, together with minor structural manipulation, gives visual proofs of standard divergence properties.
@@ -2647,15 +2466,7 @@ And in general, PDG inconsistency can be viewed as a vast generalization of dive
 	\def\pdgdiv{\thickD^{\mathrm{P\mskip-2muD\mskip-1.5muG}}_{\lgs({\color{pcolor!40}\beta},{\color{qcolor!40}\zeta})}\infdivx[\big]}
 	\caption{A visual proof of the data-processing inequality:
 	 	$\pdgdiv pq \ge \pdgdiv {f\circ p}{f \circ q}$.
-	In words:
-	% A verbal summary:
-	the cpd $f(Y|X)$ can always be satisfied, so adds no inconsistency.
-	It is then equivalent to split $f$ and the variable $X$ into $X_1$ and $X_2$ with edges enforcing $X_1 = X_2$.
-	% Then, split $f$ and the variable $X$ into $X_1$ and $X_2$ with edges enforcing $X_1 = X_2$.
-	But removing such edges can only decrease inconsistency.
-	Finally, compose the remaining cpds to give the result.
-	% A full justification can be found in the appendix.
-	See the appendix for a full justification.
+	In words: the cpd $f(Y|X)$ can always be satisfied, so adds no inconsistency. It is then equivalent to split $f$ and the variable $X$ into $X_1$ and $X_2$ with edges enforcing $X_1 = X_2$. But removing such edges can only decrease inconsistency. Finally, compose the remaining cpds to give the result. A full justification can be found in the appendix.
 	}
 	\label{fig:dpi-vis-proof}
 \end{figure*}
@@ -2671,7 +2482,6 @@ And in general, PDG inconsistency can be viewed as a vast generalization of dive
 % Using PDGs to describe variational models not only reproduces the standard objectives, but also provides a graphical language for variational inference.
 
 The fact that the incompatibility of $\dg M$ with a \emph{specific} joint distribution $\mu$ is an upper bound on the inconsistency is not a deep one, but it is of a variational flavor.
-% The fact that the incompatibility of $\dg M$ with a \emph{specific} joint distribution $\mu$ is an upper bound on the inconsistency is not a deep one, but it is of variational character.
 % % but it does yield an efficient approximate inference procedure for PDGs: choose a tractable parametric family $\mathcal P$ of joint distributions $\mu$, and optimize \eqref{eq:semantics}. Making this precise is the focus of a parallel work.
 Here, we focus on the more surprising converse:  PDG semantics capture general aspects of variational inference and provide
 a graphical proof language for it.
@@ -2717,7 +2527,7 @@ with equality if $q(Z) = p(Z)$.
 %oli3:
 % So to maximize $p(X)$, it suffices to adjust $p$ and $q$ to maximize $\mathrm{ELBO}_{p,q}(x)$,%
 So to find $p$ maximizing $p(x)$, it suffices to adjust $p$ and $q$ to maximize $\mathrm{ELBO}_{p,q}(x)$,%
-    \footnote{or for many iid samples: $\max_{p,q}\sum_{x \in \xsamp}\mathrm{ELBO}_{p,q}(x)$.}
+    \footnote{For many iid samples: $\max_{p,q}\sum_{x \in \xsamp}\mathrm{ELBO}_{p,q}(x)$.}
  provided $\mathcal Q$ is expressive enough.
 
 % $\mathrm{ELBO}_{p,\xsamp}(q) :=
@@ -2734,7 +2544,7 @@ So to find $p$ maximizing $p(x)$, it suffices to adjust $p$ and $q$ to maximize 
 
 % We will now see that this tie extends to latent variable models in a nice way.
 The formula for the ELBO is somewhat difficult to make sense of.%
-\footnote{Especially if $p, q$ are densities. See \cref{appendix:density}.}
+\footnote{Especially if $p$ and $q$ are densities. See \cref{appendix:density}}
 % (see \cref{remark:continuous}).
 % in which case the units don't cancel in the logarithm, making it an ill-defined physical quantity (see \cref{remark:continuous}).
 %joe1*: mass functions comes completely out of the blue here.  If you
@@ -2842,7 +2652,6 @@ we now give a simple and visually intuitive proof of the bound traditionally use
 % 		\right)
     \!=\! -\!\mathop{\mathrm{E\mskip-0.5muL\mskip-0.5muB\mskip-0.5muO}}\limits_{p,q}(\mskip-1.5mux\mskip-1.5mu).
 \]
-
 % $= - \mathrm{ELBO}_{p,q}(x)$.
 % \footnotemark[\thefootnote]~
 The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-x} respectively.
@@ -2943,14 +2752,11 @@ There are other desiderata as well. Perhaps good latent representations $Z$ have
 % We encode this kind of wishful thinking as a belief $p(Z)$, known as a variational prior.
 We encode such wishful thinking as a belief $p(Z)$, known as a variational prior.
 
-The data of a Variational Auto-Encoder
-\parencite{kingma2013autoencoding}, or VAE,
+The data of a \emph{variational} auto-encoder
+\parencite{kingma2013autoencoding}
 consists of $e(Z|X)$, $d(X|Z)$, and $p(Z)$.
-The encoder $e(Z|X)$ can be used as a variational approximation of $Z$, differing from $q(Z)$ of \Cref{sec:variational} only in that it can depend on $X$.
-% Here, the analog of the ELBO becomes
-% A VAE is trained with another form of the ELBO:
-VAEs are trained with the analogous form of the ELBO:
-% \vspace{-0.5ex}
+The encoder $e(Z|X)$ can be used as a variational approximation of $Z$, differing from $q(Z)$ of \Cref{sec:variational} only in that it can depend on $X$. Here, the analog of the ELBO becomes
+\vspace{-0.5ex}
 \begin{align*}
 	\mathrm{ELBO}_{p,e,d}(x) :=&
 		% \Ex_{z \sim e|x}
@@ -3007,8 +2813,6 @@ This gives us the following analog of \cref{prop:pdg-elbo-x}.
 % \Cref{prop:pdg-elbo-vae,prop:pdg-elbo-vae-whole} can be used to derive another variational bound. Once again, the addition of the edge $e$ cannot decrease the inconsistency (\cref{lemma!}), but believing it with high confidence does make it possible to know the encoding of a sample, making inference tractable.
 % We now use \Cref{prop:pdg-elbo-vae,prop:marginal-ll,lemma!} to derive another variational bound:
 We now give a visual proof of the analogous variational bound.
-% Let $\Pr_{p,d}(X,Z) := p(Z)d(X|Z)$ be
-% Let $pd(X,Z) := p(Z)d(X|Z)$ be
 Let $\Pr_{p,d}(X,Z) := p(Z)d(X|Z)$ be
 % the joint distribution arising from decoding samples from the prior. Then,
 the distribution that arises from decoding the prior. Then:
@@ -3052,20 +2856,17 @@ the distribution that arises from decoding the prior. Then:
 % $= -\mathrm{ELBO}_{p,e,d}(x).$
 % \vspace{-1.2em}
 \begin{align*}
-	\log \frac{1}{\displaystyle\!\mathop{\mathrm{P\mkern-1.5mur}}_{\mathclap{p\mkern-1mu,d}}(\mskip-1.5mux\mskip-1.5mu)\!} \!=\!
-	% \log \frac{1}{\displaystyle pd(\mskip-1.5mux\mskip-1.5mu)\!} \!=\!
+	\log \frac{1}{\displaystyle\!\Pr_{p,d}(\mskip-1.5mux\mskip-1.5mu)\!} \!=\!
 	% - \log {\Pr(x)} =
 	% \qquad &\\
 	% \aar[\Bigg]
 	\aar**
-	{$\mkern-1mu$\begin{tikzpicture}
-			% [baseline=2.1ex]
-			[baseline=1.9ex]
+	{\begin{tikzpicture}[baseline=2.1ex]
 			% [baseline=-0.5ex]
 		\node[dpad0] (Z) {$Z$};
 		\node[dpad0,right=.4 of Z] (X) {$X$};
 		\draw[arr2, ->] (Z) to[bend left=50,looseness=1.5]
-			node[above]{$\smash{d}$} (X);
+			node[above]{$ d$} (X);
 		\draw[arr2, <<-] (X) --
 			% node[above,pos=0.8]{$x$} ++(0.9, 0);
 			node[left,pos=0.8,inner sep=2pt]{$x$} ++(0.2, 0.8);
@@ -3073,14 +2874,12 @@ the distribution that arises from decoding the prior. Then:
 			% node[above,pos=0.6]{$p$} ++(-0.9, 0);%
 			% node[left,pos=0.6,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
 			node[right,pos=0.7,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
-	\end{tikzpicture}$\mkern-1mu$}
+	\end{tikzpicture}}
 	&\!\le\!
 	% \aar[\Bigg]
 	\aar**
-	{$\mkern-1mu$\begin{tikzpicture}
-		[baseline=1.5ex]
-		% [baseline=2.1ex]
-		% [center base]
+	{\begin{tikzpicture}[baseline=2.1ex]
+			% [center base]
 		\node[dpad0] (Z) {$Z$};
 		\node[dpad0,right=.7 of Z] (X) {$X$};
 		\draw[arr2, ->] (X) to[bend left=0]
@@ -3089,17 +2888,16 @@ the distribution that arises from decoding the prior. Then:
 				{${\color{gray}\scriptscriptstyle(\!\infty\!)}$}
 			(Z);
 		\draw[arr2, ->] (Z) to[bend left=50,looseness=1.5]
-			% node[above]{$d$} (X);
-			node[above, inner sep=2pt]{$\smash{d}$} (X);
+			node[above]{$ d$} (X);
 		\draw[arr2, <<-] (X) --
 			% node[above,pos=0.8]{$x$} ++(0.9, 0);
 			node[left,pos=0.8,inner sep=2pt]{$x$} ++(0.2, 0.8);
 		\draw[arr2, <-] (Z) --
 			% node[left,pos=0.6,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
 			node[right,pos=0.7,inner sep=2pt]{$p$} ++(-0.2, 0.8);%
-   \end{tikzpicture}$\mkern-1mu$}
+   \end{tikzpicture}}
    % \\&\qquad
-   \!=\! \shortminus\!\mathop{\mathrm{E\mskip-0.5muL\mskip-0.6muB\mskip-0.7muO}}\limits_{p,e,d}\mskip-0.2mu(\mskip-1.5mux\mskip-1.5mu).
+   \!=\! \shortminus\!\mathop{\mathrm{E\mskip-0.5muL\mskip-0.6muB\mskip-0.7muO}}\limits_{p,e,d}(\mskip-1.5mux\mskip-1.5mu).
 \end{align*}
 
 The first and last equalities are \Cref{prop:marginal-ll,prop:pdg-elbo-vae}, and the inequality is \cref{lemma!}.
@@ -3140,11 +2938,9 @@ Sure enough:
 % the $\beta$-VAE objective is the inconsistency of the same
 % PDG as before, but with confidence $\beta$ in $p(Z)$.%
 \vspace{-2ex}
-\begin{linked}{prop}{betaelbo-informal}
-\!\!$-\beta\text{-ELBO}_{p,e,d}(x)$ is the inconsistency of
-% the same PDG as before,
-the same PDG,
-but with confidence $\beta$ in $p(Z)$.%
+\begin{linked}{prop}{prop:betaelbo-informal}
+\!\!$-\beta\text{-ELBO}(x)$ is the inconsistency of the same
+PDG as before, but with confidence $\beta$ in $p(Z)$.%
 	% \footnote{The two parameters even share a name, both coming from thermodynamic $\beta$ (inverse temperature).}
 	%TODO can I get my footnote also???
 	% \footnote{Both names originate in thermodynamic coldness $\beta$.}
@@ -3175,21 +2971,13 @@ required to normalize the distribution,
 %joe1: I can't parse the rest of this sentence
 %oli1:
 % and is known as the \emph{partition function}, and is computing it is
-and is known as the \emph{partition function}. Computing $\log Z_\Psi$
-% is intimately related to much of probabilistic inference in factor graphs \parencite{ma2013estimating}.
-is intimately related to probabilistic inference in factor graphs \parencite{ma2013estimating}.
+and is known as the \emph{partition function}. Computing $\log Z_\Psi$ is
+intimately related to much of probabilistic inference in factor graphs \parencite{ma2013estimating}.
 %oli2:
 Following \textcite{richardson2020probabilistic},
 let $\PDGof{\Psi}$ be the PDG with edges $\{ \raisebox{-0.3ex}{$\smash{\stackrel{J}{\rightarrow}}$} \mathbf X_J \}_{\mathcal J}$, cpds $p_J(\mathbf X_J) \propto \phi_J(\mathbf X_J)$, and weights
 % $\alpha_J \!=\! \beta_J \!=\! \theta_J$.
-$\alpha_J, \beta_J := \theta_J$%
-% , so defined because
-% .
-. There, it is shown that
-% following \textcite{richardson2020probabilistic},
-% $\PDGof{\Psi}$ is so defined becuase $\bbr{\dg M}_1^* = \{ \Pr_\Psi \}$.
-$\Pr_\Psi$ is the unique minimizer of $\bbr{\PDGof{\Psi}}_1$.
-But what about the corresponding inconsistency, $\aar{\PDGof{\Psi}}_1$?
+$\alpha_J, \beta_J := \theta_J$.
 
 % If every factor is a cpd, and every variable is the target of at least one edge, then $Z_\Psi$ is at most 1,
 % Assuming every factor is normalized and every variable is a target of at least one edge, then $Z_\Psi$ is at most 1,
@@ -3204,16 +2992,15 @@ measures how far the product of factors is from being a probability distribution
 % Thus, it is in some sense a measure of inconsistency of a factor graph.
 % So it is in some sense a measure of the factor graph's inconsistency.
 So in a sense, it measures $\Psi$'s inconsistency.
-% So in a sense, it measures the inconsistency of $\Psi$.
 % It turns out that this intuition coincides with our notion of 1-inconsistency.
 % This sense is precisely PDG 1-inconsistency.
 
 \begin{linked}{prop}{fg-inconsistency-is-partition-function}
-	For all weighted factor graphs
-	$\Psi$,
+	For any weighted factor graph
+	$\Psi$
 	% $\Psi = (\phi_J, \theta_J)_{J \in \cal J}$,
 	% Then
-	 we have that $\aar{\PDGof{\Psi}}_1 = - \log Z_{\Psi}$.
+	 we have $\aar{\PDGof{\Psi}}_1 = - \log Z_{\Psi}$.
 \end{linked}
 
 % Outside of computer science, such factored exponential families form
@@ -3222,7 +3009,7 @@ So in a sense, it measures $\Psi$'s inconsistency.
 % In this setting, $- \log Z_{\Psi}$ is the Heimholtz free energy.
 % The exponential families generated by weighted factor graphs
 % The exponential families generated by factor graphs and their weights $\boldsymbol\theta$
-The exponential families generated by weighted factor graphs
+The exponential families generated by weigted factor graphs
 are a cornerstone of statistical mechanics, where $- \log Z_{\Psi}$ is known as the (Heimholz) free energy.
 %TODO: ADD A SENTENCE
 It is also an especially natural quantity to minimize:
@@ -3234,404 +3021,6 @@ of not only chemical and biological systems \parencite{chipot2007free}, but also
 % (e.g., as internal energy, free energy, pressure, volume, and entropy) can
 % be obtained by taking various partial derivatives of $Z_\Psi$, and calculating the partition function is closely related to infering marginal distributions \cite{}.
 
-
-% \section{A CONCRETE EXAMPLE}
-% \section{KEEPING THINGS STRAIGHT}
-% \section{COMPOSITE LOSS FUNCTIONS}
-% \section{STITCHING STANDARD LOSSES TOGETHER}
-% \section{DIVERGENCE FROM STANDARD PRACTICE: A CONCRETE EXAMPLE}
-% \section{DIFFERENCES FROM STANDARD PRACTICE}
-\section{BEYOND STANDARD LOSSES: A CONCRETE EXAMPLE}
-	\label{sec:datsim}
-% When a loss function is standard in some context, it is usually for good reason---but with enough moving parts, cobbling standards together may not be ideal.
-% In contexts where a loss function is standard, it is usually for good reason---but with enough moving parts, cobbling standards together may not be ideal.
-%
-In contexts where a loss function is standard, it is usually for good reason---which is why we have focused on recovering standard losses.
-% But does viewing loss as inconsistency give us anything new?
-But most situations are non-standard, and even if they have standard sub-components, those components may interact with one another in more than one way.
-Correspondingly, there is generally more than one way to cobble standard loss functions together.
-How should you choose between them?
-By giving a principled model of the situation.
-% This is the real power of our approach.
-
-\def\simsymb{\texttt{s\kern-1.1pti\kern-0.8ptm}}
-\def\datsymb{\texttt{d\kern-0.75pta\kern-1ptt}}
-\def\ssymb{\texttt{s}}
-\def\dsymb{\texttt{d}}
-% But sometimes, the standard  loss is used in a different context.
-Suppose we want to train a predictor network $h(Y|X)$ from two sources of information:
-% partially corrupted data with emperical distribution $d(X,Y)$,
-partially corrupted data with distribution $d(X,Y)$,
-and a simulation with distribution $s(X,Y)$.
-If the simulation is excellent and the data unsalvagable, we would have high confidence in $s$ and low confidence in $d$,
-% which corresponds to training with cross entropy from $s$%
-in which case we would train with cross entropy with respect to $s$%
-% (i.e., $-\Ex_s \log h(Y|X)$).
-% , $\Ex_s [\log \nf1{h(Y|X)}]$.
-, $\mathcal L_{\simsymb}\!:=\!\Ex_s [\log \nf1{h(Y|X)}]$.
-% Conversely, we would use
-% % cross entropy from $d$, $\mathcal L_{\datsymb}\!:=\!\Ex_d [\log \nf1{h(Y|X)}]$
-% $\mathcal L_{\datsymb}\!:=\!\Ex_d [\log \nf1{h(Y|X)}]$
-% % if the simulation were bad and the data mostly intact.
-% were the simulation bad and the data mostly intact.
-% What if we're not so confident in either?
-Conversely, if the simulation were bad and the data mostly intact, we would use
-% cross entropy from $d$, $\mathcal L_{\datsymb}\!:=\!\Ex_d [\log \nf1{h(Y|X)}]$
-$\mathcal L_\datsymb$,
-the cross entropy with respect to $d$.
-% $\mathcal L_{\datsymb}\!:=\!\Ex_d [\log \nf1{h(Y|X)}]$.
-% cross entropy $\mathcal L_\datsymb$ from $d$.
-% $\mathcal L_{\datsymb}\!:=\!\Ex_d [\log \nf1{h(Y|X)}]$
-% if the simulation were bad and the data mostly intact.
-What if we're not so confident in either?
-% What if neither is strictly better than the other?
-
-% \textbf{Backwards.}
-One approach a practitioner might find attractive is to make a dataset from samples of both $s$ and $d$%
-% (from $\lambda_s N$, $\lambda_d N$ samples),
-, or equivalently, train with a convex combination
-% $\mathcal L_1 := \lambda_0 \Ex_{s} \log \nf{1}{h(Y|X)} + \lambda_1 \Ex_{d} \nf{1}{ \log h(Y|X)}$
-of the two previous losses,
-$\mathcal L_1 := \lambda_{\ssymb}\mathcal L_{\simsymb} + \lambda_{\dsymb}\mathcal L_{\datsymb}$
-% for some $\lambda_\ssymb, \lambda_\dsymb > 0$.
-for some $\lambda_\ssymb, \lambda_\dsymb > 0$ with $\lambda_\ssymb + \lambda_\dsymb = 1$.
-This amounts to training $h$ with cross entropy with respect to the mixture
-% $\lambda_0 s + \lambda_1 d$.
-$\lambda_\ssymb s + \lambda_\dsymb d$.
-Doing so treats $d$ and $s$ as completely unrelated, and so redundancy is not used to correct errors---a fact on display when we present the modeling choices in PDG form,
-% such as $\mathcal L_1 = \aar{\dg M_1}$, where
-such as
-\vspace{-1ex}
-\[
-% \dg M_1 := ~
-\mathcal L_1 = \aar**{
-\begin{tikzpicture}[center base]
-	% \node[dpad0] (Z) at (-0.2,0) {$Z$};
-	% \node[tpt={z0|$0$}] at (-0.5,0.1) {};
-	% \node[tpt={z1|$1$},right=0.15 of z0]{};
-	\node[tpt={z0|\simsymb}] at (-0.5,0.1) {};
-	\node[tpt={z1|\datsymb},right=0.35 of z0]{};
-	\node[Dom={$Z$[label distance=-2.5ex, xshift=1.0em] (Z)
-		around {\lab{z0}\lab{z1}}},yshift=0.2em ] {};
-
-	% \node[dpad0,align=center] (XY) at (1.8,0) {$XY$}; %{$X$\\[-0.3ex]$Y$};
-	\node[dpad0] (X) at (2.4, 0.6) {$X$};
-	\node[dpad0] (Y) at (2.4, -0.6) {$Y$};
-	\coordinate (xyz) at (1.9, 0);
-	\draw[arr1, <-] (Z) to
-		% node[above, pos=0.6]{$\hat\lambda$}
-		node[above, pos=0.6]{$\lambda$}
-		% node[above, pos=0.6]{$\frac{1}{\lambda_0+\lambda_1}[\lambda_0, \lambda_1]$}
-		node[below,inner sep=1pt, pos=0.6]{${\color{gray}\scriptstyle( \infty )}$}
-		+(-1.5, 0);
-	% \node at (-1,-0.6) {\small where $\lambda(Z) = \frac{\lambda_Z}{\lambda_0+\lambda_1}$};
-	% \node at (0,-0.6) {\small where $\lambda(Z) \propto \lambda_Z$};
-	\draw[arr1] (X) to node[right,pos=0.4]{$h$} (Y);
-	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
-		% node[fill=white, inner sep=0pt, pos=0.55]
-		% node[inner sep=1pt, pos=0.55]
-		node[above, inner sep=1pt, pos=0.55]
-			% {$Z?d:s$}
-		% {$\begin{bmatrix}d \text{ if } Z\\[-0.3ex] s \text{ else}\end{bmatrix}$}
-		% {$\begin{matrix}d \text{ if } Z\!\!=\!\!1\\[-0.3ex]
-		% 	% s \text{ else}\end{matrix}$}
-		% 	\text{else }s\end{matrix}$}
-		{$\begin{matrix}\datsymb \mapsto d \\[-0.6ex]
-			\simsymb \mapsto s \end{matrix}$}
-		% node[above, inner sep=2pt, pos=0.68]
-		% 	{${\color{gray}\scriptscriptstyle(r)}$}
-		node[below,inner sep=1pt]{${\color{gray}\scriptstyle( \infty )}$}
-		(xyz);
-	\draw[arr2, shorten <=0pt] (xyz) to (X);
-	\draw[arr2, shorten <=0pt] (xyz) to (Y);
-\end{tikzpicture}}
-	% (\lambda_\ssymb+\lambda_\dsymb),
-	,
-\]
-% with probability $\lambda(Z) := \frac{1}{\lambda_0\!+\!\lambda_1}[\substack{\lambda_0\\\lambda_1}]$.
-% with respective probabilities $\lambda(Z\!=\!0) = \frac{\lambda_0}{\lambda_0 + \lambda_1}$ and
-% In $\dg M_1$, the swich variable $Z$ changes whether samples come from $s$ or $d$
-% with respective probabilities $\lambda(Z\!=\!\simsymb) = \frac{\lambda_\ssymb}{\lambda_\ssymb + \lambda_\dsymb}$ and
-% $\lambda(Z\!=\!\datsymb) = \frac{\lambda_\dsymb}{\lambda_\ssymb + \lambda_\dsymb}$.
-% in which a swich variable $Z$ controls whether samples come from $s$ or $d$
-% with respective probabilities $\lambda(Z\!=\!\simsymb) = \frac{\lambda_\ssymb}{\lambda_\ssymb + \lambda_\dsymb}$ and
-% $\lambda(Z\!=\!\datsymb) = \frac{\lambda_\dsymb}{\lambda_\ssymb + \lambda_\dsymb}$.
-in which a swich variable $Z$
-with possible values
-$
-% \V(Z) :=
-\{\simsymb,\datsymb\}$
-controls whether samples come from $s$ or $d$, and
-is distributed according to
-% $\lambda(Z\!=\!\simsymb) = \frac{\lambda_\ssymb}{\lambda_\ssymb + \lambda_\dsymb}$.
-$\lambda(Z\!=\!\simsymb) = \lambda_\ssymb$.
-
-
-% A second approach: use something like
-% % $\mathcal L = \sum_{x\sim } h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}$
-% $\smash{\Ex_{x\sim m} h(y|x) \log \frac{h(y|x)}{d(y|x) q(y|x)}}$.
-Our practitioner now tries a different approach: draw data samples $(x,y) \sim d$ but discount $h$'s surprisal when the simulator finds the point unlikely, via loss $\mathcal L_2 := \Ex_{d} [s(\mkern-2muX\!,\!Y\mkern-2mu) \log \nf1{h(Y|X)}]$.
-This is the cross entropy with respect to the (unnormalized) product density $ds$, which in many ways is appropriate.
-However, by this metric, the optimal predictor $h^*(Y|x) \propto d(Y|x) s(Y|x)$ is
-% uncalibrated
-\emph{uncalibrated} \parencite{dawid1982well}.
-% which means it is \emph{calibrated} \parencite{dawid1982well}.
-If the data and simulator agree ($d \!=\! s$), then we would want $h(Y|x) \!=\! s(Y|x)$ for all $x$, but instead we get $h^*(Y|x) \propto s(Y|x)^2$.
-So $h^*$ is overconfident.
-What went wrong?
-% $\mathcal L_2$ is not easily written as a (quantitative) inconsistency,
-% $\mathcal L_2$ cannot be written as a (purely quantitative) inconsistency
-% $\mathcal L_2$ cannot be written as the inconsistency
-$\mathcal L_2$ cannot be written as the (ordinary $\gamma\!=\!0$) inconsistency
-of a PDG containing only $s,h$, and $d$,
-but for a large fixed $\gamma$, it is essentially the $\gamma$-inconsistency
-% but using the factor graph correspondence, it can be written as the 1-inconsistency
-% $\mathcal L_2$ cannot be written as an inconsistency unless we also take the quailtative score into account, in which case it equals $\aar{\dg M_2}_1$.
-% $\aar{\dg M_2 \text{ with } \alpha_d,\alpha_s \!:=\!1;~\alpha_h\!:=\!0}_1$.
-% $\aar{\dg M_2 \text{ with } \alpha_d,\alpha_s \!:=\!1;~\alpha_h\!:=\!0}_1$.
-% Although $\balpha$ is not the focus of the present paper, these values are problematic: they indicate an overdetermination of $X \times Y$, and as a consequence $h^*$ is more deterministic than it should be.
-% The simplest PDG account of $\mathcal L_2$ is the 1-inconsistency
-% $\aar{ \dg M_2 }_1$,
-% where
-% \vspace{-2.5ex}
-% \[
-% % \dg M_2 :=
-% \mathcal L_2 =
-% \lim_{k \to \infty}
-% k
-% \aar**{
-% \begin{tikzpicture}[center base]
-% 	\node[dpad0] (X) at (0, 0.6) {$X$};
-% 	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-% 	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$}
-% 			% node[below=0pt,inner sep=1pt,rotate=90]{${\color{gray}\scriptstyle(\!\alpha{:}0\!)}$}
-% 			node[right=0pt,inner sep=1pt]{${\color{gray}\scriptstyle
-% 				\renewcommand{\arraystretch}{.7}
-% 				\big(\begin{matrix}
-% 					\scriptstyle \alpha : 0 \\ \scriptstyle \beta : \frac1k
-% 				\end{matrix}
-% 				\big)}$}
-% 		(Y);
-%
-% 	\coordinate (d0) at (1.8, 0);
-% 	\coordinate (dmid) at (0.9, 0);
-% 	\coordinate (s0) at (-1.8, 0);
-% 	\coordinate (smid) at (-0.9, 0);
-% 	% \node[above left=1pt and 0.5em of d0] {$d$};
-% 	% \node[below left=0pt and -1em of d0]{${\color{gray}\scriptstyle
-% 	% 	\renewcommand{\arraystretch}{.8}
-% 	% 	\begin{pmatrix} \scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta:1 \end{pmatrix}}$};
-% 	% \node[above right=1pt and 0.5em of s0] {$s$};
-% 	% \node[below right=0pt and -1em of s0]{${\color{gray}\scriptstyle
-% 	% 	\renewcommand{\arraystretch}{.8}
-% 	% 	\begin{pmatrix}\scriptstyle
-% 	% 	\alpha: 1 \\[-0.2ex] \scriptstyle \beta: 1 \end{pmatrix}}$};
-%
-% 	% \unmergearr{s0}XY
-% 	% \unmergearr{d0}XY
-% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-% 	\draw[arr1,-,shorten <=0pt] (dmid) to
-% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-% 			\renewcommand{\arraystretch}{.7}
-% 			\big(\begin{matrix}
-% 				\scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta:1
-% 			\end{matrix} \big)}$}
-% 		node[above] {$d$}
-% 		(d0);
-% 	%
-% 	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-% 	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-% 	\draw[arr1,-,shorten <=0pt] (smid) to
-% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-% 			\renewcommand{\arraystretch}{.7}
-% 			\big( \begin{matrix}
-% 				\scriptstyle \alpha: 1 \\[-0.2ex] \scriptstyle \beta: 1
-% 			\end{matrix} \big)}$}
-% 		node[above]{$s$}
-% 		(s0);
-% % 	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
-% % 		node[fill=white, inner sep=0pt, pos=0.55]
-% % 			% {$Z?d:s$}
-% % 			{$\begin{bmatrix}d\\[-0.3ex] s\end{bmatrix}$}
-% % 		% node[above, inner sep=2pt, pos=0.68]
-% % 		% 	{${\color{gray}\scriptscriptstyle(r)}$}
-% % 		(xyz);
-% % 	\draw[arr2, shorten <=0pt] (xyz) to (X);
-% % 	\draw[arr2, shorten <=0pt] (xyz) to (Y);
-% % ode[dpad0] (X) {};
-% \end{tikzpicture}}\Bigg._{\!\!1} - k \log C,
-% \]
-% \[
-% % \dg M_2 :=
-% \mathcal L_2 =
-% \lim_{k \to \infty}
-% \aar**{
-% \begin{tikzpicture}[center base]
-% 	\node[dpad0] (X) at (0, 0.6) {$X$};
-% 	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-% 	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$}
-% 			% node[below=0pt,inner sep=1pt,rotate=90]{${\color{gray}\scriptstyle(\!\alpha{:}0\!)}$}
-% 			node[right=0pt,inner sep=1pt]{${\color{gray}\scriptstyle
-% 				\renewcommand{\arraystretch}{.7}
-% 				\big(\begin{matrix}
-% 					\scriptstyle \alpha : 0 \\ \scriptstyle \beta : 1
-% 				\end{matrix}
-% 				\big)}$}
-% 		(Y);
-%
-% 	\coordinate (d0) at (1.8, 0);
-% 	\coordinate (dmid) at (0.9, 0);
-% 	\coordinate (s0) at (-1.8, 0);
-% 	\coordinate (smid) at (-0.9, 0);
-%
-% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-% 	\draw[arr1,-,shorten <=0pt] (dmid) to
-% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-% 			\renewcommand{\arraystretch}{.7}
-% 			\big(\begin{matrix}
-% 				\scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta:k
-% 			\end{matrix} \big)}$}
-% 		node[above] {$d$}
-% 		(d0);
-% 	%
-% 	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-% 	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-% 	\draw[arr1,-,shorten <=0pt] (smid) to
-% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-% 			\renewcommand{\arraystretch}{.7}
-% 			\big( \begin{matrix}
-% 				\scriptstyle \alpha: 1 \\[-0.2ex] \scriptstyle \beta: k
-% 			\end{matrix} \big)}$}
-% 		node[above]{$s$}
-% 		(s0);
-% 	\end{tikzpicture}}\Bigg._{\!\!k} - k \log C,
-% \]
-\[
-% \dg M_2 :=
-\mathcal L_2 \approx
-C
-\aar**{
-\begin{tikzpicture}[center base]
-	\node[dpad0] (X) at (0, 0.6) {$X$};
-	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-	\draw[arr1] (X) to node[left, pos=0.4, inner sep=1pt]{$h$}
-			% node[below=0pt,inner sep=1pt,rotate=90]{${\color{gray}\scriptstyle(\!\alpha{:}0\!)}$}
-			%oli: NO NEED!
-			% node[right=0pt,inner sep=1pt]{${\color{gray}\scriptstyle
-			% 	\renewcommand{\arraystretch}{.7}
-			% 	\big(\begin{matrix}
-			% 		\scriptstyle \alpha : 0 \\ \scriptstyle \beta : 1
-			% 	\end{matrix}
-			% 	\big)}$}
-		(Y);
-
-	\coordinate (d0) at (1.8, 0);
-	\coordinate (dmid) at (0.9, 0);
-	\coordinate (s0) at (-1.8, 0);
-	\coordinate (smid) at (-0.9, 0);
-
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (dmid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-			\renewcommand{\arraystretch}{.7}
-			\big(\begin{matrix}
-				\scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta: \gamma
-			\end{matrix} \big)}$}
-		node[above] {$d$}
-		(d0);
-	%
-	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (smid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-			\renewcommand{\arraystretch}{.7}
-			\big( \begin{matrix}
-				\scriptstyle \alpha: 1 \\[-0.2ex] \scriptstyle \beta: \gamma
-			\end{matrix} \big)}$}
-		node[above]{$s$}
-		(s0);
-\end{tikzpicture}}\Bigg._{\!\!\!\gamma}
-% - k \log Z_{sd} + H
-% - k \log C,
- + \mathit{const},
-% \overbrace{ - k \log C, }^{\text{normalization constant for $sd$}}
-\]
-where $C$ is the constant required to normalize the joint density $sd$, and $\mathit{const}$ does not depend on $h$.
-However, the values of $\balpha$ in
-this PDG indicate an over-determination of $XY$
-% (it is determined in two ways),
-(it is determined in two different ways),
-  % and so $h^*$ is more deterministic than it should be.
-  and so $h^*$ is more deterministic than intended.
-By contrast,
-% $\aar{\dg M_3}$
-\vspace{-2ex}
-\[
-% \dg M_3 :=
-\mathcal L_3 := \aar**{
-\begin{tikzpicture}[center base]
-	\node[dpad0] (X) at (0, 0.6) {$X$};
-	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$} (Y);
-
-	% \coordinate (d0) at (1.3, 0);
-	% \coordinate (s0) at (-1.3, 0);
-	% \node[above left=1pt and 0.5em of d0] {$d$};
-	% \node[below left=0pt and 0.2em of d0]{${\color{gray}\scriptstyle( \lambda_1 )}$};
-	% \node[above right=1pt and 0.5em of s0] {$s$};
-	% \node[below right=0pt and 0.2em of s0]{${\color{gray}\scriptstyle( \lambda_0 )}$};
-
-	\coordinate (d0) at (1.8, 0);
-	\coordinate (dmid) at (0.9, 0);
-	\coordinate (s0) at (-1.8, 0);
-	\coordinate (smid) at (-0.9, 0);
-
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (dmid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle(\lambda_{\dsymb})}$}
-		node[above] {$d$}
-		(d0);
-	%
-	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (smid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle(\lambda_{\ssymb})}$}
-		node[above]{$s$}
-		(s0);
-	% \unmergearr{s0}XY
-	% \unmergearr{d0}XY
-% 	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
-% 		node[fill=white, inner sep=0pt, pos=0.55]
-% 			% {$Z?d:s$}
-% 			{$\begin{bmatrix}d\\[-0.3ex] s\end{bmatrix}$}
-% 		% node[above, inner sep=2pt, pos=0.68]
-% 		% 	{${\color{gray}\scriptscriptstyle(r)}$}
-% 		(xyz);
-% 	\draw[arr2, shorten <=0pt] (xyz) to (X);
-% 	\draw[arr2, shorten <=0pt] (xyz) to (Y);
-% ode[dpad0] (X) {};
-\end{tikzpicture}},
-\]
-% although complicated in closed form,
-% \vspace{-2ex}
-does not have this issue: the optimal predictor $h^*$
- % by this metric
- according to $\mathcal L_3$
- is proportional to the $\lambda$-weighted geometric mean of $s$ and $d$.
-% Both losses of the initial approach also arise from PDGs, and the lack of calibration in the second stems from strange modeling assumptions.
-% The discussion at the end of \S8 and Appendix C.1.2 gives another calibration example.
-% We will add this example to the appendix as well.
-% This example addresses Reviewer \#3's concern: thinking about what's going on is more than pedagogy; it is a valuable first step in the modeling workflow!
-% For \revc{Reviewer \#4}: viewing losses through the same lens like this makes it possible to analyze and choose loss functions uniformly, as we say in the introduction.
-% To address \revc{Reviewer #3}: this ; describing what's going on is a valuable safeguard first step in the modeling workflow.
-% So, in addition to this unified view of standard loss functions, our approach can suggest more appropriate loss functions for non-standard situations.
-% We submit that, in addition to providing a unified view of standard loss functions, our approach can suggest more appropriate loss functions in practical problems.
-It seems that our approach, in addition to providing a unified view of standard loss functions, can also suggest more appropriate loss functions in practical situations.
-
 % \section{COST AS INCONSISTENCY?}
 % \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG A L\kern-0.05emO\kern-0.02emSS}
 % \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEER A L\kern-0.05emO\kern-0.02emSS?}
@@ -3639,7 +3028,6 @@ It seems that our approach, in addition to providing a unified view of standard 
 % \section{ON R\kern-0.04emE\kern-0.07emV\kern-0.05emERSE-EN\kern-0.07emG\kern-0.05emINEERIN\kern-0.07emG}
 % \section{R\kern-0.04emE\kern-0.07emV\kern-0.05emER\kern-0.03emS\kern-0.03emE-EN\kern-0.07emG\kern-0.05emINE\kern-0.03emERIN\kern-0.07emG \kern-0.07emA \kern-0.07em L\kern-0.05emO\kern-0.02emS\kern-0.05emS?}%% Can't get it to work. TOO long.
 \section{REVERSE-ENGINEERING LOSS?}
-% \section{REVERSE-ENGINEERING A LOSS FUNCTION?}
 % \section{ON WORKING BACKWARDS}
 % \section{ON WORKING BACKWARDS FROM LOSS}
 % \section{REVERSE ENGINEERING LOSSES}
@@ -3652,26 +3040,10 @@ It seems that our approach, in addition to providing a unified view of standard 
 % Is it possible to get \emph{every} expression out of the inconsistency?
 % Is it possible to make an arbitrary loss function  $\ell(X)$ appear as an inconsistency?
 % Is it possible to make an arbitrary loss function appear as an inconsistency?
-% Given an arbitrary loss function $\ell(X)$, can we find a PDG that gives rise to it?
-% Given an arbitrary loss function $\ell(X)$, is there an algorithm to find a PDG that gives rise to it?
-% Given an arbitrary loss function $\ell(X)$, can we find a PDG that gives rise to it?
-% Given an arbitrary loss function, can we find a PDG that gives rise to it?
-Given an \emph{arbitrary} loss function, can we find a PDG that gives rise to it?
+Given an arbitrary loss function $\ell(X)$, can we find a PDG that gives rise to it?
 % To a first approximation, it may seem that the answer is yes.
 % To a first approximation, the answer seems to be yes.
-%% TODO
-% Not in a satisfying way, although at first glance, the answer appears to be yes.
-% At first glance, the answer appears to be yes.
-% At first glance, the answer appears to be yes, although not without unsavory modeling choices.
-% At first glance, the answer appears to be yes, but only by .
-% The answer is yes, but not without unsavory modeling choices.
-% The answer is yes, but not without unsavory modeling choices that don't compose well.
-% The answer is yes, but not without unsavory modeling choices that compose poorly.
-% The answer is yes---but not without unsavory modeling choices.
-% The answer appears to be yes---but not in a satisfying way.
-% The answer appears to be yes---but not without making unsavory modeling choices.
-The answer appears to be yes---although not without making unsavory modeling choices.
-% To a first approximation, the answer appears to be yes.
+To a first approximation, the answer appears to be yes.
 %
 % Just as including probabilistic information is not a matter of multiplication, inconsistency is not a mere matter of addition.
 %
@@ -3687,14 +3059,13 @@ Without affecting its semantics, one may add the variable $\Truth$ that takes va
 %
 % Now, given any non-negative function
 Now, given a
-cost function $c: \V(X) \to \mathbb R_{\ge 0}$,
+cost function $c: \V(X) \to \mathbb R^{\ge 0}$,
 % cost function $c(X) \ge 0$,
 % non-negative cost function,
 % function $f(X)$,
 define the cpd $\hat c(\Truth |X)$ by
 $
-	% \hat c(\trut | x) := \exp( - c(x)).
-	\hat c(\trut | x) := e^{-c(x)}.
+	\hat c(\trut | x) := \exp( - c(x)).
 $
 % $\hat c$ ties the value of $X$ to inconsistency by threatening to generate the falsehood {\tt f}, with probability dependent on the cost of $X$.
 % By threatening to generate the falsehood {\tt f}, in proporition to the cost of $X$, $\hat c$ ties the value of $X$ to inconsistency.
@@ -3722,7 +3093,7 @@ By threatening to generate the falsehood {\tt f} with probability dependent on t
 % 		% \beta \Ex_{x\sim p}c(x).
 % 		c(x)$, and
 % \TODO
-% \newpage
+\newpage
 \begin{linked}{prop}{expected-cost}
 	% Given a distribution $p(X)$ and a cost $c$,
 	% \def\binvar{\mathbbm 2}
@@ -3772,19 +3143,12 @@ but doing so is necessary to recover $\Ex_p c$.%
 %$\ell$.
 \footnote{If $\beta_p$ were instead equal to $1$, we would have obtained $-\log \Ex_p \exp(-c(\!X\!))$, with optimal distribution $\mu(\!X\!) \!\ne\! p(\!X\!)$.\label{fn:logEexp}}
 % (  )
-Any mechanism that generates inconsistency based on the value of $X$ (such as this one) also works in reverse:
-% the PDG squirms, contorting the probability of $X$ to disperse the inconsistency.
-the PDG ``squirms'', contorting the probability of $X$ to disperse the inconsistency.
-% One cannot cannot simply ``emit'' inconsistency
-One cannot cannot simply ``emit loss''
-% without affecting the probabilistic part of the model,
-without affecting the rest of the model,
+Any mechanism that generates inconsistency based on the value of $X$ (such as this one) also works in reverse: the PDG squirms, contorting the probability of $X$ to disperse the inconsistency.
+One cannot cannot simply ``emit'' inconsistency
+without affecting the probabilistic part of the model,
 %oli3:
 % as one does with value in an influence diagram \parencite{influencediagrams}.
-as one does
-% with ``value''
-with utility
-in an Influence Diagram \parencite{influencediagrams}.
+as one does with ``value'' in an influence diagram \parencite{influencediagrams}.
 %TODO CITE
 % and expect to collect it
 %
@@ -3799,11 +3163,7 @@ Even setting every $\beta := \infty$ may not be enough to prevent the squirming.
 % the natural modification of the PDG in \Cref{prop:supervised-cross-entropy}
 % To illustrate, consider the analogous modification of PDG in \Cref{prop:supervised-cross-entropy}, which models the setup of supervised learning with an arbitrary loss function $\ell$.
 \def\mypdg{\dg{S}}
-To illustrate, consider a model $\mypdg$ of the supervised learning setting (predict $Y$ from $X$), with labeled data $\mathcal D$, model $h$, and a loss function $\ell$ on pairs of output labels.
- % Define:
-
-% Concretely, define:
-Concretely, define:
+To illustrate, consider a model of the supervised learning setting, with data $\mathcal D$, model $h$, and an arbitrary loss function $\ell$. Define:
 \vspace{-1ex}
 % \def\mypdg{\dg{S}\!\dg{L}}
 % \def\mypdg{\dg{S}\!\mathrm{Learn}}
@@ -3853,9 +3213,9 @@ Concretely, define:
 	\end{tikzpicture}
 	% }
 	% = \beta \Ex_{x\sim p}c(x).
-	\quad\;\text{and}\;\quad
+	\quad\;\text{and}\qquad
 	% L := \Ex_{x,y\sim \mathcal D}\Ex_{y' \sim p|x}\ell(y,y')
-	\mathcal L := \;\;\mathop{\scalebox{1.2}{$\Ex$}}\limits_{\substack{%
+	L := \;\;\mathop{\scalebox{1.2}{$\Ex$}}\limits_{\substack{%
 		\vphantom{x}\\
 		\mathllap{(x,y)} \sim \mathrlap{\datadist\xysamp} \\
 		\mathllap{y'} \sim \mathrlap{p(Y'|\,x)}} }
@@ -3884,7 +3244,7 @@ Concretely, define:
 %
 %
 Given \Cref{prop:expected-cost},
-one might imagine $\aar{\mypdg} = \mathcal L$,
+one might imagine $\aar{\mypdg} = L$,
 % the expected classifier loss,
 but this is not so.
 % but we accidentally obtained something nicer.
@@ -3896,60 +3256,33 @@ In some ways, $\aar{\mypdg}$ is actually preferable.
 % the optimal $p(Y|X)$ by minimizing $L$ is a point mass on the label $y^*_X$ that minimizes expected loss given $X$, but the optimal $p(Y|X)$ according to $\aar{\mypdg}$ is $\datadist\xysamp(Y|X)$,%
 % \footnote{assuming $\ell(y,y') \ge 0$ with equality iff $y=y'$}
 %
-The optimal $h(Y'|X)$ according to $\mathcal L$ is
+The optimal $h(Y'|X)$ according to $L$ is
 % a point mass on the label $y^*_X$ minimizing expected loss,
-a degenerate cpd that places all mass on the label(s) $y^*_X$ minimizing expected loss,
+a degenerate cpd that places all mass on the label $y^*_X$ minimizing expected loss,
 while the optimal $h(Y'|X)$ according to $\aar{\mypdg}$ is $\datadist\xysamp(Y|X)$,
 	% \footnote{assuming $\ell(y,y') \ge 0$ with equality iff $y=y'$}
-% which means it is \emph{calibrated} \parencite{dawid1982well}.
-% which means that, unlike $\ell$, it is calibrated.
-which means that it is calibrated, unlike $\ell$.
-% So unlike $\ell$, it is calibrated.
-If, in addition, we set $\alpha_p, \alpha_{\datadist\xysamp} := 1$ and
-% strictly enforce the qualitative picture,
-strictly enforce the qualitative picture,
+which means it is \emph{calibrated} \parencite{dawid1982well}.
+If, in addition, we set $\alpha_p, \alpha_{\datadist\xysamp} := 1$ and strictly enforce the qualitative picture,
 finally no more squirming is possible, as we arrive at
 	% \footnote{which means also setting $\alpha_p, \alpha_{\datadist\xysamp} := 1$}
 % we still get $L = \aar{\mypdg}_\infty$.
-$\displaystyle\lim_{\gamma\to\infty}\aar{\mypdg}_\gamma = \mathcal L$.
+$\displaystyle\lim_{\gamma\to\infty}\aar{\mypdg}_\gamma = L$.
 % (see the appendix.)
-\vskip-0.5ex
+\vspace{-0.5ex}
 
-In the process, we have given up our ability to tolerate inconsistency by setting all probabilistic modeling choices in stone.
-% and also dragged the global parameter $\gamma$, which is technically not even part of a PDG.
-What's more, we've dragged in the global parameter $\gamma$,
-% (technically not even part of the PDG)
-further handicapping our ability to compose this model with others.
-% But now we've roped in the global parameter $\gamma$.
-%TODO Add sentence
-% But now
 % But now we've roped in the global parameter $\gamma$
-% But now we've maxed out on inconsistency;
 % To summarize, working backwards requires indicating absolute certainty in strange modeling assumptions.
 % To summarize, working backwards requires making strange choices, and indicating absolute certainty in them.
-%To summarize:
-% while going from model to loss function
+To summarize:
 % while going from model to loss function seems to give the right loss function at every turn, generalizing properly to new information,
 % working backwards requires nailing down behavior with absolute certainty, so that it does not change in response to your loss.
 % reverse-engineering a loss function is possible, but requires making all modeling choices with absolute certainty, including some questionable ones.
 % working backwards from loss to PDG is possible, but requires indicating absolute certainty in all modeling choices, including some questionable ones.
-% working backwards from loss to PDG, although possible, may require reporting absolute certainty in all modeling choices, including some questionable ones.
-% while desirable behavior as we compose pieces of models together (\Cref{sec:datsim}),
-% while the losses generated by composing PDGs,
-% To summarize: while the inconsistency of a composite model often seems to be the ``right'' loss function,
-To summarize: while model inconsistency readily generates appropriate loss functions,
-% encoding loss functions as PDGs may not yeild nice models.
-% the reverse does not work as well.
-the converse does not work as well.
-% Although reverse-enerineering a loss is possible, doing so may require making questionable modeling choices with absolute certainty, resulting brittle model with gimped potential for composition.
-Reverse-enerineering a loss may require making questionable modeling choices with absolute
-certainty, resulting in brittle models with limited potential for composition.
+working backwards from loss to PDG, although possible, may require reporting absolute certainty in all modeling choices, including some questionable ones.
 % This leaves zero margin for error.
 % indicating absolute certainty in them.
 In the end, we must confront our modeling choices;
 good loss functions come from good models.
-% In the end, we must confront our modeling choices, and this framework forces us to put them on display.
-% Good loss functions come from good models.
 % good loss functions come from good models, and not the other way around.
 % In the end, we must all confront our modeling choices; the only difference here is that they are on display.
 % Good loss functions come from good models.
@@ -3994,59 +3327,47 @@ good loss functions come from good models.
 % \end{linked}
 % So,
 %
-%DONE
+%TODO
 % Yeah sure you can get any loss function but if you look at the corresponding PDG it makes no sense
 
 
 \section{FINAL REMARKS}
 
-% DONE
+% TODO
 % Varsha says: punchline is missing
 % not clear that you should use this to check your modeling assumptions
 
-% We have now seen that PDG semantics not only capture structured objects such as Bayesian Networks and Factor Graphs as in \textcite{richardson2020probabilistic},
-% but in the same stroke also generate
+We have now seen that PDG semantics not only capture structured objects such as Bayesian Networks and Factor Graphs as in \textcite{richardson2020probabilistic},
+%TODO
 %joe2: replace with
 % but also can be used to generate
-% but in the same stroke also generate
-% but the same
-% We have now seen that PDG semantics, not only capture structured models such as Bayesian Networks and Factor Graphs as in \textcite{richardson2020probabilistic}, but also, in the same stroke generate
-% We seen that that PDG semantics, in the same stroke by which they capture Bayesian Networks and Factor Graphs, also generate
-We seen that that PDG semantics, in the same stroke by which they capture Bayesian Networks and Factor Graphs \parencite{richardson2020probabilistic}, also generate
+but in the same stroke also generate
 %
-% many standard loss functions, including some non-trivial ones.
 many standard loss functions, including some non-trivial ones.
-% In each case, the appropriate loss is a simple consequence of carefully articulating modeling assumptions.
-% In each case, the appropriate loss arises simply by articulating modeling assumptions, and then measuring the inconsistency of the resulting model.
-In each case, the appropriate loss arises simply by articulating modeling assumptions, and then measuring inconsistency.
+In each case, the appropriate loss is a simple consequence of carefully articulating modeling assumptions.
 Viewing loss functions in this way also has beneficial side effects, including an intuitive visual proof language for reasoning about the relationships between them.
 
-%joe1*: I *strongly* suggest removing this paragraph.   You have
+%joe1*: I *strongly* suggest remactuallyg this paragraph.   You have
 %provided no evidence whatsoever that what you are doing is in the
 %spirit of cognitive dissonance (which is about how an agent handles
 %conflicting beliefs, largely by ignoring upsetting information).
 % Taking a step back, we submit that this approach to modeling agents, which is similar in spirit to the theory of \emph{cognitive dissonance} \cite{}, is also more plausible for humans than one that supposes we minimize expectations of some concrete, exogenously given measure of (dis)utility.
 % We also believe that our ``universal loss function'' will be of substantial interest to the AI safety community.
  % blurring the line between model and objective.
-%
-% This ``universal loss function'',
-% which provides a principled way of choosing an optimization objective,
-% % which blurs the line between model and objective function,
-% may be of particular interest to the AI safety community.
-This ``universal loss'',
+
+%oli1: reduced.
+This ``universal loss function'',
+%oli3: redundant wording
+% which provides a principled way of choosing a loss function,
 which provides a principled way of choosing an optimization objective,
 % which blurs the line between model and objective function,
-% may be of particular interest to the AI safety community.
-may be of particular interest to the AI alignment community.
-% Taking a step back, we submit that this approach to modeling agents
+may be of particular interest to the AI safety community.
+% and may be relevant to the those interested in AI alignment.
+% will be of substantial interest to the AI safety community.
 
 
-\newpage
-\subsubsection*{Acknowledgements}
-Work supported in part by MURI grant W911NF-19-1-0217.
-Many thanks to my advisor, Joe Halpern, for his generous support, and for valuable critiques of many drafts. Thanks as well to my reviewers, who pushed me to better explain the confidence parameters, and to include a practical example (\Cref{sec:datsim}).
-Finally, thanks to my friends, particularly Varsha Kishore and Greg Yauney, for helping me to refine the presentation of these ideas.
-
+% TODO Fill out acknowledgements
+% \subsubsection*{Acknowledgements}
 % All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support.
 % To preserve the anonymity, please include acknowledgments \emph{only} in the camera-ready papers.
 
@@ -4094,7 +3415,7 @@ Finally, thanks to my friends, particularly Varsha Kishore and Greg Yauney, for 
 	prop:pdg-elbo-vae,%
 	prop:pdg-elbo-vae-whole%
 })
-technically require the distribution to be represented with a mass function (as opposed to a probability density function, or pdf).
+technically require the distribution to be represented with a mass function (not a density function (pdf)).
 %joe1*: We've never talked about the inconsistency of a continuous
 %distribution.  If it's always infinite, this suggests that whatever
 %definition you have in mind is not good.  I would strongly suggest
@@ -4108,27 +3429,27 @@ technically require the distribution to be represented with a mass function (as 
 %suggest you cut them (which you can do if you say that you're just
 %considering discrete distributions.
 A PDG containg both pdf and a finitely supported distribution on the same variable
-will typically have infinite inconsistency---%
-but this is not just a quirk of the PDG formalism.
+will typically have infinite inconsistency.
+But this is not just a quirk of the PDG formalism.
 
 
 % of the standard objectives.
 Probability density is not dimensionless (like probability mass), but rather has inverse $X$-units (e.g., probability per meter), so depends on an arbitrary choice of scale (the pdf for probability per meter and per centimeter will yield different numbers).
 In places where the objective does not have units that cancel before we take a logarithm,
-the use of a probability density $p(X)$ becomes sensitive to this arbitrary choice of parameterization. For instance, the analog of surprisal, $- \log p(x)$ for a pdf $p$, or its expectation, called differential entropy, both depend on an underlying scheme of measurement (an implicit base measure).
+the use of a probability density $p(X)$ becomes sensitive to this arbitrary choice of parameterization. For instance, the analog of surprisal, $- \log p(x)$ for a pdf $p$, or its expectation, called differential entropy, both suffer from this problem.
 %
-
 On the other hand, this choice of scale ultimately amounts to an additive constant.
+
 % Similarly, any approximation of a density $p(X)$ with a discretization $\tilde p_k(X)$ where $k$ discretization size, differs only
 Moreover, beyond a certain point, decreasing the discretization size $k$ of a discretized approximation $\tilde p_k(X)$ \emph{also} contributes a constant that depends only on $k$.
     % \cref{prop:pdg-Ix,prop:expected-surprise,prop:marginal-ll,prop:pdg-loglikelihood,prop:supervised-cross-entropy}
 % only in a constant that depends only on $k$.
 % But this constant is irrelevant for optimization, justifying the use of the continuous analogs (such as $- \log p(x)$ for a pdf $p(x)$) as loss functions.
-But such constants are irrelevant for optimization, and so, even though such quantities are ill-defined and arguably meaningless in the continuous limit, the use of the continuous analogs as loss functions is still justified.
+But such constants are irrelevant for optimization, justifying the use of the continuous analogs as loss functions.
 
 
 The bottom line is that all our results hold in a uniform way for every discretization size --- yet in the limit as the discretization becomes smaller, an inconsistency may diverge to infinity.
-However, this divergence stems from an additive constant that depends only on the discretization size, which is irrelevant to its employment as a loss function.
+However, this divergence stems from an additive constant that depends only on the discretization size, which is irrelevant to its employment as a loss function. 
 As a result, using one of these ``unbalanced'' functions involving densities where the units do not work out properly, results in a morally equivalent loss function, except without a diverging constant.
 % \end{remark}
 
@@ -4173,7 +3494,7 @@ The inconsistency of a PDG containing two univariate Gaussian regressors of with
 Many standard means, such as those in \cref{tab:power-means}, are special cases.
 It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and strictly so if not all elements of $\mathbf r$ are identical. In particular, $\mathrm{QM}_w(a,b) > \mathrm{GM}_w(a,b)$ for all $a \ne b$ and positive weights $w$. We now present the result.
 
-\newpage
+
 \begin{linked}{prop}{inc-two-gaussians}
 	Consider a PDG containing two (distinct) conditional Gaussian distributions on a variable $Y$, whose parameters can both depend on a variable $X$. Its inconsistency takes the form
 	\begin{align*}
@@ -4194,9 +3515,9 @@ It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and stric
 				\draw[arr2, ->>] (X) to[bend right=10]
 					node[pos=0.4, inner sep=0.2pt, fill=white, fill opacity=0.9] {$t$} (sh);
 			%
-			\draw[arr2, <-] (X) to
-				% node[pos=0.55, above]{$D!$}
-				node[pos=0.55, above]{$D$}
+			\draw[arr2, <-] (X) to 
+				% node[pos=0.55, above]{$D!$} 
+				node[pos=0.55, above]{$D$} 
 				node[below,pos=0.55, inner sep=2pt]
 					{${\color{gray}\scriptscriptstyle(\infty)}$}
 				+(-1.1, 0);
@@ -4206,7 +3527,7 @@ It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and stric
 			\draw[arr2, ->] (mh) to[bend right=15] (C2) to[out=45,in=-160]
 				node[pos=0.25, below right, inner sep=0]
 					% {\!\!$\underset{{\color{gray}(\beta:\beta_2)}}{\mathcal N}$}
-					{${\mathcal N}$}
+					{${\mathcal N}$} 
 				node[pos=0,below=6pt,inner sep=1pt] {$\scriptstyle{\color{gray}(\beta_2)}$}
 				(Y);
 			\draw[arr2, -,shorten >=0pt] (sh) to[bend right=25] (C2);
@@ -4231,7 +3552,7 @@ It is well known that $\mathrm M_p^w(\mathbf r)$ is increasing in $p$, and stric
 			% 	\frac
 			% 	{\mathrm {QM}_{\hat\beta}(\sigma_1,\sigma_2)}
 			% 	{\mathrm {GM}_{\hat\beta}(\sigma_1,\sigma_2)}
-		 	% \right]
+		 	% \right] 
 			\Ex_{D}\left[
     			(\beta_1 \!+\! \beta_2) \log \frac
     				{ \mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2) }
@@ -4282,7 +3603,7 @@ The PDG on the left is semantically equivalent to (and in particular has the sam
 	\draw[arr2, ->] (X) to[bend left]
 		node[pos=0.5, above] {$\mathcal N(f(x), s(x))$} (Y);
 	\draw[arr2, ->] (X) to[bend right] node[pos=0.5, below]{$\mathcal N(h(x), t(x))$} (Y);
-	\draw[arr2, <-] (X) to
+	\draw[arr2, <-] (X) to 
 		node[pos=0.6, above]{$D$}
 		node[below,pos=0.6, inner sep=2pt]
 			{${\color{gray}\scriptscriptstyle(\infty)}$}
@@ -4407,7 +3728,7 @@ We now present the promised multi-sample analogs from \cref{sec:variational}.
 
 %oli3:
 % We also have the following formal statement of the claim made in \cref{sec:betavae}.
-We also have the following formal statement of \Cref{prop:betaelbo-informal}.
+We also have the following formal statement of \cref{prop:betaelbo-informal}.
 \begin{linked}{prop}{beta-elbo}
 	The negative $\beta$-ELBO objective for a prior $p(X)$, encoder $e(Z \mid X)$, decoder $d(X \mid Z)$, at a sample $x$, is equal to the inconsistency of the corresponding PDG, where the prior has confidence equal to $\beta$. That is,
 	\[
@@ -4479,7 +3800,7 @@ First, we show that our cross entropy results hold for all $\gamma$, in the sens
 			\node[dpad0] (X) {$X$};
 			\coordinate (A) at ($(X) + (-0.9,0)$);
 			\draw[arr1] (A) -- node[above]{$p$}  (X);
-			\draw[arr2, <-] (X) --
+			\draw[arr2, <-] (X) -- 
 				node[above,pos=0.6]{${\datadist\xsamp}$}
 				node[below,pos=0.6, inner sep=2pt]
 					{${\color{gray}\scriptscriptstyle(\infty)}$}
@@ -4502,9 +3823,9 @@ First, we show that our cross entropy results hold for all $\gamma$, in the sens
 \end{enumerate}
 \end{linked}
 
-As promised, we now give the simultaneous generalization of the surprisal result
+As promised, we now give the simultaneous generalization of the surprisal result 
 	(\Cref{prop:pdg-Ix}) to both multiple samples (like in \Cref{prop:expected-surprise}) and partial observations (as in \Cref{prop:marginal-ll}).
-
+	
 \begin{linked}{prop}{pdg-loglikelihood}
 	The average \emph{marginal} negative log likelihood $\ell(p;x) := -\frac{1}{|\xsamp|}\sum_{x \in \xsamp} \log \sum_z p(x,z)$ is the inconsistency of the PDG containing $p$ and the data distribution $\datadist\xsamp$, plus the entropy of the data distribution (which is constant in $p$).
 	That is,
@@ -4519,7 +3840,7 @@ As promised, we now give the simultaneous generalization of the surprisal result
 			\draw[arr1] (A) -- node[right]{$p$} ++(0,-0.25) -- (X);
 			\draw[arr1] (A) -- ++(0,-0.25) -- (Z);
 			%
-			\draw[arr1, <-] (X) --
+			\draw[arr1, <-] (X) --  
 				node[above,pos=0.65] {$\datadist\xsamp$}
 				node[below,pos=0.65, inner sep=2pt]
 					{${\color{gray}\scriptscriptstyle(\infty)}$}
@@ -4653,15 +3974,15 @@ As promised, we now give the simultaneous generalization of the surprisal result
 			&= \frac{1}{|\xsamp|}\inf_{\mu(Z\mid X)}\sum_{x \in \xsamp}
 				\Ex_{z \sim \mu(Z\mid x)} \log \frac{\mu(z \mid x) \datadist\xsamp(x) }{p(x,z)}\frac{p(x)}{p(x)} \\
 			&= \frac{1}{|\xsamp|}\inf_{\mu(Z \mid X)}\sum_{x \in \xsamp}
-				\left[ \Ex_{z \sim \mu}
+				\left[ \Ex_{z \sim \mu} 
 				% \left[ \log \frac{\mu(z)}{p(z \mid x)} + \log \frac{1}{p(x)}
 				\left[ \log \frac{\mu(z\mid x)}{p(z \mid x)}  \right] + \log \frac{1}{p(x)}
 				- \log \frac{1}{\datadist\xsamp(x)}  \right] \\
 			%oli3: added intermediate + fixed notation above & below a little.
 			&= \frac{1}{|\xsamp|}\sum_{x \in \xsamp} \left[
-				\inf_{\mu(Z \mid x)} \Ex_{z \sim \mu}
+				\inf_{\mu(Z \mid x)} \Ex_{z \sim \mu} 
 				\left[ \log \frac{\mu(z\mid x)}{p(z \mid x)}  \right] + \log \frac{1}{p(x)}
-				- \log \frac{1}{\datadist\xsamp(x)}  \right] \\
+				- \log \frac{1}{\datadist\xsamp(x)}  \right] \\	
 			&= \frac{1}{|\xsamp|}\sum_{x \in \xsamp} \left[
 				\inf_{\mu(Z)} \Big[\kldiv{\mu(Z)}{p(Z\mid x)}\Big] + \log \frac{1}{p(x)} \right] - \H(\datadist\xsamp) \\
 			&= \frac{1}{|\xsamp|}\sum_{x \in \xsamp} \log \frac{1}{p(x)} - \H(\datadist\xsamp) \\
@@ -4780,7 +4101,7 @@ As promised, we now give the simultaneous generalization of the surprisal result
 	 	\frac{\beta_1}{s(x)^2}(y - f)^2 + \frac{\beta_2}{t(x)^2}(y-h)^2
 		=
 		\left(\frac{y-g}{\tilde\sigma}\right)^2
-		+ \frac{\beta_1\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2} (f-h)^2.
+		+ \frac{\beta_1\beta_2}{\beta_1 t(x)^2 + \beta_2 s(x)^2} (f-h)^2. 
 	\]
 	Applying this to \eqref{eq:gauss-startform} leaves us with:
 	\begin{align*}
@@ -5018,11 +4339,11 @@ As promised, we now give the simultaneous generalization of the surprisal result
 		&=
 		\frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{1}{\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^2 \Big(f(x)-h(x)\Big)^{\!2}\\
 		&= \frac12 \frac{\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2};
-			% &\hspace{-1in}\text{[since $\mu_1$ and $\mu_2$ are the rvs for $f(x)$ and $g(x)$]}
+			% &\hspace{-1in}\text{[since $\mu_1$ and $\mu_2$ are the rvs for $f(x)$ and $g(x)$]} 
 			%\\
 		% &= \frac{2\beta_1\beta_2}{\beta_1+\beta_2} \left(\frac{\mu_1- \mu_2}{2\,\mathrm{QM}_{\hat\beta}(\sigma_1,\sigma_2)}\right)^{\!2}
 	\end{align*}
-	in the last step, we have replaced $f(x)$ and $g(x)$ with their respective random variables $\mu_1$ and $\mu_2$.
+	in the last step, we have replaced $f(x)$ and $g(x)$ with their respective random variables $\mu_1$ and $\mu_2$. 
 	As a result, \eqref{eq:gauss-midform} can be written as
 	\begin{align*}
 		\aar{\dg M} &=\! \Ex_{D}\left[
@@ -5098,7 +4419,7 @@ As promised, we now give the simultaneous generalization of the surprisal result
 			\left(\frac{\beta_1 f^2}{\sigma_1^2} + \frac{\beta_2 h^2}{\sigma_2^2}
 			-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
 		\right)
-		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} 
 			\numberthis\label{eq:gaus-mid2}
 		% &= \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right) y^2
 		% 	-2\left(\frac{\beta_1\,f}{\sigma_1^2} +\frac{\beta_2\,h}{\sigma_2^2}\right)y+\left(\frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
@@ -5106,14 +4427,14 @@ As promised, we now give the simultaneous generalization of the surprisal result
 		% \right)
 		% +\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
 	\end{align*}
-	where in the last step we added and removed the same term (i.e., the completion of the square, although it is probably still unclear why this quantity will do that).
-	The third parenthesized quantity needs the most work. Isolating it and getting a common denominator gives us:
+	where in the last step we added and removed the same term (i.e., the completion of the square, although it is probably still unclear why this quantity will do that). 
+	The third parenthesized quantity needs the most work. Isolating it and getting a common denominator gives us:		
 	\begin{align*}
 		& \frac{\beta_1\,f^2}{\sigma_1^2} + \frac{\beta_2\,h^2}{\sigma_2^2}
 		-\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} \\
 		&= \frac
 				{\beta_1\,f^2 (\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) \sigma_2^2}
-				{\sigma_1^2 (\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_2^2}
+				{\sigma_1^2 (\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_2^2} 
 			+ \frac
 				{\beta_2\,h^2(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_1^2}
 				{\sigma_2^2(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)\sigma_1^2}
@@ -5126,18 +4447,18 @@ As promised, we now give the simultaneous generalization of the surprisal result
 				+ \Cancel[red]{ \beta_1\beta_2 \sigma_1^2\sigma_2^2 h^2}
 				+ \beta_2^2\sigma_1^4 h^2
 				- \Cancel[blue]{\beta_1\beta_2 \sigma_1^2\sigma_2^2 f^2 }
-				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
 				- \Cancel[red]{\beta_1\beta_2 \sigma_1^2\sigma_2^2 h^2}
 			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)} \\
 		&= \frac {
 				\beta_1^2\sigma_2^4 f^2
 				+ \beta_2^2\sigma_1^4 h^2
-				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
 			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)}.
 	\end{align*}
 	Substituting this expression into the third term of \eqref{eq:gaus-mid2}, while simultaneously computing common denominators for the first and second terms, yields
 	\begin{equation}
-		% \frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2
+		% \frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2  
 		% 	=
 		% \left(\frac{\beta_1}{\sigma_1^2}+\frac{\beta_2}{\sigma_2^2}\right)
 		\!\left(\!	\frac{\beta_1\sigma_2^2 + \beta_2 \sigma_1^2}
@@ -5151,13 +4472,13 @@ As promised, we now give the simultaneous generalization of the surprisal result
 			\frac {
 				\beta_1^2\sigma_2^4 f^2
 				+ \beta_2^2\sigma_1^4 h^2
-				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h
+				+ 2 \beta_1\beta_2 \sigma_1^2\sigma_2^2 f h 
 			} {(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2) (\sigma_1^2\sigma_2^2)}
 		% \right)
 		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}.
 		\label{eq:gauss-mid3}
 	\end{equation}
-	% It now suffices to show first three terms are equal to
+	% It now suffices to show first three terms are equal to 
 	% $(\frac{y-g}{\tilde\sigma})^2$.
 	On the other hand, using the definitions of $g$ and $\tilde \sigma$, we compute:
 	\begin{align*}
@@ -5180,8 +4501,8 @@ As promised, we now give the simultaneous generalization of the surprisal result
 					+2 \beta_1 \beta_2 \sigma_2^2 \sigma_1^2\, f  h}
 				{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)^2}
 			\right) \\
-			&=
-				\left(\frac{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2
+			&=  
+				\left(\frac{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2  
 				- 2\left(\frac
 					{\beta_1 \sigma_2^2 f + \beta_2 \sigma_1^2 h}
 					{\sigma_1^2\sigma_2^2}\right)y
@@ -5190,9 +4511,9 @@ As promised, we now give the simultaneous generalization of the surprisal result
 					+2 \beta_1 \beta_2 \sigma_2^2 \sigma_1^2\, f  h}
 				{(\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2)(\sigma_1^2\sigma_2^2)}
 			% \\
-			% &=
+			% &=  
 			% 	\left(\frac{\beta_1 \sigma_2^2}{\sigma_1^2\sigma_2^2}
-			% 	 	+ \frac{\beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2
+			% 	 	+ \frac{\beta_2 \sigma_1^2}{\sigma_1^2\sigma_2^2}\right)y^2  
 			% 	- 2\left(
 			% 		\frac {\beta_1 \sigma_2^2 f}{\sigma_1^2\sigma_2^2}
 			% 		 + \frac{\beta_2 \sigma_1^2 h} {\sigma_1^2\sigma_2^2}
@@ -5207,8 +4528,8 @@ As promised, we now give the simultaneous generalization of the surprisal result
 	\ldots which is precisely the first 3 terms of \eqref{eq:gauss-mid3}. Putting it all together, we have shown that
 	\[
 		\frac{\beta_1}{\sigma_1^2}(y - f)^2 + \frac{\beta_2}{\sigma_2^2}(y-h)^2 =
-		\left(\frac{y-g}{\tilde\sigma}\right)^2
-		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2}
+		\left(\frac{y-g}{\tilde\sigma}\right)^2 
+		+\frac{\beta_1\beta_2(f-h)^2}{\beta_1 \sigma_2^2 + \beta_2 \sigma_1^2} 
 	\]
 	as desired.
 \end{lproof}
@@ -5663,7 +4984,7 @@ We now provide more details on the proof of the Data Processing Equality that ap
 	% \]
 	$
 	\\[6ex]
-	$\dg M_1$ && $\dg M_2$ && $\dg M_3$ && $\dg M_4$ && $\dg M_5$
+	$\dg M_1$ && $\dg M_2$ && $\dg M_3$ && $\dg M_4$ && $\dg M_5$ 
 \end{tabular}
 }}
 \end{center}
@@ -5674,7 +4995,7 @@ We now enumerate the (in)equalities to prove them.
 	[label=\arabic*.]
 	% [label=\arabic*.]
 \item Let $\mu(X)$ denote the (unique) optimal distribution for $\dg M_1$.
-	% , i.e.,
+	% , i.e., 
 	% $\mu(X) := \bbr*{\begin{tikzpicture}[center base]
 	%    \node[dpad0] (X) {$X$};
 	%    \draw[arr2, <-,qstyle] (X) --
@@ -5687,23 +5008,23 @@ We now enumerate the (in)equalities to prove them.
 	% 	   % node[above,pos=0.6]{$p^{{\color{gray}(r)}}$}
 	% 			node[below, pos=0.65, ci2] {\plabel}
 	% 	   ++(-1.1, 0);%
-	% \end{tikzpicture}}^*$.
-	Now, the joint distribution $\mu(X,Y) := \mu(X) f(Y|X)$ has incompatibility with $\dg M_2$ equal to
+	% \end{tikzpicture}}^*$. 
+	Now, the joint distribution $\mu(X,Y) := \mu(X) f(Y|X)$ has incompatibility with $\dg M_2$ equal to 
 	\begin{align*}
 		\Inc_{\dg M_2}(\mu(X,Y)) &=  \beta \kldiv{\mu(X)}{p(X)} +
 			\zeta \kldiv{\mu(X)}{q(X)} + (\beta\!+\!\zeta)\Ex_{x\sim\mu}\big[ \kldiv{\mu(Y|x)}{f(Y|x)} \big] \\
-			&= \Inc_{\dg M_1}(\mu(X)) + (\beta\!+\!\zeta) \Ex_{x \sim \mu}\kldiv{\mu(Y|x)}{f(Y|x)}
+			&= \Inc_{\dg M_1}(\mu(X)) + (\beta\!+\!\zeta) \Ex_{x \sim \mu}\kldiv{\mu(Y|x)}{f(Y|x)} 
 				% & \hspace{-2in}{\color{gray}\Big[\text{as $\mu(X)$ is optimal for $\dg M_1$}\Big]}
 				\\
-			&= \aar{\dg M_1}
+			&= \aar{\dg M_1} 
 				& \hspace{-2in}{\color{gray}\Big[\begin{array}{c}
 					\text{as $\mu(Y|x) = f(Y|x)$ wherever $\mu(x)>0$,}\\
 					\text{and $\mu(X)$ minimizes $\Inc_{\dg M_1}$}
 			\end{array}\Big]}
 	\end{align*}
 	%oli3: "witness" spelled out in more detail:
-	% So $\mu(X,Y)$ witnesses the fact that $\aar{\dg M_2} = \aar{\dg M_1}$.
-	So $\mu(X,Y)$ witnesses the fact that $\aar{\dg M_2} \le \Inc_{\dg M_2}(\mu(X,Y)) = \aar{\dg M_1}$.
+	% So $\mu(X,Y)$ witnesses the fact that $\aar{\dg M_2} = \aar{\dg M_1}$. 
+	So $\mu(X,Y)$ witnesses the fact that $\aar{\dg M_2} \le \Inc_{\dg M_2}(\mu(X,Y)) = \aar{\dg M_1}$. 
 	%oli3: added (X,Y) for extra clarity
 	% Furthermore, every joint distribution $\nu$ must have at least this incompatibility,
 	Furthermore, every joint distribution $\nu(X,Y)$ must have at least this incompatibility,
@@ -5712,31 +5033,31 @@ We now enumerate the (in)equalities to prove them.
 	as it must have some marginal $\nu(X)$, which, even by itself, already gives rise to incompatibility of magnitude $\Inc_{\dg
 	M_1}(\nu(X)) \ge \Inc_{\dg M_1}(\mu(X)) = \aar{\dg M_1} $.
 	%oli3: added
-	And since this is true for all $\nu(X,Y)$, we have that $\aar{\dg M_2} \ge \aar{\dg M_1}$. So $\aar{\dg M_2} = \aar{\dg M_1}$.
-
-\item
+	And since this is true for all $\nu(X,Y)$, we have that $\aar{\dg M_2} \ge \aar{\dg M_1}$. So $\aar{\dg M_2} = \aar{\dg M_1}$. 
+	
+\item 
 The equals sign in $\dg M_3$ may be equivalently interpreted as a cpd $\mathit{eq}_{}(X_1|X_2) := x_2 \mapsto \delta_{x_2}(X_1)$, a cpd
 $\mathit{eq'}_{}(X_2|X_1) := x_1 \mapsto \delta_{x_1}(X_2)$, or both at once; in each case, the effect is that a joint distribution $\mu$ with support on an outcome for which $X_1 \ne X_2$ gets an infinite penalty, so a minimizer $\mu(X_1,X_2,Y)$ of $\Inc{\dg M_3}$ must be isomorphic to a distribution $\mu'(X,Y)$.
 
 Furthermore, it is easy to verify that $\Inc_{\dg M_2}(\mu'(X,Y)) = \Inc_{\dg M_3}(\mu(X,X,Y))$. More formally, we have:
 \begin{align*}
-	\aar{\dg M_3} &= \inf_{\mu(X_1,X_2, Y)} \Ex_\mu\left[
-		\beta \log \frac{\mu(X_1)}{p(X_1)}
-		+ \zeta \log \frac{\mu(X_2)}{q(X_2)}
+	\aar{\dg M_3} &= \inf_{\mu(X_1,X_2, Y)} \Ex_\mu\left[ 
+		\beta \log \frac{\mu(X_1)}{p(X_1)} 
+		+ \zeta \log \frac{\mu(X_2)}{q(X_2)} 
 		+ \beta \log\frac{\mu(Y|X_1)}{f(Y|X_1)}
-		+ \zeta \log\frac{\mu(Y|X_2)}{f(Y|X_2)}
+		+ \zeta \log\frac{\mu(Y|X_2)}{f(Y|X_2)} 
 			+ \log \frac{\mu(X_1|X_2)}{\mathit{eq}(X_1,X_2)}
 		 \right]
 	\intertext{but if $X_1$ always equals $X_2$ (which we call simply $X$), as it must for the optimal $\mu$, this becomes}
-	&= \inf_{\mu(X_1=X_2=X, Y)} \Ex_\mu\left[
-		\beta \log \frac{\mu(X)}{p(X)}
-		+ \zeta \log \frac{\mu(X)}{q(X)}
+	&= \inf_{\mu(X_1=X_2=X, Y)} \Ex_\mu\left[ 
+		\beta \log \frac{\mu(X)}{p(X)} 
+		+ \zeta \log \frac{\mu(X)}{q(X)} 
 		+ \beta \log\frac{\mu(Y|X)}{f(Y|X)}
 		+ \zeta \log\frac{\mu(Y|X)}{f(Y|X)}
 		 \right] \\
-	&= \inf_{\mu(X, Y)} \Ex_\mu\left[
-		\beta \log \frac{\mu(X)}{p(X)}
-		+ \zeta \log \frac{\mu(X)}{q(X)}
+	&= \inf_{\mu(X, Y)} \Ex_\mu\left[ 
+		\beta \log \frac{\mu(X)}{p(X)} 
+		+ \zeta \log \frac{\mu(X)}{q(X)} 
 		+ (\beta\!+\!\zeta) \log\frac{\mu(Y|X)}{f(Y|X)}
 		 \right] \\
 	&= \inf_{\mu(X,Y)} \Inc_{\dg M_2}(\mu)\\
@@ -5744,26 +5065,26 @@ Furthermore, it is easy to verify that $\Inc_{\dg M_2}(\mu'(X,Y)) = \Inc_{\dg M_
 	% \Inc_{\dg M_2=3}(\mu'(X,Y))
 \end{align*}
 
-\item Eliminating the edge or edges enforcing the equality $(X_1 = X_2)$ cannot increase inconsistency, by \Cref{lemma!}.
+\item Eliminating the edge or edges enforcing the equality $(X_1 = X_2)$ cannot increase inconsistency, by \Cref{lemma!}. 
 
 \item Although this final step of composing the edges with shared confidences looks intuitively like it should be true (and it is!), its proof may not be obvious.
-% This section of the appendix exists primarily to verify that claim.
-% This section of the appendix exists primarily to verify that claim.
+% This section of the appendix exists primarily to verify that claim. 
+% This section of the appendix exists primarily to verify that claim. 
 We now provide a rigorous proof of this equality.
 
-To ameliorate subscript pains, we henceforth write $X$ for $X_1$, and $Z$ for $X_2$.
+To ameliorate subscript pains, we henceforth write $X$ for $X_1$, and $Z$ for $X_2$. 
 We now compute:
 
 \begin{align*}
 	\aar{\dg M_4}
-	&= \inf_{\mu(X,Z,Y)}
+	&= \inf_{\mu(X,Z,Y)} 
 		\Ex_\mu \left[
 			\beta \log \frac{\mu(X)\, \mu(Y|X)}{p(X)\,f(Y|X)}
 			+ \zeta \log \frac{\mu(Z)\, \mu(Y|Z)}{q(Z)\,f(Y|Z)}
 		\right]\\
-	&= \inf_{\mu(X,Z,Y)}
+	&= \inf_{\mu(X,Z,Y)} 
 		\Ex_\mu \left[
-			\beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)}
+			\beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)} 
 			+ \zeta \log \frac{\mu(Y)\, \mu(Z|Y)}{q(Z)\,f(Y|Z)}
 		\right] & \text{[apply Bayes Rule in numerators]}
 \end{align*}
@@ -5786,7 +5107,7 @@ We now compute:
 % 	&= \inf_{\mu(Y)} \inf_{\mu(X|Y)} \inf_{\mu(Z|Y, Z)}
 % 		\Ex_{y \sim \mu(Y)} \left[
 % 			% \beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)}
-% 			\beta \!\! \Ex_{\vphantom{\Big|}x\sim\mu(X|y)}\!\!\Big[
+% 			\beta \!\! \Ex_{\vphantom{\Big|}x\sim\mu(X|y)}\!\!\Big[ 
 % 				\log \frac{\mu(y)\, \mu(x\,|\,y)}{p(x)\,f(y\,|\,x)} \Big]
 % 			+ \zeta\!\! \Ex_{\vphantom{\Big|}z\sim\mu(z|y,x)}\!\!\Big[
 % 			 	\log \frac{\mu(y)\, \mu(z\,|\,y)}{q(z)\,f(y\,|\,z)} \Big]
@@ -5805,7 +5126,7 @@ By the chain rule, every distribution $\mu(X,Z,Y)$ may be specified as $\mu(Y)\m
 % \intertext{\centering(since the first term (with $\beta$) does not depend on $z$, we can take it out of the expectation)}
 % \intertext{
 where $\mu(Z|Y)$ is the defined in terms of the primitives $\mu(X|Y)$ and $\mu(Z|X,Y)$ as $\mu(Z|Y) := y\mapsto \Ex_{x\sim \mu(X|y)} \mu(Z|y,x)$, and is a valid cpd, since it is a mixture distribution.
-% in the discrete case, we have
+% in the discrete case, we have 
 % \[
 % 	\sum_z\mu(z|y) = \sum_z \Ex_{x\sim \mu(X|y)} \mu(z|y,x) = \Ex_{x\sim \mu(X|y)}\sum_z  \mu(z|y,x)  = \Ex_{x\sim \mu(X|y)}1 = 1.
 % \]
@@ -5826,7 +5147,7 @@ Since the first term (with $\beta$) does not depend on $z$, we can take it out o
 	&= \inf_{\mu(Y)} \inf_{\mu(X|Y)} \inf_{\mu(Z|Y,X)}
 		\Ex_{y \sim \mu(Y)} \left[
 			% \beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)}
-			\beta \!\! \Ex_{\substack{\vphantom{x}\\x\sim\mu(X|y)}}\!\!\Big[
+			\beta \!\! \Ex_{\substack{\vphantom{x}\\x\sim\mu(X|y)}}\!\!\Big[ 
 				\log \frac{\mu(y)\, \mu(x\,|\,y)}{p(x)\,f(y\,|\,x)} \Big]
 			+ \zeta\!\! \Ex_{\substack{x \sim \mu(X|y)\\ z\sim\mu(Z|y,x)}}\!\!\Big[
 			 	\log \frac{\mu(y)\, \mu(z\,|\,y)}{q(z)\,f(y\,|\,z)} \Big]
@@ -5846,7 +5167,7 @@ matters is the mixture $\mu(Z|Y)$. Simplifying the second expectation in this wa
 	= \inf_{\mu(Y)} \inf_{\mu(X|Y)} \inf_{\mu(Z|Y)}
 		\Ex_{y \sim \mu(Y)} \left[
 			% \beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)}
-			\beta \!\! \Ex_{\substack{\vphantom{x}\\x\sim\mu(X|y)}}\!\!\Big[
+			\beta \!\! \Ex_{\substack{\vphantom{x}\\x\sim\mu(X|y)}}\!\!\Big[ 
 				\log \frac{\mu(y)\, \mu(x\,|\,y)}{p(x)\,f(y\,|\,x)} \Big]
 			+ \zeta\!\! \Ex_{\substack{\vphantom{|}\\ z\sim\mu(Z|y)}}\!\!\Big[
 			 	\log \frac{\mu(y)\, \mu(z\,|\,y)}{q(z)\,f(y\,|\,z)} \Big]
@@ -5858,9 +5179,9 @@ Now, a cpd $\mu(X|Y)$ is
 	% \footnote{modulo measurability concerns that do not affect the infemum; see \Cref{appendix:density}}
 just%
 	\footnote{modulo measurability concerns that do not affect the infemum; see \Cref{appendix:density}}
-a (possibly different) distribution $\nu_y(X)$ for every value of $Y$.
+a (possibly different) distribution $\nu_y(X)$ for every value of $Y$. 
 Observe that, inside the expectation over $\mu(Y)$, the cpds $\mu(X|Y)$ and $\mu(Z|Y)$ are used only for the \emph{present} value of $y$, and do not reference, say,  $\mu(X|y')$ for $y'\ne y$.
-Because there is no interaction between the choice of cpd $\mu(X|y)$ and $\mu(X|y')$, it is not necessary to jointly optimize over entire cpds $\mu(X|Y)$ all at once.
+Because there is no interaction between the choice of cpd $\mu(X|y)$ and $\mu(X|y')$, it is not necessary to jointly optimize over entire cpds $\mu(X|Y)$ all at once. 
 Rather, it is equivalent to to take the infemum over $\nu(X)$, separately for each $y$.
 Symmetrically, we may as well take the infemum over $\lambda(Z)$ separately for each $y$, rather than jointly finding the optimal $\mu(Z|Y)$ all at once.
 Operationallly, this means we can pull the infema inside the expectation over $Y$. And since the first term doesn't depend on $Z$ and the second doesn't depend on $X$, we get:
@@ -5870,21 +5191,21 @@ Operationallly, this means we can pull the infema inside the expectation over $Y
 
 \begin{equation*}
 	\aar{\dg M_4}
-	= \inf_{\mu(Y)}
+	= \inf_{\mu(Y)} 
 		\Ex_{y \sim \mu(Y)} \left[
 			% \beta \log \frac{\mu(Y)\, \mu(X|Y)}{p(X)\,f(Y|X)}
-			\inf_{\nu(X)} \beta  \Ex_{\nu(X)} \Big[
+			\inf_{\nu(X)} \beta  \Ex_{\nu(X)} \Big[ 
 				\log \frac{\mu(y)\, \nu(X)}{p(X)\,f(y\,|X)} \Big]
 			+ \inf_{\lambda(Z)} \zeta  \Ex_{\lambda(Z)} \Big[
 			 	\log \frac{\mu(y)\, \lambda(Z)}{q(Z)\,f(y\,|Z)} \Big]
 		\right]
 \end{equation*}
-Next, we pull the same trick we've used over and over: find constants so that we can regard the dependence as a relative entropy with respect to the quantity being optimized.
+Next, we pull the same trick we've used over and over: find constants so that we can regard the dependence as a relative entropy with respect to the quantity being optimized. 
 %In the present case:
 Grouping the quantities apart from $\nu(X)$ on the left term and normalizing them (and analogously for $\lambda(Z)$ on the right), we find that
 \begin{equation*}
 	\aar{\dg M_4}
-	= \inf_{\mu(Y)}
+	= \inf_{\mu(Y)} 
 		\Ex_{y \sim \mu(Y)} \left[
 		\begin{array}{l}
 			 \beta \inf_{\nu(X)}
@@ -5896,314 +5217,44 @@ Grouping the quantities apart from $\nu(X)$ on the left term and normalizing the
 		\end{array}
 		\right],
 \end{equation*}
-where
+where 
 \[
 	C_1(y) = \sum_x p(x)\frac{f(y|x)}{\mu(y)} = \frac{1}{\mu(y)} \Ex_{p(X)} f(y|X)
 	\qquad\text{and}\qquad
 	C_2(y) = \sum_z q(z)\frac{f(y|z)}{\mu(y)} = \frac{1}{\mu(y)} \Ex_{q(Z)} f(y|Z)
-\]
+\] 
 are the constants required to normalize the distributions. Both relative entropies are minimized when their arguments match, at which point they contribute zero, so we have
 \begin{align*}
-	\aar{\dg M_4}
-	&= \inf_{\mu(Y)}
+	\aar{\dg M_4}  
+	&= \inf_{\mu(Y)} 
 	\Ex_{y \sim \mu(Y)} \left[
 		 % \beta \inf_{\nu(X)}
 			% \kldiv* {\nu(X)}{\frac{1}{C_1(y)} p(X)\frac{f(y|X)}{\mu(y)}}
-			\beta \log \frac1{C_1(y)}
+			\beta \log \frac1{C_1(y)} 
 		% + \zeta \inf_{\lambda(Z)}
 			% \kldiv* {\lambda(Z)}{\frac{1}{C_2(y)} q(Z)\frac{f(y|Z)}{\mu(y)}}
 			+ \zeta \log \frac1{C_2(y)}
 	\right]\\
-	&= \inf_{\mu(Y)}
+	&= \inf_{\mu(Y)} 
 	\Ex_{y \sim \mu(Y)} \left[
-			\beta \log \frac{\mu(y)}{\Ex_{p(X)} f(y|X)}
+			\beta \log \frac{\mu(y)}{\Ex_{p(X)} f(y|X)} 
 			+ \zeta \log \frac{\mu(y)}{\Ex_{q(Z)} f(y|Z)} \right] \\
 	&= \inf_{\mu(Y)} \Ex_{\mu} \Big[ \beta \kldiv{\mu}{f \circ p} + \zeta \kldiv{\mu}{f\circ q}  \Big] \\
 	&= \aar{\dg M_5}.
 \end{align*}
-% At the end, we made use of the fact that that composing cpds
+% At the end, we made use of the fact that that composing cpds 
 \end{enumerate}
 
-\subsubsection{Details for Claims made in \texorpdfstring{\Cref{sec:datsim}}{Section 8} }
-
-First, the fact that
-\[
-% \dg M_1 := ~
-\mathcal L_1 = \lambda_\dsymb\mathcal L_\datsymb + \lambda_\ssymb \mathcal L_\simsymb = \aar**{
-\begin{tikzpicture}[center base]
-	% \node[dpad0] (Z) at (-0.2,0) {$Z$};
-	% \node[tpt={z0|$0$}] at (-0.5,0.1) {};
-	% \node[tpt={z1|$1$},right=0.15 of z0]{};
-	\node[tpt={z0|\simsymb}] at (-0.5,0.1) {};
-	\node[tpt={z1|\datsymb},right=0.35 of z0]{};
-	\node[Dom={$Z$[label distance=-2.5ex, xshift=1.0em] (Z)
-		around {\lab{z0}\lab{z1}}},yshift=0.2em ] {};
-
-	% \node[dpad0,align=center] (XY) at (1.8,0) {$XY$}; %{$X$\\[-0.3ex]$Y$};
-	\node[dpad0] (X) at (2.4, 0.6) {$X$};
-	\node[dpad0] (Y) at (2.4, -0.6) {$Y$};
-	\coordinate (xyz) at (1.9, 0);
-	\draw[arr1, <-] (Z) to
-		% node[above, pos=0.6]{$\hat\lambda$}
-		node[above, pos=0.6]{$\lambda$}
-		% node[above, pos=0.6]{$\frac{1}{\lambda_0+\lambda_1}[\lambda_0, \lambda_1]$}
-		node[below,inner sep=1pt, pos=0.6]{${\color{gray}\scriptstyle( \infty )}$}
-		+(-1.5, 0);
-	% \node at (-1,-0.6) {\small where $\lambda(Z) = \frac{\lambda_Z}{\lambda_0+\lambda_1}$};
-	% \node at (0,-0.6) {\small where $\lambda(Z) \propto \lambda_Z$};
-	\draw[arr1] (X) to node[right,pos=0.4]{$h$} (Y);
-	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
-		% node[fill=white, inner sep=0pt, pos=0.55]
-		% node[inner sep=1pt, pos=0.55]
-		node[above, inner sep=1pt, pos=0.55]
-			% {$Z?d:s$}
-		% {$\begin{bmatrix}d \text{ if } Z\\[-0.3ex] s \text{ else}\end{bmatrix}$}
-		% {$\begin{matrix}d \text{ if } Z\!\!=\!\!1\\[-0.3ex]
-		% 	% s \text{ else}\end{matrix}$}
-		% 	\text{else }s\end{matrix}$}
-		{$\begin{matrix}\datsymb \mapsto d \\[-0.6ex]
-			\simsymb \mapsto s \end{matrix}$}
-		% node[above, inner sep=2pt, pos=0.68]
-		% 	{${\color{gray}\scriptscriptstyle(r)}$}
-		node[below,inner sep=1pt]{${\color{gray}\scriptstyle( \infty )}$}
-		(xyz);
-	\draw[arr2, shorten <=0pt] (xyz) to (X);
-	\draw[arr2, shorten <=0pt] (xyz) to (Y);
-\end{tikzpicture}}
-	% (\lambda_\ssymb+\lambda_\dsymb),
-	,
-\]
-where $\lambda(Z=\simsymb) = \lambda_\ssymb$ and
-$\lambda(Z=\datsymb) = \lambda_\dsymb$
-is immediate.
-The two cpds with infinite confidence ensure that the only joint distribution with a finite score is $\lambda_\ssymb s + \lambda_\dsymb d$, and the inconsistency with $h$ is its surprisal, so the inconsistency of this PDG is
-\begin{align*}
-	\Ex_{\lambda_\ssymb s + \lambda_\dsymb d} \Big[\log \frac{1}{h(Y|X)}\Big]
-	= - \lambda_\ssymb \Ex_{s} [\log {h(Y|X)}] - \lambda_\dsymb  \Ex{d}[\log h(Y|X)]
-	= \lambda_\dsymb\mathcal L_\datsymb + \lambda_\ssymb \mathcal L_\simsymb
-	= \mathcal L_1,
-	\quad\text{as promised.}
-\end{align*}
-
-The second correspondence is the least straightforward. Let  $C = \int sd$ be the normalization constant required to normalize the joint density $sd$. We claim that, for large fixed $\gamma$, we have
-\[
-% \dg M_2 :=
-\mathcal L_2 \approx
-C
-\aar**{
-\begin{tikzpicture}[center base]
-	\node[dpad0] (X) at (0, 0.6) {$X$};
-	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-	\draw[arr1] (X) to node[left, pos=0.4, inner sep=1pt]{$h$}
-			% node[below=0pt,inner sep=1pt,rotate=90]{${\color{gray}\scriptstyle(\!\alpha{:}0\!)}$}
-			%oli: NO NEED!
-			% node[right=0pt,inner sep=1pt]{${\color{gray}\scriptstyle
-			% 	\renewcommand{\arraystretch}{.7}
-			% 	\big(\begin{matrix}
-			% 		\scriptstyle \alpha : 0 \\ \scriptstyle \beta : 1
-			% 	\end{matrix}
-			% 	\big)}$}
-		(Y);
-
-	\coordinate (d0) at (1.8, 0);
-	\coordinate (dmid) at (0.9, 0);
-	\coordinate (s0) at (-1.8, 0);
-	\coordinate (smid) at (-0.9, 0);
-
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (dmid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-			\renewcommand{\arraystretch}{.7}
-			\big(\begin{matrix}
-				\scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta: \gamma
-			\end{matrix} \big)}$}
-		node[above] {$d$}
-		(d0);
-	%
-	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (smid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-			\renewcommand{\arraystretch}{.7}
-			\big( \begin{matrix}
-				\scriptstyle \alpha: 1 \\[-0.2ex] \scriptstyle \beta: \gamma
-			\end{matrix} \big)}$}
-		node[above]{$s$}
-		(s0);
-\end{tikzpicture}}\Bigg._{\!\!\!\gamma}
-% - k \log Z_{sd} + H
-% - k \log C,
- + \mathit{const},
-% \overbrace{ - k \log C, }^{\text{normalization constant for $sd$}}
-\]
-where $\mathit{const}$ does not depend on $h$. To see this, let $\dg M_2$ be the PDG above, and compute
-\begin{align*}
-	% \aar**{\!\!\!
-	% \begin{tikzpicture}[center base]
-	% 	\node[dpad0] (X) at (0, 0.6) {$X$};
-	% 	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-	% 	\draw[arr1] (X) to node[left, pos=0.4, inner sep=1pt]{$h$} (Y);
-	% 	\coordinate (d0) at (1.8, 0);
-	% 	\coordinate (dmid) at (0.9, 0);
-	% 	\coordinate (s0) at (-1.8, 0);
-	% 	\coordinate (smid) at (-0.9, 0);
-	% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-	% 	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-	% 	\draw[arr1,-,shorten <=0pt] (dmid) to
-	% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-	% 			\renewcommand{\arraystretch}{.7}
-	% 			\big(\begin{matrix}
-	% 				\scriptstyle\alpha: 1 \\[-0.2ex] \scriptstyle\beta: \gamma
-	% 			\end{matrix} \big)}$}
-	% 		node[above] {$d$}
-	% 		(d0);
-	% 	%
-	% 	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-	% 	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-	% 	\draw[arr1,-,shorten <=0pt] (smid) to
-	% 		node[below, inner sep=2pt]{${\color{gray}\scriptstyle
-	% 			\renewcommand{\arraystretch}{.7}
-	% 			\big( \begin{matrix}
-	% 				\scriptstyle \alpha: 1 \\[-0.2ex] \scriptstyle \beta: \gamma
-	% 			\end{matrix} \big)}$}
-	% 		node[above]{$s$}
-	% 		(s0);
-	% \end{tikzpicture}\!\!}\Bigg._{\!\!\!\gamma}
-	\aar{\dg M_2}_\gamma
-	&= \inf_{\mu(X,Y)} \Ex_{\mu} \bigg[
-		\overbracket{
-		% \gamma \log \frac{\mu(XY)}{s(XY)}
-		% + \gamma \log \frac{\mu(XY)}{d(XY)}
-		\gamma \log \frac{\mu(XY)}{s(XY)}
-		\frac{\mu(XY)}{d(XY)}
-		+ \log \frac{\mu(Y|X)}{h(Y|X)} }^{\Inc(\mu)}
-		+
-		\overbracket{
-		%   \gamma \log \frac{1}{s(XY)}
-		% + \gamma \log \frac{1}{d(XY)}
-		\gamma \log \frac{1}{s(XY)}
-			\frac{1}{d(XY)}
-		- \gamma \log \frac{1}{\mu(XY)}
-			}^{\IDef{}(\mu)}
-	\bigg] \\
-	&= \inf_{\mu(X,Y)} \Ex_{\mu} \bigg[
-		\gamma \log \frac{\mu(XY)}{s(XY)}
-			\frac{\mu(XY)}{d(XY)}
-			\frac{1}{\mu(XY)}
-			\frac{1}{\mu(XY)}
-			\frac{\mu(XY)}{1}
-		+ \log \frac{\mu(Y|X)}{h(Y|X)}
-	\bigg] \\
-	&= \inf_{\mu(X,Y)} \Ex_{\mu} \bigg[
-		\gamma \log
-			\frac{\mu(XY)}{s(XY)d(XY)}
-		+ \log \frac{\mu(Y|X)}{h(Y|X)}
-	\bigg] \\
-	&= \inf_{\mu(X,Y)} \Ex_{\mu} \bigg[
-		\gamma \log
-			\frac{\mu(XY) C}{s(XY)d(XY)} - \gamma \log C
-		+ \log \frac{\mu(Y|X)}{h(Y|X)}
-	\bigg] \\
-	&= \inf_{\mu(X,Y)}
-		\gamma \kldiv*{\mu}{\frac1C{sd}} +
-	 	\Ex_{\mu} \bigg[ \log \frac{\mu(Y|X)}{h(Y|X)}\bigg]
-	  	- \gamma \log C \\
-\end{align*}
-% If the second term explodes (i.e., there's some $(x,y)$ in ths support of $\frac1Csd$ such that $h(y|x) = 0$), then the inconsisteny we're trying to calculate becomes
-$\thickD$ is $(\gamma m)$-strongly convex in a region around its minimizer for some $m>0$ that depends only on $s$ and $d$.
-Together with our assumption that $h$ is positive, we find that when $\gamma$ becomes large,
- % then if the second term does not explode,
-the first term dominates, and the optimizing $\mu$ quickly approaches the normalized density $\nu := \frac1Csd$.
-Plugging in $\nu$, we find that the value of the infemum approaches
-\begin{align*}
-	\aar{\dg M_2} &\approx \Ex_{\nu} \bigg[ \log \frac1{h(Y|X)} \bigg] - H_{\nu}(Y|X) - \gamma \log C \\
-	&= \int_{XY} \frac1C \log \frac1{h(Y|X)} s(X,Y) d(X,Y) \quad- H_{\nu}(Y|X) - \gamma \log C \\
-	&= \frac{1}{C} \Ex_{s} \bigg[ d(X,Y) \log \frac1{h(Y|X)} \bigg] - H_{\nu}(Y|X) - \gamma \log C  \\
-	&= \frac{1}{C} \mathcal L_2 - H_{\nu}(Y|X) - \gamma \log C,   \\[1ex]
-	% \implies\qquad
-	\text{and therefore}\qquad
-	\mathcal L_2 &= C \aar{\dg M_2} + C \H_\nu(Y|X) - \gamma \, C \log C
-	\\ &= C \aar{\dg M_2} + \mathit{const}.
-\end{align*}
-
-
-Finally, we turn to
-\[
-% \dg M_3 :=
-\mathcal L_3 := \aar**{
-\begin{tikzpicture}[center base]
-	\node[dpad0] (X) at (0, 0.6) {$X$};
-	\node[dpad0] (Y) at (0, -0.6) {$Y$};
-	\draw[arr1] (X) to node[left=0pt,pos=0.4, inner sep=1pt]{$h$} (Y);
-
-	% \coordinate (d0) at (1.3, 0);
-	% \coordinate (s0) at (-1.3, 0);
-	% \node[above left=1pt and 0.5em of d0] {$d$};
-	% \node[below left=0pt and 0.2em of d0]{${\color{gray}\scriptstyle( \lambda_1 )}$};
-	% \node[above right=1pt and 0.5em of s0] {$s$};
-	% \node[below right=0pt and 0.2em of s0]{${\color{gray}\scriptstyle( \lambda_0 )}$};
-
-	\coordinate (d0) at (1.8, 0);
-	\coordinate (dmid) at (0.9, 0);
-	\coordinate (s0) at (-1.8, 0);
-	\coordinate (smid) at (-0.9, 0);
-
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend right=25] (X);
-	\draw[arr,->,shorten <=0pt] (dmid) to[bend left=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (dmid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle(\lambda_{\dsymb})}$}
-		node[above] {$d$}
-		(d0);
-	%
-	\draw[arr,->,shorten <=0pt] (smid) to[bend left=25] (X);
-	\draw[arr,->,shorten <=0pt] (smid) to[bend right=25] (Y);
-	\draw[arr1,-,shorten <=0pt] (smid) to
-		node[below, inner sep=2pt]{${\color{gray}\scriptstyle(\lambda_{\ssymb})}$}
-		node[above]{$s$}
-		(s0);
-	% \unmergearr{s0}XY
-	% \unmergearr{d0}XY
-% 	\draw[arr,-,shorten >=0pt] (Z) to[bend left=0, shorten >=0pt]
-% 		node[fill=white, inner sep=0pt, pos=0.55]
-% 			% {$Z?d:s$}
-% 			{$\begin{bmatrix}d\\[-0.3ex] s\end{bmatrix}$}
-% 		% node[above, inner sep=2pt, pos=0.68]
-% 		% 	{${\color{gray}\scriptscriptstyle(r)}$}
-% 		(xyz);
-% 	\draw[arr2, shorten <=0pt] (xyz) to (X);
-% 	\draw[arr2, shorten <=0pt] (xyz) to (Y);
-% ode[dpad0] (X) {};
-\end{tikzpicture}}.
-\]
-To see the why the optimal distribution $\mu^*(XY)$ is the $\lambda$-weighted geometric mean of $s$ and $d$%
-% ($\propto s(XY)^{\lambda_\ssymb} d(XY)^{\lambda_\dsymb}$)
-, let us first consider the same PDG, except without $h$.
-From \Cref{lemma:pdgdiv}, we have this loss without $h$ in closed form, and from the proof of \Cref{lemma:pdgdiv}, we see that the optimizing distribution in this case is
-the $\lambda$-weighted geometric distribution $\mu^* \propto s(XY)^{\lambda_\ssymb} d(XY)^{\lambda_\dsymb}$.
-Now (\Cref{lemma!}), including $h$ cannot make the PDG any less inconsistent. In particular, by choosing
-\[
-	h^*(Y|X) := \mu^*(Y|X) \propto (Y|X)^{\lambda_\ssymb} d(Y|X)^{\lambda_\dsymb},
-\]
-to be already compatible with this joint distribution, the inconsistency does not change, while choosing a different $h$ would cause the inconsistency to increase. Thus, the optimal classifier $h^*$ by this metric is indeed as we claim.  Finally, it is easy to see that this loss is calibrated: if $s = d$, then the optimal joint distribution is equal to $s$ and to $d$, and the optimal classifier is $h(Y|X) = s(Y|X) = d(Y|X)$. So $\mathcal L_3$ is calibrated.
-
-
-
-
-
-
-%%%%
-
-\subsubsection{Details for Claims made in \texorpdfstring{\Cref{sec:reverse-engineer}}{Section 9} }
+\subsubsection{Details for Claims made in \texorpdfstring{\Cref{sec:reverse-engineer}}{Section 8} }
 % \def\Truth{{\tt T}}
 % \def\trut{{\tt t}}
 % \def\truf{{\tt f}}
 \textbf{Distortion Due to Inconsistency.}
-In the footnote on \Cpageref{fn:logEexp}, we claimed that if the model confidence $\beta_p$ were 1 rather than $\infty$, we would have obtained an incconsistency of
+In the footnote on \Cpageref{fn:logEexp}, we claimed that if the model confidence $\beta_p$ were 1 rather than $\infty$, we would have obtained an incconsistency of 
 %oli3: fixed missing negative signs.
-% $ \log \Ex_{x\sim p} \exp( c(x)) $,
+% $ \log \Ex_{x\sim p} \exp( c(x)) $, 
 $ - \log \Ex_{x\sim p} \exp(- c(x)) $,
-and that the optimal distribution would not have been $p(X)$.
+and that the optimal distribution would not have been $p(X)$. 
 
 \begin{align*}
 	\aar*{\!\begin{tikzpicture}[center base]
@@ -6224,20 +5275,20 @@ and that the optimal distribution would not have been $p(X)$.
 				{\trut}
 			+(0.9,0);
 	\end{tikzpicture}\!}
-	&=  \inf_{\mu(X)} \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}{p(x)}
+	&=  \inf_\mu(X) \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}{p(x)}
 		+ \log \frac{\mu(\trut\,|\,x)}{\hat c(\trut\,|\,x)} \right]\\
-	&=  \inf_{\mu(X)} \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}{p(x)}
+	&=  \inf_\mu(X) \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}{p(x)}
 		+ \log \frac{1}{\hat c(\trut\,|\,x)} \right] \\
-	&=  \inf_{\mu(X)} \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}
+	&=  \inf_\mu(X) \Ex_{x \sim \mu} \left[ \log \frac{\mu(x)}
 		{p(x) \exp(-c(x))}\cdot\frac{Z}{Z} \right] \\
-\intertext{\raggedleft where $Z = \sum_x p(x) \exp(-c(x)) = \Ex_p \exp(-c(X))$ is the constant required to normalize the distribution
+\intertext{\raggedleft where $Z = \sum_x p(x) \exp(-c(x)) = \Ex_p \exp(-c(X))$ is the constant required to normalize the distribution 
 	% $\lambda(X) := \frac{1}{Z}p(X)\exp(-c(X)).
 }
 	&=  \inf_{\mu(X)} \kldiv*{\mu}{\frac{1}{Z}\,p(X)\exp(-c(X))} - \log Z \\
 	&=  - \log Z \\
 	&=  - \log \Ex_{x\sim p} \exp(-c(x))
 \end{align*}
-as promised.
+as promised. 
 Note also that in the proof, we showed that the optimal distribution is proportional to $p(X) \exp(-c(X))$ which means that it equals $p(X)$ if and only if $c(X)$ is constant in $X$.
 
 \medskip
@@ -6289,10 +5340,10 @@ Why is this? For such a setting of $\alpha$, which intuitively articulates a cau
 	 	&= \H_\mu(Y'|X) - \H_\mu(Y' | X, Y)  \\
 		&= \I_\mu(Y;Y'|X).
 \end{align*}
-Both equalities of the derivation above standard information theoretic identities \parencite[See, for instance,][]{mackay2003information}, and the final quantity $\I_{\mu}(Y;Y'|X)$ is the \emph{conditional mutual information} between $Y$ and $Y'$ given $X$, and is a non-negative number that equals zero if and only if $Y$ and $Y'$ are conditionally independent given $X$.
+Both equalities of the derivation above standard information theoretic identities \parencite[See, for instance,][]{mackay2003information}, and the final quantity $\I_{\mu}(Y;Y'|X)$ is the \emph{conditional mutual information} between $Y$ and $Y'$ given $X$, and is a non-negative number that equals zero if and only if $Y$ and $Y'$ are conditionally independent given $X$. 
 
-As a result, as $\gamma\to\infty$ any distribution that for which  $Y'$ and $Y$ are not independent given $X$ will incur infinite cost. Since the confidences in $h$ and $\datadist\xysamp$ are also infinite, so will a violation of either cpd.
-There is only one distribution that has both cpds and also this independence; that distribution is $\mu(X,Y,Y') := \datadist\xysamp(X,Y)h(Y'|X)$.
+As a result, as $\gamma\to\infty$ any distribution that for which  $Y'$ and $Y$ are not independent given $X$ will incur infinite cost. Since the confidences in $h$ and $\datadist\xysamp$ are also infinite, so will a violation of either cpd. 
+There is only one distribution that has both cpds and also this independence; that distribution is $\mu(X,Y,Y') := \datadist\xysamp(X,Y)h(Y'|X)$. 
 Now the argument of \Cref{prop:expected-cost} applies: all other cpds must be matched, and the inconsistency is the expected incompatibility of $\hat l$, which equals
 \[ \quad\;\;\mathop{\scalebox{1.2}{$\Ex$}}\limits_{\substack{%
 	\vphantom{x}\\
@@ -6304,7 +5355,7 @@ Now the argument of \Cref{prop:expected-cost} applies: all other cpds must be ma
  	\vphantom{x}\\
  	\mathllap{(x,y)} \sim \mathrlap{\datadist\xysamp} \\
  	\mathllap{y'} \sim \mathrlap{p(Y'|\,x)}} }
-  \;  \log\frac{1}{\exp(-\ell(y,y'))}
+  \;  \log\frac{1}{\exp(-\ell(y,y'))} 
  =
  \quad\;\;\mathop{\scalebox{1.2}{$\Ex$}}\limits_{\substack{%
  	\vphantom{x}\\
@@ -6317,7 +5368,6 @@ Now the argument of \Cref{prop:expected-cost} applies: all other cpds must be ma
 	 \mathllap{(x,y)} \sim \mathrlap{\datadist\xysamp} \\
 	 \mathllap{y'} \sim \mathrlap{p(Y'|\,x)}} }
   \;\big[\ell(y,y')\big]
-  = \mathcal L
  .
  \]
 
@@ -6325,38 +5375,38 @@ Now the argument of \Cref{prop:expected-cost} applies: all other cpds must be ma
 \subsection{Maximum A Posteriori and Priors}
 
 The usual telling of the correspondence between regularizers and priors is something like the following.
-% You want to optimize your posterior distribution
-Suppose you have a parameterized family of distributions
+% You want to optimize your posterior distribution 
+Suppose you have a parameterized family of distributions 
 % $\{\Pr_\theta(X)\}_{\theta \in \Theta}$
 $\Pr(X|\Theta)$
 and have observed evidence $X$, but do not know the parameter $\Theta$.
 The maximum-likelihood estimate of $\Theta$ is then
-\[
-	\theta^{\mathrm{MLE}}(X) := \arg\max_{\theta\in \Theta}  \Pr(X|\theta)
+\[ 
+	\theta^{\mathrm{MLE}}(X) := \arg\max_{\theta\in \Theta}  \Pr(X|\theta) 
 		= \arg\max_{\theta\in \Theta} \log \Pr(X|\theta).
 \]
 The logarithm is a monotonic transformation, so it does not change the argmax, but it has
 nicer properties, so that function is generally used instead. (Many of the loss functions in main body of the paper are log-likelihoods also.)
 
 In some sense, better than estimating the maximum likelihood, is to perform a Bayesian update with the new information, to get a \emph{distribution} over $\Theta$.
-If that's too expensive, we could simply take the estimate with the highest posterior probability, which is called the Maximum A Posteriori (MAP) estimate.
+If that's too expensive, we could simply take the estimate with the highest posterior probability, which is called the Maximum A Posteriori (MAP) estimate. 
 For any given $\theta$, the Bayesian reading of Bayes rule states that
 \[
 	\text{posterior $\Pr(\Theta | X)$} = \frac
 		{\text{likelihood $\Pr(X|\Theta)$}\cdot\text{prior $\Pr(\Theta)$}}{\text{evidence $\Pr(X) = \sum_{\theta'} \Pr(X|\theta')\Pr(\theta')$}}.
 \]
-So taking a logarithm,
-\[
+So taking a logarithm, 
+\[ 
 	\text{log-posterior $\log \Pr(\Theta | X)$} = \text{log-likelihood $\log \Pr(X|\Theta)$} ~+~ \text{log-prior $\log \Pr(\Theta)$}
 		- \text{log-evidence $\log \Pr(X)$}.
 \]
 The final term does not depend on $\theta$, so it is not relevant for finding the optimal $\theta$ by this metric. Swapping the signs so that we are taking a minimum rather than a maximum, the MAP estimate is then given by
-\[
+\[ 
  	\theta^{\mathrm{MAP}}(X) := \arg\min_{\theta \in \Theta} \left\{ \log \frac{1}{\Pr(X|\theta)} + \log \frac1{\Pr(\theta)} \right\}.
 \]
 Note that if negative log likelihood (or surprisal, $-\log \Pr(X|\theta)$) was our original loss function, we have now added an arbitrary extra term, as a function of $\Theta$, to our loss function. It is in this sense that priors classically correspond to regularizers.
 % Finding  $\theta \in \Theta$.
-% Maximum a posteriori inference selects
+% Maximum a posteriori inference selects 
 
 % \TODO[Regularizing Other Losses]
 
