@@ -2,7 +2,7 @@
 
 \input{pdg-preamble-v1}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=1.2in]{geometry}
 \usepackage{parskip}
 
 
@@ -89,16 +89,6 @@ Some intuitive features we might want to capture:
 \def\X{\mathcal X}
 Let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ is a $\sigma$-algebra over $X$, and let $\Delta \X$ denote the set of probability measures over $\X$.
 
-Suppose further that we have a ``divergence'' function $d : X \times X \to \mathbb R^+$ on $X$, with the property that $d(x,y) = 0$ iff $x = y$.
-For sets $A \subset X$, let $d(x, A) := \inf_{a \in A} d(x,a)$ be the smallest possible divergence between $x$ and any member of $A$; symmetrically, define $d(A, x) := \inf_{a \in A} d(a,x)$.
-
-\begin{defn}
-For $A,B,Z \subset X$,
-we say that $A$ and $B$ are $d$-independent given $Z$ if
-% $d(A, b) = d(a, B)$ for all $a\in A$ and $b \in B$.
-for all $z \in Z$, we have that
-$d(z, A \cap B) = d(z, A) + d(z,B)$.
-\end{defn}
 
 We are interested in updating rules
 \[
@@ -108,10 +98,10 @@ which describe how to update beliefs about $X$, with the new information, at a c
 
 We would like update rules to satisfy the following axioms:
 
-For all $A \in \mathcal A$, and all $\beta,\beta_1, \beta_2 \in \mathbb R$
-\begin{enumerate}[label=UR\arabic{*}.,nosep]
+For all $A \in \mathcal A$, and all $\beta,\beta_1, \beta_2 \in \mathbb R$:
+\begin{enumerate}[label=\textbf{UR\arabic{*}.},leftmargin=2cm]
     % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
-    \item  $F^{0}_A  =  \mathrm{Id}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = (\Pr)$ for all $\Pr \in \Delta\X$.)
+    \item  $F^{0}_A  =  \mathrm{1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
         \hfill \textbf{(zero)}
     \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
         \hfill \textbf{(additivity)}
@@ -119,25 +109,95 @@ For all $A \in \mathcal A$, and all $\beta,\beta_1, \beta_2 \in \mathbb R$
         \hfill \textbf{(absolute certainty)}
 \end{enumerate}
 
-\begin{enumerate}[resume,label=UR\arabic{*}.]
-    \item If $A$ and $B$ are independent, then $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
-        \hfill \textbf{(decomposition)}
-\end{enumerate}
+% \begin{enumerate}[resume,label=\textbf{UR\arabic{*}.},nosep,leftmargin=2cm]
+%     \item If $A$ and $B$ are independent, then $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
+%         \hfill \textbf{(decomposition)}
+% \end{enumerate}
 
 We can also consider the weaker variant
-\begin{enumerate}
+\begin{enumerate}[nosep,leftmargin=2cm]
     % \item[U3$'$.]  \textbf{(effectiveness)~} $\supp F^\infty_A (\Pr) \subset A $
-    \item[U3$'$.]  \textbf{(effectiveness)~} $F^\infty_A (\Pr)(A) = 1$
+    \item[\textbf{UR3$'$.}]  $F^\infty_A (\Pr)(A) = 1$
+        \hfill \textbf{(effectiveness)}
 
 \end{enumerate}
+
+
+\subsection{Compatibility With Further Structure}
+% \textit{DIVERGENCE.~~}
+% \textbf{Divergence.}
+\subsubsection*{Divergences}
+Suppose that, in addition, we have a ``divergence'' function $d : X \times X \to \mathbb R^+$ on $X$, with the property that $d(x,y) = 0$ iff $x = y$.
+For sets $A \subset X$, let $d(x, A) := \inf_{a \in A} d(x,a)$ be the smallest possible divergence between $x$ and any member of $A$; symmetrically, define $d(A, x) := \inf_{a \in A} d(a,x)$.
+
+\begin{defn}[$d$-independence]
+For $A,B,Z \subset X$,
+we say that $A$ and $B$ are $d$-independent given $Z$ iff
+% $d(A, b) = d(a, B)$ for all $a\in A$ and $b \in B$.
+for all $z \in Z$, we have that
+$d(z, A \cap B) = d(z, A) + d(z,B)$.
+\end{defn}
+
+Once we have a notion of independence such as this one (although we will also consider other notions of independence), we can articulate another axiom for update rules:
+
+\begin{enumerate}[resume,label=\textbf{UR\arabic{*}.},nosep,leftmargin=2cm]
+    \item[\textbf{UR4}.] 
+    % \item[\textbf{UR4-d}.] 
+    % If $A$ and $B$ are $d$-independent, then 
+    % $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
+    %     \hfill \textbf{($d$-decomposition)}
+    If $A$ and $B$ are independent given $\supp \Pr$, then \\
+    $F^{\beta}_A \circ F^{\beta}_B (\Pr) = F^{\beta}_{A \cap B}(\Pr)$.
+        \hfill \textbf{(decomposition)}
+\end{enumerate}
+The intuition here is 
+
+\bigskip
+
+
+\subsubsection*{A Cost Function}
+Now for a slightly more general formulation, in terms of cost (or loss) functions.
+Suppose we have a uniform way of getting, for every $A \in \mathcal A$, a cost function whose set of minimizers is $A$. That is, we are given a function
+\[ c : \mathcal A \times X \to \mathbb R_{\ge 0}
+\quad\text{such that}\quad
+\forall A \in \mathcal A.~\arg\min_{x} c(A, x) = A.
+\]
+Note that given a divergence function $d$ as described above, the expression $d(A, x) = \inf_{a \in A} d(a,x)$ satisfies this criterion. The analogous independence property is defined in exactly the same way as before:
+$A, B$ are $c$-independent given $Z$ iff $c(A \cap B, z) = c(A, z) + c(B, z)$ for all $z$.
+% \begin{defn}
+%     For $A,B,Z \subset X$,
+%     we say that $A$ and $B$ are $c$-independent given $Z$ iff
+%     % $d(A, b) = d(a, B)$ for all $a\in A$ and $b \in B$.
+%     for all $z \in Z$, we have that
+%     $c(A \cap B, z) = c(A, z) + c(B, z)$.
+% \end{defn}
+But since this covers a broader set of mathematical objects, let's unpack the intuition here a bit further.
+
+% \begin{enumerate}
+%     \item[\textbf{UR4-c}.] If $A$ and $B$ are $d$-independent, then $F^{\beta}_A \circ F^{\beta}_B = F^{\beta}_{A \cap B}$.
+%         \hfill \textbf{($c$-decomposition)}
+% \end{enumerate}
+\subsubsection*{A Topology}
+\subsubsection*{A Smooth Manifold Structure}
+\subsubsection*{A Matroid}
+\subsubsection*{A Riemannian Metric}
+
 
 
 \subsection{The Cannoncial Update Rules}
-The Canonical Update Rule, for a measurable space $\mathcal X = (X, \mathcal A)$ and divergence measure $d: X \times X \to \mathbb R^+$ is given by
+% To give a non-subjective interpretation of the update rules that follow,
+Imagine that $\X$ is a space of possible phenotypes, and that a probability $\Pr \in \Delta\!\X$ represents a population distribution. 
+
+\subsubsection{Decay}
+The Canonical Update Rule, for a measurable space $\mathcal X = (X, \mathcal A)$ and measurable cost function\\
+$c: \X\times\mathcal A \to \mathbb R^+$ is given by
+% \def\cost#1#2{c(#1,#2)}
+% \def\cost#1#2{d(#1,#2)}
+\def\cost#1#2{c_{#2}(#1)}
 \begin{align*}
-    F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta d(x, A)) \\
-    F^\beta_A(\Pr) &= B \mapsto \frac{1}{\Ex_{\Pr}[\exp(-\beta d(x,A))]}\int
-        1_B(x) \; \exp(-\beta d(x, A)) \,\mathrm d\Pr(x)
+    F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta \cost xA) \\
+    F^\beta_A(\Pr) &= B \mapsto \frac{1}{\Ex_{\Pr}[\exp(-\beta \cost xA )]}
+        \int 1_B(x) \; \exp(-\beta \cost xA ) \,\mathrm d\Pr(x)
     %
 \end{align*}
 \begin{prop}
@@ -145,8 +205,11 @@ The Canonical Update Rule, for a measurable space $\mathcal X = (X, \mathcal A)$
 \end{prop}
 
 
+In our analogy, an update of this kind corresponds to environmental selection. 
 
-\subsection{Flow, instead of Decay}
+
+
+\subsubsection{Flow}
 \def\vgrad{\boldsymbol\nabla}
 % \def\vgrad{\vec\nabla}
 The update rule above only ``moves'' distributions by decay. If we imagine a distribution representing a population of individuals, the distribution has shifted by selection: an application of the update rule $F_A^\beta$ corresponds to culling the population, in proportion to their distance from $A$, over a time period of length $\beta$.
@@ -167,7 +230,22 @@ where $k$ is a diffusion coefficient, and $\beta$
 % To draw a different analogy, we can think of
 
 
+\subsubsection{Drift}
+We have talked about selection, but what about the second major force that drives evolution: random mutations? 
+% The important feature here is that not all information is truly used to find 
+% The result is that the population tends to ``spread out'', all else being equal, 
+% and has the effect of mixing the 
+One effect is that if there's no selection pressure to favor one variant over another, over time both variants will be represented equally.
+Suppose that the elements of $\X$ have a canonical coded representation (such as DNA), such that specifying different phenotypes $x \in X$ requires different code lengths.
+Because there is a tangible cost to carrying a larger genome, this induces a base measure with an inductive bias towards shorter codes.  
+% So the effect of random mutations is to mix 
 
+\subsubsection{Sex}
+Sex is the thing that separates ``genetic algorithms'' from vanilla gradient descent. 
+
+\begin{align*}
+    F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta \cost xA) \\
+\end{align*}
 
 \section{Examples}
 \subsection{Gaussians}
@@ -213,7 +291,7 @@ from a higher order probability $\Pr(\mu(\Omega))$.
 \end{enumerate}
 
 
-\section{PDGs}
+\subsection{PDGs}
 
 Given a PDG $\dg M$, let $\X := \Delta\V(\dg M) = \Delta(\prod_{X\in\N}\V(X))$. For each edge we have
 \[
@@ -236,9 +314,12 @@ Note that
 On the other hand,
 \begin{align*}
     \lim_{k \to 0} F_{\dg M}^k(\Pr)(\mu) &= \Pr \,|\, \Inc(\mu) < \infty \\
-        &= \Pr \,|\, \{\mu : \forall L.~\mu(Y|X) \ll \bp \},
+        &= \Pr \,|\, \{\mu : \forall L.~\mu(Y|X) \ll \bp \}.
+        % \quad\Big(\text{i.e., if $\mu$ is absolutely continuous with respect to $\bp$}
+        % \Big)
 \end{align*}
-while $F_{\dg M}^0(\Pr) = \Pr$. So $F$ can only be continuous at $k=0$ for $\Pr$ if, for all edges $L \in \Ed$, we have that $\Pr(\mu(Y|X) \ll \bp) = 1$---that is, if $\mu$ is absolutely continuous with respect to $\bp$.
+That is to say, in the limit of small $\gamma$, applying the update rule is like 
+On the other hand, $F_{\dg M}^0(\Pr) = \Pr$. So $F$ can only be continuous at $k=0$ for $\Pr$ if, for all edges $L \in \Ed$, we have that $\Pr(\mu(Y|X) \ll \bp) = 1$.
 
 
 
