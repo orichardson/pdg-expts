@@ -1,17 +1,46 @@
 \documentclass{article}
 
-\input{pdg-preamble-v1}
 
 \usepackage[margin=1.2in]{geometry}
 \usepackage{parskip}
 
+\input{pdg-preamble-v1}
+
+
+
+\usepackage{xparse}
+\let\realItem\item % save a copy of the original item
+\makeatletter
+\NewDocumentCommand\myItemboldperiod{ o }{%
+   \IfNoValueTF{#1}%
+      {\realItem}% add an item
+      {\realItem[\textbf{#1.}]\def\@currentlabel{#1}%
+        % \def\cref@currentlabel{#1}
+        }% add an item and update label
+}
+\makeatother
+
+
+% \usepackage{enumitem}
+\newlist{URaxioms}{enumerate}{1}
+\setlist[URaxioms]{
+    resume,%
+    label=\textbf{UR\arabic{*}.},
+    % label=UR\arabic{*},
+    ref={UR\arabic*},
+    leftmargin=2cm,
+    before=\let\item\myItemboldperiod
+    }
+% \crefname{URaxiomsi}{axiom}{axioms}
+\crefname{URaxiomsi}{}{}
+
 
 \DeclareMathOperator{\supp}{\mathrm{Supp}}
 
-\newlist{URaxioms}{enumerate}{1}
-\setlist[URaxioms]{resume,label=\textbf{UR\arabic{*}.},ref={UR\arabic*},leftmargin=2cm}
-% \crefname{URaxiomsi}{axiom}{axioms}
-\crefname{URaxiomsi}{}{}
+% \makeatletter
+% \newcommand{\customlabel}[2]{#2\def\@currentlabel{#2}\label{#1}}
+% \makeatother
+
 
 
 \begin{document}
@@ -135,11 +164,17 @@ For all $A \in \mathcal A$, and all $\beta,\beta_1, \beta_2 \in \mathbb R$:
         \hfill \textbf{(zero)} \label{ax:zero}
     \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
         \hfill \textbf{(additivity)} \label{ax:additivity}
-    \item For all automorphisms $\sigma \in \mathrm{Aut}(X)$, we have \\
-        $F^\beta_A(\sigma_\#(\Pr)) = \sigma_\#(F^\beta_{\sigma(A)}(\Pr))$.
-        \hfill \textbf{(symmetry)} \label{ax:symmetry}
-    \item $F_A(\beta, \Pr)$ is continuous in both arguments.
-        \hfill \textbf{(continuity)} \label{ax:continuity}
+    \item All symmetries of $\X$ are reflected in the update rule. \\
+        Concretely, for all automorphisms $\sigma
+            % : X \to X 
+            \in \mathrm{Aut}(X)$, we have \\
+        \indent\hspace{2em}$F^\beta_A(\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\{\sigma(a) : a \in A \}}(\Pr)\Big)$,
+            \hfill \textbf{(symmetry)} \label{ax:symmetry}
+        \\
+        where $\sigma_\#(\Pr)$ is the pushforward of $\Pr$ under $\sigma$.
+    \item $F_A(\beta, \Pr)$ is a continuous function
+        %(in pairs $(\beta,\Pr)$).
+            \hfill \textbf{(continuity)} \label{ax:continuity}
 \end{URaxioms}
 % \end{enumerate}
 
@@ -165,8 +200,14 @@ Since we have identified the set of possible statements with the $\sigma$-algebr
 We can also consider the weaker variant of \Cref{ax:certainty}:
 \begin{URaxioms}
     % \item[U3$'$.]  \textbf{(effectiveness)~} $\supp F^\infty_A (\Pr) \subset A $
-    \item[\textbf{\Cref*{ax:certainty}$'$.}]  $F^\infty_A (\Pr)(A) = 1$
-        \hfill \textbf{(effectiveness)} \label{ax:effectiveness}
+    % customlabel
+    \item[\Cref*{ax:certainty}$'$]  $F^\infty_A (\Pr)(A) = 1$
+    % \item[\customlabel{ax:effectiveness}{\textbf{\Cref*{ax:certainty}$'$.}}]
+        $F^\infty_A (\Pr)(A) = 1$.
+        % \makeatletter
+        % \@currentlabel
+        % \makeatother
+        \hfill \textbf{(effectiveness)} \label[URaxiomsi]{ax:effectiveness}
 \end{URaxioms}
 
 
@@ -184,9 +225,9 @@ For our purposes, the important feature of $d(A,x)$ is that it is a cost (or los
 \[ 
 % c : \mathcal A \times X \to \mathbb R_{\ge 0}
 % \quad\text{such that}\quad
-% \forall A \in \mathcal A.~\arg\min_{x} c_A(x) = A.
-\forall A \in \mathcal A.\quad c_A(x) = 0 ~\Leftrightarrow~ x \in A.%
-\footnote{Any $c$ with the property that $\arg\min_{x} c_A(x) = A$ for all $A$ only differs from such a $c$ by a constant.}
+\forall A \in \mathcal A.~\arg\min_{x} c_A(x) = A.
+% \forall A \in \mathcal A.\quad c_A(x) = 0 ~\Leftrightarrow~ x \in A.%
+% \footnote{Any $c$ with the property that $\arg\min_{x} c_A(x) = A$ for all $A$ only differs from such a $c$ by a constant.}
 % \qquad \text{and}\qquad
 % \inf_{a \in A} c_A()
 \]
@@ -260,7 +301,6 @@ Once we have a notion of independence such as this one (although we will also co
     % \hfill \textbf{(monotonicity)}
 % \end{enumerate}
 \end{URaxioms}
->>>>>>> 1aa71851ca656db0ef4ad89697ba798ed131d338
 The intuition here is 
 
 \bigskip
@@ -302,19 +342,22 @@ But since this covers a broader set of mathematical objects, let's unpack the in
 Imagine that $\X$ is a space of possible phenotypes, and that a probability $\Pr \in \Delta\!\X$ represents a population distribution. 
 
 \subsubsection{Decay}
-The Canonical Update Rule, for a measurable space $\mathcal X = (X, \mathcal A)$ and measurable cost function\\
-$c: \X\times\mathcal A \to \mathbb R^+$ is given by
+Given a measurable space $\mathcal X = (X, \mathcal A)$ and measurable lost function\\
+$\ell: \X\times\mathcal A \to \mathbb R^+$, the
+canonical decay update rule, or \emph{$\ell$-selector} is given by
 % \def\cost#1#2{c(#1,#2)}
 % \def\cost#1#2{d(#1,#2)}
-\def\cost#1#2{c_{#2}(#1)}
+\def\cost#1#2{\ell_{#2}(#1)}
 \begin{align*}
     F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta \cost xA) \\
-    F^\beta_A(\Pr) &= B \mapsto \frac{1}{\Ex_{\Pr}[\exp(-\beta \cost xA )]}
+    F^\beta_A(\Pr)(B) &:=  \frac{1}{\Ex_{\Pr}[\exp(-\beta \cost xA )]}
         \int 1_B(x) \; \exp(-\beta \cost xA ) \,\mathrm d\Pr(x)
     %
 \end{align*}
 
-In our analogy, an update of this kind corresponds to \emph{selection}.
+The name comes from the fact that, in our analogy to a population, an update of this kind corresponds to \emph{selection}. 
+More concretely, applying $F^\beta_\ell$ to a population distributed according to $P$, is equivalent to
+
 
 \begin{prop}
     The cannonical update rule satisfies UR1-6.
@@ -371,15 +414,18 @@ Sex is the thing that separates ``genetic algorithms'' from vanilla gradient des
 \newpage%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Examples}
 
-\subsection{Simple Discrete Spaces}
+\subsection{The Two-Point Space}
 First, suppose $X = \{0,1\}$ and $\mathcal A = 2^X$.
 
 \begin{claim}
-An update rule satisfying
+The space of update rules satisfying
 % UR1-6
 \cref{ax:zero,ax:additivity,ax:certainty,ax:symmetry,ax:continuity}
-is characterized by a continuous monotone function
-$\gamma : [0,\infty) \to [0,1]$ in the space $\Delta X \cong [0,1]$ of probability distributions over $\{0,1\}$, such that
+% is in bijection with continuous monotone functions
+is in bijection with the space of strictly increasing functions
+$\gamma : [0,\infty) \to [0,1]$ 
+% in the space $\Delta X \cong [0,1]$ of probability distributions over $\{0,1\}$, 
+such that
 % \begin{align*}
 %     \gamma_0(0) &= 1
 %     & 
@@ -393,14 +439,44 @@ $\gamma : [0,\infty) \to [0,1]$ in the space $\Delta X \cong [0,1]$ of probabili
 $\gamma(0) = 0$ and $\lim_{t\to\infty}\gamma(t) = 1$. 
 \end{claim}
 \begin{proof}
-    Let's first investigate the behavior for $A = \{0\}$.
-    Fix some $\epsilon > 0$.
-    By \Cref{ax:zero,ax:additivity}
+    Let's first investigate the behavior of an update rule $F$ on the singleton $A := \{1\}$.
+    % Fix some $\epsilon > 0$.
+    % By \Cref{ax:zero,ax:additivity}    
+    % \ref{ax:effectiveness}
+    % \cref{ax:effectiveness}
+    By \ref{ax:effectiveness} or \cref{ax:certainty} we know that, for any $p \in \Delta\{0,1\}$, and particularly for $p$ equal to the degenerate distribution $\delta_0$ that places all mass on the outcome $X=0$, we have
+    \[ 
+        \lim_{\beta \to \infty} F^\beta_{\{1\}}(\delta_0) = \delta_1.
+    \]
+    By \cref{ax:zero}, we also have $F^0_{\{1\}}(\delta_0) = \delta_1$. Note that $\Delta\{0,1\}$ is isomorphic to $[0,1]$, with $\delta_0$ and $\delta_1$ as the endpoints.  So, from continuity of $F$ in $\beta$ (\cref{ax:continuity}) and the intermediate value theorem, for all distributions $p \in \Delta\{0,1\}$, there is some $\hat\beta_p$ such that $F^{\hat\beta_p}_{\{1\}}(\delta_0) = p$.
+    Furthermore, the resulting probability must be strictly increasing, because if 
+    
+    Thus, the function $\gamma(t) := F^{t}_{\{1\}}(\delta_0)(X=1)$ is a continuous monotone function from $[0,\infty)$ to $[0,1]$ with $\gamma(0) = 0$, 
+    % (as $F^0_{\{1\}}(\delta_0)(X=1) = \delta_0(X=1) = 0$) 
+    and $\lim_{t\to\infty} \gamma(t) = \delta_1$. 
+    
+    
+    Conversely, given such a function, we can define an update rule for the singleton $A = \{1\}$, as
+    \[
+        F^{\beta}_{\{1\}}(p) := 
+        \begin{bmatrix}
+            1 \mapsto& \gamma(\beta - \beta_p) \\
+            0 \mapsto& 1-\gamma(\beta - \beta_p)
+        \end{bmatrix}.
+    \]
+    % \[ 
+    %     F^{\beta}_{\{1\}}    
+    % 
 \end{proof}
 
+The selectors are of the form
 \begin{align*}    
+    F_0^\beta(p) &:= \sigma( \sigma^{-1}(p) - \beta a)
 \end{align*}
-where $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function
+where $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function,
+
+\subsection{Finite Spaces}
+Now, for some $n \in \mathbb N$, suppose $X := [n] = \{1, \ldots, n\}$, and $\mathcal A$ be all subsets of $X$.
 
 \subsection{Gaussians}
 Consider the case where $\X$ is the set of real numbers with the Borell $\sigma$-algebra, and $d(x,y) := (x-y)^2$.
