@@ -172,6 +172,8 @@
 	\newcommand{\tto}{\rightarrow\mathrel{\mspace{-15mu}}\rightarrow}
 
 	\newcommand{\datadist}[1]{\Pr\nolimits_{#1}}
+	
+	\newcommand\poly{\mathsf{Poly}}
 
 	\relax % Short arrows.
 		\newcommand{\veryshortarrow}[1][3pt]{\mathrel{%
@@ -201,9 +203,9 @@
 
 	\newcommand\smid{\!\mid\!}
 	\newcommand\MAP{\mathrm{MAP}}
-	\newcommand{\bundle}{\mathbin{\sqcup}}
+	% \newcommand{\bundle}{\mathbin{\sqcup}}
 	% \newcommand{\bundle}{\mathbin{\oplus}}
-	% \newcommand{\bundle}{\mathbin{+}}
+	\newcommand{\bundle}{\mathbin{+}}
 	\newcommand\ado{\mathrm{do}}
 
 
@@ -309,6 +311,17 @@
 		   skipabove=\medskipamount,
 		   skipbelow=\medskipamount
 		]{lproof}
+	\surroundwithmdframed[ % example
+		   topline=false,
+		   linewidth=2pt,
+		   linecolor=gray!20!white,
+		   rightline=false,
+		   bottomline=false,
+		   leftmargin=0pt,
+		   % innerleftmargin=5pt,
+		   skipabove=\medskipamount,
+		   skipbelow=\medskipamount
+		]{example}
 	\newmdenv[ % wip
 			roundcorner=5pt, backgroundcolor=gray!20!white,
 			frametitle={$\langle$under construction $\rangle$},
@@ -345,6 +358,7 @@
 
 \begin{document}
 \begin{center}
+	% {\bfseries\Large Inference, Dynamics, and Inconsistency in PDGs}
 	{\bfseries\Large Inference, Dynamics, and Inconsistency in PDGs}
 \end{center}
 
@@ -404,15 +418,15 @@ a value of $\beta_p$ equal to $\beta_0$, we might write
 $ p^{(\alpha:\alpha_0;\beta : \beta_0)} $, or in abbrevaited form as $p^{(\alpha_0;\beta_0)}$.
 % If only one parameter is given, it is \beta.
 Often we will want to describe limiting PDGs with infinite quantitative confidence $\beta$; we will use an explanation point to convey this briefly, so that $p!$ is shorthand for
-$\lim_{t \to \infty} p^{(\beta:t)}$.
+$\displaystyle\lim_{t \to \infty} p^{(\beta:t)}$.
 %
 
-We call two PDGs $\dg A$ and $\dg B$ \emph{compatible} if they agree
-on the values of any variables they have in common --- that is, if
+We call two PDGs $\dg A$ and $\dg B$ \emph{value-compatable} if they agree
+on the values of any variables they have in common---that is, if
 $\V^{\dg A}(X) = \V^{\dg B}(X)$ for all $X \in \N^{\dg A} \cap \N^{\dg B}$.
 %
-If $\dg A$ and $\dg B$ are compatible PDGs, we write $\dg A \bundle \dg B$ to indicate the PDG with the union of the variables and the \emph{disjoint} union of all edges, where each edge $L$ retains its associated parameters $\bp$, $\alpha_L$, and $\beta_L$.
-Similarly, we write $\dg A \cap \dg B$ for the PDG with the intersection of the variables
+If $\dg A$ and $\dg B$ are value-compatible PDGs, we write $\dg A \bundle \dg B$ to indicate the PDG with the union of the variables and the \emph{disjoint} union of all edges, where each edge $L$ retains its associated parameters $\bp$, $\alpha_L$, and $\beta_L$.
+% Similarly, we write $\dg A \cap \dg B$ for the PDG with the intersection of the variables
 
 \section{Inference and Dynamics via Inconsistency}
 % \subsection*{Inconsistency}
@@ -610,6 +624,73 @@ in which $\gamma$ decays to zero during the optimization process,
 	(possibly inconsistent) PDG $\dg M'$. The distribution $\bbr{M'}^*$ turns out
 	to be the result of conditioning $\bbr{\dg M}^*$ on $Y\!=\!y$.
 }
+If, rather than fixing $\dg M$ and optimizing $p$, we fix $p$ and optimize $\dg M$,
+this same proces corresponds to updating rather than inference. For instance, in
+the case where $X = \pdgunit$, an observation $Y\!=\!y$  can be added to
+$\dg M$ in the form of an edge $\ed{\delta_y}{\pdgunit}Y$, getting the
+(possibly inconsistent) PDG $\dg M'$. One might hope that the distribution
+$\bbr{\dg M'}^*$ is the result of conditioning the best distribution $\bbr{\dg M}^*$ on $Y\!=\!y$, as is true for factor graphs, but this is always the case.
+
+\begin{example}
+	Consider a PDG $\dg M$ containing $p(X)$ with confidence $r$, and $q(Y|X)$ with confidence $s$. 
+	Now condition on $Y=y$ by adding that event to the PDG, to get 
+	\[
+		\dg M := 
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (X) at (0,0) {$X$};
+			\node[dpad0] (Y) at (1.5,0) {$Y$};
+			%
+			\draw[arr2,->] (X) to
+				node[above, pos=0.4,inner sep=2pt]{$q$}
+				node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(s)}$}
+				(Y);
+			\draw[arr2, <-] (X) to
+				node[above, pos=0.6,inner sep=2pt]{$p$}
+				node[below, pos=0.6, inner sep=2pt]
+					{${\color{gray}\scriptstyle(r)}$}
+				+(-1.1, 0);
+			% \draw[arr2, <<-] (Y) to
+			% 	node[above, inner sep=2pt, pos=0.7]
+			% 		{$y$}
+			% 	+(0.9,0);
+		\end{tikzpicture}
+	\qquad\text{and}\qquad
+		\dg M' := 
+		\begin{tikzpicture}[center base]
+			\node[dpad0] (X) at (0,0) {$X$};
+			\node[dpad0] (Y) at (1.5,0) {$Y$};
+            %
+			\draw[arr2,->] (X) to
+				node[above, pos=0.4,inner sep=2pt]{$q$}
+				node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(s)}$}
+				(Y);
+			\draw[arr2, <-] (X) to
+				node[above, pos=0.6,inner sep=2pt]{$p$}
+				node[below, pos=0.6, inner sep=2pt]
+					{${\color{gray}\scriptstyle(r)}$}
+				+(-1.1, 0);
+			\draw[arr2, <<-] (Y) to
+				node[above, inner sep=2pt, pos=0.7]
+					{$y$}
+				+(0.9,0);
+		\end{tikzpicture}.
+	\]
+	We can easily see that $\bbr{\dg M}^* = p(X)q(Y|X)$ doesn't depend on the confidences, since we can simultaneously satisfy $p$ and $q$. 
+	After conditioning on $Y=y$, we get a distribution $\bbr{\dg M}^* | Y\!\!=\!y$ proportional to $p(X) q(y|X)$. 
+	But some quick calculation reveals that $\bbr{\dg M'}^*$ is proportional to
+	$p(X) q(y|X)^{r/s}$, with an additional exponent $r/s$ that was not present before.  
+	
+	So, if $r = s$, so that the data of $\dg M$ effectively picks out a probability distribution with uniform confidence, we get probabilistic conditioning, and otherwise there is distortion, as the lower-confidence is bent further, absorbing more of the inconsistency. 
+\end{example}
+
+So, even though adding the event $Y \!\!=\!y$ to the PDG is much like probabilistic conditioning, in that afterwards we only consider distributions $\mu$ for which $\mu(Y\!\!=\!y) = 1$, it is not always equivalent to probabilistic conditioning.
+%
+ % set of finite-scoring distributions $\{ \mu : \bbr{\dg M^{+y}}(\mu) < \infty \}$ such that  
+%
+We now argue that the answer given by the PDG, which is lost when one throws away the data of the PDG and works with probability distributions directly, is more reasonable.
+Suppose we have a good reasonto trust $q(Y|X)$ much more than $p(X)$. Perhaps $q(Y|X)$ describes a probabilistic program that we wrote ourselves and simply adds a small amount of noise, while $p(X)$ describes the distribution described by a low-quality simulation. Then when we observe $Y\!\!=\!y$, we should not 
+
+
 
 What if we only wanted to know $\Pr(Y \smid X=x)$, for a specific value of $X$, rather than the full cpd $\Pr(Y\smid X)$?
 % (including the data for every $X$), in the context of a PDG $\dg M$
@@ -633,7 +714,7 @@ To answer this question, recall that we have identified the event $X=x$ with the
 If $\dg M$ is the data of a joint distribution, then this is simply
 
 
-\subsection{Complexity of Inconsistency}
+\subsection{Complexity of Computing Inconsistency}
 	\label{sec:complexity}
 
 Taken together, the results in \Cref{sec:inference-by-gd} show that an oracle for the degree of inconsistency is sufficient to efficiently do learn and draw inferences.
@@ -654,9 +735,36 @@ This is just a lower bound on the complexity of estimating $\aar{\dg M}$.
 What shall we make of these results? First, the asymptotic compelxity of exact inference
 is not great, but no worse than for Bayesian Networks or factor graphs.
 
-There is still hope for approximating it, given that it has such nice properties --- is convex (albeit in an exponentially large space), monotonic ( that additional edges only increase $\aar{\dg M}$).
+
+There is still hope for approximating it, given that it has such nice properties --- is convex (albeit in an exponentially large space), smooth, and monotonic (additional edges only increase $\aar{\dg M}$).
 
 \TODO
+
+
+\section{Bounded Tree-Width}
+
+% \begin{theorem}
+\begin{conj}
+	% The class of PDGs 
+	There is an algorithm for inference on PDGs that runs in polynomial time, for the class of PDGs with bounded tree-width. 
+\end{conj}
+% \end{theorem}
+
+Our approach relies on the following key fact. 
+
+\begin{prop}
+	For any PDG $\dg M$, 
+	the highest-compatibility distributions (the minimizers $\bbr{\dg M}_0^*$ of $\Inc_{\dg M}$) all have the same conditional probabilities along the edges of $\dg M$.   
+	That is to say, if there is an edge $\ed LXY \in \Ed^{\dg M}$, and $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$ are quantitatively optimal distributions, then $\mu_1(Y|X) = \mu_2(Y|X)$.  
+\end{prop}
+
+
+Of course, the converse is true as well---$\Inc_{\dg M}(\mu)$ depends only on the conditional marginals $p(Y|X)$ along edges $\ed LXY \in \Ed^{\dg M}$. 
+As a result, the set of distributions $\bbr{\dg M}_0^*$ is characterized precisely by the set of linear constraints enforcing that the conditional marginals are the appropriate optimal cpds.
+And to find these optimal cpds, it suffices to find any optimal distribution.
+
+
+In the bounded tree-width setting, we can simply write all of the constraints together
 
 
 
@@ -697,21 +805,54 @@ Thus, this approach to inference may be summarized as follows.
 
 \subsection{A Nice Class of Distributions}
 
-The Markov Property
 
 \begin{linked}[Marov Property for PDGs]{prop}{markov-property}
-	Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
+	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
+	% Then for all $\gamma > 0$, we have that
+	% \[
+	%  	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+	% 		% \subset
+	% 		~\models~
+	% 	% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+	% 	\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+	% \]
+	% That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
+	Suppose $\dg M_1$ and $\dg M_2$ are value-compatible PDGs,
+	with respective sets of nodes $\mat X_1 := \N^{\dg M_1}$ and
+	$\mat X_2 := \N^{\dg M_2}$.
+	 % and let $\mathbf X$ denote the variables they have in common.
 	Then for all $\gamma > 0$, we have that
 	\[
 	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
 			% \subset
 			~\models~
 		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
-		\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+		% \N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
+		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2
 	\]
-	That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
-
+	That is, in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$ for some $\gamma>0$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given the variables they have in common.
 \end{linked}
+
+Moreover, we have a stronger result:
+
+\begin{prop}
+	Given a PDG structure $\dg Q = (\N, \Ed, \V)$, let $\mathcal P_{\dg Q}$ denote the set of distributions that are obtainable as optimal distributions by extending $\dg Q$ with cpds $\mat p$, weights $\boldsymbol\alpha$ and $\boldsymbol\beta$, and some $\gamma > 0$. 
+	Let $\mathcal P_{\Phi(\dg Q)}$ be the set of distributions represented by some factor graph with the same structure as $\dg Q$. 
+	Then $\mathcal P_{\dg Q} \subseteq \mathcal P_{\Phi(\dg Q)}$. 
+	% let $\Delta^*{\dg Q} := \cup_{\gamma > 0, \V, \bp[]}$
+	% \[
+	% 	\Delta^*{\dg Q} = \mathcal P_{\Phi}
+	% \]
+\end{prop}
+\begin{proof}
+	% \TODO[fill in from email]
+\end{proof}
+
+Thus, to find for optimal distributions, it suffices to search over the space of factor graphs. 
+
+
+
 
 
 
