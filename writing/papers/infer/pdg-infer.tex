@@ -1,4 +1,8 @@
 \documentclass{article}
+\newif\ifmarginprooflinks
+	\marginprooflinkstrue
+	% \marginprooflinksfalse
+
 
 % \input{../model-commands}
 \usepackage[margin=1in, inner margin=0.7in, outer margin=1.3in]{geometry}
@@ -90,9 +94,11 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 \usepackage{mathtools}		%also loads amsmath
+\usepackage{scalerel}
 \usepackage{amssymb, bbm}
 \usepackage{relsize}
 \usepackage{color}
+\usepackage{faktor}
 %\usepackage{stmaryrd}
 \usepackage{hyperref} % Load before theorems...
 \hypersetup{colorlinks=true, linkcolor=blue!75!black, urlcolor=magenta, citecolor=deepgreen}
@@ -151,7 +157,7 @@
 \relax %%%%%%%%%    WRITING TOOLS  %%%%%%%%
 	% see also: wip and storytellingnote environments defined with mdframed.
 	\newcommand\commentout[1]{}
-	\newcommand{\TODO}[1][INCOMPLETE]{{\centering\Large\color{red}$\langle$~\texttt{#1}~$\rangle$\par}}
+	\newcommand{\TODO}[1][INCOMPLETE]{{\color{red}\hangindent=0.7cm\rightskip=1.5cm$\smash{\Big\langle}$~\texttt{#1}~\raisebox{-0.3ex}{${\Big\rangle}$}\hspace{-1.5cm}\par}}
 
 \relax %%%%%%%%% GENERAL MACROS  %%%%%%%%
 	\let\Horig\H
@@ -279,20 +285,66 @@
 	% \def\onlyaftercolon#1:#2{#2}
 	\newcommand{\recall}[1]{\medskip\par\noindent{\bf \expandarg\Cref{thmt@@#1}.} \begingroup\em \noindent
 	   \expandafter\csname#1\endcsname* \endgroup\par\smallskip}
+	% \newenvironment{linked}[3][]{%
+	% 	\def\linkedproof{#3}%
+	% 	\def\linkedtype{#2}%
+	% 	\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
+	% 	{\endrestatable%
+	% 	\marginpar{%
+	% 	% \vspace{-0.5em}
+	% 	% \hspace{2em}
+	% 		\raggedright
+	% 		\hyperref[proof:\linkedproof]{%
+	% 		\color{blue!50!white}
+	% 		$\Big[$\,{\small\tt\begin{tabular}{@{}l@{}} proof of \\~\cref*{\linkedtype:\linkedproof}\end{tabular}}\,$\Big]$}
+	% 		}%
+	% 	}
+	%%
+   	\setlength\marginparwidth{1.55cm}
+	\setlength\marginparpush{2ex}
+	\let\oldmarginpar\marginpar
+	\renewcommand{\marginpar}[1]{%
+		\leavevmode%
+		\oldmarginpar{#1}%
+		\ignorespacesafterend\ignorespaces}
+	\newsavebox\marginprooflinkbox
 	\newenvironment{linked}[3][]{%
-		\def\linkedproof{#3}%
-		\def\linkedtype{#2}%
-		\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
-		{\endrestatable%
-		\marginpar{%
-		% \vspace{-0.5em}
-		% \hspace{2em}
-			\raggedright
-			\hyperref[proof:\linkedproof]{%
-			\color{blue!50!white}
-			$\Big[$\,{\small\tt\begin{tabular}{@{}l@{}} proof of \\~\cref*{\linkedtype:\linkedproof}\end{tabular}}\,$\Big]$}
-			}%
-		}
+			\def\linkedproof{#3}%
+			\def\linkedtype{#2}%
+			\ifmarginprooflinks%
+			\sbox\marginprooflinkbox{%
+				\centering%
+				\hyperref[proof:\linkedproof]{%
+				\color{blue!30!white}%
+				\scaleleftright{$\Big[$}{\,\mbox{\footnotesize\centering\tt\begin{tabular}{@{}c@{}}
+					link to\\[-0.15em]
+					proof
+				\end{tabular}}\,}{$\Big]$}}%
+				}
+			\fi
+			\restatable[#1]{#2}{#2:#3}\label{#2:#3}%
+			\ifmarginprooflinks\marginpar{\vspace{-1ex}\usebox\marginprooflinkbox}\fi%
+		}%
+		{\sbox\marginprooflinkbox{}\endrestatable}
+	%
+	% \newenvironment{linked}[3][]{%
+	% 	\def\linkedproof{#3}%
+	% 	\def\linkedtype{#2}%
+	% 	\sbox\marginprooflinkbox{%
+	% 				\centering%
+	% 				\hyperref[proof:\linkedproof]{%
+	% 				\color{blue!30!white}%
+	% 	\restatable[#1]{#2}{#2:#3}\label{#2:#3}}
+	% 	{\endrestatable%
+	% 	\marginpar{%
+	% 	% \vspace{-0.5em}
+	% 	% \hspace{2em}
+	% 		\raggedright
+	% 		\hyperref[proof:\linkedproof]{%
+	% 		\color{blue!50!white}
+	% 		$\Big[$\,{\small\tt\begin{tabular}{@{}l@{}} proof of \\~\cref*{\linkedtype:\linkedproof}\end{tabular}}\,$\Big]$}
+	% 		}%
+	% 	}
 	\makeatother
 
 	\newcommand{\begthm}[3][]{\begin{#2}[{name=#1},restate=#3,label=#3]}
@@ -405,6 +457,13 @@ In the remainder of the paper, we lay the foundations for tractable approximatio
 
 % \section{Preliminaries}
 \subsection*{Notation and PDGs}
+
+
+\begin{defn}
+	
+\end{defn}
+
+
 Before we get to the central material, we first inroduce some new notation and conventions. We now write $\SD{\dg M}$ to denote
 the set of distributions consistent with a PDG $\dg M$.%
 	\footnote{In \cite{richardson2020probabilistic}, this set of consistent distributions was denoted $\bbr{\dg M}_{\textrm{sd}}$.}
@@ -687,7 +746,8 @@ So, even though adding the event $Y \!\!=\!y$ to the PDG is much like probabilis
 %
  % set of finite-scoring distributions $\{ \mu : \bbr{\dg M^{+y}}(\mu) < \infty \}$ such that  
 %
-We now argue that the answer given by the PDG, which is lost when one throws away the data of the PDG and works with probability distributions directly, is more reasonable.
+We now argue that the answer given by the PD is more reasonable.
+ which is lost when one throws away the data of the PDG and works with probability distributions directly, 
 Suppose we have a good reasonto trust $q(Y|X)$ much more than $p(X)$. Perhaps $q(Y|X)$ describes a probabilistic program that we wrote ourselves and simply adds a small amount of noise, while $p(X)$ describes the distribution described by a low-quality simulation. Then when we observe $Y\!\!=\!y$, we should not 
 
 
@@ -750,34 +810,162 @@ There is still hope for approximating it, given that it has such nice properties
 \end{conj}
 % \end{theorem}
 
+\begin{linked}[Marov Property for PDGs]{prop}{markov-property}
+	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
+	% Then for all $\gamma > 0$, we have that
+	% \[
+	%  	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+	% 		% \subset
+	% 		~\models~
+	% 	% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+	% 	\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+	% \]
+	% That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
+	Suppose $\dg M_1$ and $\dg M_2$ are value-compatible PDGs,
+	with respective sets of nodes $\mat X_1 := \N^{\dg M_1}$ and
+	$\mat X_2 := \N^{\dg M_2}$.
+	 % and let $\mathbf X$ denote the variables they have in common.
+	Then for all $\gamma > 0$, we have that
+	\[
+	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+			% \subset
+			~\models~
+		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+		% \N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
+		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2
+	\]
+	That is, in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$ for some $\gamma>0$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given the variables they have in common.
+\end{linked}
+
+
+In the bounded tree-width setting, to specify a distribution with the Markov Property over the tree-decomposition, it suffices to specify a distribution over each component, subject to the constraint that the distributions have the same marginals. 
+%
+Concretely, a tree decomposition of a PDG $\dg M$ is a set of subsets of variables $\mathcal C \in 2^{2^{\N}}$ called components, such that:
+
+\begin{enumerate}[nosep]
+\item Every variable is a member of at least one component.
+\item Each edge lies entirely within some component. So for every $\ed LXY \in \Ed^{\dg M}$, there is some $C_L \in \mathcal C$ such that $X,Y \in C$.
+\item The (undirected) graph $\Gr(\mathcal C) = (\mathcal C, \Ed(\mathcal C))$, whose nodes are the components $\mathcal C$, and which has an edge between $C_1$ and $C_2$ (i.e., $\{C_1, C_2\} \in \Ed$) iff $C_1 \cap C_2 \ne \emptyset$, is a tree.
+\end{enumerate}
+Now, because of the Markov property (\Cref{prop:markov-property}), any optimal distribution $\mu^* \in \bigcup_{\gamma>0}\bbr{\dg M}^*_\gamma$ for $\dg M$, must factor over the tree structure, meaning that
+ % it can be written in `junction tree form'.
+it can be specified by a collection of marginal probability distributions $\boldsymbol\nu = \{\nu_{C}(C) : C \in \mathcal C\}$ that is locally consistent (i.e., overlapping components agree on their shared variables: $C_1 \cap C_2 \ne \emptyset \implies \nu_{C_1}(C_1\cap C_2) = \nu_{C_2}(C_1 \cap C_2)$). 
+Given such a set of marginals $\boldsymbol\nu$, there is precisely one joint distribution that both matches those marginals and also has the independencies required by the Markov property; that distribution is given by 
+\[
+ 	\Pr_{\boldsymbol\nu}(\cup\, \mathcal C) =
+	 	\dfrac{\displaystyle
+			% \prod_{C \in \mathcal C} \mu_C(\mathbf X_C)
+			\prod_{C \in \mathcal C} \nu_C(C)
+		}{\displaystyle
+			% \prod_{\{C_1, C_2\} \in \Ed(\mathcal C)} \mu_C(\mathbf X_{C_1} \cap \mathbf X_{C_2})
+			\prod_{\mathclap{\{C_1, C_2\} \in \Ed(\mathcal C)}}
+			 	\nu_{C_1}(C_1 \cap C_2)
+		}.
+\]
+
+Furtheremore, the entropy $\H(\Pr_{\boldsymbol\nu})$ of such distributions (which include $\mu^*$), can be analogously computed in terms of the marginals $\boldsymbol\nu$, via the Bethe entropy
+\[
+	\H(\Pr_{\boldsymbol \nu}) = \sum_{C \in \mathcal C} \H(\nu_C) 
+		- \sum_{\mathclap{\{C_1, C_2\} \in \Ed(\mathcal C)}} \H(\nu_{C_1}(C_1 \cap C_2)).
+\]
+
+For a fixed tree decomposition $\cal C$, note that searching over distributions $\boldsymbol \nu$ is a constrained optimization problem, over a strictly (and $\gamma$-strongly) convex function, for small enough $\gamma$. 
+
+
+\TODO[WORRY: smooth, compact, and $\gamma$-strongly convex might not be enough: How can we get complexity bounds for this minimization? All bounds I see require Lipshitz assumptions, which don't hold for relative entropy.]
+
+\subsection{Self Concordance.}
+\begin{defn}
+	A function $f : K \subset \mathbb R^n \to \mathbb R$ is $\kappa$-\emph{self-concordant} if 
+	\[
+		\nabla^3 f(x) [h,h,h] \le \kappa (\nabla^2 f(x) [h,h])^{ 3/2}
+	\]
+\end{defn}
+
+\begin{algorithm}
+	\begin{algorithmic}
+		\Require An initial distribution $\mu_0$ an
+		\Statex
+
+		% \Procedure{Newton}{$f, \mu_0, \epsilon$}
+		\Repeat
+			\State Let $\delta x := - (\nabla^2 f(x))^{-1} \nabla f(x)$
+		\Until{ $\nabla f(x) \cdot \delta x \le 2 \epsilon$}
+		\State
+		\textbf{return} $\dg B$.
+		% \EndProcedure
+		% \While{not converged}
+		% 	\State Choose a sub-PDG $\dg L \subset \dg M \bundle \dg B$
+		% 	\For{$\in \dg L$}
+		% 		\State Update $\dg L \cap \dg B \gets \dg L \cap \dg B - \grad_{\dg L \cap \dg B} \aar*{\dg L}_\gamma$
+		% 	\EndFor
+		% \EndWhile
+	\end{algorithmic}
+	\caption{Newton's Algorithm}
+	\label{algo:newton}
+\end{algorithm}
+\begin{theorem}[Nesterov and Nemirovski]
+	%https://class.ece.uw.edu/546/2014spr/lectures/unconstrained.pdf
+	%https://web.stanford.edu/class/ee364b/lectures/newton_self-concordance.pdf
+	% slide 23/25.
+	Newton's method, when started at a point $\mu_0$, converges to an $\epsilon$-approximate point in 
+	$O\Big( (\Inc_{\dg M}(\mu_0) - \aar{\dg M}) + \log \log \frac1\epsilon\Big)$
+	steps.
+\end{theorem}
+
+
+\TODO[\normalsize QUESTION: What about when $\gamma$ is not small? Now the problem could be non-convex. Can we still say anything about it then?]
+
+\TODO[This doesn't seem "fixed-parameter tractable", given that the number of parameters grows with the side of the tree\ldots ]
 
 
 \subsection{The Quantitative Limit (small \texorpdfstring{$\gamma$}{\textbackslash gamma})}
 
 Our approach relies on the following key fact. 
 
-\begin{prop}
+\begin{prop}\label{prop:marginonly}
 	For any PDG $\dg M$, 
 	the highest-compatibility distributions (the minimizers $\bbr{\dg M}_0^*$ of $\Inc_{\dg M}$) all have the same conditional probabilities along the edges of $\dg M$.   
 	That is to say, if there is an edge $\ed LXY \in \Ed^{\dg M}$, and $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$ are quantitatively optimal distributions, then $\mu_1(Y|X) = \mu_2(Y|X)$.  
 \end{prop}
+\begin{proof}
+	\TODO[TODO: add proof via zeros of the Hessian]
+\end{proof}
 
 
 Of course, the converse is true as well---$\Inc_{\dg M}(\mu)$ depends only on the conditional marginals $p(Y|X)$ along edges $\ed LXY \in \Ed^{\dg M}$. 
 As a result, the set of distributions $\bbr{\dg M}_0^*$ is characterized precisely by the set of linear constraints enforcing that the conditional marginals are the appropriate optimal cpds.
-And to find these optimal cpds, it suffices to find any optimal distribution.
+And to find these optimal cpds, it suffices to find any qualitatively optimal distribution $\mu_0 \in \bbr{\dg M}_0^*$, say by gradient descent as above.
 
+Once we have a solution $\hat{\boldsymbol\nu}$ whose corresponding distribution $\Pr_{\hat{\boldsymbol\nu}}$ minimizes $\Inc_{\dg M}$, we can perform a second, different minimization with further linear constraints: for each edge $\ed LXY \in \Ed^{\dg M}$, we add $|\V(XY)|$ constraints ensuring that
+\[
+	\nu_{C_L}(Y|X) = \nu^0_{C_L}(Y|X) 
+\qquad\iff\qquad
+	\sum_{\mathclap{z \in \V(C_L\setminus\{X,Y\})}} \nu_{C_L}(X,Y,z) = \hat \nu_{C_L}(Y|X) \bigg(\sum_{\substack{~\\\mathrlap{z,y \in \V(C_L\setminus\{X\})}}} \nu_{C_L}(X,y,z) \bigg),
+\]
+for all possible values of $X$ and $Y$. By \cref{prop:marginonly}, the distributions that correspond to feasible points are precisely the minimizers of $\Inc_{\dg M}$. We now perform a secondary optimization problem, with these additional constraints, to minimize $\IDef{\dg M}$, which can also be computed precisely in terms of the marginals $\boldsymbol\mu$.
 
-In the bounded tree-width setting, to specify a distribution with the Markov Property over the tree-decomposition, it suffices to specify a distribution over each component, subject to the constraint that the distributions have the same marginals. 
-
-So, since 
+\textbf{Quick account of complexity}.
+If every variable can take at most $V$ different values, there are at most $E$ edges,  the maximum number of variables in any component is $K$ (i.e, the bound on the tree width), and the number of components is $M$, then we now have a constrained optimization problem with
+\begin{itemize}[nosep]
+	\item at most $M V^{2K}$ paramters, and
+	\item at most $(M-1) V^{2K} + E V^2$ constraints:
+	\begin{itemize}[nosep, label=\textbullet]
+		\item at most $(M-1) V^{2 K}$ marginal constraints to enforce the local polytope\\
+		 	(one for each of the $M-1$ junctions),
+		\item and precisely $E V^2$ additional constraints in the second stage to ensure an optimizer of $\Inc_{\dg M}$ when searching over $\IDef{\dg M}$.
+	\end{itemize}
+\end{itemize}
+% \TODO[Still don't know how to get a bound for complexity of minimization]
+\TODO[Unlike $\Inc_{\dg M}$, we should be able to get a Lipshitz constant for $\IDef{\dg M}$, to get a bound on complexity of minimization, but this would require more work.]
 
 
 \section{Variational Inference for PDGs}
 	\label{sec:inference-from-variation}
 
 Variational inference is a standard approximate inference technique for probabilistic models $p$, in which we use an (arbitrary) auxilary distribution $q$ to directly estimate a feature of $p$ which might be quite difficult to optimize directly, and in the process construct a worst-case bound on the quality of $p$.
-Inference can then by performed simultaneously optimizing $p$ to do better with respect  to this worst-case bound generated by $q$, and also optimizing $q$ so that it more closely matches $p$.
+Inference can then by performed simultaneously optimizing $p$ to do better with respect  to this worst-case bound generated by $q$, and also optimizing e$q$ so that it more closely matches $p$.
 This approach has historically been very fruitful, enabling axpproximations useful approximatate models of physical systems \cite{}, and approximate inference in latent variable models \cite{weight_uncertainty_nns}, such as variational autoencoders \cite{}.
 % Mean-field theory and the EM algorithm are two particularly well-known instances that enjoy broad adoption outside of deep learning.
 
@@ -810,41 +998,14 @@ Thus, this approach to inference may be summarized as follows.
 
 \subsection{A Nice Class of Distributions}
 
+Recall the Markov Property:
+\recall{prop:markov-property}
 
-\begin{linked}[Marov Property for PDGs]{prop}{markov-property}
-	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
-	% Then for all $\gamma > 0$, we have that
-	% \[
-	%  	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
-	% 		% \subset
-	% 		~\models~
-	% 	% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
-	% 	\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
-	% \]
-	% That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
-	Suppose $\dg M_1$ and $\dg M_2$ are value-compatible PDGs,
-	with respective sets of nodes $\mat X_1 := \N^{\dg M_1}$ and
-	$\mat X_2 := \N^{\dg M_2}$.
-	 % and let $\mathbf X$ denote the variables they have in common.
-	Then for all $\gamma > 0$, we have that
-	\[
-	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
-			% \subset
-			~\models~
-		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
-		% \N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
-		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
-		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2
-	\]
-	That is, in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$ for some $\gamma>0$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given the variables they have in common.
-\end{linked}
-
-Moreover, we have a stronger result:
+Moreover, we have a stronger result. Given a dependency graph $\Gr = (\N, \Ed, \V)$, let $\mathcal P_{{\dg M}[\Gr]}$ denote the set of distributions obtainable as optimizers $\mu^* \in \arg\min \bbr{\dg M}_\gamma^*$, for some PDG $\dg M = (\Gr, \bp[], \boldsymbol\alpha, \boldsymbol\beta)$ based on $\Gr$, by supplying some cpds $\bp[\,]$, weights $\boldsymbol\alpha$ and $\boldsymbol\beta$, and $\gamma > 0$. 
+Analogously, let $\mathcal P_{\Phi[\Gr]}$ be the set of distributions represented by some factor graph whose factors touch the same variables as $\Gr$. 
 
 \begin{prop}
-	Given a PDG structure $\dg Q = (\N, \Ed, \V)$, let $\mathcal P_{\dg Q}$ denote the set of distributions that are obtainable as optimal distributions by extending $\dg Q$ with cpds $\mat p$, weights $\boldsymbol\alpha$ and $\boldsymbol\beta$, and some $\gamma > 0$. 
-	Let $\mathcal P_{\Phi(\dg Q)}$ be the set of distributions represented by some factor graph with the same structure as $\dg Q$. 
-	Then $\mathcal P_{\dg Q} \subseteq \mathcal P_{\Phi(\dg Q)}$. 
+ 	$\mathcal P_{\dg M[\Gr]} = \mathcal P_{\Phi[\Gr]}$. 
 	% let $\Delta^*{\dg Q} := \cup_{\gamma > 0, \V, \bp[]}$
 	% \[
 	% 	\Delta^*{\dg Q} = \mathcal P_{\Phi}
