@@ -6,6 +6,7 @@
 
 \input{pdg-preamble-v1}
 
+\addbibresource{conf.bib}
 
 \makeatletter
 \newcommand{\@minipagerestore}{\setlength{\parskip}{\medskipamount}}
@@ -48,22 +49,28 @@
 
 \begin{document}
 
+\begin{center}
+    \Huge\scshape Confidence: Belief Opacity
+\end{center}
+\medskip
 
 While high confidence in an event is much like high probability in the event, low confidence in the event and low probability are entriely different. 
 
 
-\section{The Translucency Analogy}
+\section{The Opacity Analogy}
 
 % \begin{minipage}{0.48\linewidth}
 
     So far as graphics are concerned, what ultimately matters are pixel colors. 
-    And yet, in the standard representation of pixel color, only three of the four bytes actually represent a color; the last byte gives a measure of translucency.
-    This is no accident---being able to suggest a color in a location with less than complete confidence is incredibly useful. 
-    It enables much more intricate digital art, via layers. 
+    And yet, in the standard representation of pixel color, only three of the four bytes actually represent a color; the last byte encodes opacity---in some sense, a \emph{confidence} in the color.
+    % Far from an oversight, this enables the possibility of suggest a color with less than complete confidence is incredibly useful. 
+    The result is an ability to suggest a color with less than complete confidence. 
+    This enables much more structured and intricate digital art, via layers. 
     It makes it possible to model visual effects such as fog and fireworks without needing to simultaneously know everything that happens behinds them.
     % This is not an oversight; working with translucency can be incredibly valuable.
      % porgrams enables .% 
         % \footnote{just as higher-level programming languages enable programmers to build larger projects by giving larger-scale structure}
+
 
     
 % \end{minipage}
@@ -89,6 +96,11 @@ While high confidence in an event is much like high probability in the event, lo
 
 
 \section{Update Rules}
+
+% We now describe our formal approach, in which 
+In the opacity analogy, an update rule corresponds to a ``blending strategy'' --- a way of overlaying an image over another one, with a specified translucency.  
+We now proceed with the formal details. 
+
 \def\X{\mathcal X}
 Let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ be a $\sigma$-algebra over $X$, and let $\Delta \X$ denote the set of probability measures over $\X$.
 % maybe??
@@ -189,8 +201,29 @@ We can also consider the weaker variant of \Cref{ax:certainty}:
 \end{URaxioms}
 
 
+\subsection{Sequential Updates}
 
-\subsection{Compatibility With Further Structure}
+An update rule $F$ for some set of statements $\Phi$ also naturally suggests a way of updating based on 
+\[ 
+\Phi^{*\mathbb R} := \Big\{ 
+    % \text{finite sequences}~
+    %     [(\phi_1, \beta_1), \ldots (\phi_n, \beta_n)] 
+    ~\text{sequences}~ (\phi_i, \beta_i)_{i \in \mathbb N}
+    ~\Big|~ 
+    % \forall i \in \{1 \ldots n \}. ~ \phi_i \in \Phi, \beta_i \in \mathbb R
+    ~ \phi_i \in \Phi, \beta_i \in \mathbb R \,\text{ for all }\, i \in \mathbb N~
+    \Big\}
+\] 
+via sequential composition of the underlying updates;
+\[
+    \overset{*}F^{\beta}_{\boldsymbol \varphi = (\beta_i \phi_i)_{i =1, \ldots n}}
+        (\mu) := F^{\beta \beta_1}_{\phi_1} \circ F^{\beta \beta_2}_{\phi_2}
+            \circ \cdots\circ F^{\beta \beta_n}_{\phi_n}(\mu).
+            
+            
+\]
+
+\subsection{Further Axiomitization: Compatibility with Structure}
 % \textit{DIVERGENCE.~~}
 % \textbf{Divergence.}
 \subsubsection*{Potentials: Divergences and Cost Functions}
@@ -243,7 +276,9 @@ To give a few examples:
     and $A_j(b') := \{x : x_j = b' \}$ are unconditionally $c$-independent.
     This makes sense, since they are orthogonal hyperplanes.
 
-    \item  Suppose $\X \cong Y \times Z$ is a product space, to be thought of as the set of possible joint settings of two variables $Y$ and $Z$.
+    \item  
+    \begin{wip}
+    Suppose $\X \cong Y \times Z$ is a product space, to be thought of as the set of possible joint settings of two variables $Y$ and $Z$.
     Now, fix a probability measure $p(Y,Z)$ over $\X$
     and let
     % $c(x, A) := \I_{p|A}(\{x\}) = -\log P(x | A)$.
@@ -261,9 +296,11 @@ To give a few examples:
         \quad\iff\quad
         p(z) \in \{0,1\}
     \]
+    \end{wip}
 \end{enumerate}
 
-Once we have a notion of independence such as this one (although we will also consider others), we can articulate another axiom for update rules:
+% Once we have a notion of independence such as this one (although we will also consider others), we can articulate another axiom for update rules:
+Armed with this notion of independence, we can articulate one further axiom for udpate rules:
 \begin{URaxioms}
 % \begin{enumerate}[resume,label=\textbf{UR\arabic{*}.},nosep,leftmargin=2cm]
     % \item[\textbf{UR4}.]
@@ -279,9 +316,7 @@ Once we have a notion of independence such as this one (although we will also co
     % \hfill \textbf{(monotonicity)}
 % \end{enumerate}
 \end{URaxioms}
-The intuition here is
-
-\bigskip
+The idea here is that if $A$ and $B$ are independent, then it is equivalent to learn them in either order, or both at once.  
 
 
 % \begin{enumerate}
@@ -298,7 +333,7 @@ The intuition here is
 
 
 \section{Vector Field Representations of Update Rules}
-For a smooth manifold $M$, and a point $p \in M$, let $T_p M$ be the tangent space to $M$ at point $p$ (\cite{leesmoothmanifolds}), and let
+For a smooth manifold $M$ (such as the space $\Delta X$ of distributions over $X$), and a point $p \in M$, let $T_p M$ be the tangent space to $M$ at point $p$ \parencite{lee2013smooth}, and let
 % $TM := \sqcup_{p \in M} (p, T_p M)$
 $TM := \sum_{p \in M} T_p M$
 be the tangent bundle over $M$.
@@ -400,6 +435,12 @@ Because there is a tangible cost to carrying a larger genome, this induces a bas
 % \begin{align*}
 %     F^\beta_A(\Pr)(x) &\propto \Pr(x) \cdot \exp(-\beta \cost xA) \\
 % \end{align*}
+
+
+
+
+\subsection{Characterization Theorem for the PDG Update Rule}
+
 
 
 
@@ -551,7 +592,7 @@ On the other hand, $F_{\dg M}^0(\Pr) = \Pr$. So $F$ can only be continuous at $k
 
 
 
-\subsection{The Qualitative Half}
+\subsubsection*{The Qualitative Half}
 
 
 There are a number of different ways to think about alpha.
@@ -574,7 +615,6 @@ Why measure distance differently in this case?
 \section{Epistemic Entrenchment and Confidence}
 \section{Weighted Probability Measures}
 
-\newpage
 \section{}
 % Objective:
 Consider a density $\rho : \X \to \mathbb R^+$, and consider the differential equations
@@ -598,6 +638,9 @@ Which means
 % And suppose $C(t)$ is such that $u(x,t)$ is conserved, i.e.,
 
 
+
+\newpage
+\printbibliography
 
 
 \appendix
