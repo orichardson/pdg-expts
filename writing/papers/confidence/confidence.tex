@@ -71,17 +71,69 @@ Let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mat
 Let $\Phi$ be the set of statements about $X$ --- that is, the things one can have confidence in. 
 A \emph{update rule} for $\Phi$ on $\X$ is a function of the form
 \[
-    F: (\text{confidence}\,\beta : \mathbb R) \times (\text{statement}\,\phi : \Phi) \to (\Delta\X  \to \Delta \X),
+    F: \Big(\text{change in confidence}~\,\beta : \mathbb R\Big) 
+    \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
 \]
 which describe how to update beliefs about $X$, with the new information, at a certain level of trust.
-Given a piece of information $\phi \in \Phi$, and change in confidence $\beta$, we write $F^\beta_\phi : \Delta\X \to \Delta X$ for action of the update rule on beliefs. 
-Note that updates can be composed. For instance, starting with a distribution $\mu_0 \in \Delta \X$, we can \emph{compose} updates, such as in:
-\[
-    \mu_0 
-        \xmapsto{\displaystyle F^{.3}_{\mathit{Height}=5'11''}} \mu_1 
-        \xmapsto{\displaystyle F^{.6}_{\Pr(Y=1|X=3)=0.4}} \mu_2
-        \xmapsto{\displaystyle F^{2.1}_{K_i(\varphi)}} \mu_3.
-\]
+Given a piece of information $\phi \in \Phi$, and change in confidence $\beta$, we write $F^\beta_\phi : \Delta\X \to \Delta X$ for the \emph{update} prescribed by $F$. 
+Note that updates can be composed. For instance, starting with a distribution $\mu_0 \in \Delta \X$, we can \emph{compose} updates.
+
+% \[
+%     \mu_0 
+%         \xmapsto{\displaystyle F^{.3}_{\mathit{Height}=5'11''}} \mu_1 
+%         \xmapsto{\displaystyle F^{.6}_{\Pr(Y=1|X=3)=0.4}} \mu_2
+%         \xmapsto{\displaystyle F^{2.1}_{K_i(\varphi)}} \mu_3.
+% \]
+
+
+\begin{example}
+    Perhaps we're uncertain about our shoe size. 
+    Let space $X$ be the discrete set $\{ 35, \ldots, 50\}$ corresponding to possible shoe sizes, and $\mathcal A = 2^X$ be all possible subsets of it, so that a probability $\mu \in \Delta \X$ is just a 15-dimensional vector $\mat p$.
+    For the assertion language, suppose $\Phi = \{\text{``shoe size is $x$''} : x \in X\}$, so that you can make assertions such as ``the shoe size is 42'' or ``the shoe size is 41''.
+    
+    Now, consider the update rule:
+    \[
+        % F^{\beta}_h( \mat p ) =   
+        % \frac{1}{\mat p \cdot \mat e_h} \mat p \odot \exp(\beta )
+        F^{\beta}_{\text{``shoe size is $h$''}} \left( 
+            \begin{bmatrix} p_{35} \\ \vdots \\ p_{h} \\ \vdots \\ p_{50} \end{bmatrix}
+        \right) =   
+            \underbrace{\vphantom{\Bigg|}
+                \frac{1}{1 + p_h (e^{\beta} - 1) } 
+            }_{\text{normalizing constant}}
+            \begin{bmatrix}
+                \vdots \\
+                \hphantom{e^\beta} p_{h-1} \\
+                e^\beta \cdot p_h  \\
+                \hphantom{e^\beta} p_{h+1}\\
+                \vdots
+            \end{bmatrix}
+    \] 
+    
+    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over shoe sizes, and then three people come up to us and tell us the shoe size---first an aquaintance, then our friend, and then our tailor.
+    We trust them to different degrees, and may obtain a chain of updates as follows:
+    \[
+        \mat p_0 
+            \xmapsto{\displaystyle F^{\,0.3}_{\text{``shoe size is 38''}}} 
+        \mat p_1 
+            \xmapsto{\displaystyle F^{\,0.6}_{\text{``shoe size is 49''}}}
+        \mat p_2
+            \xmapsto{\displaystyle F^{\,2.1}_{\text{``shoe size is 43''}}}
+        \mat p_3.
+    \]
+    
+    The choices of $\beta=0.3, 0,.6, 2.1$ seem meaningless, but one aim of this paper is to argue that they are meaningful relative to an update rule. 
+    
+    More notes:
+    \begin{enumerate}
+        \item The order might matter.
+        \item If we are certain of our own shoe size, then nothing can sway us. 
+        \item betas are meaningless if we mix and match update rules
+    \end{enumerate}
+        
+\end{example}
+
+How should we get the numbers $\beta$?  Their meaning depends on the precise nature of the update rule.
 
 % We would like update rules to satisfy the following axioms:
 \subsection{Basic Properties of Update Rules}
