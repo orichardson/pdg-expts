@@ -87,49 +87,72 @@ Note that updates can be composed. For instance, starting with a distribution $\
 
 
 \begin{example}
-    Perhaps we're uncertain about our shoe size. 
-    Let space $X$ be the discrete set $\{ 35, \ldots, 50\}$ corresponding to possible shoe sizes, and $\mathcal A = 2^X$ be all possible subsets of it, so that a probability $\mu \in \Delta \X$ is just a 15-dimensional vector $\mat p$.
-    For the assertion language, suppose $\Phi = \{\text{``shoe size is $x$''} : x \in X\}$, so that you can make assertions such as ``the shoe size is 42'' or ``the shoe size is 41''.
-    
-    Now, consider the update rule:
+    \def\red{{\mathsf{red}}}
+    \def\green{{\mathsf{green}}}
+    \def\blue{{\mathsf{blue}}}
+    % Perhaps we're uncertain about our shoe size. 
+    Imagine a ball has been drawn from an urn, and we are uncertain about its color, which we know to be either red, green, or blue.
+    Let the space $X$ be the discrete set $\{ \red,\green,\blue \}$ corresponding to possible shoe sizes, and $\mathcal A = 2^X$ be all possible subsets of it, so that a probability $\mu \in \Delta \X$ is just a 3-dimensional vector $\mat p$.
+    For the assertion language, suppose $\Phi = \{$``the ball is $\mathsf c$''$ : \mathsf c \in X\}$, so that you can make assertions such as ``the ball is red''.
+    Now, consider the update rule $F$ defined by
     \[
         % F^{\beta}_h( \mat p ) =   
         % \frac{1}{\mat p \cdot \mat e_h} \mat p \odot \exp(\beta )
-        F^{\beta}_{\text{``shoe size is $h$''}} \left( 
-            \begin{bmatrix} p_{35} \\ \vdots \\ p_{h} \\ \vdots \\ p_{50} \end{bmatrix}
-        \right) =   
+        F^{\beta}_{\text{``the ball is $\red$''}} \left( 
+            \begin{bmatrix} p_\red \\ p_\green \\ p_\blue \\ \end{bmatrix}
+        \right) :=   
             \underbrace{\vphantom{\Bigg|}
-                \frac{1}{1 + p_h (e^{\beta} - 1) } 
+                \frac{1}{1 + p_\red (e^{\beta} - 1) } 
             }_{\text{normalizing constant}}
+            % \begin{bmatrix}
+            %     \vdots \\
+            %     \hphantom{e^\beta} p_{h-1} \\
+            %     e^\beta \cdot p_h  \\
+            %     \hphantom{e^\beta} p_{h+1}\\
+            %     \vdots
+            % \end{bmatrix}
             \begin{bmatrix}
-                \vdots \\
-                \hphantom{e^\beta} p_{h-1} \\
-                e^\beta \cdot p_h  \\
-                \hphantom{e^\beta} p_{h+1}\\
-                \vdots
-            \end{bmatrix}
+                e^\beta  p_\red \\
+                p_\green  \\
+                p_\blue
+            \end{bmatrix},
     \] 
+    and analogously for green and blue.
     
-    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over shoe sizes, and then three people come up to us and tell us the shoe size---first an aquaintance, then our friend, and then our tailor.
-    We trust them to different degrees, and may obtain a chain of updates as follows:
+    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over shoe sizes, and then three people come up to us and make assertions about the ball color---%
+    % first an aquaintance, then our friend, and then our tailor.
+    first someone we don't recognize, who claims the ball is red, then a hobyist with a statistical model who says it's green, and finally someone who says they witnessed the draw, who says blue. 
+    We trust them to different degrees, and so in response  chain of updates as follows:
     \[
         \mat p_0 
-            \xmapsto{\displaystyle F^{\,0.3}_{\text{``shoe size is 38''}}} 
+            \xmapsto{\displaystyle F^{\,0.3}_{\text{``ball is red''}}} 
         \mat p_1 
-            \xmapsto{\displaystyle F^{\,0.6}_{\text{``shoe size is 49''}}}
+            \xmapsto{\displaystyle F^{\,0.6}_{\text{``ball is green''}}}
         \mat p_2
-            \xmapsto{\displaystyle F^{\,2.1}_{\text{``shoe size is 43''}}}
+            \xmapsto{\displaystyle F^{\,7.1}_{\text{``ball is blue''}}}
         \mat p_3.
     \]
     
-    The choices of $\beta=0.3, 0,.6, 2.1$ seem meaningless, but one aim of this paper is to argue that they are meaningful relative to an update rule. 
+    % The choices of confidence $\beta=0.3, 0.6, 7.1$ seem meaningless, but one aim of this paper is to argue that they are meaningful relative to an update rule. 
     
-    More notes:
+    We make the following observations.
     \begin{enumerate}
-        \item The order might matter.
-        \item If we are certain of our own shoe size, then nothing can sway us. 
-        \item betas are meaningless if we mix and match update rules
-        \item Starting from any strictly positive distribution, one can get to any distribution at all. In general, it will turn out that if $\mu \ll \nu$, there is a sequence of updates that will take you take .  
+        % \item The order might matter.
+        \item For this particular update rule, the order of the updates does not matter. 
+        \item If we happen to already know the color of the ball (e.g., if $\mat p_0$ is a point mass on $\red$), then none of these updates will have an effect; this will still be the case after the updates. 
+        % \item betas are meaningless if we mix and match update rules
+        \item Starting from any strictly positive distribution, one can get to any distribution at all.         
+        Concretely, for every $\mat p$ and $\mat q > 0$, there is a vector
+        $\boldsymbol\beta^{\mat q \to \mat p} = (\beta_{\red}^{\mat q \to \mat p}, \beta_{\green}^{\mat q \to \mat p}, \beta_{\blue}^{\mat q \to \mat p})$
+        such that applying the updates 
+        $F^{\beta_{\red}^{\mat q \to \mat p}}_{\red}$,
+        $F^{\beta_{\green}^{\mat q \to \mat p}}_{\green}$, and
+        $F^{\beta_{\blue}^{\mat q \to \mat p}}_{\blue}$,
+        to $\mat q$, in any order, yields $\mat p$. Moreover, this vector is unique.
+        
+        In general, it will turn out that if $\mu \ll \nu$ (that is, if $\forall A \in \mathcal A.~\nu(A) = 0 \implies \mu(A) = 0$), there is a sequence of updates that will take you take you from $\nu$ to $\mu$. 
+                
+        % By the Radon-Nikodim Theorem, there if $\mu \ll \nu$, there is a measure $\frac{\mathrm d \mu}{\mathrm d\nu}$ such that $\int_{A} \frac{\mathrm d \mu}{\mathrm d\nu} \mathrm d \nu = \mu(A)$
     \end{enumerate}
         
 \end{example}
@@ -137,7 +160,7 @@ Note that updates can be composed. For instance, starting with a distribution $\
 How should we get the numbers $\beta$?  Their meaning depends on the precise nature of the update rule.
 
 % We would like update rules to satisfy the following axioms:
-\subsection{Basic Properties of Update Rules}
+\subsection{Basic Axioms for Update Rules}
 Here are some reasonable properties one might expect an udpate rule to have. 
 % For all $A \in \mathcal A$,
 For all $\phi \in \Phi$,
@@ -211,7 +234,7 @@ This requirement is captured by:
 One possible choice of $\Phi$ statements with the $\sigma$-algebra $\mathcal A$ of measurable sets, which are closed under union and complementation, and on which probabilistic conditioning is defined, we also have:
 
 \begin{URaxioms}
-    \item $\displaystyle \lim_{\beta\to\infty} F^\beta_A (\Pr) = \Pr|A$
+    \item If $\Pr(A) > 0$ then $\displaystyle \lim_{\beta\to\infty} F^\beta_A (\Pr) = \Pr|A$
     \hfill \textbf{(absolute certainty)} \label{ax:certainty}
 
 
@@ -226,9 +249,11 @@ We can also consider the weaker variant of \Cref{ax:certainty}:
 \begin{URaxioms}
     % \item[U3$'$.]  \textbf{(effectiveness)~} $\supp F^\infty_A (\Pr) \subset A $
     % customlabel
-    \item[\Cref*{ax:certainty}$'$]  $F^\infty_A (\Pr)(A) = 1$
+    \item[\Cref*{ax:certainty}$'$]  
     % \item[\customlabel{ax:effectiveness}{\textbf{\Cref*{ax:certainty}$'$.}}]
-        $F^\infty_A (\Pr)(A) = 1$
+    If $\Pr(A) > 0$, then 
+        % $F^\infty_A (\Pr)(A) = 1$
+        $\displaystyle \lim_{\beta\to\infty} F^\beta(\Pr)(A) = 1$
         % \makeatletter
         % \@currentlabel
         % \makeatother
@@ -346,6 +371,12 @@ The idea here is that if $A$ and $B$ are independent, then it is equivalent to l
 % \subsubsection*{A Matroid}
 % \subsubsection*{A Riemannian Metric}
 
+
+\subsection{Properites of Update Rules}
+\begin{prop}[closure under rescaling]
+    If $F^{\beta}_\phi$ is an update rule for $\X$ on $\Phi$, then so is
+    $G^{\beta}_\phi := F^{k \beta}_\phi$, for any real $k > 0$.
+\end{prop}
 
 \section{Characterization of Update Rules}
 
