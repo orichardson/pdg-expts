@@ -61,29 +61,70 @@
 
 
 \section{Update Rules: Changes in Confidence}
+\def\X{\mathcal X}
 
 % We now describe our formal approach, in which 
 % We now proceed with the formal details. 
 
-\def\X{\mathcal X}
-Let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ be a $\sigma$-algebra over $X$, and let $\Delta \X$ denote the set of probability measures over $\X$.
 % maybe??
-Let $\Phi$ be the set of statements about $X$ --- that is, the things one can have confidence in. 
-A \emph{update rule} for $\Phi$ on $\X$ is a function of the form
+% Let $\Phi$ be the set of statements about $X$ --- that is, the things one can have confidnce in.
+Consider a space $\Theta$ 
+of possible belief states, 
+%% TODO What about 
+and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in. 
+An \emph{update rule} 
+% for $\Phi$ on $\Theta$
+(or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+% on $\X$ is a function of the form
+is then a function of the form
 \[
-    F: \Big(\text{change in confidence}~\,\beta : \mathbb R\Big) 
-    \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
+    % F: \Big(\text{new confidence}~\,\beta : \mathbb R\Big) 
+    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
+    % F: \Big(\text{newfound confidence}~\,\beta : \mathbb R\Big) 
+    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
+    F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
 \]
 which describe how to update beliefs about $X$, with the new information, at a certain level of trust.
-Given a piece of information $\phi \in \Phi$, and change in confidence $\beta$, we write $F^\beta_\phi : \Delta\X \to \Delta X$ for the \emph{update} prescribed by $F$. 
-Note that updates can be composed. For instance, starting with a distribution $\mu_0 \in \Delta \X$, we can \emph{compose} updates.
+Given a piece of information $\phi \in \Phi$, and a number $\beta$ measuring the change in confidence of $\phi$, we write 
+% $F^\beta_\phi : \Delta\X \to \Delta X$
+$F^\beta_\phi : \Theta \to \Theta$
+for the \emph{update} prescribed by $F$. 
+Note that updates can be composed.
+Furthermoe, we will insist on the following two properties, 
+\begin{URaxioms}
+    % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
+    % \item  $F^{0}_A  = {1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+    % \item  $F^{0}_\phi  = {1}_{\Delta\X}$. (That is, $F^{0}_\phi(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+    %     \hfill \textbf{(zero)} \label{ax:zero}
+    \item  $F^{0}_\phi  = 1_{\Theta}$.
+        (That is, $F^{0}_\phi(\theta) = \theta$ for all $\theta \in \Theta$.)
+        \hfill \textbf{(zero)} \label{ax:zero}
+    % \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
+    \item For all $\beta_1, \beta_2 \in \mathbb R_{\ge 0}$,~ 
+        $F^{\beta_1}_\phi \circ F^{\beta_2}_\phi = F^{\beta_1 + \beta_2}_\phi$
+        \hfill \textbf{(additivity)} \label{ax:additivity}
+\end{URaxioms}
 
-% \[
-%     \mu_0 
-%         \xmapsto{\displaystyle F^{.3}_{\mathit{Height}=5'11''}} \mu_1 
-%         \xmapsto{\displaystyle F^{.6}_{\Pr(Y=1|X=3)=0.4}} \mu_2
-%         \xmapsto{\displaystyle F^{2.1}_{K_i(\varphi)}} \mu_3.
-% \]
+
+We will focus prmarily on the setting where $\Theta$ 
+parameterizes a family of probaility distributions.
+To that end, let $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ be a $\sigma$-algebra over it, let $\Delta \X$ denote the set of probability measures over $\X$, 
+and keep in the back of our heads an indexed family
+% $\{ p_\theta ( X_\theta ) : \theta \in \Theta\}$.
+$
+    \mathcal P = 
+    \{ p_\theta \in\Delta\X \mid \theta \in \Theta \}
+$ of probability distributions. 
+% If we take
+
+% For instance, starting with a distribution $\mu_0 \in \Delta \X$, we can \emph{compose} updates.
+% 
+% % \[
+% %     \mu_0 
+% %         \xmapsto{\displaystyle F^{.3}_{\mathit{Height}=5'11''}} \mu_1 
+% %         \xmapsto{\displaystyle F^{.6}_{\Pr(Y=1|X=3)=0.4}} \mu_2
+% %         \xmapsto{\displaystyle F^{2.1}_{K_i(\varphi)}} \mu_3.
+% % \]
 
 
 \begin{example}
@@ -91,10 +132,34 @@ Note that updates can be composed. For instance, starting with a distribution $\
     \def\green{{\mathsf{green}}}
     \def\blue{{\mathsf{blue}}}
     % Perhaps we're uncertain about our shoe size. 
-    Imagine a ball has been drawn from an urn, and we are uncertain about its color, which we know to be either red, green, or blue.
-    Let the space $X$ be the discrete set $\{ \red,\green,\blue \}$ corresponding to possible shoe sizes, and $\mathcal A = 2^X$ be all possible subsets of it, so that a probability $\mu \in \Delta \X$ is just a 3-dimensional vector $\mat p$.
-    For the assertion language, suppose $\Phi = \{$``the ball is $\mathsf c$''$ : \mathsf c \in X\}$, so that you can make assertions such as ``the ball is red''.
-    Now, consider the update rule $F$ defined by
+% Imagine a ball has been drawn from an urn,
+% and we are uncertain about its color, which we know to be either red, green, or blue.
+Suppose there is a game show in which, at some point, a ball of unknown color 
+(red, green, or blue) is drawn from an urn.
+Let  $X := \{ \red,\green,\blue \}$ be the three-element set corresponding to possible colors,
+ and $\mathcal A = 2^X$ be all possible subsets of it, so that a robability $\mu \in \Delta \X$
+can be specified as a 
+% three-dimensional vector $\mat p \in \Theta 
+point in the simplex $\Theta 
+:= \Delta [3]
+= \{\mat p = (p_1, p_2, p_3)  \in \mathbb R^3_{\ge 0} : p_1 + p_2 + p_3 = 1\}$,
+interpreting
+the coordinates as the respective probabilities of drawing $\red$, $\green$, and $\blue$. 
+% the a point
+% $\langle p_0, p_1, p_2 \rangle$
+% in the standard basis as 
+% $(p_\red, p_\green, p_\blue \rangle$, where $p_x$ is the probability of drawing color $x$.
+% an interpretation of $\langle p_0, p_1, p_2 \langle$ as the respective probabilities
+%
+     % is just a 3-dimensional vector $\mat p$.
+% For the assertion language, consider the set
+Now consider the set
+ $\Phi := \{$``the ball is $\mathsf c$''$ : \mathsf c \in X\} \cong X$ of possible assertions of the color of the ball.
+% , so that you can make assertions such as ``the ball is red''.
+
+% Now, consider the update rule $F$ defined by
+One possible update rule $F$ for $\Phi$ and $\Theta$ can be defined by increasing the probability of the given statement, by a factor exponential in the confidence, and then renormalizing.
+For instance, 
     \[
         % F^{\beta}_h( \mat p ) =   
         % \frac{1}{\mat p \cdot \mat e_h} \mat p \odot \exp(\beta )
@@ -117,9 +182,9 @@ Note that updates can be composed. For instance, starting with a distribution $\
                 p_\blue
             \end{bmatrix},
     \] 
-    and analogously for green and blue.
+    and analogously for green and blue. Note that an exponential of some sort is necessary to get \cref{ax:additivity}, for update rules of this kind; we cannot simply replace it with another increasing function of $\beta$. 
     
-    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over shoe sizes, and then three people come up to us and make assertions about the ball color---%
+    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over colors, and then three people come up to us and make assertions about the ball color---%
     % first an aquaintance, then our friend, and then our tailor.
     first someone we don't recognize, who claims the ball is red, then a hobyist with a statistical model who says it's green, and finally someone who says they witnessed the draw, who says blue. 
     We trust them to different degrees, and so in response  chain of updates as follows:
@@ -147,27 +212,40 @@ Note that updates can be composed. For instance, starting with a distribution $\
         % \item betas are meaningless if we mix and match update rules
         \item Starting from any strictly positive distribution, one can get to any distribution at all.         
         Concretely, for every $\mat p$ and $\mat q > 0$, there is a vector
-        $\boldsymbol\beta^{\mat q \to \mat p} = (\beta_{\red}^{\mat q \to \mat p}, \beta_{\green}^{\mat q \to \mat p}, \beta_{\blue}^{\mat q \to \mat p})$
+        % $\boldsymbol\beta^{\mat q \to \mat p} 
+        % = (\beta_{\red}^{\mat q \to \mat p}, \beta_{\green}^{\mat q \to \mat p}, \beta_{\blue}^{\mat q \to \mat p})$
+        $\boldsymbol\beta 
+        = (\beta_{\red}, \beta_{\green}, \beta_{\blue})$
         such that applying the updates 
-        $F^{\beta_{\red}^{\mat q \to \mat p}}_{\red}$,
-        $F^{\beta_{\green}^{\mat q \to \mat p}}_{\green}$, and
-        $F^{\beta_{\blue}^{\mat q \to \mat p}}_{\blue}$,
+        $F^{\beta_{\red}
+            % ^{\mat q \to \mat p}
+            }_{\red}$,
+        $F^{\beta_{\green}
+            % ^{\mat q \to \mat p}
+            }_{\green}$, and
+        $F^{\beta_{\blue}
+            % ^{\mat q \to \mat p}
+            }_{\blue}$,
         to $\mat q$, in any order, yields $\mat p$. Moreover, this vector is unique.
         
-        In general, it will turn out that if $\mu \ll \nu$ (that is, if $\forall A \in \mathcal A.~\nu(A) = 0 \implies \mu(A) = 0$), there is a sequence of updates that will take you take you from $\nu$ to $\mu$. 
+        % In general, it will turn out that . 
                 
         % By the Radon-Nikodim Theorem, there if $\mu \ll \nu$, there is a measure $\frac{\mathrm d \mu}{\mathrm d\nu}$ such that $\int_{A} \frac{\mathrm d \mu}{\mathrm d\nu} \mathrm d \nu = \mu(A)$
     \end{enumerate}
         
 \end{example}
 
+\begin{example}
+    
+\end{example}
+
 
 % We would like update rules to satisfy the following axioms:
 \subsection{Basic Axioms for Update Rules}
-Here are some reasonable properties one might expect an udpate rule to have. 
+% Here are some reasonable properties one might expect an udpate rule $F$ to have. 
 % For all $A \in \mathcal A$,
-For all $\phi \in \Phi$,
-and all $\beta,\beta_1, \beta_2 \in \mathbb R$:
+% For all $\phi \in \Phi$,
+% and all $\beta,\beta_1, \beta_2 \in \mathbb R$:
 
 %% OLD VERSION
 % \begin{enumerate}[label=\textbf{UR\arabic{*}.},leftmargin=2cm]
@@ -191,27 +269,50 @@ and all $\beta,\beta_1, \beta_2 \in \mathbb R$:
 %
 % \end{enumerate}
 % \begin{enumerate}[label=\textbf{UR\arabic{*}.},leftmargin=2cm]
+% \begin{URaxioms}
+%     % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
+%     % \item  $F^{0}_A  = {1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+%     \item  $F^{0}_\phi  = {1}_{\Delta\X}$. (That is, $F^{0}_\phi(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+%         \hfill \textbf{(zero)} \label{ax:zero}
+%     % \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
+%     \item For all $\beta_1, \beta_2 \in \mathbb R_{\ge 0}$,~ 
+%         $F^{\beta_1}_\phi \circ F^{\beta_2}_\phi = F^{\beta_1 + \beta_2}_\phi$
+%         \hfill \textbf{(additivity)} \label{ax:additivity}
+
+
 \begin{URaxioms}
-    % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
-    % \item  $F^{0}_A  = {1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
-    \item  $F^{0}_\phi  = {1}_{\Delta\X}$. (That is, $F^{0}_\phi(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
-        \hfill \textbf{(zero)} \label{ax:zero}
-    % \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
-    \item $F^{\beta_1}_\phi \circ F^{\beta_2}_\phi = F^{\beta_1 + \beta_2}_\phi$
-        \hfill \textbf{(additivity)} \label{ax:additivity}
-        
+    \item For all $\phi_1, \phi_2 \in \Phi$ and $\beta_1, \beta_2 \in \mathbb R$, and
+    % $\mu \in \Delta\X$,
+    $\theta \in \Theta$,
+    we have that 
+    $
+        F^{\beta_1}_{\phi_1} ( F^{\beta_2}_{\phi_2}(\theta)) = 
+            F^{\beta_2}_{\phi_2} ( F^{\beta_1}_{\phi_1}(\theta)).
+    $
+    \hfill\textbf{(Commutativity)} \label{ax:commute}
+\end{URaxioms}
+
+
+\textbf{Differentiability}. Suppose that the space $\Theta$ is actually a differentiable manifold. 
+In this case, we might want want $F$ to be compatible with the differentiable structure.
+
+\begin{URaxioms}        
     % \item The function $\beta\mapsto F_A(\beta, \Pr)$ is continuously differentiable.
-    \item Fixing $\Pr$, the function $\beta\mapsto F_\phi^\beta(\Pr)$ is
+    % \item Fixing $\Pr$, the function $\beta\mapsto F_\phi^\beta(\Pr)$ is
     % continuously
-    differentiable.
+    % differentiable.
+    \item For fixed $\theta$ and $\phi$, the function $\beta \mapsto F^{\beta}_\phi(\theta)$ 
+        is differentiable. 
         %(in pairs $(\beta,\Pr)$).
             \hfill \textbf{(differentiability)} \label{ax:diffble}
 \end{URaxioms}
 
 
+
+
 We would also like update rules to preserve any symmetries shared by the state space $\X$ and the assertion language $\Phi$, so that updates are not sensitive to irrelevant labelings of points. 
-Concretely, let $\mathrm{Aut}(X, \Phi)$ be the set of automorphisms $\sigma : X \to X$, together with an action on assertions, so that $\sigma\phi \in \Phi$ is the appropriately relabeled assertion equivalent to $\phi$ after the relabeling. 
-This requirement is captured by: 
+% Concretely, let $\mathrm{Aut}(X, \Phi)$ be the set of automorphisms $\sigma : X \to X$, together with an action on assertions, so that $\sigma\phi \in \Phi$ is the appropriately relabeled assertion equivalent to $\phi$ after the relabeling. 
+Concretely, let $\mathrm{Aut}(\Theta, \Phi)$ be the set of automorphisms $\sigma : \Theta \to \Theta$ (say, rotations of the simplex of distributions), that also have an associated action on assertions, so that $\sigma\phi \in \Phi$ is the corresponding relabeling of assertions.  The symmetry condition can now be captured by: 
 
 \begin{URaxioms}
     \item
@@ -219,13 +320,15 @@ This requirement is captured by:
         % Concretely, for all  $\sigma
         For all $\sigma
             % : X \to X
-            \in \mathrm{Aut}(X, \Phi)$, we have 
+            % \in \mathrm{Aut}(X, \Phi)$, we have 
+            \in \mathrm{Aut}(\Theta, \Phi)$, we have 
         % \\ \indent\hspace{2em}
         % $F^\beta_A(\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\{\sigma(a) : a \in A \}}(\Pr)\Big)$,
-        $F^\beta_\phi (\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\sigma\phi}(\Pr)\Big)$,
+        % $F^\beta_\phi (\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\sigma\phi}(\Pr)\Big)$,
+        $F^\beta_{\sigma\phi} (\sigma(\theta)) = \sigma \Big( F^\beta_{\phi}(\Pr)\Big)$.
             \hfill \textbf{(symmetry)} \label{ax:symmetry}
         \\
-        where $\sigma_\#(\Pr)$ is the pushforward of $\Pr$ under $\sigma$.
+        % where $\sigma_\#(\Pr)$ is the pushforward of $\Pr$ under $\sigma$.
 \end{URaxioms}
 % \end{enumerate}
 
@@ -400,16 +503,19 @@ From this Riemannian metric, we obtain a natural notion of distance between prob
 \end{prop}
 
 
-
-An update rule $F$ for some set of statements $\Phi$ also naturally suggests a way of updating based on 
+\textbf{Sequences.}
+A $\Theta$-update rule $F$ on $\Phi$ also suggests an extension to a more 
+general update rule $\bar F$ on the set 
 \[ 
 \Phi^{\mathbb R *} := \Big\{ 
     % \text{finite sequences}~
     %     [(\phi_1, \beta_1), \ldots (\phi_n, \beta_n)] 
-    ~\text{sequences}~ (\phi_i, \beta_i)_{i \in \mathbb N}
+    ~ (\phi_i, \beta_i)_{i \in [n]}
     ~\Big|~ 
     % \forall i \in \{1 \ldots n \}. ~ \phi_i \in \Phi, \beta_i \in \mathbb R
-    ~ \phi_i \in \Phi, \beta_i \in \mathbb R \,\text{ for all }\, i \in \mathbb N~
+    ~ \phi_i \in \Phi, \beta_i \in \mathbb R \,\text{ for all }\, i \in 
+        % \mathbb N~
+        [n]
     \Big\}
 \] 
 via sequential composition of the underlying updates:
@@ -451,17 +557,9 @@ How shall we interperet this?
 
 % \subsection{}
 \section{Characterizing Update Rules}
-\subsection{Commutative Update Rules}
-One further requirement that we could well have added to our set 
-\begin{URaxioms}
-    \item For all $\phi_1, \phi_2 \in \Phi$ and $\beta_1, \beta_2 \in \mathbb R$, and $\mu \in \Delta\X$,
-    we have that 
-    $
-        F^{\beta_1}_{\phi_1} ( F^{\beta_2}_{\phi_2}(\mu)) = 
-            F^{\beta_2}_{\phi_2} ( F^{\beta_1}_{\phi_1}(\mu)).
-    $
-    \hfill\textbf{(Commutativity)} \label{ax:commute}
-\end{URaxioms}
+% \subsection{Commutative Update Rules}
+% One further requirement that we could well have added to our set 
+
 
 \subsection{Linear Update Rules}
 % \subsection{Characterization Theorem for the PDG Update Rule}
