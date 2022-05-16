@@ -14,10 +14,10 @@ def T(x):
 def ET( θ ):
     inv = invert(θ)
     μ = inv['μ']; σ2 = inv['σ2']
-    return np.array([μ, μ*μ + σ*σ])
+    return np.array([μ, μ*μ + σ2])
 
 def update(theta0, x, β, nsteps):
-    theta = theta0
+    theta = theta0.copy()
     for i in range(nsteps):
         # normalize = np.dot(θ, T(x))
         theta += β / nsteps * (T(x) - ET(theta))
@@ -26,5 +26,4 @@ def update(theta0, x, β, nsteps):
 
 
 θ = toθ(6, 4); 
-update(θ, 6, 0.02, 1000)
-invert(θ)
+invert(update(θ, -10, 15, 80000))
