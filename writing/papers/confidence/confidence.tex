@@ -8,6 +8,10 @@
 
 \addbibresource{conf.bib}
 
+
+\definecolor{openQcolor}{rgb}{0.9,0.2,0.9}
+\declaretheorem[preheadhook=\color{openQcolor},name=Open Question]{openQ}
+
 \makeatletter
 \newcommand{\@minipagerestore}{\setlength{\parskip}{\medskipamount}}
 \makeatother
@@ -757,10 +761,11 @@ Not all update rules of interest are commutative, even if otherwise well-behaved
 
 \subsection{Conservative Update Rules}
 
-A \emph{conservative} vector field $F : X \to T X$ on a differentiable manifold $X$ by be equivalently characterized as 
+A \emph{conservative} vector field $Y : M \to T M$ on a differentiable manifold $M$ by be equivalently characterized as 
 \begin{itemize}
-    \item ``path independent'', in the sense that integrating such a field along path
-        $\int_{t=0}^{T} F(x(t)) \mathrm dt$ depends only on the path endpoints $x(0)$ and $x(T)$. 
+    \item ``path independent'', in the sense that, given a path $\gamma : [0,1] \to M$, the line integral
+    $\int_\gamma Y$ of $Y$ along $\gamma$
+     depends only on the path endpoints $\gamma(0)$ and $\gamma(1)$. 
     \item 
         arising as the gradient of a potential function, i.e., $F = \nabla U$ for some $U : X \to \mathbb R$.  
 \end{itemize}
@@ -817,6 +822,9 @@ Implicit in this definition is the supposition that the integral curves generate
 \end{URaxioms}
 
 
+This effectively partitions $\Theta$ into two 
+
+
 \begin{prop}
     If $F$ is a differentiable and invertable update rule (i.e., satisfies \cref{ax:zero,ax:additivity,ax:invert,ax:diffble}), then for all $\beta \in \mathbb R$, $\phi \in \Phi$, the function
     % $F^\beta_\phi : \Delta\X \to \Delta\X$
@@ -857,6 +865,145 @@ As a consequence,
 %
 % \end{URaxioms}
 
+\section{A Canonical Update Rule}
+Suppowe we have 
+\begin{itemize}[nosep] 
+    \item a differentiable function $U : \Theta \times \Phi  \to \mathbb R$, which intuitively measures ``incompatibility'' between a belief state $\theta$ and an assertion $\varphi$, and
+    \item
+        % A way of taking gradients of $U$ with respect to $\theta$,
+        % % $\nabla : ()$
+        % such as an inner product $g_p : T_p\Theta \times T_p\Theta \to \mathbb R$, making $(\Theta, g)$ a Riemannian manifold. 
+        A way of taking the gradient of $U$ with respect to $\theta$%
+            \footnote{
+            such as a tangent-cotangent isomorphism $(-)^\sharp : T^*_p\Theta \to T_p \Theta$, perhaps coming from an affine connection, in turn perhaps coming from a Riemmannian metric.}
+\end{itemize}
+
+Then we can define an update rule $(\mathtt{GD}\; U)$ that reduces inconsistency by gradient descent. Concretely, such an update rule has a vector field:
+\[
+    (\mathtt{GD}\; U)'_\varphi(\theta) = - \nabla_\theta U(\theta,\varphi).
+\]
+
+
+\subsection{Boltzmann Update Rules}
+% Again, suppose we have a differentiable function $U : \Theta \times \Phi  \to \mathbb R$.
+% Suppose further that we have a recovering a parameter that gives rise to a given probability distribution, i.e., a section of $\Pr$, or concretely,
+% a function $\Pr^{-1} : \Delta\X \to \Theta$ such that $\Pr(\Pr^{-1}(\mu)) = \mu$ for all $\mu \in \Delta\X$. 
+% 
+% This time, define an update rule directly, by
+% 
+% \begin{align*}
+%     (\mathtt{Boltz} U)_\varphi^\beta(\theta) 
+%         &:\propto \Pr\nolimits_\theta \exp(-\beta U(\theta,\varphi))\\
+%         &:= \Pr\nolimits^{-1}\bigg\{ 
+%             A \mapsto \Pr\nolimits_\theta(A)  \, \frac
+%             % {1}
+%             { \exp(-\beta U(\theta,\varphi)) }
+%             {\Ex_{\Pr_\theta}[\exp(-\beta U(\theta,\varphi))]} 
+%             % \int_A  \exp(-\beta U(\theta,\varphi)) \mathrm d\,\Pr\nolimits_\theta
+%         \bigg\}
+% \end{align*}
+Now suppose we have a potential function $U : X \times \Phi  \to \mathbb R$.
+Define an update rule
+\begin{align*}
+    \mathrm{Boltz}\,U &: (\mathbb R \times \Phi) \to \Delta\X \to \Delta\X \\
+    (\mathrm{Boltz}\,U)^\beta_\varphi(\mu) 
+        &:\propto
+            \mu \exp(-\beta U_\varphi) \\
+        &= A \mapsto \frac
+            {\int \exp(-\beta U(x,\varphi)) \mathbbm 1_A \mathrm d\mu(x) }
+            {\Ex_{x\sim\mu} [ \exp(-\beta U(x,\varphi))]}
+\end{align*}
+
+\begin{prop}
+    $\mathrm{Boltz}$ is additive, zero, differentiable, invertable, and commutative. 
+\end{prop}
+
+
+\begin{remark}
+    For fixed, $\varphi$,
+     % and in particular, if $\Phi = \{\varphi\}$ is a singleton, 
+    we may regard $U_\varphi : \X \to \mathbb R$ as a potential energy over $X$, 
+    for which the associated the Boltzmann distribution at inverse temperature $\beta$ and base measure $\mu$ is $(\mathrm{Boltz}\,U)^\beta_\varphi(\mu)$.
+    So in this case, confidence coincides with thermodynamic coldness.
+\end{remark}
+
+
+The certainties of $\mathrm{Boltz U}$ are the minimizers of $U$. 
+% $(\mu(X),\varphi) \mapsto \mu(X ~|~ \arg\min_x U(x,\varphi))$.
+
+
+\begin{openQ}
+    Is this the canoncial update rule above?
+    Concretely, when do we have that
+    $
+        (\mathrm{Boltz}\; U) = (\mathtt{GD}\; U)
+    $?
+\end{openQ}
+\begin{wip}
+    % Suppose $\Theta$
+    As a reminder, we have $\Theta = \Delta \X$, and suppose we have $c : X \times \Phi \to \mathbb R$. 
+    Suppose $U(\theta, \varphi) = \Ex_\theta[ c_\varphi ]$ (linearity).
+    Then     
+    $% \begin{align*}
+        (\mathrm{Boltz}\;U)'_\varphi \theta = \theta(\Ex_\theta[c_\varphi] - c_\varphi),
+    $% \end{align*}
+    while
+    \begin{align*}
+         (\mathtt{GD}\; U)'_\varphi \theta &= 
+             - \nabla_{\theta} \Ex\nolimits_\theta [ c_\varphi ]
+             \\ &= - c_\varphi
+             % {\color{gray}~+ \Ex\nolimits_{\theta}[c_\varphi]}
+             .
+    \end{align*}
+    This second expression, though, doesn't seem quite right --- it isn't even a tangent vector to the probability simplex, since its components don't sum to zero.  
+    This issue is in our naive computation of the gradient. 
+    We have computed the collection of partial derivatives $\frac{\partial}{\partial \theta_i} ( \theta \cdot  c_\varphi) = (c_\varphi)_i$,
+    which is technically  co-vector field, not a vector field.%
+        \footnote{it acts on a vector field $V$ by $ -c_\varphi ( V ) = - V(c_\varphi)$.}
+    If we were working in $\mathbb R^n$, we would simply collect them 
+    To convert between them, we'll need a metric tensor.
+    % we have 
+    % \[ \frac{\partial}{\partial \theta^i} ( \theta \cdot  c_\varphi) \]
+\end{wip}
+
+\begin{prop}
+    % Fix $\varphi$. 
+    % Let $f(X) := \exp(-\beta U(X,\varphi))$, and $g(X) := U(X,\varphi)$. 
+    % With the metric on $\Delta\X$ induced by its embedding as a simplex in $\mathbb R^{|X|}$, we have that
+    % When parameterized as a simplex, 
+    The associated vector field is given by
+    % 
+    % \begin{align*}
+    $
+        (\mathrm{Gibbs}'_\varphi p)_{x} = p(x) (\Ex_p[U(X,\varphi)] - U(x,\varphi) )
+    $.
+    % \end{align*}
+\end{prop}
+\begin{proof}
+    Let $f(X) := \exp(-\beta U(X,\varphi))$, and $g(X) := U(X,\varphi)$.
+    \begin{align*}
+        \mathrm{Boltz}'_\varphi\theta &= \frac{\partial}{\partial \beta} \mathrm{Boltz}^\beta_\varphi(p) \Big|_{\beta=0} \\
+    \intertext{\TODO[TODO: finish typesetting algebra]} 
+        &= x \mapsto 
+            p(x) \frac{f(x)}{\Ex_p[f]} 
+                \left(\Ex_p\left[ \frac{f}{\Ex_{p}[f]} g\right] - g(x) \right)
+                % {\exp(-\beta U(x,\varphi))}
+                % {\Ex_{}}
+                \Big|_{\beta=0}
+                \\
+        &= \frac{pf}{\Ex_p[f]^2}
+            \left(\Ex\nolimits_p\left[ f g\right] - g \Ex\nolimits_{p}[f] \right) 
+            \Big|_{\beta=0} \\
+        &= x \mapsto p(x) (\Ex\nolimits_p[g] - g(x)) &
+            \text{since $f(X) = 1$ when $\beta=0$}
+    \end{align*}
+    As a sanity check, note that the sum over all components is
+    \[ \sum_{x \in X} ((\mathrm{Boltz}\,U)'_\varphi\, \theta)_x
+         = \sum_{x \in X} p(x) (\Ex\nolimits_p[g] - g(x))
+         = \Ex\nolimits_p[ \Ex\nolimits_p [ g ]] - \Ex\nolimits_p [g] = 0,
+     \]
+     so indeed it lies within the tangent space.
+\end{proof}
 
 
 % \newpage%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -928,6 +1075,8 @@ Assuming that the vector field is conservative,
     \cref{ax:zero,ax:additivity,ax:certainty,ax:symmetry,ax:commute,ax:diffble,ax:invert}
 \end{conj}
 \end{wip}
+
+
 
 
 \subsection{Opacity and Image Blending}
