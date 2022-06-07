@@ -9,5 +9,255 @@
 \addbibresource{conf.bib}
 
 
+\title{Measures of Confidence}
+\author{Oliver E Richardson, Joseph Y Halpern}
 \begin{document}
+    \maketitle
+
+\section{Introduction}
+% \def\stmt{$\phi$}
+\def\stmt{$A$}
+
+Confidence is an important aspect of knowledge representation, 
+because we want to be able to deal with information that we aren't certain about.
+%
+% It is extremely useful to be able to express variable confidence in information.
+%%
+%%
+%%
+% Among computer scientists, the notions of confidence and probability are often identified.
+Among computer scientists, ``confidence'' is often a synonym for probability.
+% ---%
+% Although the two notions are closely related, it is important to distinguish between confidence and likelihood.
+For instance, it is common to say that one has ``high confidence in a statement \stmt'' to indicate a belief that
+% (the content of) \stmt is likely to be true. 
+\stmt\ is likely to be true. 
+But 
+% However,
+having high confidence in \stmt\ can also mean something subtly different: that we should \emph{trust} \stmt, in the sense of taking it seriously in updating our beliefs. 
+% The two notions might seem indistinghishable at first,
+% This distinction may not at first seem meaningful, because if we take \stmt\ seriously in updating our beliefs, we will ultimately believe \stmt\ is likely.
+If we take \stmt\ seriously in updating our beliefs, we will ultimately believe \stmt\ is likely, and so the distinction might not seem meaningful at first.
+% However, the two are quite different at the other end of the spectrum. If you believe that \stmt\ is 
+% However, thinking that one should \emph{not} trust \stmt\ is quite different from thinking that \stmt\ is unlikely. 
+% But \emph{low} probability is quite different from low probability. 
+% At the other end of the scale, however, the two notions differ a great deal.
+But at the other end of the scale, the two notions are quite different.
+If we have little trust in \stmt, we should \emph{ignore} \stmt, rather than coming to believe that \stmt\ is unlikely.
+So, if an untrusted party tells you something that you happen to already believe, you might reasonably ascribe it high probability but low confidence. 
+
+% We argue that confidence is a useful concept, distinct from probability.
+% We will show how confidences 
+In this paper, we give a formal framework for talking about confidence in the context of updating, 
+which we then use to interperet quantities across a wide variety of settings as confidences. 
+% In each case, we will see the following features:
+Here are some recurring themes:
+
+\begin{enumerate}[nosep]
+    \item A zero-confidence update does nothing, while
+    % \item Zero confidence is neutral.
+    updating with certainty (the limit of large confidence) is a projection.
+    % \item Updating with certainty (the limit of large confidence) is a projection.
+    \item Confidence measures involve an arbitrary choice of scale, and so confidences 
+    % \item $\exp(- \beta E)$
+    % \item Confidence tends to end up as the scaling term for an exponential functions
+    \item \relax [Exponental Functions]
+\end{enumerate}
+
+
+% Theorem. Certainties can never be gained or lost with any finite sequence of differentiable updates.
+% Theorem. Certainty is always infinitely far away, as measured by the Riemannian metric.
+    
+\section{Update Rules}
+\def\X{\mathcal X}
+
+% We now describe our formal approach, in which
+% We now proceed with the formal details.
+
+% maybe??
+% Let $\Phi$ be the set of statements about $X$ --- that is, the things one can have confidnce in.
+Consider a space $\Theta$
+of possible belief states,
+%% TODO What about
+and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
+An \emph{update rule}
+% for $\Phi$ on $\Theta$
+(or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+% on $\X$ is a function of the form
+is then a function of the form
+\[
+    % F: \Big(\text{new confidence}~\,\beta : \mathbb R\Big)
+    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
+    % F: \Big(\text{newfound confidence}~\,\beta : \mathbb R\Big)
+    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
+    F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+\]
+which describe how to update beliefs about $X$, with the new information, at a certain level of trust.
+Given a piece of information $\phi \in \Phi$, and a number $\beta$ measuring the change in confidence of $\phi$, we write
+% $F^\beta_\phi : \Delta\X \to \Delta X$
+$F^\beta_\phi : \Theta \to \Theta$
+for the \emph{update} prescribed by $F$.
+Note that updates can be composed.
+We will insist that update rules obey certain properties, especially the following two.
+\begin{URaxioms}
+    % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
+    % \item  $F^{0}_A  = {1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+    % \item  $F^{0}_\phi  = {1}_{\Delta\X}$. (That is, $F^{0}_\phi(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
+    %     \hfill \textbf{(zero)} \label{ax:zero}
+    \item  $F^{0}_\phi  = 1_{\Theta}$.
+        (That is, $F^{0}_\phi(\theta) = \theta$ for all $\theta \in \Theta$.)
+        \hfill \textbf{(zero)} \label{ax:zero}
+    % \item $F^{\beta_1}_A \circ F^{\beta_2}_A = F^{\beta_1 + \beta_2}_A$
+    \item For all $\beta_1, \beta_2 \in \mathbb R_{\ge 0}$,~
+        $F^{\beta_1}_\phi \circ F^{\beta_2}_\phi = F^{\beta_1 + \beta_2}_\phi$
+        \hfill \textbf{(additivity)} \label{ax:additivity}
+\end{URaxioms}
+
+
+We are primarily interested in the setting where $\Theta$ parameterizes a family of probaility distributions.
+To that end, suppose that $\X = (X, \mathcal A)$ be a measurable space, so that $X$ is a set and $\mathcal A$ be a $\sigma$-algebra over it, let $\Delta \X$ denote the set of probability measures over $\X$,
+and keep in the back of our heads an indexed family
+% $\{ p_\theta ( X_\theta ) : \theta \in \Theta\}$.
+$
+    \mathcal P =
+    \{ p_\theta \in\Delta\X \mid \theta \in \Theta \}
+$ of probability distributions.
+% If we take
+
+% For instance, starting with a distribution $\mu_0 \in \Delta \X$, we can \emph{compose} updates.
+%
+% % \[
+% %     \mu_0
+% %         \xmapsto{\displaystyle F^{.3}_{\mathit{Height}=5'11''}} \mu_1
+% %         \xmapsto{\displaystyle F^{.6}_{\Pr(Y=1|X=3)=0.4}} \mu_2
+% %         \xmapsto{\displaystyle F^{2.1}_{K_i(\varphi)}} \mu_3.
+% % \]
+
+
+\begin{examplex}
+    \def\red{{\mathsf{red}}}
+    \def\green{{\mathsf{green}}}
+    \def\blue{{\mathsf{blue}}}
+    % Perhaps we're uncertain about our shoe size.
+% Imagine a ball has been drawn from an urn,
+% and we are uncertain about its color, which we know to be either red, green, or blue.
+Suppose there is a game show in which, at some point, a ball of unknown color
+(red, green, or blue) is drawn from an urn.
+Let  $X := \{ \red,\green,\blue \}$ be the three-element set corresponding to possible colors,
+ and $\mathcal A = 2^X$ be all possible subsets of it, so that a robability $\mu \in \Delta \X$
+can be specified as a
+% three-dimensional vector $\mat p \in \Theta
+point in the simplex
+$$\Theta
+:= \Delta \{ \red,\green,\blue \}
+= \{\mat p = (p_1, p_2, p_3)  \in \mathbb R^3_{\ge 0} : p_1 + p_2 + p_3 = 1\},$$
+interpreting
+the coordinates as the respective probabilities of drawing $\red$, $\green$, and $\blue$.
+% the a point
+% $\langle p_0, p_1, p_2 \rangle$
+% in the standard basis as
+% $(p_\red, p_\green, p_\blue \rangle$, where $p_x$ is the probability of drawing color $x$.
+% an interpretation of $\langle p_0, p_1, p_2 \langle$ as the respective probabilities
+%
+     % is just a 3-dimensional vector $\mat p$.
+% For the assertion language, consider the set
+Now consider the set
+ $\Phi := \{$``the ball is $\mathsf c$''$ : \mathsf c \in X\} \cong X$ of possible assertions of the color of the ball.
+% , so that you can make assertions such as ``the ball is red''.
+
+% Now, consider the update rule $F$ defined by
+One possible update rule $F$ for $\Phi$ and $\Theta$ can be defined by increasing the probability of the given statement, by a factor exponential in the confidence, and then renormalizing.
+For instance,
+    \[
+        % F^{\beta}_h( \mat p ) =
+        % \frac{1}{\mat p \cdot \mat e_h} \mat p \odot \exp(\beta )
+        F^{\beta}_{\text{``the ball is $\red$''}} \left(
+            \begin{bmatrix} p_\red \\ p_\green \\ p_\blue \\ \end{bmatrix}
+        \right) :=
+            \underbrace{\vphantom{\Bigg|}
+                \frac{1}{1 + p_\red (e^{\beta} - 1) }
+            }_{\text{normalizing constant}}
+            % \begin{bmatrix}
+            %     \vdots \\
+            %     \hphantom{e^\beta} p_{h-1} \\
+            %     e^\beta \cdot p_h  \\
+            %     \hphantom{e^\beta} p_{h+1}\\
+            %     \vdots
+            % \end{bmatrix}
+            \begin{bmatrix}
+                e^\beta  p_\red \\
+                p_\green  \\
+                p_\blue
+            \end{bmatrix},
+    \]
+    and analogously for green and blue.
+    Note that an exponential of some sort is necessary to get \cref{ax:additivity}, for update rules of this kind; we cannot simply replace
+    % it with another increasing function of $\beta$.
+    $e^{\beta}$ with $\beta^2$, for instance.
+
+    As mentioned above, you can compose udpates. For instance, suppose we had a prior $\mat p_0$ over colors, and then three people come up to us and make assertions about the ball color---%
+    % first an aquaintance, then our friend, and then our tailor.
+    first someone we don't recognize, who claims the ball is red, then a hobyist with a statistical model who says it's green, and finally someone who says they witnessed the draw, who says blue.
+    We trust them to different degrees, and so in response  chain of updates as follows:
+    \[
+        \mat p_0
+            \xmapsto{\displaystyle F^{\,0.3}_{\text{``ball is red''}}}
+        \mat p_1
+            \xmapsto{\displaystyle F^{\,0.6}_{\text{``ball is green''}}}
+        \mat p_2
+            \xmapsto{\displaystyle F^{\,7.1}_{\text{``ball is blue''}}}
+        \mat p_3.
+    \]
+
+    % How should one decide the confidences $\beta$?
+    % That depeends on the update rule.
+
+    % The choices of confidence $\beta=0.3, 0.6, 7.1$ seem meaningless, but one aim of this paper is to argue that they are meaningful relative to an update rule.
+
+    % We make the following observations.
+    We now make some observations.
+    \begin{enumerate}
+        % \item The order might matter.
+        \item For this particular update rule, the order of the updates does not matter.
+        \item If we happen to already know the color of the ball (e.g., if $\mat p_0$ is a point mass on $\red$), then none of these updates will have an effect; this will still be the case after the updates.
+        % \item betas are meaningless if we mix and match update rules
+        \item Starting from any strictly positive distribution, one can get to any distribution at all.
+        Concretely, for every $\mat p$ and $\mat q > 0$, there is a vector
+        % $\boldsymbol\beta^{\mat q \to \mat p}
+        % = (\beta_{\red}^{\mat q \to \mat p}, \beta_{\green}^{\mat q \to \mat p}, \beta_{\blue}^{\mat q \to \mat p})$
+        $\boldsymbol\beta
+        = (\beta_{\red}, \beta_{\green}, \beta_{\blue})$
+        such that applying the updates
+        $F^{\beta_{\red}
+            % ^{\mat q \to \mat p}
+            }_{\red}$,
+        $F^{\beta_{\green}
+            % ^{\mat q \to \mat p}
+            }_{\green}$, and
+        $F^{\beta_{\blue}
+            % ^{\mat q \to \mat p}
+            }_{\blue}$,
+        to $\mat q$, in any order, yields $\mat p$. Moreover, this vector is unique.
+
+        % In general, it will turn out that .
+
+        % By the Radon-Nikodim Theorem, there if $\mu \ll \nu$, there is a measure $\frac{\mathrm d \mu}{\mathrm d\nu}$ such that $\int_{A} \frac{\mathrm d \mu}{\mathrm d\nu} \mathrm d \nu = \mu(A)$
+    \end{enumerate}
+
+\end{examplex}
+
+
+\section{}
+\subsection{Case Study: Jeffrey's Rule}
+\subsection{Mixture of Experts}
+
+\subsection{Weight of Evidence}
+\subsection{Loss Functions}
+\subsection{Bolzman Rationality}
+% Loss Functions
+% Total \# of Updates
+\section{Confidence in PDGs}
+\subsection{}
+
+
 \end{document}
