@@ -18,8 +18,9 @@
 % \def\stmt{$\phi$}
 \def\stmt{$A$}
 
-Confidence is an important aspect of knowledge representation, 
-because we want to be able to deal with information that we aren't certain about.
+Being able to express variable confidence is an important aspect of knowledge representation, 
+% because we want to be able to deal with information that we aren't certain about.
+
 %
 % It is extremely useful to be able to express variable confidence in information.
 %%
@@ -71,25 +72,13 @@ Here are some recurring themes:
 \section{Update Rules}
 \def\X{\mathcal X}
 
-% We now describe our formal approach, in which
 % We now proceed with the formal details.
-
-% maybe??
-% Let $\Phi$ be the set of statements about $X$ --- that is, the things one can have confidnce in.
 Consider a space $\Theta$
 of possible belief states,
-%% TODO What about
 and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
-An \emph{update rule}
-% for $\Phi$ on $\Theta$
-(or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
-% on $\X$ is a function of the form
+An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
 is then a function of the form
 \[
-    % F: \Big(\text{new confidence}~\,\beta : \mathbb R\Big)
-    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
-    % F: \Big(\text{newfound confidence}~\,\beta : \mathbb R\Big)
-    % \times \Big(\text{statement}~\,\phi : \Phi\Big) \to \Big(\Delta\X  \to \Delta \X\Big),
     F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
 \]
 which describe how to update beliefs about $X$, with the new information, at a certain level of trust.
@@ -134,7 +123,7 @@ $ of probability distributions.
 % % \]
 
 
-\begin{examplex}
+\begin{examplex}{a}{b}\label{ex:colorballs}
     \def\red{{\mathsf{red}}}
     \def\green{{\mathsf{green}}}
     \def\blue{{\mathsf{blue}}}
@@ -245,6 +234,94 @@ For instance,
     \end{enumerate}
 
 \end{examplex}
+
+\subsection{Basic Axioms for Update Rules}
+
+We now detail some other properties we might want an update rule to have.
+
+\textbf{Differentiability}.
+% A primary goal of this paper is to study how updates are made in low-confidence settings.
+Insofar as confidence is meant to smoothly interpolating between fully incorporating information and ignoring it, we would like the interpolation to be differentiable.
+
+Here are two ways of capturing this, depending on the structure one has in hand.
+
+
+\begin{URaxioms}
+    \item
+    \begin{enumerate}
+    \item If $\Theta$ parameterizes a family of probabilities over $(\X, \mathcal A)$, 
+        via $\{ \Pr_\theta \}_{\theta \in \Theta}$:\\
+        %  is a family of probability distributions.
+        For all $\theta \in \Theta$, $\phi \in \Phi$, and  $A \in \mathcal A$,
+        the function $\beta \mapsto \Pr_{F^{\beta}_\phi(\theta)}(A) 
+        : \mathbb R_{\ge 0} \to \mathbb [0,1]$ is 
+        continuously differentiable.
+        %(in pairs $(\beta,\Pr)$).
+            % \hfill \textbf{(differentiability)} 
+            \label{ax:diffble}
+    \item If $\Theta$ itself has differentiable structure:
+        For fixed $\theta$ and $\phi$, the function $\beta \mapsto F^{\beta}_\phi(\theta)$
+        is continuously differentiable.
+    \end{enumerate}
+    \hfill \textbf{(differentiability)} \label{ax:diffble2}
+\end{URaxioms}
+
+% Suppose that the space $\Theta$ is actually a differentiable manifold.
+% In this case, we might want want $F$ to be compatible with the differentiable structure.
+% \begin{URaxioms}
+%     \item $\Theta$ is a differentiable manifold.
+%         For fixed $\theta$ and $\phi$, the function $\beta \mapsto F^{\beta}_\phi(\theta)$
+%         is continuously differentiable.
+%             \hfill \textbf{(differentiability)} \label{ax:diffble2}
+% \end{URaxioms}
+
+
+
+Some update rules, such as the one in \cref{ex:b} have a particularly conveneint property: the result of applying many updates does not depend on the order in which the information arives.
+
+\begin{URaxioms}
+    \item For all $\phi_1, \phi_2 \in \Phi$ and $\beta_1, \beta_2 \in \mathbb R$, and
+    % $\mu \in \Delta\X$,
+    $\theta \in \Theta$,
+    we have that
+    $
+        F^{\beta_1}_{\phi_1} ( F^{\beta_2}_{\phi_2}(\theta)) =
+            F^{\beta_2}_{\phi_2} ( F^{\beta_1}_{\phi_1}(\theta)).
+    $
+    \hfill\textbf{(Commutativity)} \label{ax:commute}
+\end{URaxioms}
+
+We will not always want to insist on commutativity. Human belief updates, for example, are notoriously non-commutative, in part due to confirmation bias:
+if you are already fairly certain that $P$ is false, you are likely to disregard
+information that $P$ is true. Thus earlier updates tend to be more impactful.%
+\footnote{
+    It is also possible to model this effect with a commutative update rule,
+    by expressing reduced confidence in later inputs.
+}
+
+
+We would also like update rules to preserve any symmetries shared by the state space $\X$ and the assertion language $\Phi$, so that updates are not sensitive to irrelevant labelings of points.
+% Concretely, let $\mathrm{Aut}(X, \Phi)$ be the set of automorphisms $\sigma : X \to X$, together with an action on assertions, so that $\sigma\phi \in \Phi$ is the appropriately relabeled assertion equivalent to $\phi$ after the relabeling.
+Concretely, let $\mathrm{Aut}(\Theta, \Phi)$ be the set of automorphisms $\sigma : \Theta \to \Theta$ (say, rotations of the simplex of distributions), that also have an associated action on assertions, so that $\sigma\phi \in \Phi$ is the corresponding relabeling of $\phi$ under $\sigma$.  The symmetry condition can now be captured by:
+
+\begin{URaxioms}
+    \item
+        % All symmetries of $\X$ are reflected in the update rule.
+        % Concretely, for all  $\sigma
+        For all $\sigma
+            % : X \to X
+            % \in \mathrm{Aut}(X, \Phi)$, we have
+            \in \mathrm{Aut}(\Theta, \Phi)$, we have
+        % \\ \indent\hspace{2em}
+        % $F^\beta_A(\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\{\sigma(a) : a \in A \}}(\Pr)\Big)$,
+        % $F^\beta_\phi (\sigma_\#(\Pr)) = \sigma_\#\Big(F^\beta_{\sigma\phi}(\Pr)\Big)$,
+        $F^\beta_{\sigma\phi} (\sigma(\theta)) = \sigma \Big( F^\beta_{\phi}(\Pr)\Big)$.
+            \hfill \textbf{(symmetry)} \label{ax:symmetry}
+        \\
+        % where $\sigma_\#(\Pr)$ is the pushforward of $\Pr$ under $\sigma$.
+\end{URaxioms}
+
+Intuitively, this axiom states that doing an update is equivalent to changing to an equivalent representaton, doing the appropriately transformed update, and then transforming back.
 
 
 \section{}
