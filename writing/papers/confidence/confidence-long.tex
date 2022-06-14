@@ -731,7 +731,7 @@ Not all update rules of interest are commutative, even if otherwise well-behaved
 
 A \emph{conservative} vector field $Y : M \to T M$ on a differentiable manifold $M$ by be equivalently characterized as
 \begin{itemize}
-    \item ``path independent'', in the sense that, given a path $\gamma : [0,1] \to M$, the line integral
+    \item ``path independent'', in the sense that, its line integrals for paths $\gamma : [0,1] \to M$, the line integral
     $\int_\gamma Y$ of $Y$ along $\gamma$
      depends only on the path endpoints $\gamma(0)$ and $\gamma(1)$.
     \item
@@ -1097,13 +1097,19 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
             \frac{\partial^2}{\partial x_1 \partial w} U
             = \frac\partial{\partial x_i} 1 = 0
         \]
-        violating Clairaut's theorem on equality of mixed partials.
+        violating Clairaut's theorem on equality of mixed partials.         
+        Therefore, $F$ is not an optimizing update rule.
     \end{itemize}
 \end{examplex}
-\begin{examplex}{Sensor Fusion, Part 1}{g1}
+\begin{examplex}{Sensor Fusion, v1}{sfv1}
+    Suppose we have a sensors, which measures a variable $X$, and gives an estimate $S$.
+    Suppose that we also have a prior probability $q(X|S)$ of the value of the variable given the value of the sensor, and also a 
+\end{examplex}
+\begin{examplex}{Sensor Fusion, Many Variables}{sfv2}
+    Suppose we have $n$ sensors, which perorm measurements $\{S_1, \ldots S_n\}$ of variables $\{X_1, \ldots, X_n\}$, but may not be entirely accurate.
 \end{examplex}
 
-\begin{examplex}{Gaussian NGD}{}
+\begin{examplex}{Gaussian NGD}{gauss-ngd}
     Consider the case where $\Theta  = \{ (\mu, \sigma^2) \in \mathbb R \times \mathbb R_+ \}$ is the half-space of parameters to a Gaussian over some real variable $X$, and $\Phi \cong \mathbb R$ consists of possible observations of $X$.
 
     One natural loss function is negative log likelihood (differential surprisal) of the observation $x$ according to your belief state $\theta = (\mu, \sigma^2)$:
@@ -1143,7 +1149,7 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
     \[
         F'_{x}(\mu, \sigma^2) = - \hat\nabla_{\mu, \sigma^2} \mathcal L(x,\mu,\sigma^2) = \mathcal I(\mu, \sigma^2)^{-1}
         \begin{bmatrix}
-            \frac{x-\mu}{\sigma} \\ \frac {-\sigma^2 + (x-\mu)^2}{2 * \sigma^4}
+            \frac{x-\mu}{\sigma} \\[1ex] \frac {-\sigma^2 + (x-\mu)^2}{2 \sigma^4}
         \end{bmatrix}
         =
         \begin{bmatrix}
@@ -1151,14 +1157,51 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
         \end{bmatrix}
     \]
 
-    Note that
+    Note that:
     \begin{itemize}
         \item  $\Ex_{x \sim \nu} [ F'_x(\mu,\sigma^2) ] = \mat 0$ if and only if $\nu$ has mean $\mu$ and variance $\sigma^2$.
-        \item $\displaystyle F^t_\mu(\mu, \sigma_0^2) = (\mu, \frac{1}{t + \frac{1}{\sigma_0^2}}.$\\
-        So, after observing the value of $x$ you already believe to be the mean $\mu$ with confidence $t$, you arrive at a variance equal to the harmonic mean of your initial variance, and $\frac1t$.
-        So, in this setting, confidence is roughly the inverse of variance.
+        % We can interpret this in two ways:
+        % This means that if observations are drawn from a fixed distribution $\nu(X)$,
+        Moreover, this point is the unique global attractor.
+        This means that, 
+        \begin{enumerate}
+            \item If observations are drawn from a fixed distribution $\nu(X)$, and we repeatedly use $F$ to update $\theta = (\nu, \sigma)$ with small confidence $\epsilon$,
+            then $\mu$ will approach the mean $\Ex_{\nu}[X]$ of $\nu$
+            and $\sigma^2$ will approach the variance $\Ex_{\nu}[X^2] - \Ex_{\nu}[X]^2$.             
+            % If we make f observations are drawn from a fixed distribution $\nu(X)$,
+            % If we update our belief parameters $\theta = (\mu, \sigma)$ according to $F$ with  
+            
+            \item If we perform a single high-confidence update on the extended observation $\varphi \propto \nu$, in which each $x$ has relative confidence $\nu(x)$, the result will be a Gaussian with the mean and variance of $\nu$, i.e.,
+            \[ 
+                \forall \theta.\quad
+                \lim_{c \to \infty} \Pr\nolimits_{F_{\nu}^c(\theta)} = \mathcal N(\Ex\nolimits_{\nu}[X], {\mathrm{Var}}_{\nu}[X])
+            \]
+        \end{enumerate}
+        In this sense, relative confidence acts like probability.
+        % So, 
+        
+        \item 
+        If we update with the observation $x = \mu$ of our estimate with confidence $c$,
+        the mean is unchanged, and our estimate of the variance becomes the harmonic mean of our previous variance $\sigma_0^2$ and the inverse confidence $\frac1c$.
+        That is, 
+        \[
+            F^c_\mu(\mu, \sigma_0^2) = 
+            \left(\mu, \frac{1}{c + \frac{1}{\sigma_0^2}} \right).
+        \]
+        In particular, if $\sigma_0^2$ is very large, so that our initial beliefs say very little, updating with confidence $c$ results in variance $\frac1t$.
+        In this sense, the magnitude of confidence acts as the inverse of variance.
     \end{itemize}
 \end{examplex}
+
+
+\begin{prop}[Update Rules as Dynamical System with Inputs]
+    Differentiable update rules are naturally equivalent to control systems
+    % $f : X \times Y \to TX$,
+    which govern the behavior of functions
+    \[
+        \dot x(t) = f(x, u).
+    \]
+\end{prop}
 
 \subsection{Bayes Rule: Updating by Conditioning}
 Fix some measurable space $\X = (X, \mathcal A)$ of possible outcomes, and consider an update rule for probability distributions $\Theta := \Delta\X$
@@ -1232,13 +1275,20 @@ Assuming that the vector field is conservative,
 \subsection{Opacity and Image Blending}
 Fix positive integers $W$ and $H$, and
 let $\Theta := [0,1]^{W\times H\times 3}$ be the set of $W\times H$ colored images.
-
-Let $\Phi$
-Now, consider several different sets of observations
+%
+% Let $\Phi$
+We'll consider several different sets of observations
 \begin{align*}
-     \Phi_0 &:= \Big\{ \text{Full Images}\quad I \in [0,1]^{W \times H \times 3} \Big\} \\
+     \Phi_0 &:= \Big\{ \text{Full Images}\quad \mat X \in [0,1]^{W \times H \times 3} \Big\} \\
+     \Phi_1 &:= \Big\{ \text{Pixels at Given Positions}\quad [0,1]^3 \times (W \times H) \Big\} \\
      \Phi_1 &:= \Big\{ \text{Pixels at Given Positions}\quad [0,1]^3 \times (W \times H) \Big\} \\
 \end{align*}
+
+% First, exponential blending
+In each case, we'll consider an ``expontial'' blending rule:
+\[ 
+    F^{\beta}_{\mat X}(\theta) := 
+\]
 
 
 
@@ -1454,8 +1504,9 @@ from a higher order probability $\Pr(\mu(\Omega))$.
     \item \textbf{Maximum Likelihood (Mode).}
         % $\textit{MLE}(\Pr) := A \mapsto (\arg\max_\mu \Pr(\mu))(A)$
         $\mathit{MLE}(\Pr) = \argmax_\mu \Pr(\mu)$
-
         This is the way that people often do inference.
+        
+    \item 
 
     % \item \textbf{MAP Estimate.}
     %     Suppose we have a prior $\Pr_0$ over joint probabilities $\mu$. Then,
@@ -1469,7 +1520,7 @@ from a higher order probability $\Pr(\mu(\Omega))$.
 \subsection{PDGs}
 
 
-\subsubsection{}
+\subsubsection{Updating Second-Order Distributions with PDGs}
 Let $\mat X$ be a set of variables, where each variable $X \in \mat X$ can take possible values in the set $\V(X)$, and let $\V(\mat X)$ be the set of possible joint settings of all variables in $\mat X$.
 
 \begin{align*}
@@ -1526,7 +1577,7 @@ So one easy way to ensure differentiability for all update rules is to require s
 
 
 
-\subsubsection{}
+\subsubsection{Updating Distributions with PDGs and Incompatibility}
 % \def\tauur{\mathtt T}
 % \def\tauur{\mathtt{GD}}
 % \def\tauur{\tau}
@@ -1588,7 +1639,7 @@ where $\epsilon := 1-e^{-\beta}$ and $Z := \mat X \setminus \{X,Y\}$.
 \end{prop}
 
 
-\subsubsection{}
+\subsubsection{Updating PDGs with PDGs, via inconsistency reduction}
 \begin{align*}
     \Theta :=
         \Big\{
@@ -1597,7 +1648,8 @@ where $\epsilon := 1-e^{-\beta}$ and $Z := \mat X \setminus \{X,Y\}$.
     \Phi := \Big\{ \text{PDGs} \Big\}
 \end{align*}
 
-Of course, we often think
+% Of course, we often think
+We now consider the more general setting, in which both the observations $\Phi$ and the belief states $\Theta$ are 
 Here's an update rule that simply adds the new data to a PDG.
 \[
     F^{\beta}_{p(Y|X)}(\dg M) = \dg M ~+~
@@ -1616,10 +1668,25 @@ It's extension is the update rule that incorporates data of the new PDG to the o
     \bar F^{k}_{\dg M'}(\dg M) = \dg M ~+~ k\,\dg M'
 \]
 
-The natural update rule is
+% There are actually several natural 
+The colletion of all PDGs, even on a finite set of finite variables, does not naturally form a manifold of fixed finite dimension. 
+But if we restrict our attention to PDGs with a certain fixed structure, then it does. 
+But, per \parencite{richardson2022loss}, we already have a natural choice of a loss $\mathcal L = \aar{-} : \mathrm{PDG} \times \mathrm{PDG} \to \mathbb R$: the inconsistency of the joint PDG.
+
+Still, there is more than one reasonable way to perform updates: we can adjust the internal confidences $\bbeta$ of our PDG, or its cpds $\mat p$. 
+% The first is closer to a mixture of experts approach, and the latter 
+
 \[
-    \bar G'_{\dg M'}(\dg M) = - \hat\nabla \aar{\dg M + \dg M'}
+    \bar G'_{\dg M'}(\dg M) = - \hat\nabla_{\mat p} \aar{\dg M + \dg M'}
 \]
+
+\begin{openQ}
+    How do $\bar F$ and $\bar G$ relate to one another?
+\end{openQ}
+
+\begin{conj}
+    $\tauur$ should be a special case. 
+\end{conj}
 
 \subsubsection{}
 \begin{align*}
