@@ -899,7 +899,7 @@ where $ \mathcal I(\theta)^{\dagger} $ denotes the Moore-Penrose psuedoinverse o
 and $\nabla U$ is the usual ``gradient'' with respect to the parameters $\theta$, i.e., the vector of partials
 $[\frac{\partial U}{\partial \theta_1}, % \ldots, \frac{\partial U}{\partial \theta_i},
  \ldots, \frac{\partial U}{\partial \theta_n}]_{i}^{\mathsf T}$,
-which is the transpose of the derivative. 
+which is the transpose of the derivative.
 
 \TODO
 
@@ -1038,9 +1038,9 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
 
 
 \begin{prop}
-    The Bolzmann update rule with potential $U(X)$ is the natural gradient flow update rule for expected value of $U$, i.e., 
+    The Bolzmann update rule with potential $U(X)$ is the natural gradient flow update rule for expected value of $U$, i.e.,
     \(
-        \Bolz U = 
+        \Bolz U =
         \NGD{\mu\mapsto\Ex_\mu U} .
     \)
 \end{prop}
@@ -1089,13 +1089,13 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
         \]
         % \item In this case,
         \item $F$ is commutative, invertible, and symmetric with respect to permutation of the dimensions, but it is not conservative: if we had $U(\mat x, w, \mat y)$ twice differentiable such that $\nabla_{\mat x, w} U = F'$, then we would have
-        \[\frac{\partial^2}{\partial w \partial x_i} U = 
+        \[\frac{\partial^2}{\partial w \partial x_i} U =
             \frac\partial{\partial w} \frac{y_i - x_i}{w} = \frac{x_i - y_i}{w^2}
             \qquad
             \text{but}
             \quad
             \frac{\partial^2}{\partial x_1 \partial w} U
-            = \frac\partial{\partial x_i} 1 = 0 
+            = \frac\partial{\partial x_i} 1 = 0
         \]
         violating Clairaut's theorem on equality of mixed partials.
     \end{itemize}
@@ -1105,8 +1105,59 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
 
 \begin{examplex}{Gaussian NGD}{}
     Consider the case where $\Theta  = \{ (\mu, \sigma^2) \in \mathbb R \times \mathbb R_+ \}$ is the half-space of parameters to a Gaussian over some real variable $X$, and $\Phi \cong \mathbb R$ consists of possible observations of $X$.
-    
-    
+
+    One natural loss function is negative log likelihood (differential surprisal) of the observation $x$ according to your belief state $\theta = (\mu, \sigma^2)$:
+    \[
+        \mathcal L(x, \mu, \sigma^2) = - \log \mathcal N(x \mid \mu, \sigma^2) = \frac12 \log 2\pi\sigma^2  + \frac12 \left(\frac{x-\mu}{\sigma}\right)^2 =
+        \aar*{%
+        \begin{tikzpicture}[center base]
+            \node[dpad0](X) at (0,0){$X$};
+            % \node[dpad
+            \draw[arr2, <<-] (X) to node[above,pos=0.7]{$x$} ++(1.0,0);
+            % \draw[arr2, <-] (X) to node[above]{$\mathcal N(X|\mu,\sigma^2)$} ++(-1.7,0);
+            \node[dpad0](m) at (-1.5, 0.3) {$\mu$};
+            \node[dpad0](s2) at (-1.5, -0.3) {$\sigma^2$};
+            \mergearr{m}{s2}{X};
+            \node[above=2pt of center-ms2X](N){$\mathcal N$};
+            \draw[arr1, <<-] (m) to node[above, pos=0.7]{$\mu$} +(-0.9,0);
+            \draw[arr1, <<-] (s2) to node[above, pos=0.7]{$\sigma^2$} +(-0.9,0);
+        \end{tikzpicture}}.
+    \]
+
+    The fisher information for a normal distribution is given by
+    \[
+    \mathcal I(\mu, \sigma) =
+    % \begin{bmatrix}
+    %     \Ex_{\mathcal N(X|\mu,\sigma^2}[ \frac{\partial mathcal N(X|\mu,\sigma^2}{\partial \mu}) ]
+    % \end{bmatrix}
+    % =
+    \begin{bmatrix}
+        \frac1{\sigma^2} & 0 \\
+        0 & \frac{1}{2 \sigma^4}
+    \end{bmatrix}
+    \]
+
+
+
+    The natural gradient update rule is given by
+    \[
+        F'_{x}(\mu, \sigma^2) = - \hat\nabla_{\mu, \sigma^2} \mathcal L(x,\mu,\sigma^2) = \mathcal I(\mu, \sigma^2)^{-1}
+        \begin{bmatrix}
+            \frac{x-\mu}{\sigma} \\ \frac {-\sigma^2 + (x-\mu)^2}{2 * \sigma^4}
+        \end{bmatrix}
+        =
+        \begin{bmatrix}
+            x-\mu \\ (x-\mu)^2 - \sigma^2
+        \end{bmatrix}
+    \]
+
+    Note that
+    \begin{itemize}
+        \item  $\Ex_{x \sim \nu} [ F'_x(\mu,\sigma^2) ] = \mat 0$ if and only if $\nu$ has mean $\mu$ and variance $\sigma^2$.
+        \item $\displaystyle F^t_\mu(\mu, \sigma_0^2) = (\mu, \frac{1}{t + \frac{1}{\sigma_0^2}}.$\\
+        So, after observing the value of $x$ you already believe to be the mean $\mu$ with confidence $t$, you arrive at a variance equal to the harmonic mean of your initial variance, and $\frac1t$.
+        So, in this setting, confidence is roughly the inverse of variance.
+    \end{itemize}
 \end{examplex}
 
 \subsection{Bayes Rule: Updating by Conditioning}
