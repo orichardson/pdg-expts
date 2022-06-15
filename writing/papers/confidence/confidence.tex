@@ -75,25 +75,110 @@ Here are some recurring themes:
 % Theorem. Certainties can never be gained or lost with any finite sequence of differentiable updates.
 % Theorem. Certainty is always infinitely far away, as measured by the Riemannian metric.
 
-\section{Update Rules}
+% \section{Update Rules}
+\section{A Formalism for Capturing Updating}
 \def\X{\mathcal X}
+\def\W{\mathcal W}
 
 % We now proceed with the formal details.
 Consider a space $\Theta$
 of possible belief states,
-and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
-An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
-is then a function of the form
+and a set $\Phi$ of statements.
+% and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
+% An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+An \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$},
+is a function of the form
 \[
-    F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+    % F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+    F :  \Phi \to \Big( \Theta \to \Theta \Big)
 \]
-which describe how to update beliefs about $X$, with the new information, at a certain level of trust.
-Given a piece of information $\phi \in \Phi$, and a number $\beta$ measuring the change in confidence of $\phi$, we write
+% which describes how to update beliefs about $X$, with the new information, at a certain level of trust.
+which describes how to (fully) update beliefs $\Theta$ with new information $\Phi$.
+Given $F$ and a statement $\phi$, we call $F_\phi : \Theta \to \Theta$ an \emph{update function}.
+% require that it be idempotent.
+We also reqire to be idempotent ($F_\phi \circ F_\phi = F_\phi$),
+because, intuitively, if we have just {fully} updated our beliefs to be consistent with the information $\phi$, then no further alterations will be necessary when we update a second time. 
+% Having said that, one reading of this paper is a relaxation of this requirement. 
+Here are some examples.
+\begin{enumerate}
+    \item %\textbf{Conditioning.}
+    Let $W = \{w_1, \ldots, w_n\}$ be a finite set of ``possible worlds'', 
+    $\Theta := \Delta W$ be the set of probability distributions over $W$,
+    and $\Phi := 2^W$ be set of all subsets of $W$.
+    One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,  
+    \begin{align*}
+        (-) \smash{\,\Big|\,} (\;\cdot\;) : 2^W &\to (\Delta W \to \Delta W) \\
+        % (-) \,\Big|\, (\;\cdot\;) : \Delta X \times 2^X \to \Delta X. 
+        % (\mu \in \Delta X, A \subset X) &\mapsto \mu | A .
+        (A \subset W) &\mapsto (  \mu \mapsto \mu \mid A ),
+    \end{align*}
+    % where $(\mu \mid A)(x) = \frac{\mu(\{x\})}{\mu(A)}$
+    % in which learning $A$ maps 
+    where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A) \{w\} = \ifrac{\mu\{w\}}{\mu(A)}$. 
+    Of course, it is not the only $\Delta W$-updating rule for $2^W$.
+     % $\Phi$. 
+    
+    \item 
+    A second example of an update rule is the ``imaging'' approach of David Lewis
+    \parencite{lewis1976probabilities}.
+    % , albeit in very different notation. 
+    Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
+    For any set $\Phi$, suppose that we already have an $W$-update rule 
+    $f : \Phi \to (W \to W)$, which we interpret as assigning, to each statement $\phi \in \Phi$ and $w \in W$, a unique world $f_\phi w \in W$ which is the world ``most similar to $w$, in which $\phi$ is true''.
+    In this case, idempotence of $f_\phi$ amounts to the very reasonable requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
+    From $f$, we can construct a $\Delta W$-update rule by
+    \[ 
+        F_\phi(\mu) :=  A \mapsto \mu( f^{-1}_\phi( A ))
+    \] 
+    which is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$'', and intuitively acts by moving all of the probability mass on the world $w$ to the ``closest world'' $f_\phi w$. And since $f_\phi$ itself is an update function, $F$ will be idempotent also. 
+    
+    \item More generally, consider a measurable space $\W = (W, \mathcal A)$, where $W$ is a set and $\mathcal A$ is a $\sigma$-algebra over $W$, and let $\mathcal F \subset \mathcal A$ be closed under supersets in $\mathcal A$.
+    % Now, let $\Theta$ be the set of conditional probabili$
+    
+    \TODO[Properly Use Conditional Probability Measure, to define on all events]
+    
+    Conditioning a probability distribution $\mu \in \Delta\X$ on an event $A \in \mathcal A$ also makes sense in this more general measure-theoretic setting, at least so long as $\mu(A) > 0$, and is given by
+    % the Lebesgue integral
+    % \[ 
+    $$
+        % (\mu \mid A) (B) = \frac{1}{\mu(A)} \int \mathbf 1_{B}(x)  \mathrm d\mu(x)
+        (\mu \mid A) (B) = \frac{\mu(B \cap A)}{\mu(A)}
+    $$
+    
+
+    \item
+        % \textbf{Neural Networks Updates.}
+        % \textbf{Machine Learning.}
+    Now, suppose $\Theta$ parameterizes a set of models $\{ f_\theta : X \to Y \}_{\theta \in \Theta}$; perhaps it is the set of possible weights of a neural network. 
+    
+    But 
+     % suppose $\Theta$ is a set of parameter settings , 
+
+ % WE DO NOT WANT TO TALK ABOUT DS FUNCTIONS HERE BECAUSE THEY ARE VARIABLE CONFIDENCE.
+    % \item
+    % Again consider a finite set $W$ and suppose $\Theta$ consists of all Dempster-Shafer blief functions 
+    \item Many other examples of update rules for standard notions of uncertainty can be found in \parencite[Ch. 3]{halpern2017reasoning}.    
+\end{enumerate}
+%
+
+% , at a certain level of trust.
+% We are interested in . A \emph{}
+% Each of these update rules takes its input 
+What about less extreme belief alterations? Emperically, people benefit from spaced repetition; there is often value in learning the same thing more than once.
+To take another of our examples, neural networks are trained with many incremental updates. 
+Indeed, essentailly all modern machine learning algorithms work by differentially updating beleifs, and arguably 
+
+To that end, we define a \emph{confidence function} to be a function
+\[
+    F: R \to ( \Phi \to (\Theta \to \Theta))
+\]
+which, given an incremental confidence $c \in \mathbb R$, returns an update rule on $\Theta$. 
+Given $c \in \mathbb R$ and a statement $\phi \in \Phi$, we write
+ % Given a piece of information $\phi \in \Phi$, , we write
 % $F^\beta_\phi : \Delta\X \to \Delta X$
 $F^\beta_\phi : \Theta \to \Theta$
-for the \emph{update} prescribed by $F$.
-Note that updates can be composed.
-We will insist that update rules obey certain properties, especially the following two.
+for the update function prescribed by $F$.
+Furthermore, we will insist that update rules obey certain properties, especially the following two.
 \begin{URaxioms}
     % \item \textbf{(zero)} $F^{0}_A(\Pr) = (\Pr)$
     % \item  $F^{0}_A  = {1}_{\Delta\X}$. (That is, $F^{0}_A(\Pr) = \Pr$ for all $\Pr \in \Delta\X$.)
@@ -1181,7 +1266,7 @@ Assuming that the vector field is conservative,
 \subsection{Bolzman Rationality}
 
 \begin{examplex}{}{}
-
+    Consider a neural network whose output is a c
 \end{examplex}
 
 % Loss Functions
