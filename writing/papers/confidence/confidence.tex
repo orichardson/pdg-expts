@@ -195,62 +195,75 @@ It might be
 a probability distribution, a parameter setting to some parameteric family of probabilities, a set of probabilities, a Dempster-Shafer belief function, or even just a setting of weights for a neural network. 
 Now, suppose you recieve some input information $\phi \in \Phi$, such as an event or a sample from a dataset, which you may use to update your belief state. 
 %
-Before we add confidence into the mix, let's first see how this setup works without it.
+Before we add confidence into the mix, let's first see how this setup works without it, so that we can more clearly see what is missing.
 The first assumption we make is that the updating process can be captured in functional form. 
 % The primary assumption that we have to make is:
 \begin{CFaxioms}
     \item[\textbf{F}] 
-        The updating process can be described as a function $F : \Theta \times \Phi \to \Theta$, which produces a new belief state, as a function of the old belief state and the new information.
+        % The updating process can be described as a function 
+        There exists a function
+        % $F : \Theta \times \Phi \to \Theta$,
+        $F : \Phi \to ( \Theta \to \Theta)$,
+        which, given the old belief state $\theta$ and new information $\phi$, produces the belief state $F_\phi\theta$ that corresponds to the result of observing $\phi$ in state $\theta$.
+        % which produces a new belief state, as a function of the old belief state and the new information.
 \end{CFaxioms}
-
-Although not incontrovertable, this seems like a reasonable requirement. 
 
 Given such a function $F$ and a statement $\phi$, we call $F_\phi : \Theta \to \Theta$ an \emph{update}. 
 % At this point, since we have no way of articulating how confident we are in the new information, the only reasonable thing to 
 If purpose of $F$ is to \emph{fully} incorporate the new information into our beliefs
-(and without a notion of confidence, we can't very well specify how much to incorporate), then it should be the case that a second update with the same information should not affect the belief state.
+(and without a notion of confidence, we can't very well specify how much to incorporate), then
+% it should be the case that a second update with the same information should not affect the belief state.
+% a second update with the same information should not affect the belief state.
+two successive updates with the same information ought to have the same effect as a single one.
+Intuitively, this is because if we have just \emph{fully} updated our beliefs to be consistent with the information $\phi$, then a second observation of $\phi$ will require no further alterations of our belief state.
 In this case, we call $F$ an \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$}, and insist that
 \begin{CFaxioms}
     \item[\textbf{UR}] For all $\phi \in \Phi$, the update $F_\phi$ is
     % require that it be idempotent.
-    idempotent ($F_\phi \circ F_\phi = F_\phi$)
+    idempotent (i.e., $F_\phi \circ F_\phi = F_\phi$).
 \end{CFaxioms}
 
 % In curried form, $F : \Phi \to (\Theta \to \Theta)$. 
 
 % We now proceed with the formal details.
-\textbf{Update Rules.}
-Consider a space $\Theta$
-of possible belief states,
-and a set $\Phi$ of statements.
-% and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
-% An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
-An \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$},
-is a function of the form
-\[
-    % F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
-    F :  \Phi \to \Big( \Theta \to \Theta \Big)
-\]
-% which describes how to update beliefs about $X$, with the new information, at a certain level of trust.
-which describes how to (fully) update beliefs $\Theta$ with new information $\Phi$.
-
-and for $F$ to be an update rule, we require that , meaning that updating any belief with $\phi$ twice in a row is equivalent to single update.
-Intuitively, this is because if we have just ({fully}) updated our beliefs to be consistent with the information $\phi$, then a second observation of $\phi$ will require no further alterations of our belief state.
+% \textbf{Update Rules.}
+% Consider a space $\Theta$
+% of possible belief states,
+% and a set $\Phi$ of statements.
+% % and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
+% % An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+% An \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$},
+% is a function of the form
+% \[
+%     % F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+%     F :  \Phi \to \Big( \Theta \to \Theta \Big)
+% \]
+% % which describes how to update beliefs about $X$, with the new information, at a certain level of trust.
+% which describes how to (fully) update beliefs $\Theta$ with new information $\Phi$.
+% and for $F$ to be an update rule, we require that , meaning that updating any belief with $\phi$ twice in a row is equivalent to single update.
 % Having said that, one reading of this paper is a relaxation of this requirement.
-Here are some examples.
+% Here are some examples.
+Once $\Theta$, $\Phi$, and any implicit structure in them is specified, there is typically a natural choice of update rule. 
+To illustrate, we now consider three different probability-update rules for different choices of $\Phi$.
+To that end, let $W = \{w_1, \ldots, w_n\}$ be a finite set of ``possible worlds'',
+and $\Theta := \Delta W$ be the set of all probability distributions over $W$. 
+
 \begin{enumerate}
     \item %\textbf{Conditioning.}
     \textbf{Conditioning.}
-    Let $W = \{w_1, \ldots, w_n\}$ be a finite set of ``possible worlds'',
-    $\Theta := \Delta W$ be the set of probability distributions over $W$,
-    and $\Phi := 2^W$ be set of all subsets of $W$.
-    One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,
+    First, consider the case where observations are events, i.e., $\Phi := 2^W$. 
+    % One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,
+    % Here, the appropriate update seems to be condition:
+    Here, the appropriate rule seems to be conditioning:
     \[
     \begin{aligned}
         (-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W &\to (\Delta W \to \Delta W) \\
+        % (-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W \times \Delta W &\to \Delta W \\
         % (-) \,\Big|\, (\;\cdot\;) : \Delta X \times 2^X \to \Delta X.
         % (\mu \in \Delta X, A \subset X) &\mapsto \mu | A .
-        (A \subset W) &\mapsto (  ~~\mu~~ \mapsto \mu \mid A ),
+        % (A \subset W) &\mapsto (  ~~\mu~~ \mapsto \mu \mid A ),
+        A  &\mapsto (  ~\mu~~ \mapsto \mu \mid A ~),
+        % (A, \mu) ~&\mapsto~  \mu \mid A\, ,
     \end{aligned}
     % \qquad
     % \qquad
@@ -265,9 +278,16 @@ Here are some examples.
     % where $(\mu \mid A)(x) = \frac{\mu(\{x\})}{\mu(A)}$
     % in which learning $A$ maps
     % where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A) \{w\} = \ifrac{\mu\{w\}}{\mu(A)}$.
-    where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
-    and can be defined arbitrarily otherwise.
-    Of course, it is not the only $\Delta W$-updating rule for $2^W$.
+    % where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+    where the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+    % and may be defined arbitrarily otherwise.
+    and otherwise is just equal to $\mu$.
+    Observe:
+    \begin{itemize}[nosep]
+        \item Provided $\mu(A) > 0$, then $(\mu\mid A) \mid A = \mu \mid A$, so conditioning is an update rule.
+        \item If $\mu(A \cap B) > 0$, then $(\mu \mid A) \mid B = \mu \mid (A \cap B) = (\mu \mid B) \mid A$, so the order that information is recieved does not matter, so long as that information is consistent with one's beliefs.
+    \end{itemize}
+    % However, it is not the only $\Delta W$-updating rule for $2^W$.
      % $\Phi$.
 
     \item
@@ -275,16 +295,18 @@ Here are some examples.
     A second example of an update rule is the ``imaging'' approach of David Lewis
     \parencite{lewis1976probabilities}.
     % , albeit in very different notation.
-    Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
-    For any set $\Phi$, suppose that we already have an $W$-update rule
-    $f : \Phi \to (W \to W)$, which we interpret as assigning, to each statement $\phi \in \Phi$ and $w \in W$, a unique world $f_\phi w \in W$ which is the world ``most similar to $w$, in which $\phi$ is true''.
-    In this case, idempotence of $f_\phi$ amounts to the very reasonable requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
+    % Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
+    Suppose that, for some set $\Phi$, that we already have a $W$-update rule
+    $f : \Phi \to (W \to W)$, which we interpret as assigning, to each statement $\phi \in \Phi$ and $w \in W$, a unique world $f_\phi w \in W$ which is the world ``most similar to $w$, in which $\phi$ is true'' \parencite{gardenfors1979imaging}.
+    In this case, idempotence of $f_\phi$ amounts to the (very reasonable) requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
     From $f$, we can construct a $\Delta W$-update rule by
     \[
-        F_\phi(\mu) :=
-            f^{\sharp}(\mu)
-            =
-            A \mapsto \mu( f^{-1}_\phi( A ))
+    \begin{aligned}
+        F_\phi(\mu) &:=
+            f^{\sharp}(\mu) \\
+            % &= A \mapsto \mu( f^{-1}_\phi( A ))\\
+            &= A \mapsto \mu(\{w : f(w) \in A\})
+    \end{aligned}
         \qquad
         \qquad
         \begin{tikzpicture}[center base]
@@ -298,8 +320,9 @@ Here are some examples.
             \draw[arr2, <-, dashed, gray] (W') to node[above]{$F_\phi(\mu)$} ++(2, 0);
         \end{tikzpicture}
     \]
-    which is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$'', and intuitively acts by moving all of the probability mass on the world $w$ to the ``closest world'' $f_\phi w$.
-    Since $f$ is idempotent, $F$ will be as well.
+    which intuitively moves the probability mass on each world $w$ to the $f_\phi w$, the closest world to $w$ in which $\phi$ is true.
+    % is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$''
+    And, since $f$ is idempotent, $F$ will be as well.
 
 
     \commentout{
@@ -319,82 +342,109 @@ Here are some examples.
 
 
     \item \textbf{Jeffrey's Rule.}
-    Once more, suppose that $W$ is a finite set and $\Theta := \Delta W$. But now our observations will not be measurable events (subsets of $W$), but instead pairs $(X,\pi)$,
+    % Once more, suppose that $W$ is a finite set and $\Theta := \Delta W$.
+    Next, consider a more general form of observation, in which observations themselves are probabilities. 
+    % Formally, suppose $\Phi$ consists of pairs $(X,\pi)$,
+    % Formally, suppose $\Phi$ consists of marginal distributions $\pi(X)$
+    Formally, suppose $\Phi$ consists of distributions $\pi(X)$,
     % written $\pi(X)$,
-    where $X : W \to S$ is a random variable (i.e., some function of $W$), and $\pi \in \Delta S$ is a distribution over the possible values that $X$ can take.
+    where $X : W \to S$ is a random variable,
+    % (i.e., some function of $W$),
+    and $\pi \in \Delta S$ is a distribution over the possible values that $X$ can take.
     Jeffrey's rule, given by
     \begin{align*}
-        \mathrm{Jeffrey}_{(X,\pi)} (\mu) &:= \sum_{x \in S} \pi(X\!=x) \;  \mu \,\Big|\, \{ w : X(w) = x \}
+        % \mathrm{Jeffrey}_{(X,\pi)}
+        % \mathrm{Jeffrey}_{\pi(X)}
+        \mathrm{J}_{\pi(X)}
+        (\mu) &:= \sum_{x \in S} \pi(X\!=x) \;  \mu \,\Big|\, \{ w : X(w) = x \}
             \\
             &= A \mapsto \sum_{x \in S} \pi(X\!=x)\, \mu( A \mid X \!= x)
     \end{align*}
 
     When $\pi(X) = \delta_x$ is a point mass $X=x$, then Jeffrey's Rule simply conditions on the event $X = x$.
      % but for other choices of $\pi(X)$,
-    For this reason, Jeffrey's Rule is sometimes seen as a way of making an update with uncertainty (i.e., a low-confidence update), but as we will see, it instead is rather a high-confidence update on a more expresive class of observations.
-
-    \item \textbf{Conjunction Learning}.
-    Suppose $X_1, \ldots, X_n$ are binary variables, and we are trying to learn a conjunction
-    $h(X_1, \ldots X_n) = \bigwedge_{j \in J} X_j \bigwedge_{j \in \bar J} \bar X_j$,
-    where some of the variables might be negated.
-    % and let $T := \{ x_1, \lnot x_1, \ldots, x_n, \lnot x_n\}$ be all possible settings of one of the variables.
-    Let $\Theta$ be the set of all such conjunctions, which can be generated by pairs of of subsets of variables $J,\bar J \subset \{1, \ldots, n\}$.
-    Fix some ``true'' (but unknown) conjunction $f \in \Theta$ which generates our observations, and let $\Phi$ be the set of possible pairs $(\mat x, b)$, where
-    $\mat x = (X_1\!=\!x_1, \ldots, X_n \!=\!x_n)$ is a joint setting of all variables, and $b = f(\mat x)$.
-
-    One reasonable update rule proceeds as follows. Given a hypothesis $h \in \Theta$ represented by $(J, \bar J)$, and an observation $(\mat x \mapsto b)$:
-    \[
-        F_{(\mat x, b)}(h) :=
-        \begin{cases}
-            [J, \bar J] & \text{ if } h(\mat x) = b \\
-            [J \setminus \{i : x_i = 0\}, \bar J] &\text{ if } h(\mat x) = 0 \text { but } b = 1\\
-            [J, \bar J \setminus \{i : x_i = 1\}] &\text{ if } h(\mat x) = 1 \text { but } b = 0\\
-    \end{cases}
-    \]
-    So, if our current hypothesis $h$ correctly predicts the sample, we do nothing. If it predicts that $h(\mat x)$ is false but $f(\mat x)$ is true, then we restrict
-    So, if $h(\mat x) = 1$ but $b = 0$, we
-
-    \TODO
-
-
-    % \item Many other examples of update rules for standard notions of uncertainty can be found in \parencite[Ch. 3]{halpern2017reasoning}.
+    For this reason, Jeffrey's Rule is sometimes seen as a way of making an update with uncertainty (i.e., a ``low-confidence'' update), but as we will see, it instead is perhaps better thought of as a high-confidence update on a more expresive class of observations.
+    
+    Note that if $\mu' := J_{\pi(X)}\mu$ is the result of applying Jeffrey's rule to $\pi(X)$ and $\mu$, 
+    % then $\pi$ will be fully incorporated (that is, $\mu'(X) = \pi(X)$), 
+    then $\mu'(X) = \pi(X)$, so $\pi(X)$ has been fully incorporated into $\mu'$, and the old beliefs $\mu(X)$ about $X$ have been completely destroyed by the update.
 \end{enumerate}
-%
+
+
+
 
 % , at a certain level of trust.
 % We are interested in . A \emph{}
-% Each of these update rules takes its input
-What about less extreme belief alterations, in which we only gradually incorporate information?
-Humans certainly don't update our beliefs with update functions.
-The prevalance of flash cards as a learning tool, which are meant to be cycled through more than once, witensses this clearly.
+% Each of these update rules takes its 
+If we take a step back, fully incorporating information is really quite extreme. 
+% For agents that uses conditioning, for instance, incorporation is permanent. 
+% Observing information 
+An agent that updates with conditioning for instance, is forever committed to fully believing $A$, and consequently, learns nothing from observing $A$ agin in the future. 
+Humans don't work this way. 
+The effectiveness of flash cards as a learning tool is one clear illustration:
+if we were using an update rule, two cycles through a deck of flash cards would be no different from one.
 Similarly, artificial neural networks are trained with many incremental updates, and cycle through training data more than once.
-% Indeed, essentailly all modern machine learning algorithms work by updating parameters little-by-little, rather than fully incorporating input information.
-Broadly speaking, there seems to be value in learning the same thing more than once---or, put another way---in updating with varaible confidence.
+Indeed, this is one biggest differences between modern machine learning algorithms and the older rule-based ones: the new ones update parameters little-by-little, rather than fully incorporating input information.
+% Once an agent that uses conditioning incorporates $A$, it is forever committed to believing $A$, and as a side effect, there is no point to making 
+How shall we alter our picture to account for less extreme belief alterations, in which information is only partially incorporated?
+This is where confidence comes in. 
+% Humans don't always update our beliefs with update functions.
+% Often there seems to be value in learning the same thing more than once---or, put another way---in updating with confidence.
 
-To that end, we now consider a domain of variable confidence. Formally, we represent the possible degrees of confidence by a group $(\confdom, +, 0)$ with an absorbing element $\top \in \confdom$, such that $\top + c = \top$ for all $c \in \confdom$.
-In terms of confidence, we interpret the components of the group as follows.
+
+% To that end, we now consider a domain of possible values of confidence, which describes a degree of incorporation.
+% To that end,
+To describe a degree of partial incorporation, we will need a domain of possible confidence values.
+Mostly, we will stick to using real numbers, but it will clarify things to stay more general for now, so that we can see the properties we actually need. 
+% Formally, we represent the possible degrees of confidence by a group
+Formally, a \emph{confidence domain} is a tuple $(\confdom, \oplus, \bot, \top)$, 
+where $(\confdom, \oplus, \bot)$ is a monoid with operation $\oplus$ and neutral element $\bot$, and $\top \in \confdom$ is an absorbing element---i.e., $\top \oplus c = \top$ for all $c \in \confdom$.
+In terms of confidence, we interpret the components as follows:
+
 \begin{itemize}%[]
     \item
-    We view the elements of $\confdom$ as possible degrees of confidence.
-    \item The group operation $+ : \confdom \times \confdom \to \confdom$ describes how to combine two confidences in the same assertion, to obtain a new confidence that represents the combined confidence in the assertion.
-    \item The neutral element $0 \in \confdom$ indicates ``no confidence'' in an observation.
+    The elements of $\confdom$ are the possible degrees of confidence.
+    
+    \item
+    The monoid operation $\oplus : \confdom \times \confdom \to \confdom$ describes how to combine two (independent) confidences in some statement, to obtain a new confidence in that statement.     
+    
+    \item The neutral element $\bot \in \confdom$ indicates ``no confidence'' in an observation.
         %
         % The fact that we want to ignore information we have no confidence in
         % gives corresponds to the group identity laws: that
-        The group identity laws, which assert that
-        $0 + c = c = c + 0$ for all $c \in \confdom$,
-        concord with the intuition that an observation that one has no confidence in, has no effect.
+    The monoid identity laws, which assert that
+        $\bot \oplus c = c = c \oplus \bot$ for all $c \in \confdom$,
+    reflect the intuition that we should ignore untrusted information in combining confidences.
         % in which case we should ignore the information at hand,
-    \item The absorbing element $\top$, which may be read as ``full confidence'' indicates that we should fully incorporate the information into our belief state.
+    \item The absorbing element $\top$ indicates ``full confidence''.
     The absorbtion property corresponds to the intuition that, definitive information that $\phi$ is true, when combined with other (perhaps less reliable) information that $\phi$ is true, is still definitive.
 \end{itemize}
 
-We now define a \emph{\cofunc} to be a function
-\[
-    F: \confdom \to ( \Phi \to (\Theta \to \Theta))
-\]
-which, given an incremental confidence $c \in \mathbb \confdom$, returns an ``incremental'' update rule, i.e., a function with the same type as an update rule, except possibly non-idempotent.
-Given $c \in \confdom$ and a statement $\phi \in \Phi$, we write
+% We now define a \emph{\cofunc} to be a function
+We are now in a position to consider confidence when updating. 
+Here again, we make the assumption that it can be represented as a function. 
+
+\begin{CFaxioms}
+    \item[CF0] 
+    There exists some function 
+    % $F : \Theta \times \Phi \to \Theta$,
+    \[
+        F : \confdom \to ( \Phi \to ( \Theta \to \Theta) )
+    \]
+    which, given a confidence and new information $\phi$, in addition to a prior belief state $\theta$, produces the belief state $F^c_\phi\theta$ that corresponds to the result of observing $\phi$ in state $\theta$.
+\end{CFaxioms}
+
+% Although not incontrovertable, this seems like a reasonable requirement.  
+% After all, if 
+Although not incontrovertable, this seems like a reasonable requirement.
+It is not so important that the function be deterministic---we can make it a non-deterministic or probabilistic without too much hassle---the real purpose of this is to assert that all of the information we need to compute the next belief state is contained in either (1) our previous belief state, (2) the new information, or (3) our confidence in it. 
+
+
+% which, given an incremental confidence $c \in \mathbb \confdom$, returns an ``incremental'' update rule, i.e., a function with the same type as an update rule, except possibly non-idempotent.
+% which, given a confidence $c \in \mathbb \confdom$, returns an ``incremental'' update rule,
+% i.e., a function with the same type as an update rule, except possibly not idempotent.
+% i.e., a function $F^c : \Phi \to (\Theta \to \Theta)$ that may not be idempotent.
+Given a confidence $c \in \confdom$ and a statement $\phi \in \Phi$, we write
  % Given a piece of information $\phi \in \Phi$, , we write
 % $F^\beta_\phi : \Delta\X \to \Delta X$
 $F^c_\phi : \Theta \to \Theta$
@@ -423,31 +473,58 @@ Furthermore, we will insist that update rules obey certain properties.
 % \begin{CFaxioms}
     % \item For all $\beta_1, \beta_2 \in \mathbb R_{\ge 0}$,~
     \item For all $c_1, c_2 \in \confdom$,~
-        $F^{c_1}_\phi \circ F^{c_2}_\phi = F^{c_1 + c_2}_\phi$
+        $F^{c_1}_\phi \circ F^{c_2}_\phi = F^{c_1 \oplus c_2}_\phi$
         \hfill \textbf{(additivity)} \label{ax:additivity}
 \end{CFaxioms}
 \Cref{ax:zero} captures the intuition that we should ignore information in which we have no confidence, while \cref{ax:idemp} formalizes the intuition that a full-confidence update should behave as above.
 % \Cref{ax:additivity} states that, for all $\theta$, the function $c \mapsto F^c_\phi\theta : \confdom \to \Theta$ is a group homomorphism.
  % a confidence of $\top$ indicates that we are fully incorporating information into our beliefs.
-\Cref{ax:additivity} simply states that \cofunc s respect the combination operation: if we fix an assertion $\phi$, then an update with confidence $c_1$ followed by an update with confidence $c_2$ is equivalent to an update with confidence $c_1 + c_2$, which is, by definition, the result of comining confidences $c_1$ and $c_2$.
+\Cref{ax:additivity} looks like it could be problematic, but it simply states that \cofunc s respect the combination operation: if we fix an assertion $\phi$, then an update with confidence $c_1$ followed by an update with confidence $c_2$ is equivalent to an update with confidence $c_1 + c_2$, which is, by definition, the result of comining confidences $c_1$ and $c_2$.
 On its own, so long as we have the freedom to choose $\confdom$, \Cref{ax:additivity} has no teeth.
 
 \begin{prop}
     If $F: \confdom \to (\Phi \to (\Theta \to \Theta))$ satisfies \cref{ax:zero,ax:idemp}, then we can construct a new update
-    function for $\Theta$ on $\Phi$, that \emph{is} additive, but with the altered confidence domain
-    $$
-        \confdom' := \{ \text{ finite lists } [c_1, \ldots c_n]
-            \text{ such that } c_i \in \confdom \text{ for all } i = 1, \ldots, n \},
-    $$
-    whose group operation is list concatenation.
-    This update rule is given as follows:
+    % function for $\Theta$ on $\Phi$, that behaves in exactly the same way, but \emph{is} additive, but with the altered confidence domain
+    function for $\Theta$ on $\Phi$, that behaves in exactly the same way, except that it is exteneded to a larger confidence domain, for which which it does satisfy \cref{ax:additivity}. 
+\end{prop}
+\begin{lproof}
+Consider the new confidence domain
+$$
+    \confdom' := \Big\{ \text{ finite lists } [c_1, \ldots c_n]
+        \text{ with each } c_i \in \confdom, 
+        % \text{ such that } c_i \in \confdom \text{ for all } i = 1, \ldots, n 
+        \quad
+        % \text{list concatenation}~::,
+        ::,
+        \quad
+        [\,],
+        \quad
+        [\top]
+    \Big\},
+$$
+whose group operation ``$::$'' is list concatenation, except that it collapses instances of $\top$, i.e., 
+\[ 
+    [c_1, \ldots c_n] :: [d_1, \ldots, d_m]
+     := \begin{cases}
+         % [\top] & \text{ if } c_i = \top \text{ for some $i$ or $d_j=\top$ for some $j$}\\
+         [\top] & \text{ if } \top \in \{c_1, \ldots, c_n,d_1, \ldots,d_m \} \\
+         [c_1, \ldots, c_{n}, d_1, \ldots, d_m] & \text{otherwise.}
+ \end{cases}
+\]
+Concatenating the empty list $[\,]$ on either side has no effect,
+by construction, for all $L \in \confdom'$, we have $[\top] :: L = [\top] = L :: [\top]$, 
+and $::$ is clearly associative, so $\confdom'$ is also a confidence domain.
+
+The new update rule for this confidence is given by:
     \[
         AF^{[c_1, \ldots, c_n]}_\phi (\theta)  :=
                 (F^{c_n}_\phi \circ \cdots \circ F^{c_1}_\phi) (\theta).
     \]
-\end{prop}
-\begin{proof}
-By construction,
+$AF$ has the same behavior as $F$ on the elements that correspond to the original confidence domain, since
+$
+    AF^{[c]}_\phi(\theta) = F^c_\phi(\theta),
+$
+and it is additive by construction, since
 \begin{align*}
 AF^{[c_1, \ldots, c_n]}_\phi ( AF^{[d_1, \ldots, d_m]}_\phi (\theta) )
         &:=
@@ -456,11 +533,11 @@ AF^{[c_1, \ldots, c_n]}_\phi ( AF^{[d_1, \ldots, d_m]}_\phi (\theta) )
         &= (F^{d_m}_\phi \circ \cdots \circ F^{d_1}_\phi \circ
         F^{c_n}_\phi \circ \cdots \circ F^{c_1}_\phi) (\theta) \\
         &= AF^{[c_1, \ldots, c_n, d_1, \ldots, d_m]}_\phi (\theta) \\
-        &= AF^{[c_1, \ldots, c_n] + [d_1, \ldots, d_m]}_\phi (\theta).
+        &= AF^{[c_1, \ldots, c_n] :: [d_1, \ldots, d_m]}_\phi (\theta).
 \end{align*}
-\end{proof}
+\end{lproof}
 
-If $F$ is a \cofunc, then by \cref{ax:idemp}, $F^{\top}$ is an update rule, and we call $F$ a ``refinement'' of the update rule $F^{top}$.
+If $F$ is a \cofunc, then by \cref{ax:idemp}, $F^{\top}$ is an update rule, and we call $F$ a ``refinement'' of the update rule $F^{\top}$.
 
 We are primarily interested in the case where confidence can be measured as a real number, and so for most of this paper, we take $\confdom := \mathbb R_{+} = \big([0, \infty) \cup \{\infty\}, +, 0, \infty\big)$ to be the group of extended nonnegative real numbers under addition.
 With this choice of confidence domain, \cref{ax:additivity} begins to have more bite, although, as we will see, the effect is more to pin down a coherent system of measurement, and does not appear to restrict modeling expressivness.
