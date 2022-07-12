@@ -620,8 +620,11 @@ We now consider two such confidence domains.
          
         \item \textbf{Chemical Reactions.} 
         Suppose that we have a mixture of nano-bots.
-        Each nano-bot has some type $\phi \in \Phi$, and has the effect of reconfiguring other bots to be of type $\phi$.
-        Each bot type $\phi$ has a concentration $\beta_\phi$, say measured in number of bots per liter of solution, is in some sense, a measure of how much ``confidence'' the mixture has in $\phi$---if the concentration is zero, then that bot type may be ignored, and if all particles are of type $\phi$, then 
+        Each nano-bot has some type $\phi \in \Phi$, and has the effect of turning matter into bots of type $\phi$.
+        For every $\phi \in \Phi$, let $\beta_\phi$ be the concentration of bots of type $\phi$, say measured in number of bots per liter of solution.
+        In some sense, $\beta_\phi$ measure of how much ``confidence'' the mixture has in $\phi$---if the concentration is zero, then that bot type may be ignored, and if all particles are of type $\phi$, then 
+        
+        \TODO
         
         % Suppose that there is a chemical mixture of nano-bots. each of type $\phi_i$.
         
@@ -672,7 +675,7 @@ Here are two natural \cofunc s for this scenario, both of which are refinements 
     $
 \end{itemize}
 The first \cofunc, $F1$, linearly interpolates between the result of ignoring the information contained in the event $A$ (i.e., leaving the belief state $\mu$ unchanged) and conditioning on $A$.
-By contrast, $F2$ does a similar interpolation, but in log space.
+By contrast, $F2$ does a similar interpolation, but multiplicatively.
 
 \item
     % \textbf{Neural Networks Updates.}
@@ -928,8 +931,11 @@ The idea here is that if $A$ and $B$ are independent, then it is equivalent to l
 % \subsection{Elementary Properites of Update Rules}
 \subsection{Combining Updates}
 \begin{prop}[closure under rescaling]
-    If $F^{\beta}_\phi$ is an update rule for $\Phi$, then so is
-    $G^{\beta}_\phi := F^{k \beta}_\phi$, for any positive real number $k > 0$.
+    % If $F^{\beta}_\phi$ is an update rule for $\Phi$, then so is
+    If $F$ is a \cofunc\ for $(\Theta,\Phi,\Rplus)$, then so is
+    % $G^{\beta}_\phi := F^{k \beta}_\phi$, for any positive real number $k > 0$.
+    $F^k := (\phi,\theta,\beta) \mapsto F^{k\beta}_\phi(\theta)$,
+    for every positive real number $k > 0$.
         \label{prop:rescale}
 \end{prop}
 
@@ -1247,7 +1253,10 @@ and $\nabla \mathcal L$ is the gradient for the euclidean metric i.e., the vecto
 
 
 
-\subsection{Boltzmann Update Rules}
+\subsection{Expected Utility Maximization Update Rules}
+% \subsection{Boltzmann Update Rules}
+
+
 % Again, suppose we have a differentiable function $U : \Theta \times \Phi  \to \mathbb R$.
 % Suppose further that we have a recovering a parameter that gives rise to a given probability distribution, i.e., a section of $\Pr$, or concretely,
 % a function $\Pr^{-1} : \Delta\X \to \Theta$ such that $\Pr(\Pr^{-1}(\mu)) = \mu$ for all $\mu \in \Delta\X$.
@@ -1266,9 +1275,15 @@ and $\nabla \mathcal L$ is the gradient for the euclidean metric i.e., the vecto
 %         \bigg\}
 % \end{align*}
 % Now suppose we have a potential function $U : X \times \Phi  \to \mathbb R$.
+
 \def\Bolz#1{\mathrm{Bolz}[#1]}
-Suppose, for each $\phi \in \Phi$, we have a potential function $U_\phi : X \to \mathbb R$ on the underlying set $X$.
+% Suppose, for each $\phi \in \Phi$, we have a potential function $U_\phi : X \to \mathbb R$ on the underlying set $X$.
+
+% What in the special case where $\Theta$ parameterizes a family of probability distributions, $\Thet$
+
+Suppose, for each $\phi \in \Phi$, we have a utility function $U_\phi : X \to \mathbb R$ on the underlying set $X$.
 We can use this to define an update rule
+
 \begin{align*}
     \Bolz U &: (\mathbb R \times \Phi) \to \Delta\X \to \Delta\X \\
     \Bolz U^\beta_\varphi(\mu)
@@ -1489,10 +1504,60 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
 
 
 %
+\section{Settings}
+\subsection{Probabilities and Events}
+\subsection{Probabilities and Samples}
+
+First, let's take the where belief state is an explicit representation of a finite probability distribution, and observations are samples of it. 
+Concretely, this means $\Theta := \Delta W$, and $\Phi := W$. 
+
+Intuitively, we would like it to be the case, that if we observe samples drawn from our 
+
+\begin{CFaxioms}
+    \item  $\bar F_{\!\mu}'\mu = \vec 0$. 
+    That is, $\Ex_{x \sim \mu}[ F'_{\!x}\mu] = \vec 0$.
+    \hfill \textbf{(calibration)} \label{ax:calibration}
+\end{CFaxioms}
+
+
+\begin{prop}
+    Expected utility maximizing update rules cannot be calibrated for more than one distribution.
+
+\end{prop}
+\begin{lproof}
+    Suppose we have a \cofunc\ given by
+    $\mathcal L^{F}(\mu, x) = \Ex_{y \sim \mu} U(x,y)$.
+    Then
+    \[ 
+        F'_{x} \mu = \mu \odot (\vec U_x - \Ex_{\mu}{U_x})
+    \] 
+    It is calibrated iff 
+    \begin{align*}
+        \vec 0 =  \bar F'_\mu(\mu) 
+            &= \sum_{x} \mu(x)  F'_{x} (\mu)
+            = \sum_{x} \mu(x) \Big( \vec \mu \odot \vec U_x - (\Ex\nolimits_{\mu}{U_x}) \vec \mu \Big) \\
+        \iff\qquad
+        \forall y \in X.~~
+            0 &= \sum_{x} \mu(x) \mu(y) ( U(x,y) - \Ex\nolimits_{\mu} U_x ) \\
+        \iff\qquad
+        \forall y \in X.~~
+            \Ex_{x \sim \mu}\Ex_{z\sim \mu}[ U(x,z) ] &= \Ex_{x \sim \mu}[ U(x,y) ]
+    \end{align*} 
+    Choosing $\mu = \delta_w$, we this means
+    \begin{align*}
+        \forall y.~~ U(w,w) = U(w,y)
+    \end{align*}
+    but this contradicts 
+\end{lproof}
+
+
+% \begin{enumerate}
+%     \item 
+% \end{enumerate}
+
 
 \section{Examples}
 \subsection{Assorted}
-
 
 \subsection{Relaxations of Bayes Rule (Updating By Conditioning)}
 Fix some measurable space $\X = (X, \mathcal A)$ of possible outcomes, and consider an update rule for probability distributions $\Theta := \Delta\X$
