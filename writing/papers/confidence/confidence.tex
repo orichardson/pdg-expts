@@ -101,13 +101,15 @@ you might say you have low confidence in their statement, but nevertheless ascri
 % Probability is a numerical scale that ranges from untenable (0) to undeniable (1). 
 % No number on this scale is truly neutral.
 % One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.  
+Some people do use ``confidence'' to mean the same thing as probability. When they say they have low confidence in $\phi$, they mean that they think $\phi$ is unlikely. 
+
 One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.  
 %  probability of $\frac12$ .
 % This shortcoming has perhaps been the primary selling point of many alternatives to probabiltiy, such as Dempster-Shafer Belief functions. 
 A value of $\frac12$ may be equally far from zero as it is from one, but is by no means a neutral assessment in all cases: hearing that your favored candidate has a 50\% chance of winning is big news if a win was previously thought to be inevitable. 
 For this reason, telling someone the odds are 50/50 is quite different from saying you have no idea. 
 % By contrast, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.  
-By contrast, zero confidence represents a truly neutral stance: 
+By contrast, zero confidence represents something truly neutral: 
     a statement made with zero confidence does not stake out a claim, and 
     a statement recieved with zero confidence does not affect the recipient's beliefs. 
 Nevertheless, in some contexts, we will see that confidences correspond to to probabilities.
@@ -129,13 +131,20 @@ Thus, this paper can be viewed as generalizing this concept to a broader class o
 
 
 \textbf{Variance and Entropy.}
-Variance is also commonly used to measure (the inverse of) confidence. 
+The inverse of variance, sometimes known as precision,
+    is also commonly used to measure confidence. 
 If a sensor is unreliable and can give a range of answers, the variance of the estimate is a very common way of quantifying this reliablility.
 If measurements have zero variance, in some sense one has absolute confidence ($\top$) in the sensor. If measurements have infinite variance, then in some sense one has no confidence in the sensor, since individual samples convey no information about the true value of the quantity measured.
 As with probability, inverse variance will coincide with confidence in some settings; we will see how in \cref{sec:variance}.
 
+Entropy, like variance, is a standard way of measuring uncertainty, and in some settings, confidence coincides with entropy (see \cref{sec:entropy}).
+The assumption underlying both approaches is that there's some ``true'' value of the variable, and that the randomness is epsistemic (due to sensor errors) rather than aleotoric (inherrent in the quantity being measured). 
 
 \textbf{Confidence Intervals and Error Bars.}
+Another notion of the word ``confidence'' comes from the term ``confidence interval''.
+This concept arises in settings involving a probability distribution $\Pr(X)$ over a metric space $X$, typically $X = \mathbb R$. 
+A 95\% confidence interval is the (largest) ball containing 95\% of the probability, and its size is a geometric measurement of how . 
+This intuition behind this reading of the word confidence is the same as  
 
 % For example, suppose we recieve an input \stmt.  If we completely trust \stmt, we should integrate it fullly into our beliefs.  Thus, the effect of having high confidence in \stmt\ is that we come to believe \stmt\ with high probability.
 % If we know that the input comes from an untrustworthy source, for instance, the best thing to do is to ignore it entirely, even if 
@@ -438,23 +447,34 @@ As before, our first axiom is that we can capture the updating process in functi
 % % (1) our previous belief state, (2) the new information, or (3) our confidence in it.
 % in our prior belief state $(\theta)$, the new information $(\phi)$, or our attitude towards it ($c$).
 
-\cref{ax:funcform} is not as anodyne as it looks. 
+Historically speaking, \cref{ax:funcform} has not proved as anodyne as it looks. 
 Some might object that it's not possible to write such a function that is appropriate in all circumstances.
-For instance, Shafer argues for Dempster's rule of combination as a way of incorporating information, but is very careful in emphasizing that only \emph{independent} information should be incorporated in this way. 
+For example, Shafer argues for Dempster's rule of combination as a way of incorporating information, but is very careful to emphasize that it ought to be used only on \emph{independent} information, for reasons illustrated below. 
+
+
+
 \begin{example}\label{ex:dupl}
     You have initial belief state $\theta_0$.
-    Now, person $A$, comes up to you and tells you that $\phi$ is true, and
-        you have some degree of confidence $c$ in them. 
+    Now, someone comes up to you and tells you that $\phi$ is true, a statement
+        that you trust to some intermediate degree of confidence $c \notin\{ \bot, \top\}$. 
     So, in accordance with \Cref{ax:funcform}, you use $F$ to transform your beliefs, partially incorporating the information to arrive at some belief state $\theta_1 := F^c_\phi(\theta_0)$.
-    Immediately afterwards, $A$ repeats what they just said: that $\phi$ is true. 
+    Immediately afterwards, your friend repeats what they just said: $\phi$ is true. 
     Your confidence in the statement remains the same, and so according to 
     \Cref{ax:funcform}, you again update your beliefs, arriving at $\theta_2 := F^c_\phi(\theta_1)$. 
-    Unless you already know that $\phi$ is true, or $c \in \{\bot,\top\}$, it will typically it not be the case that $\theta_1 = \theta_2$. 
-    And yet, it seems your belief state should be no different after $A$ repeats themself.
+    Except in very special circumstances (e.g., you already know that $\phi$ is true, or $c \in \{\bot,\top\}$), typically $\theta_2$. 
+    And yet, it seems your your attitude towards $\phi$ ought to be the same after .
 \end{example}
+
+
+Now, it's important to mention that we're not quite in the same position as Shafer.
+Shafer was prescribing a concrete representation of $\Theta$ (a belief function) and a concrete update rule $F$ (Dempster's rule of combination), and so he needed to defend these choices. 
+To take an analogous prescriptive stance, we only need to defend something much more modest: we only need to defend the assumption that, if $\Theta$ and $\Phi$ properly model the relevant aspects of the scenario at hand, then there exists \emph{some} function $F$ which performs updates appropriately. 
+Descriptively speaking, we're also in good shape: for synthetic agents, it suffices to point out that learning algorithms represent functions, which given a state, an input, and a number of iterations (confidence), produce an output. 
+And, supposing that $\Theta$, $\Phi$, and $\confdom$ all capture the relevant respective aspects of a human's belief state, input information, and attitude towards it, how could it be that a human does otherwise?
+
 % After all, if you recieve the same input twice, and your confidence in it has not changed, it would be best to only update once. 
 % There are essentially three ways to proceed.
-With this issue in mind, here are three ways to proceed.
+In any case, with \cref{ex:dupl} in mind, here are three ways to proceed.
 
 \begin{enumerate}
     \item \textbf{Accept Severe Limiations.} 
@@ -463,11 +483,16 @@ With this issue in mind, here are three ways to proceed.
     to claim nothing about the belief updating process except in the (unusual) case where 
     information recieved is independent.
     % This severly handicaps the usefulness of . 
-    This would be a severe limiation to the theory.
-    Imagine that we are writing code that describes how a synthetic agent updates its beliefs.  
-    Shafer's approach is to package such code with a warning against running it unless assured that observations will always be independent. 
+    This would be a severe limiation to the theory, and much less necessary than it was for Shafer. 
+    Imagine that we are writing code that describes how a synthetic agent updates its beliefs. Shafer's approach is to package any such code with a warning against running it unless assured that observations will always be independent. 
     But independece is notoriously difficult to establish; are we to simply accept that the code will not behave correctly in any realistic scenario?
-    % Under what circumstances could we possibly be sure that all inputs we will be independent?     
+    % Under what circumstances could we possibly be sure that all inputs we will be independent?    
+    
+    
+    
+    % If we need to make a decision that depends on information that is not given, then     
+    % Shafer found himself in a position where he needed to qualify usage of the update rule
+    
     
     \item \textbf{Appropriately Enrich Domains.}
 
@@ -483,24 +508,23 @@ With this issue in mind, here are three ways to proceed.
     One way of doing this is to extend the belief state so that it also tracks what information has been incorporated.  
     % For instance, suppose that every message 
     
-    Another feature of \cref{ex:dupl} was that we could identify the information as being the same.
-    So, the relevant description of the information was not just $\phi$, but a pair $(\phi, \mathit{src})$ that also describes its source.
-    
-    \begin{align*}
-        \Phi' &:= \Phi \times \Big\{ \text{possible sources }~ \mathit{src}~ \Big\}\\
-        \Theta' &:= \Theta \times 
-            \Big\{ \text{histories } L = [(\phi_1, \mathit{src}_1, c_1), \ldots (\phi_n, \mathit{src}_n, c_n)] \Big\} \\
-         G^{c}_{(\phi,\mathit{src})}(\theta, L) & := 
-            \left( F^{c}_{\phi}(\theta),
-            \begin{cases}
-                 L :: (\phi,\mathit{src},c) &\text{ if } c \ne \bot \\
-                 L & \text{ if } c = \bot
-        \end{cases} \right)
-    \end{align*} 
-    
-    We submit that it is always possible to enrich the space of beliefs and observations in this way to track the relevant information, to resolve the issue.     
+    In \cref{ex:dupl}, it was critical that we were able to discern that the two inputs were identical.
+    So, the relevant description of the input information was not just $\phi$, but a pair $(\phi, \mathit{id})$ that also a description of its identity.
+    It is also critical that we remember the identity of previously incorporated information, so we will have to make sure that $\Theta$ reflects this.  
+    With these two modifications, it is straightforward to construct a modified update rule which does not suffer from the issue in \Cref{ex:dupl}. 
 
-    \item \textbf{Incremental Interpretation of Confidence.}
+    
+    We submit that it is always possible to enrich the space of beliefs and observations in this way to track the relevant information, to resolve the issue.
+    With a few more assumptions later on, we will be able to formalize the construction we just alluded to (\cref{ex:dupl-enriched}).
+
+    \item \textbf{An Incremental Interpretation of Confidence.}
+    Finally, we can get around the issue by interpreting the input to $F$ not as an absolute measurement of confidence, but rather a differential one. 
+    This means thinking of $c \in \confdom$ as the degree of \emph{additional} confidence we have in $\phi$, beyond what's already been recieved. 
+    
+    Although it is not so different from including independence directly, there are several aspects of this framing that may make it more pallatable.
+    
+    First, we have  
+    
 \end{enumerate}
 
 
@@ -561,93 +585,7 @@ Furthermore, we will insist that \cofunc s respect our interpretation of confide
 
 
 
-% We are primarily interested in the case where confidence can be measured as a real number,
-For convenience of measurement, and so that we may better study confidence as a \emph{smooth} interpolation between ignoring and fully incorporation, we shall focus primarily on cases where confidence can be measured as a real number.
-% We now define two confidence domains that are real numbers between 0 and 1.
-We now consider two such confidence domains.
 
-\begin{itemize}
-    \item 
-    % Another confidence domain we could consider 
-    First, we consider the zero-one confidence domain
-    \[
-        \ZO := \Big(~ [0,1],
-            % \quad a \star b := a b,
-            \quad a \star b := 
-                    % 1- (1-a)(1-b) =
-                    a + b - ab,
-            \quad 1,
-            \quad 0 ~\Big),
-    \]
-    which uses the same numerical endpoints as probability;
-    a value of zero represents no confidence, a value of one represents full confidence.
-    For the purposes of updating, we may interpret a confidence of $a \in \ZO$ as the fration of the way between ignoring and fully incorporating information. 
-    This motivates the definition of the operator $\star$.
-    If you go $90\%$ of the way to fully incorporaing some information $\phi$, and then $50\%$ of the remaining way, then in total you have gone $90\% + 50\%(100\%-90\%) = 0.9 + 0.5 - (0.9)(0.5)$ of the way to fully incorporating $\phi$.    
-    
-    % In this domain
-    % Clearly, 1 is neutral and 0 is absorbing element.\end{itemize}
-    \item
-    % First, we consider the monoid of positive extended real numbers under addition.
-    We now introduce a second confidence domain based on the real numbers,
-    which is mathematically cleaner, if
-        % at first
-        more difficult to interpret numerically in absolute terms.
-    \[
-        \Rplus := 
-            \Big([0, \infty) \cup \{\infty\}, 
-                \quad +,
-                \quad 0,
-                \quad \infty
-                ~\Big)
-    \]
-    
-    % The use of addition as the combination operator means that independent measurements add, which in turn makes it 
-    The use of addition as the combination operator makes it particularly natural to speak of linear combinations of inputs. 
-    % Here are some examples. 
-    This point is best illustrated by example.
-    
-    \begin{itemize}
-        \item \textbf{Voting.}  
-        Suppose the elements of $\Phi$ correspond to candidates in an election.
-        In a sense, the number of votes a candidate recieves is a measure of how much confidence the electorate has in them---a candidate who recieves no votes is ignored, while a candidate who recieves all of the votes should be listened to exclusively.
-        
-        It's hard to say much  the raw number of votes a candidate recives in absolute terms, in part becasue it depends on the number of votes recieved by other candidates, and also how many votes you will recieve in the future. 
-        % Nevertheless, it is still m
-        Nevertheless, if we are collecting votes, is especially natural to weight candidates by the total number of votes behind them. 
-        % Similarly, this way of counting fractional votes. 
-        This way of measuring confidence also applies without change to measure fractional votes.
-         
-        \item \textbf{Chemical Reactions.} 
-        Suppose that we have a mixture of nano-bots.
-        Each nano-bot has some type $\phi \in \Phi$, and has the effect of turning matter into bots of type $\phi$.
-        For every $\phi \in \Phi$, let $\beta_\phi$ be the concentration of bots of type $\phi$, say measured in number of bots per liter of solution.
-        In some sense, $\beta_\phi$ measure of how much ``confidence'' the mixture has in $\phi$---if the concentration is zero, then that bot type may be ignored, and if all particles are of type $\phi$, then 
-        
-        \TODO
-        
-        % Suppose that there is a chemical mixture of nano-bots. each of type $\phi_i$.
-        
-    \end{itemize}
-    
-    We will use greek letters $\alpha, \beta, \ldots$ to denote elements of $\Rplus$.
-
-\end{itemize}
-
-
-\begin{prop}
-    $\ZO$ is isomorphic to $\Rplus$, but therere is no canonical choice of isomorphism.
-\end{prop}
-\begin{lproof}
-    For every $k > 0$ can construct an isomorphism $\varphi_k: \ZO \to \Rplus$ explicitly by $\varphi(a) := - k \log a$.
-    It is a homomorphism, since
-    \[
-        \varphi(a \star b) = - k \log (a b) = - k \log a - k \log b =
-            \varphi(a) + \varphi(b),
-    \]
-    while $\varphi(1) = 0$ (so it preserves the identity) and $\varphi(0) = \infty$ (so it preserves the absorbing element).
-    The inverse mapping can also be explicitly by $\varphi^{-1}(r) := \exp( - r / k)$, which is also a homorphism for the same reasons as above.
-\end{lproof}
 
 
 and so for most of this paper, we take $\confdom := $ to be the group of extended nonnegative real numbers under addition.
@@ -1888,6 +1826,7 @@ $$
         [\,],
         \quad
         [\top]
+        \,
     \Big\},
 $$
 whose group operation ``$::$'' is list concatenation, except that it collapses instances of $\top$, i.e., 
@@ -1923,6 +1862,92 @@ AF^{[c_1, \ldots, c_n]}_\phi ( AF^{[d_1, \ldots, d_m]}_\phi (\theta) )
         &= AF^{[c_1, \ldots, c_n, d_1, \ldots, d_m]}_\phi (\theta) \\
         &= AF^{[c_1, \ldots, c_n] :: [d_1, \ldots, d_m]}_\phi (\theta).
 \end{align*}
+\end{lproof}% We are primarily interested in the case where confidence can be measured as a real number,
+For convenience of measurement, and so that we may better study confidence as a \emph{smooth} interpolation between ignoring and fully incorporation, we shall focus primarily on cases where confidence can be measured as a real number.
+% We now define two confidence domains that are real numbers between 0 and 1.
+We now consider two such confidence domains.
+
+\begin{itemize}
+    \item 
+    % Another confidence domain we could consider 
+    First, we consider the zero-one confidence domain
+    \[
+        \ZO := \Big(~ [0,1],
+            % \quad a \star b := a b,
+            \quad a \star b := 
+                    % 1- (1-a)(1-b) =
+                    a + b - ab,
+            \quad 1,
+            \quad 0 ~\Big),
+    \]
+    which uses the same numerical endpoints as probability;
+    a value of zero represents no confidence, a value of one represents full confidence.
+    For the purposes of updating, we may interpret a confidence of $a \in \ZO$ as the fration of the way between ignoring and fully incorporating information. 
+    This motivates the definition of the operator $\star$.
+    If you go $90\%$ of the way to fully incorporaing some information $\phi$, and then $50\%$ of the remaining way, then in total you have gone $90\% + 50\%(100\%-90\%) = 0.9 + 0.5 - (0.9)(0.5)$ of the way to fully incorporating $\phi$.    
+    
+    % In this domain
+    % Clearly, 1 is neutral and 0 is absorbing element.\end{itemize}
+    \item
+    % First, we consider the monoid of positive extended real numbers under addition.
+    We now introduce a second confidence domain based on the real numbers,
+    which is mathematically cleaner, if
+        % at first
+        more difficult to interpret numerically in absolute terms.
+    \[
+        \Rplus := 
+            \Big([0, \infty) \cup \{\infty\}, 
+                \quad +,
+                \quad 0,
+                \quad \infty
+                ~\Big)
+    \]
+    
+    % The use of addition as the combination operator means that independent measurements add, which in turn makes it 
+    The use of addition as the combination operator makes it particularly natural to speak of linear combinations of inputs. 
+    % Here are some examples. 
+    This point is best illustrated by example.
+    
+    \begin{itemize}
+        \item \textbf{Voting.}  
+        Suppose the elements of $\Phi$ correspond to candidates in an election.
+        In a sense, the number of votes a candidate recieves is a measure of how much confidence the electorate has in them---a candidate who recieves no votes is ignored, while a candidate who recieves all of the votes should be listened to exclusively.
+        
+        It's hard to say much  the raw number of votes a candidate recives in absolute terms, in part becasue it depends on the number of votes recieved by other candidates, and also how many votes you will recieve in the future. 
+        % Nevertheless, it is still m
+        Nevertheless, if we are collecting votes, is especially natural to weight candidates by the total number of votes behind them. 
+        % Similarly, this way of counting fractional votes. 
+        This way of measuring confidence also applies without change to measure fractional votes.
+         
+        \item \textbf{Chemical Reactions.} 
+        Suppose that we have a mixture of nano-bots.
+        Each nano-bot has some type $\phi \in \Phi$, and has the effect of turning matter into bots of type $\phi$.
+        For every $\phi \in \Phi$, let $\beta_\phi$ be the concentration of bots of type $\phi$, say measured in number of bots per liter of solution.
+        In some sense, $\beta_\phi$ measure of how much ``confidence'' the mixture has in $\phi$---if the concentration is zero, then that bot type may be ignored, and if all particles are of type $\phi$, then 
+        
+        \TODO
+        
+        % Suppose that there is a chemical mixture of nano-bots. each of type $\phi_i$.
+        
+    \end{itemize}
+    
+    We will use greek letters $\alpha, \beta, \ldots$ to denote elements of $\Rplus$.
+
+\end{itemize}
+
+
+\begin{prop}
+    $\ZO$ is isomorphic to $\Rplus$, but therere is no canonical choice of isomorphism.
+\end{prop}
+\begin{lproof}
+    For every $k > 0$ can construct an isomorphism $\varphi_k: \ZO \to \Rplus$ explicitly by $\varphi(a) := - k \log a$.
+    It is a homomorphism, since
+    \[
+        \varphi(a \star b) = - k \log (a b) = - k \log a - k \log b =
+            \varphi(a) + \varphi(b),
+    \]
+    while $\varphi(1) = 0$ (so it preserves the identity) and $\varphi(0) = \infty$ (so it preserves the absorbing element).
+    The inverse mapping can also be explicitly by $\varphi^{-1}(r) := \exp( - r / k)$, which is also a homorphism for the same reasons as above.
 \end{lproof}
 
 
@@ -1955,7 +1980,7 @@ This effectively partitions $\Theta$ into two
 
 
 % Together with strong additivity, we get
-% \begin{prop}
+% \begin{prop% We are primarily interested in the case where confidence can be measured as a real number,
 %     If $F$ is an update rule satisfying \cref{ax:additivity,ax:invert},
 %     then any update prescribed by $F$ (or sequence thereof) takes positive distributions to positive distributions.
 %     %
@@ -1972,6 +1997,30 @@ As a consequence,
     If for any $\beta < \infty$ there exist $\mu, \phi, A$ such that
     $\mu(A) > 0$  but $F^{\beta}_\phi(\mu)(A) = 0$, then $F$ is not invertable.
 \end{coro}
+
+
+
+\section{}
+\begin{example}\label{ex:dupl-enriched}
+Suppose $F$ is an additve update rule. Then, we can explicitly construct a resolution to the problem posed in \cref{ex:dupl} by defining enriched spaces
+\begin{align*}
+    \Phi' &:= \Phi \times \Big\{ \text{ identities }~ \mathit{id}~ \Big\}\\
+    \Theta' &:= \Theta \times 
+        \Big\{ \text{histories } L = [(\phi_1, \mathit{id}_1, c_1), \ldots (\phi_n, \mathit{id}_n, c_n)] \Big\} \\
+\end{align*}
+and new \cofunc\ $G$ by 
+\begin{align*}
+     G^{\beta}_{(\phi,\mathit{id})}(\theta, L) & := 
+        \begin{cases}
+        \Big( F^{\beta- \sum_{i}\beta_i \mathbbm1[(\phi_i,\mathrm{id}_i) = (\phi, \mathrm{id})]}_{\phi}(\theta),~
+             L :: (\phi,\mathit{id}, \beta) 
+         \Big)
+             &\text{ if } \beta \ne \bot \\
+        (\theta, L) & 
+               \text{ if } \beta = \bot
+    \end{cases} 
+\end{align*} 
+\end{example}
 
 
 
