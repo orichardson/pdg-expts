@@ -1,0 +1,204 @@
+\documentclass{article}
+
+\usepackage{mathtools,amssymb}
+\usepackage{enumitem}
+\usepackage{tikz-cd}
+
+
+\usepackage{tcolorbox}
+\tcbuselibrary{most}
+\newtcolorbox{phaseout}{%
+    colback={gray!02!white},
+    coltext={gray!35!white},
+    % colframe={red!02!white},
+    % coltitle={red!35!white},
+    % title={~\hfill(depricated)},
+    enhanced jigsaw,
+    % enhancd,
+    fontupper=\small,
+    parbox=false,
+    boxrule=0pt,
+    frame hidden,
+    borderline west={4pt}{0pt}{blue!20!black!10!white},
+    borderline east={4pt}{0pt}{blue!20!black!10!white},
+    sharp corners,
+    breakable
+    % frametitlerule=false,
+    % innertopmargin=3pt, frametitlebelowskip=1ex, frametitleaboveskip=1ex,
+    % colframe=brownish!40!white,%
+    % skipabove=1em,skipbelow=1em,
+    % frametitlefont={\scshape},leftmargin=-10pt, rightmargin=-10pt
+}
+
+% \usepackage{parskip}
+
+% \newcommand\ob{\mathrm{ob}}
+\DeclareMathOperator{\ob}{\mathrm{ob}}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\Hom}{\mathrm{Hom}}
+
+\newcommand\X{\mathcal{X}}
+\newcommand\A{\mathcal{A}}
+\newcommand\B{\mathcal{B}}
+\newcommand\Ob{\mathcal{O}}
+
+\newcommand\Set{\mathbb{S}\mathsf{et}}
+\newcommand\DiffMan{\mathbb{D}\mathsf{iff}\mathbb{M}\mathsf{an}}
+
+
+
+\begin{document}
+    \begin{center}
+        % \Huge
+        \Large
+        A Categorical Account of Updating
+    \end{center}
+    
+    In each case, the general ingredients are:
+    \begin{enumerate}
+        % [nosep]
+        \item A category $\Ob$, whose morphisms correspond to observations.
+        Composition in this category corresponds to sequential observation, and identities correspond to trivial observations.
+        Associativity of composition means we're ruling out the possibility that observations can ``bind together'' in a meaningful way.
+        Concretely observing ``($A$ followed by $B$), followed by $C$'' is no different from observing ``$A$ followed by ($B$ followed by $C$)''. 
+        Put another way, only the identities and order of the observations matters. 
+        This assumption is certainly appropriate if we imagine that observations are integrated one-by-one into one's beliefs.
+         
+        \item A concrete category $\B$ of beliefs.
+        The objects $B \in \ob \B$ correspond to different ``types'' of beliefs (which may or may not be important; one might have beliefs of only one type),
+        and each $b \in B$ corresponds to a belief state. 
+        In all of our examples, $\B$ is a subcategory of $\DiffMan$, the category of differentiable maps between manifolds. 
+        
+        \item A functor $F^\top : \Ob \to \B$, which tells you how each observation results in an update. 
+        
+    \end{enumerate}
+    % Now, for partial confidence, we also 
+    In the case of partial confidence, we instead use
+    \begin{enumerate}
+        \item[3.] A functor $F : \mathcal O \to \mathcal B^{[0,1]}$. 
+    \end{enumerate}
+    
+    \section{Example 1: Probabilities and Events}
+    
+    First, let's consider the motivating example, in which there's some set $W$ of possible worlds, together with a $\sigma$-algebra $\mathcal A \subset 2^W$ of measurable sets, and observations are events $A \in \mathcal A$. 
+    Here is one categorical encoding of these observations. 
+    
+    \begin{align*}
+        \ob \Ob &:= \text{ a singleton } \{\star\}; \\
+        \Hom_{\Ob}(\star,\star) &:= 
+            \{ \text{ events $A \in \A$ } \} = \A; \\
+        \id_{\star} &:= W; \\
+        &\begin{aligned}
+        \circ : \Hom_{\Ob} \times \Hom_{\Ob} &\to \Hom_{\Ob} \\
+            := (A, B) &\mapsto A \cap B
+        \end{aligned}
+    \end{align*}
+    
+    \def\DX?{\Delta^{\mathclap{\!\!?\!}}\X}
+    
+    Now, suppose we have probabilistic beliefs, so that $\B$ is also a category with a single object
+    $\ob \B := \text{ the singleton set } \{ \DX? := \Delta\X \cup \{ \bot \} \}$
+    whose unique element is the union of the set $\Delta\X$ of distributions over $\X$, and the element ``$\bot$'' representing a contradiction. The morphisms of this category are 
+    \begin{align*}
+        \Hom_{\Ob}(\DX?, \DX?) &:= 
+            \{ \text{ differentiable maps from $\Delta\X$ to $\Delta\X$ } \} 
+        % \id_{\star} &:= \id_{\DX?}; \\
+    \end{align*}
+    and the identities and composition are the usual ones inherrited from $\Set$. 
+    
+    
+    An update rule is then a function
+    $F^\top : \Ob \to \B$. Since both categories have only one object (i.e., they're just monoids), then this amounts to a monoid homomorphism $F^\top : (\mathcal A, \cap) \to \mathrm{Aut}(\DX?)$.     
+    Here is one concrete such functor.
+    
+    \begin{align*}
+        F^\top(A
+            % \in \A
+            % : \star \to \star
+        ) := 
+            \begin{cases}
+                \mu \mapsto  \mu | A & \text{ if } \mu  \in \Delta\X \text{ and }\mu(A) > 0 \\
+                \bot &\text{otherwise}                
+        \end{cases}
+    \end{align*}
+    
+    This map is indeed differentiable under a suitable stratification of the boundary. 
+    Below is a straightforward validation of functoriality. 
+    \begin{align*}
+        F(A) \circ F(B) 
+            &=  \mu \mapsto 
+                \begin{cases}
+                    \mu \mapsto (\mu \mid A) \mid B & \text{if $\mu(A) > 0$ and $\mu(B|A) > 0$} \\
+                    \bot &\text{else}
+                \end{cases} \\
+            &= \begin{cases}
+                    \mu \mapsto \mu \mid (A \cap B) & \text{if $\mu(A) > 0$ and $\mu(B|A) > 0$} \\
+                    \bot &\text{else}
+                \end{cases} \\
+            &= F(A \circ B).
+    \end{align*}
+    % while both $F(A)$
+    
+    Another, less useful functor is one that maps all events to the identity:
+    $
+        F^\bot(A) := \id_{\DX?},
+    $ 
+    which corresponds to ignoring all information. 
+    
+    \smallskip
+    \begin{phaseout}
+    A natural transformation $\alpha : F^\top \Rightarrow F^{\bot}$ consists of a map $\alpha_\star \in \mathrm{Aut}(\DX?)$ such that, for all $A \in \mathcal A$, we have
+    \[
+        \begin{tikzcd}
+            \DX? \ar[r,"F^\top(A)"] \ar[d,"\alpha_\star"]
+                & \DX? \ar[d, "\alpha_\star"] \\
+            \DX? \ar[r,"F^{\bot}(A)"] & \DX?
+        \end{tikzcd}
+        \quad
+        \text{ which is to say, }
+        \quad
+        \begin{tikzcd}[column sep=4]
+            \DX? \ar[rr,"F^\top(A)"] \ar[dr,"\alpha_\star"']
+                && \DX? \ar[dl, "\alpha_\star"] \\
+            & \DX?
+        \end{tikzcd};
+    \]
+    obviously, any constant function is such a natural transormation.
+    \end{phaseout}
+    \smallskip
+    
+    What about intermediates?  For any $c \in [0,1]$, we can define a map
+    \begin{align*}
+        F^c(A
+            % \in \A
+            % : \star \to \star
+        ) := 
+            \begin{cases}
+                \mu \mapsto  (1-c)\, \mu + (c)\, \mu| A & \text{ if } \mu  \in \Delta\X \text{ and }\mu(A) > 0 \\
+                \bot &\text{otherwise}                
+        \end{cases}
+    \end{align*}
+    but it is not a functor. Even supposing that $\mu(A \cap B) > 0$, 
+    % Now,
+    \begin{align*}
+        (F^c(A) \circ F^c(B))(\mu) 
+            &= (1-c)\, F^c B(\mu) + (c)\,(F^c B(\mu))|A \\
+            &= (1-c)\, \Big( (1-c)\, \mu + (c)\, \mu| B \Big) + (c)\, 
+                \Big((1-c)\, \mu + (c)\, \mu| B\Big)|A \\
+            &= (1-c)^2\,\mu + c(1-c) (\mu|A + \mu|B) + (c^2)\, \mu|(A \cap B)
+    \end{align*}
+    cannot be written as a convex combination of $\mu$ and $\mu|(A\cap B)$ unless the two are equal to each other. 
+    
+    
+    \subsection*{A Horizontal Categorification}
+    In this example, we haven't used the full power of the categorical representation; since $\mathcal O$ only has one object, it's really just a monoid. 
+    To begin, we could glue all of the monoids together for all choices $\mathcal X$ of measurable space, effectively doing the above construction for all measurable spaces at once. This results in a category of observations that only has morphisms from each object to itself.     
+    Taking this a step futher, we get something more interesting.
+    
+    \begin{align*}
+        \ob \mathcal O &:= 
+            \{ \text{ measurable spaces $\mathcal X = (W, \mathcal A)$ } \}\\
+        \Hom_{\mathcal O}(\mathcal X, \mathcal X') &:= 
+            \Big\{ \text{ subsets } \Big\}
+    \end{align*}
+\end{document}
