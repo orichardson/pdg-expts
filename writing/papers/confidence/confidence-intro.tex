@@ -18,8 +18,156 @@
 \end{center}
 
 \section{Introduction}
-\def\stmt{$A$}
+% \def\stmt{$A$}
+\def\stmt{\phi}
+% \def\stmt{A}
+% \def\stmt{\mathit{obs}}
+% \def\stmt{\mathit{S}}
 % \def\stmt{$\phi$}
+
+% Dealing in absolutes is a fragile endeavor. 
+
+Seldom do we have the luxury of absolute certainty.
+This raises a question: what does it mean to have a moderate degree of confidence in
+% an observation $\stmt$? 
+	a piece of information $\stmt$? 
+Probability gives a perfectly coherent answer: to have high confidence in $\stmt$ is to find it highly probable, while to have low confidence is to find it improbable. 
+% Useful as this view has proved,
+% However, probability is not the only intuition people have for confidence.
+% In our view, the (well-deserved) dominance of probability has shadowed another notion. 
+% Although this use of the word is perfectly reasonable, it seems to have shadowed another conception of confidence---one that is fundementally different, if at first sublty so. 
+In a world where probabillity is so dominant, this reading of ``confidence'' seems to have shadowed another closely related notion.
+% ---one that is fundementally different, if at first sublty so. 
+
+
+For us, confidence is a measure of trust, rather than likelihood. 
+Like probability, confidence is a continuum between two extremes, and can be represented as a real number $\chi \in [0,1]$. 
+% While probability ranges from untenable (0) to undeniable (1),
+% confidence ranges from completely untrustworthy ($\bot$) to fully trusted ($\top$). 
+While probability ranges from untenable to undeniable,
+confidence ranges from completely untrustworthy to fully trusted. 
+%
+% We apply this notion confidence of updating.
+% This paper explores how confidence works in state-updating context.
+This paper explores on how confidence works in the context of updating beliefs.
+In this setting, we start with some belief state $\theta$, and then recieve an observation $\stmt$ with some degree of confidence $\chi$, which we take into account to arrive at a new belief state $\theta'$.
+When we have no confidence in $\stmt$ (i.e., $\chi=0$), we argue that it is appropriate to ignore it; if we have full confidence in $\stmt$ (i.e., $\chi=1$), then we ought to fully incorporate it into our beliefs. 
+
+What about intermediate values of confidence?  
+As one might expect, they represent a smooth interpolation between ignoring and fully incorporating new information. 
+So concretely, $\chi = 0.7$ indicates that one should move one's beliefs ``$70\%$ of the way'' towards fully incorporating the information.
+% ---% although the operational meaning of this may vary.
+For example, if $\theta$ is a probability distribution $\mu$ over $W$, and the observation is an event $A \subset W$, one natural interpretation of ``70\%'' is via convex combination, in which case the result of an update is
+% \[ \theta' = (1-\chi) \theta + (\chi)\, \theta|\stmt. \]
+\[
+ 	\theta' = (1-\chi)\, \mu + (\chi)\, \mu|A. 
+\]
+% However, 
+This is not the only reasonable path between $\mu$ and the conditioned distribution $\mu|A$.%
+	\footnote{
+	another is given by $\mu'(x) \propto \mu(x) (1-\chi)^{-\mathbf1[x \in A]}$}
+% Here, the endpoints were fixed, and we chose a path between them.
+% That said, not all paths 
+That said, some paths have nicer properties than others, and for this reason we will devote a significant amount of energy to characterizing them, so as to nail down some shared properties of confidence.
+% In our previous example of probabilities and events,
+In the example above,
+the full-confidence endpoint (the conditioned distribution) is obvious, and an interperetation of confidence amounts to a suitable choice of path between them. 
+% In other cases, it is instead clear how to take a small incremental step on this path, but not
+In some cases, the endpoint is unclear upfront, and rather defined implicitly as the ultimate destination of the appropriate path. 
+For example, suppose our belief state $\theta$ specifies the weights of a neural network $f_\theta : X \to \Delta Y$, and the observation is a sample $(x,y)$. 
+Now, given a loss function, gradient descent%
+	\footnote{techically gradient flow, which is the limit of gradient descent for small step size}
+ defines a path in belief space from the initial weights $\theta$ to some $\theta'$ such that $f_{\theta'}(x)$ is as close as possible placing all mass on $y$. 
+We would like to apply the same notion of confidence---the same scale between ignoring and fully incorporating information---to both examples. 
+
+% That said, some
+% These intermediate confidences introduce several difficulties. 
+% These intermediate levels of confidence are quite fragile. 
+
+Intermediate levels of confidence come with some inherrent difficulties. 
+For one, we suddenly have to worry about independence of our observations. 
+For instance, observing $A$ with confidence $\chi = 0.5$, and then again with confidence $\chi = 0.5$, moves us 50\% of the way towards being certain in $A$, and then 50\% of the remaining way, in total moving us 75\% of the way towards certainty. 
+% And yet, this seems inappropriate if both
+This seems inappropriate if the second observation is a copy of the first.
+% So, unless we keep careful track of where observations come from, 
+% which tells us to moving 50\% of the way towards certainty is 
+% .
+By contrast, dealing only with certainties, conditioning on $A$ twice is no different from conditioning on $A$ once, and so there's no need for such careful accounting.
+% A second issue, is that there is no absolute numerical interpretation of confidence. 
+% The reasons for this will become clear later on, but for now, suffice it to say that, for
+% for every $k > 0$, uniformly transforming all confidences according to $\chi \mapsto 1 - (1-\chi)^{-k}$  
+% there is another update function that operates identically on these distorted confidences.
+
+% , and so beforehand we really didn't need to think too hard about these issues. 
+% If we deal only in certainties, an event $A$ followed by an event $B$ can be simplified 
+%
+% Precisely the fact that we're looking to capture a notion of magnitude of incorporation, results in this 
+
+% for which we're neither fully confident in, nor fully distrustful of our observation?
+% Our use of confidence can be viewed as a measure of how seriously to take an input in updating our beliefs.
+
+\textbf{Probability and Confidence.}
+% To clarify why 
+Superficially, probability and confidence play quite different roles.
+% While the probability of $\stmt$ is typially a function of the belief state, the same need not be true for confidence.
+A confidence measurement is an additional (possibly externally supplied) piece of information that we can use in updating our beliefs, while a probability is usually a function of our current belief state.
+Simply put, confidence is typically an input, while a probability is an output. 
+
+
+In principle, there's no reason a probability couldn't be an input, in principle. 
+So, what about a probabilistic view of confidence, in which $\chi$ is the probability
+that the information is trustworthy?
+
+% There's no reason not to 
+% There's no intrinsic reason that we couldn't take a probability 
+High confidence is in many ways like high probability: if we really trust a statement $\stmt$, we should fully incorporate it into our beliefs, and thereby come to believe it with high probability. 
+Similarly, it only makes sense to be extremely confident in a $\stmt$ if you believe that $\stmt$ is extremely likely to be true. 
+Low confidence, on the other hand, is quite different from low probability. 
+If we have little trust in $\stmt$, we should \emph{ignore} $\stmt$, rather than coming to believe that $\stmt$ is unlikely.
+% To say \stmt\ has low probabilty is  high confidence in the $\lnot$\stmt. 
+For example, if an adversary tells you something that you happen to already believe,
+% is likely to be true
+you might say you have low confidence in their statement, but nevertheless ascribe it high probability. 
+
+
+
+
+
+One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition---a transparent attitude, which defers entirely to prior belief.
+%  probability of $\frac12$ .
+% This shortcoming has perhaps been the primary selling point of many alternatives to probabiltiy, such as Dempster-Shafer Belief functions. 
+A value of $\frac12$ may be equally far from zero as it is from one, but is by no means a neutral assessment in all cases: hearing that your favored candidate has a 50\% chance of winning is big news if a win was previously thought to be inevitable. 
+For this reason, telling someone the odds are 50/50 is quite different from saying you have no idea. 
+% By contrast, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.  
+By contrast, zero confidence represents something truly neutral: 
+	a statement made with zero confidence does not stake out a claim, and 
+	a statement recieved with zero confidence does not affect the recipient's beliefs. 
+
+Nevertheless, in some contexts, we will see that confidence corresponds to probability.
+%
+% \textit{Opacity.}
+To use a graphical metaphor, think of certainty as black or white.
+Probability describes shades of gray, while confidence describes opacity. 
+If we are painting with black and start with a white canvas, there is a precise correspondence between the opacity and the resulting shade of gray.
+
+% Nevertheless, the two will sometimes coincide.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\clearpage
+\appendix
+\section*{Previous Versions}
+\subsection*{v0}
 
 % The ability articulate a ``degree of confidence'' is
 % an important aspect of knowledge representation.
@@ -49,10 +197,10 @@ This shortcoming has perhaps been the primary selling point of many alternatives
 
 
 Confidence is also a scale between two extremes. It is a measure of trust on a scale of completley untrustworthy $(\bot)$ to fully trusted $\top$. 
-High confidence is quite like high probability: if we really trust a statement \stmt, we should fully incorporate it into our beliefs, and thereby come to believe it with high probability. 
-Similarly, it only makes sense to be extremely confident in a \stmt\ if you believe that \stmt\ is extremely likely to be true. 
+High confidence is quite like high probability: if we really trust a statement $\stmt$, we should fully incorporate it into our beliefs, and thereby come to believe it with high probability. 
+Similarly, it only makes sense to be extremely confident in a $\stmt$ if you believe that $\stmt$ is extremely likely to be true. 
 Low confidence, on the other hand, is quite different from low probability. 
-If we have little trust in \stmt, we should \emph{ignore} \stmt, rather than coming to believe that \stmt\ is unlikely.
+If we have little trust in $\stmt$, we should \emph{ignore} $\stmt$, rather than coming to believe that $\stmt$ is unlikely.
 % To say \stmt\ has low probabilty is  high confidence in the $\lnot$\stmt. 
 For example, if an adversary tells you something that you happen to already believe, you may have low confidence in their statement, but nevertheless ascribe it high probability. 
 Importantly, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.  
@@ -68,7 +216,61 @@ Confidence measures how seriously to take an input in updating beliefs.
 % For example, suppose we recieve an input \stmt.  If we completely trust \stmt, we should integrate it fullly into our beliefs.  Thus, the effect of having high confidence in \stmt\ is that we come to believe \stmt\ with high probability.
 % If we know that the input comes from an untrustworthy source, for instance, the best thing to do is to ignore it entirely, even if 
 
+\subsection*{v1}
 
-\section{Formalism}
+The ability articulate a ``degree of confidence'' is an important aspect of knowledge representation.
+% We give a formal account of a new concept
+% We are about to propose a concept . 
+% Subpoint: it helps avoid a brittleness of always beliving things
+% Subpoint: Protects against overconfidence.
+Of course, there are many well-established ways of representing uncertainty,
+	probability chief among them.
+	% and chief among them is probability.
+% probability chief among them. 
+% Indeed, an informal poll of our colleagues suggests that computer scientists use ``confidence'' as a synonym for probability.
+% The concept is so dominant that an informal poll of our colleagues suggests that most computer scientists view ``confidence'' as a synonym for probability.
+Indeed, an informal poll of our colleagues suggests that most computer scientists view ``confidence'' as a synonym for probability.
+% In our view, this practice 
+Although this use of the word is perfectly reasonable, it seems to have shadowed another conception of confidence---one that is fundementally different, if at first sublty so. 
+% which seems have been shadowed by the enormous success of probability---one that is fundementally different, if at first subtly so.
+% which seems to have been shadowed by the enormous success of probability---a concept that is fundementally different, if at first subtly so.
+ 
+% , such as belief functions, and most importantly, probabilities.
+% In each case, one adopts a more complex belief state, 
+% The enormous success of probability in particular has had an enormous impact on the way computer scientists talk about 
+% The success of probability has shadowed other concepts that might well also be called measures of confidence.
+% Indeed, it 
+
+% There are actually two related, but slightly different notions here. 
+% % The first is a measurement of
+% There is a second setting in which one might interpret the word confidence, as well, in an updating context: it's how seriously you take an input 
+% Note the difference: 
+
+
+
+
+For us, confidence is a measure of trust. 
+Like probability, it is a scale between two extremes. 
+% While probability ranges from untenable (0) to undeniable (1),
+While probability ranges from untenable (0) to undeniable (1),
+confidence ranges from completely untrustworthy $(\bot)$ to fully trusted ($\top$). 
+%
+% We apply this notion confidence of updating.
+% This paper explores how confidence works in state-updating context.
+This paper explores how confidence works in the context of learning.
+In this setting, one has some belief state, and recieves inputs, which one might have some degree of confidence in, which is used to modify one's belief state. 
+Our use of confidence can be viewed as a measure of how seriously to take an input in updating our beliefs.
+
+High confidence is in many ways like high probability: if we really trust a statement $\stmt$, we should fully incorporate it into our beliefs, and thereby come to believe it with high probability. 
+Similarly, it only makes sense to be extremely confident in a $\stmt$ if you believe that $\stmt$ is extremely likely to be true. 
+Low confidence, on the other hand, is quite different from low probability. 
+If we have little trust in $\stmt$, we should \emph{ignore} $\stmt$, rather than coming to believe that $\stmt$ is unlikely.
+% To say \stmt\ has low probabilty is  high confidence in the $\lnot$\stmt. 
+For example, if an adversary tells you something that you happen to already believe,
+% is likely to be true
+you might say you have low confidence in their statement, but nevertheless ascribe it high probability. 
+
+
+% \section{Formalism}
 
 \end{document}
