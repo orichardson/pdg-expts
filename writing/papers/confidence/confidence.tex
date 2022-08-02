@@ -7,6 +7,7 @@
 \input{confidence-preamble}
 \addbibresource{conf.bib}
 
+\usepackage{booktabs}
 
 \newcommand{\ext}[1]{\overline #1} %  measures over phi
 \newcommand{\Unif}{\mathrm{Unif}}
@@ -238,9 +239,14 @@ The first thing we need to assume is that the updating process can be captured i
 		% which produces a new belief state, as a function of the old belief state and the new information.
 \end{CFaxioms}
 
+% In some ways this seems very reasonable: 
 Given such a function $F$ and a statement $\phi$, we call $F_\phi : \Theta \to \Theta$ an \emph{update}. 
 % At this point, since we have no way of articulating how confident we are in the new information, the only reasonable thing to 
-If purpose of $F$ is to \emph{fully} incorporate the new information into our beliefs
+At face value, \textbf{F} seems very reasonable: what more could your next belief state depend on, aside from your previous one and the new information? 
+Nevertheless, we will soon argue that the resulting belief state $\theta'$ should also depend on something else: one's confidence in the statement.
+ % after which we will weaken \textbf{F} appropriately.
+
+In any case, since the purpose of $F$ is to \emph{fully} incorporate the new information into our beliefs
 (and without a notion of confidence, we can't very well specify how much to incorporate), then
 % it should be the case that a second update with the same information should not affect the belief state.
 % a second update with the same information should not affect the belief state.
@@ -428,7 +434,7 @@ This is where confidence comes in.
 
 % We now define a \emph{\cofunc} to be a function
 
-Let $\confdom$ be the set of possible confidences, which, for now, we will take to be the interval $[\bot:=0, \top := 1]$. 
+Let $(\confdom$ be the set of possible confidences, which, for now, we will take to be the interval $[0, 1]$. 
 % We are now in a position to consider confidence when updating. 
 We are now in a position to take confidence into account in our updates. 
 As before, our first axiom is that we can capture the updating process in functional form. 
@@ -1541,18 +1547,18 @@ modulo the co-equations \cref{ax:certainty,ax:zero} in the category of manifolds
 
 
 \section{Settings}
-\subsection{Probabilities and Events}
 \subsection{Probabilities and Samples}
 
 First, let's take the where belief state is an explicit representation of a finite probability distribution, and observations are samples of it. 
 Concretely, this means $\Theta := \Delta W$, and $\Phi := W$. 
 
-Intuitively, we would like it to be the case, that if we observe samples drawn from our 
+% Intuitively, we would like it to be the case, that if we observe samples drawn from our 
+Now, if observations are drawn from some true distribution $\mu^*$, then we would hope that 
 
 \begin{CFaxioms}
 	\item  $\bar F_{\!\mu}'\mu = \vec 0$. 
 	That is, $\Ex_{x \sim \mu}[ F'_{\!x}\mu] = \vec 0$.
-	\hfill \textbf{(calibration)} \label{ax:calibration}
+	\hfill \textbf{(sampling calibration)} \label{ax:sample-calibration}
 \end{CFaxioms}
 
 
@@ -1579,20 +1585,300 @@ Intuitively, we would like it to be the case, that if we observe samples drawn f
 		\forall y \in X.~~
 			\Ex_{x \sim \mu}\Ex_{z\sim \mu}[ U(x,z) ] &= \Ex_{x \sim \mu}[ U(x,y) ]
 	\end{align*} 
+    
+    \begin{phaseout}
 	Choosing $\mu = \delta_w$, we this means
 	\begin{align*}
 		\forall y.~~ U(w,w) = U(w,y)
 	\end{align*}
 	but this means updating with respect to $x$ does nothing at all, no matter what state you're at.
-	% \TODO[TODO: this can be done without leaning so hard on degenerate distributions]
+	\TODO[\color{gray!50!red!50!white}TODO: this can be done without leaning so hard on degenerate distributions?]
+    \end{phaseout}
+    
+    In particular, for $U(x,y) = \mathbbm 1[x=y]$, this means 
+    \[
+        \forall y \in X.~~
+        \Ex_{x \sim \mu}\mu(X=x) = \mu(X=y),
+    \]
+    so $\mu(X=y)$ is the same for all $y$, meaning that $\mu$ is uniform.
+    Therefore, $\mathit{Bolz-}\mathbf{1}$ is only calibrated for the uniform distribution.
 \end{lproof}
 
 
+\begin{prop}
+    With respect to the Fisher metric, the loss function generating the linear combination \cofunc\ 
+    \[
+        \mathit{LIN}^c_{x}(\mu) = (1-c) \mu + c \delta_x
+    \]
+    is log loss
+    $
+        % F'_x (\mu) = 
+        \mathcal L(\mu, x) = \log \mu(x) 
+    $
+\end{prop}
+\begin{proof}
+    \begin{align*}
+    - F'_x = \hat \nabla_{\mu} \log \mu(x) &=  
+        % \mu \odot \frac{1}{\mu} 
+        \mathcal I(\mu)^{-1} \nabla_\mu \log \mu(x) \\
+        &= \mu \odot \left(\Big[ \cdots, \frac1{\mu(x)}\frac{\partial}{\partial \mu_i} \mu(x), \cdots \Big] - \lambda \vec 1 \right) \\
+        &= \Big[\cdots, \mathbbm1[x=i] - \lambda \mu(i) ,\cdots\Big] \\
+        &= \delta_x - \mu            
+    \end{align*}
+    Note, that
+    \begin{align*}
+        \mathit{LIN}'_x = \frac{\partial}{\partial c} \mathit{LIN}^c_x(\mu) \Big|_{c=0} 
+            = \frac{\partial}{\partial c} \Big[ (1-c) \mu + c \delta_x \Big]_{c=0} = \delta_x - \mu
+    \end{align*}
+    which is the same vector field.  
+\end{proof}
 
+Note that the value of the extended loss is cross entropy:
+\begin{align*}
+    \mathcal L^{\overline{\mathit{LIN}}}(\mu, \nu) = \Ex_{\nu} \log(\mu)
+\end{align*}
+
+% \begin{prop}
+% The update rule given by 
+% $
+%     % F'_x (\mu) = 
+%     \mathcal L(\mu, x) = \log \mu(x) 
+% $
+% is sample-calibrated.
+% \end{prop}
+% and this \cofunc\ is sample-calibrated.
+\begin{prop}
+    LIN is sample-calibrated.
+\end{prop}
+\begin{proof}
+    $ \bar F'_\nu(\mu) = \Ex_{x \sim \nu}[ \delta_x - \mu ] = \nu - \mu$ 
+    which is zero if and only if $\mu = \nu$.
+\end{proof}
+
+
+\begin{conj}
+    Every sample-calibrated \cofunc\  is also quasi-linear. 
+\end{conj}
+\begin{conj}
+    LIN is the only sample-calibrated \cofunc\ that satisfies
+    \cref{ax:zero,ax:diffble,ax:effectiveness}.
+\end{conj}
+
+\subsection{Probabilities and Events}
+Now, we consider the setting where $\Theta = \Delta W$ and $\Phi = 2^W$. 
+
+Suppose $m$ is a distribution over events with $m(\emptyset) = 0$.
+Let $\Pr_m$ be the distribution over $W$ given by
+\begin{align*} 
+    \Pr_m := \sum_{\substack{\emptyset \ne A \in \Phi}}
+        m(\phi) \mathrm{Unif}_A 
+    \qquad\qquad
+    = B \mapsto
+    % \Pr_m(B) :=
+        % \sum_{A : A \cap B \ne \emptyset} 
+        % \sum_{A \ne \emptyset} 
+        \sum_{\emptyset \ne A \in \Phi} 
+        % \sum_{A} 
+        m(A) \frac{|B \cap A|}{|A|}.
+\end{align*}
+where $| - | : 2^W \to \mathbb R^{\ge 0}$ is a base measure on $W$, such as the counting measure when $W$ is finite.
+A sanity check: this is indeed a distribution, since
+$
+    \sum_{A \ne \emptyset} m(A) \frac{|A|}{|A|} = \sum_{A \ne \emptyset} m(A) = 1
+$.
+
+In the language of graphical models, $\Pr_m$ is the distribution over $W$ given by the composite  
+\[
+    \begin{tikzpicture}
+        \node[dpadded] (A) at (0,0) {$A$};
+        \node[dpadded] (W) at (2.5,0) {$W$};
+        
+        \draw[arr2, <-] (A) to node[above]{$m$} ++(-1.5, 0);
+        \draw[arr2] (A) to node[above]{$\mathrm{Unif}$} (W);
+    \end{tikzpicture}
+\] 
+
+\begin{defn}
+    A \cofunc\ F is 
+    \emph{sample-calibrated} at $m$ 
+    if 
+    $
+        \bar F'_{m}(\Pr\nolimits_m) = \vec 0.
+    $ 
+    % if $|| \bar F'_m( \Pr\nolimits_m) ||$ 
+\end{defn}
+
+
+\begin{conj}
+    % \[
+    % F^\beta_A(\mu) = 
+    % \]
+    $\mathit{LIN}$
+    is $m$-sample-stationary at $\mu$ iff $\cdots$
+\end{conj}
+\begin{proof}
+    $\mu$ is a fixed point of samples drawn from $m$ iff
+    \begin{align*}
+        \forall x.~
+        0 = \sum_{A \ne \emptyset} m(A) (\mu(x|A) - \mu(x)) 
+        = \sum_{A \ne \emptyset} m(A) \left(
+            \frac{\mu(x) \mathbbm1[x \in A]}{\mu(A)} - \mu(x) \right) \\
+        = \mu(x) \sum_{A \ne \emptyset} m(A) \left(
+            \frac{\mathbbm1[x \in A]}{\mu(A)} - 1 \right) \\
+    \end{align*}
+    which means, for every $x$ with $\mu(x) > 0$, we have
+    \begin{align*}
+        0 &= \sum_{A \ne \emptyset} m(A) \left( \frac{\mathbbm1[x \in A]}{\mu(A)} - 1 \right)  \\
+          &= \sum_{A \ne \emptyset} m(A)\frac{\mathbbm1[x \in A]}{\mu(A)} - \sum_{A \ne \emptyset}m(A) \\
+          \iff\qquad
+          1 &=  \sum_{A \ni x}\frac{m(A)}{\mu(A)} \\
+        % \iff\qquad  0 = \sum_{A \ne \emptyset} m(A) \left( \frac{\mathbbm1[x \in A]}{\mu(A)} - 1 \right)
+    \end{align*}
+    % Observe that this quantity is strictly larger than 
+    Obviously if $m = \delta_W$, then this will be the case, and after all, conditioning on the trivial event does nothing, and results in the trivial vector field. 
+    
+    What about for others? Clearly if $m = \delta_{\{x\}}$, this is true iff $\mu = \delta_x$, which is also appropriate.
+    
+    What about other point masses? If $m = \delta_B$, for some set $B$, then the condition states that $\mu(B) = 1$, which also seems reasonable.
+    
+    Now, what if $m$ corresponds to a probability distribution? Our condition becomes
+    \[
+        \forall x.~ \sum_{\{y\} \ni x} \frac{m(\{y\})}{\mu(y)} = \frac{m(\{x\})}{\mu(\{x\})} = 1
+    \]
+    which is to say that $\mu$ is equal to the distribution that $m$ corresponds to.
+    
+    
+    Great. Now suppose that $m = s \delta_B + (1-s) \delta_W$ is a simple support function for $W$.  The condition becomes
+    \[
+        \forall x \in B.~ 1= \frac{s}{\mu(B)} + \frac{1-s}{1} 
+        \qquad\iff\quad
+            \mu(B) = s + \mu(B) - s \mu(B)
+        \quad\iff\quad
+            0 = s (1 - \mu(B))
+    \] 
+    so, supposing $s > 0$, once again, this is only stationary if $\mu(B) = 1$. Of course, this isn't too surprising either, since it's also a concentric mass function.
+    
+    More generally, let's take $m = (s)\delta_A + (1-s)\delta_B$, and suppose $A \ne B$.
+    Now, $\mu$ is stationary iff
+    \begin{enumerate}
+        \item If $A \cap B \ne \emptyset$, then
+        $\displaystyle 
+            \frac{s}{\mu(A)} +  \frac{1-s}{\mu(B)} = 1
+        %    
+        $
+        % \begin{align*}
+        %     \iff\quad s\,\mu(B) + (1-s)\,\mu(A) = \mu(A) \mu(B) \\
+        %     \iff\quad s\,\mu(B) - s\,\mu(A) = \mu(A) (\mu(B) - 1) \\
+        %     \iff\quad s = \frac{\mu(A) \mu(B) - \mu(A)}{\mu(B) - \mu(A)} 
+        %         = \frac{\mu(B) - 1}{\frac{\mu(B)}{\mu(A)} - 1}
+        %         % = \frac{1 - \frac{1}{\mu(B)}}{\frac{1}{\mu(A)} - \frac{1}{\mu(B)}}
+        %         % = \frac
+        %         % \\
+        % \end{align*}
+        which is to say the weighted harmonic mean of $\mu(A)$ and $\mu(B)$ is one; since the harmonic mean lies between the minimum and maximum values, and since probability is at most 1, this means we must have $\mu(A) = \mu(B) = 1$.
+        
+        \item If $\exists x \in A \setminus B$ with $\mu(x) > 0$ then 
+        $\displaystyle
+            \frac{s}{\mu(A)} = 1 \quad \iff\quad \mu(A) = s > 0;
+        $
+
+        \item If $\exists x \in B \setminus A$ with $\mu(x) >0$, then 
+        $\displaystyle
+            \frac{1-s}{\mu(B)} = 1 \quad \iff\quad \mu(B) = 1-s >0;
+        $
+    \end{enumerate}
+    % Taken together, (1) and (2) imply that if $\mu(A \setminus B) > 0$ and $\mu(A \cap B) > 0$ then
+    % \[ \mu(A) (\mu(B) - \mu(A)) = \mu(A) (\mu(B) -1) \quad\iff\quad
+    %     \mu(A) = 1 \]
+    % and symmetrically, if $\mu(B \setminus A) > 0$ and $mu(A \cap B) > 0$, then
+    Since $A \ne B$, either (2) or (3) must hold, and so if $A$ and $B$ are not disjoint, then there are no stable points that puts mass outside of $A \cap B$. 
+        
+    On the other hand, if $A$ and $B$ are disjoint, we have shown that the stable distributions are the ones that have $\mu(A) = s$  and $\mu(B) = 1-s$.  
+    
+    
+    % What if $m = \frac13\delta_{\{a,b\}} + \frac13\delta_{\{b,c\}} + \frac13\delta_{\{c,a\}}$
+    What if $m = m_{\bar c}\delta_{\{a,b\}} + m_{\bar a}\delta_{\{b,c\}} + m_{\bar b}\delta_{\{c,a\}}$
+    % By symmetry, we expect that the only fixed point is the uniform distribution over $\{a,b,c\}$. 
+    Suppose that $\mu(a), \mu(c) > 0$. Then 
+    \begin{align*}
+         1 = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} + \frac{m(\{a,c\})}{\mu(a) + \mu(c)} 
+         = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} + \frac{m(\{b,c\})}{\mu(b) + \mu(c)} \\
+         \Rightarrow \qquad
+         \frac{m(\{a,c\})}{\mu(a) + \mu(c)} = \frac{m(\{b,c\})}{\mu(b) + \mu(c)} = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} =: k.
+    \end{align*}
+    So $\mu(\{a,b\}) + \mu(\{b,c\}) + \mu(\{a,c\}) = 2 = \frac{1}{k}m(\{a,c\}) + \frac1km(\{b,c\}) + \frac1k m(\{a,c\})$. So $k=2$.
+        
+    % Now, if $\mu = \Pr_m$, then $\mu(A) = \sum_{\emptyset \ne U  \in \Phi} m(U) \frac{|U \cap A|}{|U|}$, so our condition becomes
+    % \begin{align*}
+    %       1 &=  \sum_{x \in A \ne \emptyset}\frac{m(A)}{\sum_{\emptyset \ne U  \in \Phi} m(U) \frac{|U \cap A|}{|U|}} \\
+    % \end{align*}
+\end{proof}
+
+Here are some update rules:
+% \begin{table}
+\begin{center}
+\begin{tabular}{c|ccc|c}\toprule
+    Update Dynamics $F$ & Flow $F^c_A(\mu)$
+        & Vector Field $F'_A(\mu)$
+        & Loss $\mathcal L^{F}(\mu, A)$
+        & Properties
+        \\\midrule
+    $\mathit{LIN}$
+        & $%\mathit{LIN}^c_A \mu =
+            (1-c)\,\mu + (c)\,\mu| A$
+        & $%\mathit{LIN}'_A \mu = 
+            \mu| A - \mu$
+        & $%\mathcal L^{\mathit{LIN}}(\mu, A) = 
+            - \log \mu(A)$
+        & \\ 
+    $\mathit{LLI}$
+        & $\propto
+            \mu^{1-c}\, (\mu|A)^c$
+        & {\color{red} N/A }
+        & {\color{red} N/A }
+        &\\
+    $\mathit{Bolz}[\mathbf 1]$
+        & $\propto
+            \mu \cdot \exp( \beta \mathbbm{1}_A)$
+        & $\mu \odot (\mathbbm{1}_A - \mu(A))$ 
+        & $\mu(\lnot A)$
+        & \\
+    \bottomrule
+\end{tabular}
+\end{center}
+% \end{table}
+
+
+\subsection{Probabilities and Probabilities}
 
 % \begin{enumerate}
 %     \item 
 % \end{enumerate}
+First, full, unconditional distributions. 
+\begin{center}
+\begin{tabular}{c|ccc|c}\toprule
+    Dynamics $F$ & Flow $F^c_q(\mu)$
+        & Vector Field $F'_q(\mu)$
+        & Loss $\mathcal L^{F}(\mu, q)$
+        & Properties
+        \\\midrule
+    $\mathit{LIN}$
+        & $%\mathit{LIN}^c_A \mu =
+            (1-c)\,\mu + (c)\, q$
+        & $%\mathit{LIN}'_A \mu = 
+            q - \mu$
+        & $%\mathcal L^{\mathit{LIN}}(\mu, A) = 
+            \kldiv{q}{\mu}$
+        & \\ 
+    $\mathit{LLI}$
+        & $\propto
+            \mu^{1-c}\, q^c$
+        & $\mu \odot \Big( \log \frac\mu q - \kldiv\mu q \Big)$ 
+        & $\kldiv\mu q$ 
+        &\\
+    \bottomrule
+\end{tabular}
+\end{center}
 
 
 \section{Examples}
