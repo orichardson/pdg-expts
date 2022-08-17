@@ -434,7 +434,7 @@ This is where confidence comes in.
 
 % We now define a \emph{\cofunc} to be a function
 
-Let $(\confdom$ be the set of possible confidences, which, for now, we will take to be the interval $[0, 1]$. 
+Let $\confdom$ be the set of possible confidences, which, for now, we will take to be the interval $[0, 1]$. 
 % We are now in a position to consider confidence when updating. 
 We are now in a position to take confidence into account in our updates. 
 As before, our first axiom is that we can capture the updating process in functional form. 
@@ -1033,7 +1033,7 @@ One defining feature of vector fields is closure under linear
 	combination.
 Because they are in natural correspondance with differentiable additive update rules, update rules also inherit this structure.
 
-In particular, given two update flows $F, G : \mathbb R \to \Theta$, we can define
+In particular, given \cofunc s $F, G : \mathbb R \to \Theta$, we can define
 $F \oplus G$ via the vector field $(F \oplus G)' = F' + G'$.
 
 \begin{wip}
@@ -1148,15 +1148,16 @@ Suppose we have:
 		% A way of taking gradients of $U$ with respect to $\theta$,
 		% % $\nabla : ()$
 		% such as an inner product $g_p : T_p\Theta \times T_p\Theta \to \mathbb R$, making $(\Theta, g)$ a Riemannian manifold.
-		A way of taking the gradient of ${\cal L}$ with respect to $\theta$.%
+		A way of taking the gradient of ${\cal L}$ with respect to $\theta$,%
 			\footnote{
 			such as a tangent-cotangent isomorphism $(-)^\sharp : T^*_p\Theta \to T_p \Theta$, perhaps coming from an affine connection, in turn perhaps coming from a Riemmannian metric.}
+        so as to obtain a vector field on $\Theta$ which optimizes $\mathcal L.$
 \end{enumerate}
 % \def\GD#1{(\mathtt{GD}\;#1)}
 \def\GD#1{\mathtt{GF}[#1]}
 \def\NGD#1{\mathtt{NGF}[#1]}
 
-Then we can define an update rule $\GD {\cal L}$ that reduces inconsistency by gradient descent. Concretely, such an update rule has a vector field:
+Then we can define an update rule $\GD {\cal L}$ that reduces inconsistency by gradient flow (the continuous limit of gradient descent). Concretely, such an update rule has a vector field:
 % \def\GD#1{(\mathtt{GD}\; #1)}
 \[
 	\GD {\cal L}'_\phi(\theta) = - \nabla_\theta {\cal L}(\theta,\phi).
@@ -1565,6 +1566,12 @@ Now, if observations are drawn from some true distribution $\mu^*$, then we woul
 	\hfill \textbf{(sampling calibration)} \label{ax:sample-calibration}
 \end{CFaxioms}
 
+\begin{computation}
+    Fix a ``transprot cost'' $c : W\times W \to \mathbb R$. 
+    When is 
+    \tcblower
+\end{computation}
+
 
 \begin{prop}
 	Expected utility maximizing update rules cannot be calibrated for more than one distribution.
@@ -1671,6 +1678,53 @@ Note that the value of the extended loss is cross entropy:
 \subsection{Probabilities and Events}
 Now, we consider the setting where $\Theta = \Delta W$ and $\Phi = 2^W$. 
 
+
+Here are some update rules:
+% \begin{table}
+\begin{center}
+\def\arraystretch{1.5}
+\begin{tabular}{c|ccc|c}\toprule
+    Dynamics $F$ & Flow $F^c_A(\mu)$
+        & Vector Field $F'_A(\mu)$
+        & Loss $\mathcal L^{F}(\mu, A)$
+        & $F^c_A, F^{d}_B$ commute?
+        \\\midrule
+    $\mathit{LIN}$
+        & $%\mathit{LIN}^c_A \mu =
+            (1-c)\,\mu + (c)\,\mu| A$
+        & $%\mathit{LIN}'_A \mu = 
+            \mu| A - \mu$
+        & $%\mathcal L^{\mathit{LIN}}(\mu, A) = 
+            - \log \mu(A)$
+        & if $\mu(A \cap B) > 0$ 
+        \\[0.5ex]  %\noalign{\smallskip}
+    $\mathit{LLI}$
+        & {\def\arraystretch{0.8}
+            \begin{tabular}{@{}l@{}}
+            $\propto
+                \mu^{1-c}\, (\mu|A)^c$\\
+                \color{gray}
+            $\propto
+                \mu\, \mathbbm1_{A}$
+            \end{tabular}}
+        & {\color{red} N/A }
+        & {\color{red} N/A }
+        & always\\[1.5ex] %\noalign{\smallskip}
+    $\mathit{Bolz}[\mathbf 1]$
+        & {\def\arraystretch{0.9}\begin{tabular}{@{}l@{}}
+            $\propto
+                \mu \cdot \exp( \beta \mathbbm{1}_A)$\\
+            \color{gray}
+            $\propto
+                \mu \cdot \exp( - \beta \mathbbm{1}_{\bar A})$
+            \end{tabular}}
+        & $\mu \odot (\mathbbm{1}_A - \mu(A))$ 
+        & $\mu(\lnot A)$
+        & always \\
+    \bottomrule
+\end{tabular}
+\end{center}
+
 Suppose $m$ is a distribution over events with $m(\emptyset) = 0$.
 Let $\Pr_m$ be the distribution over $W$ given by
 \begin{align*} 
@@ -1703,24 +1757,32 @@ In the language of graphical models, $\Pr_m$ is the distribution over $W$ given 
 \] 
 
 \begin{defn}
+    % A \cofunc\ F is 
+    % \emph{sample-calibrated} at $m$ 
+    % if 
+    % $
+    %     \bar F'_{m}(\Pr\nolimits_m) = \vec 0.
+    % $ 
     A \cofunc\ F is 
-    \emph{sample-calibrated} at $m$ 
+    $m$-\emph{sample-stationary} at $\mu$ 
     if 
     $
-        \bar F'_{m}(\Pr\nolimits_m) = \vec 0.
+        \bar F'_{m}(\mu) = \vec 0.
     $ 
     % if $|| \bar F'_m( \Pr\nolimits_m) ||$ 
 \end{defn}
 
-
-\begin{conj}
-    % \[
-    % F^\beta_A(\mu) = 
-    % \]
+\begin{computation}
+    
+% \begin{conj}
+%     % \[
+%     % F^\beta_A(\mu) = 
+%     % \]
     $\mathit{LIN}$
     is $m$-sample-stationary at $\mu$ iff $\cdots$
-\end{conj}
-\begin{proof}
+    \tcblower
+% \end{conj}
+% \begin{proof}
     $\mu$ is a fixed point of samples drawn from $m$ iff
     \begin{align*}
         \forall x.~
@@ -1803,53 +1865,105 @@ In the language of graphical models, $\Pr_m$ is the distribution over $W$ given 
     % What if $m = \frac13\delta_{\{a,b\}} + \frac13\delta_{\{b,c\}} + \frac13\delta_{\{c,a\}}$
     What if $m = m_{\bar c}\delta_{\{a,b\}} + m_{\bar a}\delta_{\{b,c\}} + m_{\bar b}\delta_{\{c,a\}}$
     % By symmetry, we expect that the only fixed point is the uniform distribution over $\{a,b,c\}$. 
-    Suppose that $\mu(a), \mu(c) > 0$. Then 
+    Suppose that there is a fixed point $\mu$ with all positive probabilities. Then,
     \begin{align*}
          1 = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} + \frac{m(\{a,c\})}{\mu(a) + \mu(c)} 
          = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} + \frac{m(\{b,c\})}{\mu(b) + \mu(c)} \\
          \Rightarrow \qquad
          \frac{m(\{a,c\})}{\mu(a) + \mu(c)} = \frac{m(\{b,c\})}{\mu(b) + \mu(c)} = \frac{m(\{a,b\})}{\mu(a) + \mu(b)} =: k.
     \end{align*}
-    So $\mu(\{a,b\}) + \mu(\{b,c\}) + \mu(\{a,c\}) = 2 = \frac{1}{k}m(\{a,c\}) + \frac1km(\{b,c\}) + \frac1k m(\{a,c\})$. So $k=2$.
+    So $\mu(\{a,b\}) + \mu(\{b,c\}) + \mu(\{a,c\}) = 2 = \frac{1}{k}m(\{a,c\}) + \frac1km(\{b,c\}) + \frac1k m(\{a,c\})$. So $k=\frac12$. Thus we can solve
+    \begin{align*}
+        \begin{bmatrix}
+            1 & 1 & 0 \\
+            1 & 0 & 1 \\
+            0 & 1 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+            \mu(a) \\ \mu(b) \\\mu(c)
+        \end{bmatrix}
+        &= 
+        \frac1k
+        \begin{bmatrix}
+            m(\{a,b\}) \\ m(\{a,c\}) \\ m(\{b,c\})
+        \end{bmatrix}\\
+    \qquad\implies\qquad& 
+        \mu = 2
+            \begin{bmatrix}
+                1 & 1 & 0 \\
+                1 & 0 & 1 \\
+                0 & 1 & 1
+            \end{bmatrix}^{-1}
+            \begin{bmatrix}
+                m(\{a,b\}) \\ m(\{a,c\}) \\ m(\{b,c\})
+            \end{bmatrix}
+        = 
+        \begin{bmatrix}
+            1 & 1 & -1 \\
+            1 & -1 & 1 \\
+            -1 & 1 & 1
+        \end{bmatrix}
+        \begin{bmatrix}
+            m(\{a,b\}) \\ m(\{a,c\}) \\ m(\{b,c\})
+        \end{bmatrix}
+    \end{align*}
+    Since probability must be non-negative, we also find that there is only a fixed point
+    with positive probability on all events if each mass is less than the sum of the other two. 
+    Otherwise, say $m(\{a,b\}) > \frac12$ --- there is not enough support for $c$ even split between $\{b,c\}$ and $\{a,c\}$ to overcome the evidence in favor of $\{a,b\}$, and so any positive probability on $c$ must shrink to zero.
         
     % Now, if $\mu = \Pr_m$, then $\mu(A) = \sum_{\emptyset \ne U  \in \Phi} m(U) \frac{|U \cap A|}{|U|}$, so our condition becomes
     % \begin{align*}
     %       1 &=  \sum_{x \in A \ne \emptyset}\frac{m(A)}{\sum_{\emptyset \ne U  \in \Phi} m(U) \frac{|U \cap A|}{|U|}} \\
     % \end{align*}
-\end{proof}
+% \end{proof}
 
-Here are some update rules:
-% \begin{table}
-\begin{center}
-\begin{tabular}{c|ccc|c}\toprule
-    Update Dynamics $F$ & Flow $F^c_A(\mu)$
-        & Vector Field $F'_A(\mu)$
-        & Loss $\mathcal L^{F}(\mu, A)$
-        & Properties
-        \\\midrule
-    $\mathit{LIN}$
-        & $%\mathit{LIN}^c_A \mu =
-            (1-c)\,\mu + (c)\,\mu| A$
-        & $%\mathit{LIN}'_A \mu = 
-            \mu| A - \mu$
-        & $%\mathcal L^{\mathit{LIN}}(\mu, A) = 
-            - \log \mu(A)$
-        & \\ 
-    $\mathit{LLI}$
-        & $\propto
-            \mu^{1-c}\, (\mu|A)^c$
-        & {\color{red} N/A }
-        & {\color{red} N/A }
-        &\\
-    $\mathit{Bolz}[\mathbf 1]$
-        & $\propto
-            \mu \cdot \exp( \beta \mathbbm{1}_A)$
-        & $\mu \odot (\mathbbm{1}_A - \mu(A))$ 
-        & $\mu(\lnot A)$
-        & \\
-    \bottomrule
-\end{tabular}
-\end{center}
+
+\begin{conj}
+    If $\mu$ is a fixed point of $\mathit{LIN}_m$, then 
+    $\mu(A) \ge \mathrm{Bel}_m(A)$ for all events $A$.
+    \\
+    That is, $\mathrm{Fixedpts}( \mathit{LIN}_m ) \subset \mathcal P_m$.
+\end{conj}
+\begin{proof}
+    Suppose $\mu$ is a fixed point of $\mathit{LIN}_m$.
+     % and let $S := \{ x : \mu(x) > 0\}$.
+    First we show that if $\mu(A) = 0$, then $m(A) = 0$. 
+    
+    \TODO[THIS IS FALSE --- see example above. Proposition cannot be proved this way.]
+    
+    % If $\mu(A) = 0$, then $\mu(x) = 0$ for all $x \in A$.  
+    % Suppose $\mu(A) = 0$.
+    % Any set $B$ containing a point $y$ with positive probability must not be a subset of $A$.  
+    % % The fixed point condition above then says that for some $y : \mu(y) > 0$,
+    % \[
+    %     % 1 = \sum_{B \ni y} \frac{m(B)}{\mu(B)} \le \sum_{B : B \not \subset A} \frac{m(B)}{\mu(B)}
+    %     1 = \sum_{B : \mu(B) > 0} \frac{m(B)}{\mu(B)}
+    % \]
+    % and the summation does not contain any subsets of $A$. 
+
+    
+
+    By the computation above, we know that
+    \[ 
+        \sum_{B : \mu(B) > 0} \frac{m(B)}{\mu(B)} = 1
+    \]
+    Then if $A$ is an event with $\mu(A) > 0$,
+    \begin{align*}
+        \mu(A) &= m(A) + \sum_{B \ne A: \mu(B) > 0} \frac{m(B) \mu(A)}{\mu(B)} \\
+        &\ge m(A) + \sum_{B \subsetneq A: \mu(B) > 0} \frac{m(B) \mu(A)}{\mu(B)} 
+            &\text{since this is only a subset of the terms}\\
+        &\ge m(A) + \sum_{B \subsetneq A: \mu(B) > 0} m(B)
+            &\text{since $\mu(A) \ge \mu(B)$ when $A \supset B$} \\
+        &= \sum_{B \subset A;\,\mu(B)>0} m(B)  \\
+        &= \mathrm{Bel}_m(A) - \sum_{B \subset A : \mu(B) = 0} m(B).
+    \end{align*}
+    
+\end{proof}
+We know that the converse does not hold, because if the intersection of all sets $A$ with $m(A) > 0$ is non-empty, then any fixed point must be supported entirely on $A$ --- and yet, if $m(W) > 0$, then there are probability distributions in $\mathcal P_m$ that have full support, including $\Pr_m$. 
+
+ 
+\end{computation}
+
 % \end{table}
 
 
@@ -1883,6 +1997,12 @@ First, full, unconditional distributions.
     \bottomrule
 \end{tabular}
 \end{center}
+
+If $F$ is an update rule for $W$, then $\bar F$ is an update rule for $\Delta W$. 
+% Thus, every 
+
+There are also analogous update rules when observations are not full joint distributions, but rather only conditional marginals of them.
+
 
 
 \section{Examples}
@@ -2016,10 +2136,11 @@ Now, consider the Bolzmann update rule
 \[
 	F_L^{\beta}(\Pr) (\mu) \propto \Pr(\mu) \exp(-\beta \kldiv\mu \bp)
 \]
+which corresponds to the loss function
+$\mathcal L^F(L, \Pr) = \Ex_{\mu \sim \Pr}[\kldiv\mu{\bp}]$.
 
 % Note, that the free extension of $\Phi$ is
-Note, that the free extension of $\Phi$ is isomorphic to the set of ``purely quantitative'' PDGs, i.e., those with $\balpha = \mat 0$, over the variables $\mat X$:
-$$
+Note that the extended input space $\bar \Phi$ is isomorphic to the set of ``purely quantitative'' PDGs, i.e., those with $\balpha = \mat 0$, over the variables $\mat X$: $$
 	% \bar\Phi = \{ \text{PDGs}~\dg M \text{ with variables } \N^{\dg M} = \mat X \Big\}
 	\bar\Phi = \Big\{ \text{PDGs}~\dg M = (\mat X, \Ed, \bP[], \mat0, \bbeta) \Big\}
 $$
@@ -2039,7 +2160,8 @@ Note that
 
 That is to say, applying the update with observation $\dg M$ and infinite certainty is like conditioning the higher-order distribution $\Pr$ on those distributions $\mu$ consistent with $\dg M$.
 % On the other hand,
-Now we turn to the opposite extreme, when confidence is low. When $k=0$, clearly $F^k_\dg M(\Pr) = \Pr$, so $F$ satisfies \cref{ax:zero}. And in the limit, as $\gamma \to 0$,
+Now we turn to the opposite extreme, when confidence is low. When $k=0$, clearly $F^k_\dg M(\Pr) = \Pr$, so $F$ satisfies \cref{ax:zero}. And in the limit,
+% as $\gamma \to 0$,
 \begin{align*}
 	\lim_{k \to 0} F_{\dg M}^k(\Pr)(\mu) &= \Pr \,|\, \{ \Inc_{\dg M}(\mu) < \infty \} \\
 		&= \Pr \,|\, \{\mu : \forall L.~\mu(Y|X) \ll \bp \}.
@@ -2048,8 +2170,7 @@ Now we turn to the opposite extreme, when confidence is low. When $k=0$, clearly
 \end{align*}
 
 So $F$ can only be continuous at $k=0$ for $\Pr$ (and hence can only satisfy \cref{ax:diffble}) if, for all edges $L \in \Ed$, we have that $\Pr(\mu(Y|X) \ll \bp) = 1$.
-So one easy way to ensure differentiability for all update rules is to require strictly positive probabilities in theprobabilities in the cpds.
-
+One sufficient condition to ensure diefferentiablility (\cref{ax:diffble}) is to restrict to observations of strictly positive cpds.
 
 
 \subsubsection{Updating Distributions with PDGs and Incompatibility}
