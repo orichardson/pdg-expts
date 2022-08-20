@@ -1140,7 +1140,7 @@ In fact, the first condition is much stronger;
 
 
 
-\section{Optimizing Update Rules}
+\subsection{Optimizing Update Rules}
 Suppose we have:
 \begin{enumerate}[nosep]
 	\item A differentiable loss function $\mathcal L : \Theta \times \Phi  \to \mathbb R$, which intuitively measures the ``incompatibility'' between a belief state $\theta$ and an assertion $\varphi$, and
@@ -1263,7 +1263,7 @@ and $\nabla \mathcal L$ is the gradient for the euclidean metric i.e., the vecto
 
 
 
-\subsection{Expected Utility Maximization Update Rules}
+\subsubsection{Expected Utility Maximization Update Rules}
 % \subsection{Boltzmann Update Rules}
 
 
@@ -1513,9 +1513,18 @@ The certainties of $\Bolz U$ are the minimizers of $U$.
 \end{examplex}
 
 
+\section{Related Concepts From the Literature}
+
+\subsection{Weight of Evidence}
+% \subsection{Loss Functions}
+\subsection{Variance-Based Approaches}
+\subsubsection{Kalman Filtering}
+
 %
 \section{Internal Confidence}
-a
+
+\subsection{Confidence as a Belief State: Mixture of Experts}
+
 % We now study how one constructs a belief state from a confidence measure.
 Fix a set $\Phi$ of assertions.
 We now study a natural way of constructing a space of beliefs $\Theta$ and a \cofunc $F$ for it,
@@ -1525,8 +1534,9 @@ which might be summarized as an internal log of changes in confidence.
 First, suppose $\Phi$ is a finite set $\{ \phi_1, \ldots \phi_n\}$, and $\confdom = \Rplus$. 
 Then, define
 \begin{align*}
+    % \Theta := \Theta^{\text{FIN}}_{\Phi, B} := 
 	\Theta := \confdom_{\mathit{fin}}^{\Phi} := 
-		\Big\{ \text{vectors}~ v \in \mathbb R^n \Big\}
+		\Big\{ \text{vectors}~ v \in \mathbb R_+^n \Big\}
 \end{align*}
 where 
 $\confdom_{\mathit{fin}}^\Phi$ is the space of functions from $\Theta$ to $\confdom$ that map only finitely many elements of $\Phi$ to $\bot$.
@@ -1537,6 +1547,7 @@ $\confdom_{\mathit{fin}}^\Phi$ is the space of functions from $\Theta$ to $\conf
 
 
 
+\subsection{Coalgebraic Picture}
 
 
 In fancier mathematical language, the material of this section may be seen as studying the final coalgebras of the signature 
@@ -1618,15 +1629,17 @@ Now, if observations are drawn from some true distribution $\mu^*$, then we woul
 
 \begin{prop}
     With respect to the Fisher metric, the loss function generating the linear combination \cofunc\ 
-    \[
+    $
         \mathit{LIN}^c_{x}(\mu) = (1-c) \mu + c \delta_x
-    \]
-    is log loss
+    $
+    is surprisal:
     $
         % F'_x (\mu) = 
-        \mathcal L(\mu, x) = \log \mu(x) 
-    $
+        \mathcal L^{\mathit{LIN}}(\mu, x) = - \log \mu(x) =: \I_\mu[X=x]
+    $.
 \end{prop}
+
+
 \begin{proof}
     \begin{align*}
     - F'_x = \hat \nabla_{\mu} \log \mu(x) &=  
@@ -2008,9 +2021,57 @@ There are also analogous update rules when observations are not full joint distr
 \section{Examples}
 \subsection{Assorted}
 
-\begin{examplex}{Internal Confidence}{}
-	C
-\end{examplex}
+\subsection{Games}
+Suppose $i = 1, \ldots, n$ are playing a mixed strategy game, with payoffs $U$. 
+Concretely, for each player $i$, let $A_i$ denote the set of possible primitive actions.
+% The game consists of a single round, in which all players simultaneously .
+To play a round of the game, each player $i$ chooses a (randomized) strategy $p_i \in \Delta A_i$.
+Each player's payoff may be different, and is a function $U: (\prod_{i}A_i) \to \mathbb R^n$ of the joint actions of all players. 
+So if all players play mixed strategies $\mat p = (p_1, \ldots, p_n)$, then
+player $i$ gets an expected payoff of $\Ex_{\mat a \sim \mat p}[U_i(\mat a)] \in \mathbb R$.
+
+
+To model this in our current scenario, let
+\[
+    \Theta := \prod_{i} \Delta A_i 
+        \qquad\text{and}\qquad
+    \Phi := \{ 1, \ldots, n \}
+\]
+
+
+We then define a \cofunc\ $f$ by 
+\begin{align*}
+    F'_{i}(\mat p) &= \nabla_{p_i} \Ex_{\mat a \sim \mat p}[U_i(\mat a)] \\
+        % &= a \mapsto \frac{\partial}{\partial p_i(a)} \Ex
+\end{align*}
+
+To be a conservative \cofunc, we would need there to be some real-valued
+function $\mathcal L(\mat p, i)$ such that
+% $\nabla_{\mat p}\mathcal L(\mat p, i) = \nabla_{p_i} \Ex U_i$
+\[
+    \frac{\partial}{\partial p_j(a)} \mathcal L(\mat p, i) = 
+        \delta_{i,j} \frac\partial{\partial p_i(a)} \Ex_{\mat p} U_i
+\]
+
+
+
+\begin{prop}
+    The mixed strategy $\mat p$ is a Nash equilibrium iff 
+    $ F'_{i}\mat p = \mat 0$ for every $i \in \{1, \ldots, n\}$.
+\end{prop}
+
+
+% Thus, their joint action is an $p_i \in \Delta A_i$
+
+
+\begin{openQ}
+    Under what conditions is there a loss function that represents this?
+\end{openQ}
+
+
+% \begin{examplex}{Internal Confidence}{}
+% 	C
+% \end{examplex}
 
 \subsection{Relaxations of Bayes Rule (Updating By Conditioning)}
 Fix some measurable space $\X = (X, \mathcal A)$ of possible outcomes, and consider an update rule for probability distributions $\Theta := \Delta\X$
@@ -2080,10 +2141,8 @@ Assuming that the vector field is conservative,
 
 
 % \subsection{Case Study: Jeffrey's Rule}
-\subsection{Confidence as a Belief State: Mixture of Experts}
 
-\subsection{Weight of Evidence}
-\subsection{Loss Functions}
+
 \subsection{Calibration}
 
 Suppose $Y$ is a finite set $\{y_1, \ldots, y_m\}$, and
