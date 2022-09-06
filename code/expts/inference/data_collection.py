@@ -2,9 +2,6 @@
 Given a PDG, collet 
 """
 
-
-#%%
-
 from pdg.pdg import PDG
 from pdg.store import TensorLibrary
 from pdg.rv import Variable as Var
@@ -19,10 +16,9 @@ def collect_data(id:str,  M:PDG,  store:TensorLibrary=None):
     
     if store == None:
         store = TensorLibrary()
+
         
     ## 1 ##  --- 
-    store.copy
-
     ## 2 ##  --- 
     ## 3 ##  --- torch optimization (Adam)
     ## 4 ##  --- torch optimization (LBFGS)
@@ -39,7 +35,15 @@ def colect_data(id:str, bn, store):
 # %load_ext autoreload
 # %autoreload 2
 
-# %%
-from pdg.lib.smoking import M 
 
-M.optimize_score()
+
+
+
+#%%
+
+
+
+
+
+# from pdg.lib.smoking import M 
+# M.optimize_score()

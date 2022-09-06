@@ -2183,7 +2183,9 @@ In the presence of a ``true'' emperical distribution $\mu(X,Y)$, such a classifi
 \section{Confidence in PDGs}
 \subsection{Quantitative PDGs}
 
-\subsubsection{Updating Second-Order Distributions with PDGs}
+\subsubsection{Updating Second-Order Distributions with PDGs} 
+	\label{sec:second-order-PDG}
+\def\F{\mathtt{F1}}
 Let $\N$ be a set of variables, where each variable $X \in \N$ can take possible values in the set $\V(X)$, and let $\V(\N)$ be the set of possible joint settings of all variables in $\N$.
 
 \begin{align*}
@@ -2202,10 +2204,16 @@ Let $\N$ be a set of variables, where each variable $X \in \N$ can take possible
 Now, consider the Bolzmann update rule
 % Given a PDG $\dg M$, let $\X := \Delta\V(\dg M) = \Delta(\prod_{X\in\N}\V(X))$. For each edge we have
 \[
-	F_L^{\beta}(\Pr) (\mu) \propto \Pr(\mu) \exp(-\beta \kldiv\mu \bp)
+	% F_L^{\beta}(\Pr) (\mu) \propto \Pr(\mu) \exp(-\beta \kldiv\mu \bp)
+	\F_{p(Y|X)}^{\beta}(\Pr) (\mu) \propto \Pr(\mu) \exp
+		\left(-\beta \Ex_{x \sim \mu} 
+			\kldiv[\Big]{\mu(Y|x)}{p(Y|x)}
+		\right)
 \]
 which corresponds to the loss function
-$\mathcal L^F(L, \Pr) = \Ex_{\mu \sim \Pr}[\kldiv\mu{\bp}]$.
+% $\mathcal L^{\F}(L, \Pr) = \Ex_{\mu \sim \Pr}[\kldiv\mu{\bp}]$.
+$\mathcal L^{\F}(p(Y|X), \Pr) = \displaystyle \Ex_{\mu \sim \Pr}\Ex_{x \sim \mu} 
+	\kldiv[\big]{\mu(Y|x)}{p(Y|x)}$.
 
 % Note, that the free extension of $\Phi$ is
 Note that the extended input space $\bar \Phi$ is isomorphic to the set of ``purely quantitative'' PDGs, i.e., those with $\balpha = \mat 0$, over the variables $\mat X$: $$
@@ -2214,11 +2222,11 @@ Note that the extended input space $\bar \Phi$ is isomorphic to the set of ``pur
 $$
 and it is easily verified that update rule from before extends to
 \[
-	F_{\dg M}^k(\Pr)(\mu) \propto \Pr(\mu) \exp(- k \bbr{\dg M}_0(\mu))
+	\F_{\dg M}^k(\Pr)(\mu) \propto \Pr(\mu) \exp(- k \bbr{\dg M}_0(\mu))
 \]
 Note that
 \begin{align*}
-	\lim_{k \to \infty} F_{\dg M}^k(\Pr)(\mu) &\propto
+	\lim_{k \to \infty} \F_{\dg M}^k(\Pr)(\mu) &\propto
 		% \mathbbm1[\mu \in {\displaystyle\SD{\dg M}}]
 		\Pr(\mu) \mathbbm1[\mu \in {\bbr{\dg M}^*_0}] \\
 		&= \Pr \,|\, \bbr{\dg M}^*_0 \\
@@ -2228,16 +2236,16 @@ Note that
 
 That is to say, applying the update with observation $\dg M$ and infinite certainty is like conditioning the higher-order distribution $\Pr$ on those distributions $\mu$ consistent with $\dg M$.
 % On the other hand,
-Now we turn to the opposite extreme, when confidence is low. When $k=0$, clearly $F^k_\dg M(\Pr) = \Pr$, so $F$ satisfies \cref{ax:zero}. And in the limit,
+Now we turn to the opposite extreme, when confidence is low. When $k=0$, clearly $\F^k_\dg M(\Pr) = \Pr$, so $F$ satisfies \cref{ax:zero}. And in the limit,
 % as $\gamma \to 0$,
 \begin{align*}
-	\lim_{k \to 0} F_{\dg M}^k(\Pr)(\mu) &= \Pr \,|\, \{ \Inc_{\dg M}(\mu) < \infty \} \\
+	\lim_{k \to 0} \F_{\dg M}^k(\Pr)(\mu) &= \Pr \,|\, \{ \Inc_{\dg M}(\mu) < \infty \} \\
 		&= \Pr \,|\, \{\mu : \forall L.~\mu(Y|X) \ll \bp \}.
 		% \quad\Big(\text{i.e., if $\mu$ is absolutely continuous with respect to $\bp$}
 		% \Big)
 \end{align*}
 
-So $F$ can only be continuous at $k=0$ for $\Pr$ (and hence can only satisfy \cref{ax:diffble}) if, for all edges $L \in \Ed$, we have that $\Pr(\mu(Y|X) \ll \bp) = 1$.
+So $\F$ can only be continuous at $k=0$ for $\Pr$ (and hence can only satisfy \cref{ax:diffble}) if, for all edges $L \in \Ed$, we have that $\Pr(\mu(Y|X) \ll \bp) = 1$.
 One sufficient condition to ensure diefferentiablility (\cref{ax:diffble}) is to restrict to observations of strictly positive cpds.
 
 
@@ -2245,7 +2253,10 @@ One sufficient condition to ensure diefferentiablility (\cref{ax:diffble}) is to
 % \def\tauur{\mathtt T}
 % \def\tauur{\mathtt{GD}}
 % \def\tauur{\tau}
-\def\tauur{\mathtt{CPD\_UR}}
+% \def\tauur{\mathtt{CPD\_UR}}
+\def\tauur{\mathtt{F2}}
+
+We now consider a seond update rule $\tauur$, whose state space is merely joint distributions $\Delta\V(\dg M)$, rather than second-order distributions $\Delta^2\V(\dg M)$ as in \ref{sec:second-order-PDG}. 
 
 \begin{align*}
 	\Theta &:=
@@ -2270,20 +2281,36 @@ define an update rule on joint distributions $\mu$ by
 	% &= \mu(X) p(Y|X)^{e^{-\beta}} \mu(Y|X)^{1-e^{-\beta}}  \mu(\mat X\setminus\{X,Y\}\mid X,Y)
 %     &= \mu(X)\; p(Y|X)^{\epsilon} \mu(Y|X)^{1-\epsilon}  \mu(Z\mid X,Y)
 % \end{align*}
-Writing this in a
-where $\epsilon := 1-e^{-\beta}$ and $Z := \mat X \setminus \{X,Y\}$.
+or more simply, in terms of confidence $c \in [0,1]$, with the translation $c := 1-e^{-\beta}$ 
+% and $Z := \mat X \setminus \{X,Y\}$, 
+\begin{align*}
+	\Big(\tauur_{p(Y|X)}^c \mu\Big) (\N) &\propto
+		\mu(\N) \left(\frac{p(Y|X)}{\mu(Y|X)}\right)^{\!c} \\
+		&= \mu(X) \Big( \mu(Y|X)^{1-c} p(Y|X)^c \Big) \mu(\mat Z\, |\, X,Y)
+\end{align*}
+where $\mat Z := \N \setminus \{X,Y\}$ stands for joint settings of all variables apart from $X$ and $Y$. 
 
 \begin{prop}
-	$\tauur_{p(Y|X)}$
+	$\tauur$ is a globally optimizing update rule with 
+	$
+		\mathcal L^{\tauur}\big(\mu, p(Y|X)\big) = 
+		\kldiv{\mu}{p}
+	$.
 \end{prop}
+As a consequence, the extended update rule $\ext\tauur$, has the form
+$$
+	\mathcal L^{\ext\tauur}(\mu, \dg M) = \Inc_{\dg M}(\mu). 
+$$
+By definition, this means its vector field is the natural gradient of $\Inc_{\dg M}$, i.e.,
+$
+	% \tau'_{\dg M}(\mu) = - \hat \nabla_\mu \bbr{\dg M}_0(\mu),
+	\ext\tauur'_{\dg M} = - \hat \nabla \Inc_{\dg M},
+$.
+In this sense, $\tauur$ is the update rule on joint distributions which reduces incompatibility by locally moving in the direction of steepest descent.
+
+
 
 \begin{prop}
-	The vector field of $\ext\tauur$ is the natural gradient of $\Inc_{\dg M}$, i.e.,
-	$
-		% \tau'_{\dg M}(\mu) = - \hat \nabla_\mu \bbr{\dg M}_0(\mu),
-		\ext\tauur'_{\dg M} = - \hat \nabla \Inc_{\dg M},
-	$
-	so $\tauur$ is the update rule on joint distributions which reduces incompatibility by locally moving in the direction of steepest descent.
 \end{prop}
 
 \begin{prop}
@@ -2296,7 +2323,9 @@ where $\epsilon := 1-e^{-\beta}$ and $Z := \mat X \setminus \{X,Y\}$.
 		% \item
 		Updating $\dg M$ with absolute certainty computes the information projection onto the convex set of distributions consistent $\dg M$ i.e.,
 		$$\displaystyle
-			\tauur_{\dg M}^\infty(\mu) = \argmin_{\mu' \in \SD*{\dg M}} \kldiv{\mu'}{\mu}
+			\tauur_{\dg M}^\infty(\mu)
+			 	= \mathrm{I\!\shortminus\!Proj}_{\SD*{\dg M}} (\mu) 
+				:= \argmin_{\mu' \in \SD*{\dg M}} \kldiv{\mu'}{\mu}
 		$$
 
 	% \end{enumerate}
