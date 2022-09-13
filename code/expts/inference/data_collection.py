@@ -2,6 +2,10 @@
 Given a PDG, collet 
 """
 
+from pgmpy.inference import ExactInference
+
+
+
 from pdg.pdg import PDG
 from pdg.store import TensorLibrary
 from pdg.rv import Variable as Var
@@ -27,6 +31,7 @@ def collect_data(id:str,  M:PDG,  store:TensorLibrary=None):
 
 
 def colect_data(id:str, bn, store):
+
     pass
 
 #%%
@@ -43,6 +48,10 @@ def colect_data(id:str, bn, store):
 
 
 
+if __name__ == '__main__':
+    from pgmpy.readwrite import BIFReader
+
+    reader = BIFReader("alarm.bif")
 
 
 # from pdg.lib.smoking import M 
