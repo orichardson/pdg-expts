@@ -31,23 +31,27 @@ example_bn_names =  [
 # 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 
-def collect_data(idstr:str,  M:PDG,  store:TensorLibrary=None):
+def collect_inference_data_for(M:PDG,  store:TensorLibrary=None):
 	"""
-	run a bunch of algorithms to do inference on the given PDG, and
-	store the results in the given tensorlibrary (if given).
-	
-	Also, write them to a file
-	Returns a tensor library of results.
+	run a bunch of algorithms to do inference on the given PDG, 
+	write them to a file, and return a tensor library of results.
 	"""
 	
 	if store == None:
 		store = TensorLibrary()
 		
 
+	# for each optimization, log:
+	#  - time taken
+	#  - memory taken
+	#  - training curve (if available): loss over time
+	#  - (Inc, Idef) of final product
+	# 
 	with open(idstr + ".log", 'w') as f:
 
 		mu1 = ip.cvx_opt_clusters(M, also_idef=False)
 		mu2 = ip.cvx_opt_clusters(M, also_idef=True)
+
 
 		f.write()
 		f.flush()

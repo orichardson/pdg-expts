@@ -5,60 +5,245 @@
 % \usepackage{parskip}
 
 \setlength\parskip{1ex}
+\usepackage[margin=1.5in]{geometry}
 
-\title{A Probabilistic Account of Confidence}
+\newcommand\IncD{\mathit{IncDist}}
 
+\title{A Probabilistic Account of Confidence Parameters in PDGs}
+\author{Oliver E Richardson, Joseph Y Halpern}
 \begin{document}
 \maketitle
 
-Let's consider two variants of PDGs. The first, which we'll call an opdg, is just what we had before. 
-Concretely, an opdg $\dg M = (\mat p, \bbeta)$ is collection of conditional probability distributions (cpds) $\mat p = \{p\ssub L \}_{L \in \Ed}$, with associated weights $\bbeta = \{\beta\ssub L \in \mathbb R \cup \{\infty\}\}_{L \in \Ed}$, typically positive, where $\beta\ssub L=0$ means the associated cpd $p\ssub L(Y|X)$ is totally ignored (and in particular is semantically equivalent to one in which $p\ssub L(Y|X)$ were replaced with a different cpd $p'(Y|X)$). 
+
+\textbf{Notation.}
+
+\begin{tabular}{ll}
+    $\V(X)$ & the set of possible values for a variable $X$ \\
+    $\Delta \V$ & the set of all joint distributions over all variables \\
+    $\overline{\mathbb R}$ & the set
+        $ \mathbb R \cup \{\infty\}$ of extended reals
+        % $\{ r \ge 0 : r \in \mathbb R\} \cup \{\infty\}$ of non-negative extended reals
+\end{tabular}
+
+\smallskip \hrule\smallskip
+
+Let's consider two variants of pdgs. The first, which we'll call an o-pdg, is just what we had before. 
+Concretely, an o-pdg $\dg M = (\mathcal P, \bbeta)$ is collection of conditional probability distributions (cpds) $\mathcal P = \{p\ssub L \}_{L \in \Ed}$, with associated weights $\bbeta = \{\beta\ssub L \in \overline{\mathbb R}\}_{L \in \Ed}$, typically positive, where $\beta\ssub L=0$ means the associated cpd $p\ssub L(Y|X)$ is totally ignored (and in particular is semantically equivalent to one in which $p\ssub L(Y|X)$ were replaced with a different cpd $p'(Y|X)$). 
 
 While the scale makes sense at the extremes and is mathematiaclly well-motivated, the numerical value of $\beta \in [0,\infty]$ is in some ways hard to make sense of. 
 How should we set $\beta$?  When, for instance, should we assign $\beta = 3$?
 
-To make sense of these questions, we will contrast opdgs with a variant, which we refer to as a jpdg. A jpdg $\mathfrak M = (\mat p, \mat c)$ is again a collection of weighted cpds, but instead the weights $c \ssub L$ for each cpd $p\ssub L$ lie in the interval $[0,1]$, and we interpret them as the ``(independent) probability that the given edge is part of the PDG''.
+To shine some light on these questions, we will introduce a variant of a pdg, which we refer to as a j-pdg. A j-pdg $\mathcal M = (\mathcal P, \mat c)$ is again a collection of weighted cpds, but instead the weights $c \ssub L$ for each cpd $p\ssub L$ lie in the interval $[0,1]$, and we interpret them as the ``(independent) probability that the given edge is part of the pdg''.
 
-In both cases, we can make sense of the ``set of joint distributions compatible with a pdg'' in the same way, as a function of $\mat p$ alone: 
+In both cases, we can make sense of the ``set of joint distributions compatible with a pdg'' in the same way, as a function of $\mathcal P$ alone: 
 \[
-    \SD{\mat p, \bbeta} = \SD{\mat p, \mat c} = \SD{\mat p} 
-        := \Big\{ \mu \in \Delta\! \V : \mu(X,Y) = \mu(X)p\ssub L(Y|X) \text{ for all } 
+    \SD{\dg M} = \SD{\mathcal M} = \SD{\mathcal P} 
+        := \Big\{ \mu \in \Delta\! \V : \mu(X,Y) = \mu(X)p\ssub L\!(Y|X) \text{ for all } 
             \ed LXY  \in \Ed \Big\}.
 \]
 
 
-% So, while the scoring semantics of an opdg 
+% So, while the scoring semantics of an o-pdg 
 However, we don't imagine all cpds are equal. 
-In the case of opdgs, recall that we remedy this by introducing a scoring function semantics $\bbr{-} : \Delta\!\V \to \overline{\mathbb R}$, which makes compatibility with matter of degree. 
-Rather than simply being consistent or not, $\bbr{\dg M}(\mu)$ is a measure of \emph{how incompatible} $\dg M$ is with $\mu$.
- % The formula is given by
+In the case of o-pdgs, recall that we remedy this by introducing a scoring function semantics 
+    % $\bbr{-} : \Delta\!\V \to \overline{\mathbb R}$, 
+    $\Inc : \Delta\!\V \to \overline{\mathbb R}$, 
+    which makes compatibility with matter of degree. 
+Rather than simply being consistent or not, 
+    % $\bbr{\dg M}(\mu)$
+    $\Inc_{\dg M}(\mu)$
+    is a measure of \emph{how incompatible} $\dg M$ is with $\mu$.
+ For completeness, the formula is given by the weighted sum of relative entropies
+ \[
+    \Inc_{\dg M} = \sum_{L \in \Ed^{\dg M}} \beta\ssub L \kldiv{\mu}{p \ssub L}.
+ \]
 
-A jpdg represents a slightly different continuous generalization. 
-Rather than simply be consistent with a PDG or not, $\Pr_{\mathfrak M}\mathrm{Comp}: \Delta\!\V \to [0,1]$ is a measure of \emph{how likely} the distribution $\mu$ is to be compatible with $\dg M$.
-
-% To contrast the two explicitly, the generalization of $\SD{-}$ offered by an opdg answers the question 
-
-
-
-\section{Theory of JPDGs}
-Given a jpdg $\mathfrak M$, the probabilistic confidences $\mat c$ generate a probability distribution over unweighted sub-PDGs $\dg N$, by
+ A j-pdg represents a slightly different continuous generalization. 
+ Rather than simply be consistent with a pdg or not, a j-pdg gives rise to a probability of compatibility $\mathrm{C}\!\Pr_{\mathcal M}: \Delta\!\V \to [0,1]$, a measure of \emph{how likely} the distribution $\mu$ is to be compatible with $\dg M$.
+% \section{Theory of j-pdgs}
+Concretely, given a j-pdg $\mathcal M$, the probabilistic confidences $\mat c$ generate a probability distribution over unweighted sub-pdgs $\dg N$, by
 \[ 
-    \Pr_{\mathfrak M}( \dg N )  = \prod_{L \in \Ed}\Big( c\ssub L ~\text{ if }~ L \in \mat p  \text{ else }1 - c\ssub L \Big)
+    \Pr_{\mathcal M}( \dg N )  = \prod_{L \in \Ed}\Big( c\ssub L ~\text{ if }~ L \in \Ed^{\dg N} \text{ else }1 - c\ssub L \Big)
 \]
-
-
-
-We claim that
+with which we can describe the probability of $\mu$ being in the set of distributions consistent with a random pdg $\dg M$ as 
+% $\displaystyle
 \[
-    \Ex_{\dg N \sim \Pr_{\mathfrak M}}
+    \mathrm{C}\!\Pr_{\mathcal M}(\mu) := \Pr_{\mathcal M}\Big( \mu \in \SD{\dg N}\Big).
+\]
+% $
+
+\subsection{Correspondence by Expectation}
+For now, let's interperet an unweighted pdg $\dg N$ as having $\bbeta = \mat 1$, as we did in the original pdg paper.  For every distribution $\mu$, we can show that the expected incompatibility of $\mu$ with a random unweighted pdg drawn from $\Pr_{\mathcal M}$ is the same as the incompatibility with the o-pdg that has $\bbeta := \mat c$.
+
+% We claim that
+
+\vspace{-2ex}
+\begin{linked}{prop}{exp}
+    \vspace{2ex}
+$\displaystyle\quad
+    % \Inc_{\mathcal M}(\mu) = 
+    \Ex_{\dg N \sim \Pr_{\mathcal M}} [ \Inc_{\dg N}(\mu) ] 
+    = \sum_{L \in \Ed} c\ssub L  \kldiv\mu{p\ssub L}
+        = \Inc_{
+            % \mathrm{o-pdg}
+            (\mathcal P, \mat c)}.
+$
+\end{linked}
+
+While mathematically sound, what we have just done is slightly deceptive motivationally. 
+In the original pdg paper, \emph{why} did we choose to interperet an unweighted pdg as having $\bbeta = \mat 1$? 
+Because that was a reasonable default---an \emph{intermediate} value of $\beta$, somewhere between zero and infinity, and a convenient choice of scale because we don't have to write multiplication by one.
+% But why did we choose it for the 
+In our setting, though, this choice seems less appropriate: a j-pdg was supposed to represent a probability distribution over unweighted pdgs in the sense of ``full-confidence'', not the sense of ``default confidence''. 
+From another angle: we have first implicitly identified an unweighted pdgs with one that has $\bbeta = \mat 1$ (default confidence), and then identified this pdg with the j-pdg that selects it with probability 1 ($\mat c = \mat 1$, high confidence). 
+But these two numbers mean different things. 
+
+ % is not a convenient default, but rather the upper extreme of confidence: it corresponds to believing that every edges is present in the pdg with probability 1. 
+
+So, what happens if we instead begin by identifying an unweighted pdg with one that has absolute confidence in all edges, i.e., $\bbeta = \boldsymbol\infty$?  Well algebraically, we get the same result but with an additional factor of $\infty$\footnote{by $\infty$, we really mean the first non-finite ordinal $\omega$, which is why we calculate $0 \infty = 0$.}:
+\[
+    \Ex_{\dg N \sim \Pr_{\mathcal M}} \left[ \Inc_{\dg N}^{\text{high conf}}(\mu) \right] 
+    = (\infty) \sum_{L \in \Ed} c\ssub L  \kldiv\mu{p\ssub L}
+        = (\infty) \Inc_{
+            % \mathrm{o-pdg}
+            (\mathcal P, \mat c)}
+        = \begin{cases}
+            0 & \text{ if } \mu \in \SD{\mathcal P|_{c > 0}}\\
+            \infty & \text{otherwise}\end{cases}~.
 \]
 
+So effectively, it just reproduces the set-of-distribution semantics (for those cpds that have positive probability $c$). 
 
+
+\section{Having Both Confidences}
+Now, let's consider the simultaneous incorporation of the two different weights.
+Let a jo-pdg be a combination of all three parameters $\mathfrak M = (\mathcal P, \mat c, \bbeta)$,
+    where $\mat c$ describes is a probabilistic description of confidence (as in a j-pdg), 
+    and $\bbeta$ is an inconsistency as a matter of degree (as in an o-pdg).
+
+What is the appropriate generalization of $\Inc$ and $\mathrm{C}\!\Pr$?
+Once again, consider a distribution $\mu \in \Delta\!\V$.
+Recall that $\Inc_{(\mathcal P, \bbeta)}(\mu)$ is the degree to which $\mu$ is incompatible with the o-pdg $\dg M = (\mathcal P, \bbeta)$, while $\mathrm{C}\!\Pr_{(\mathcal P, \mat c)}$ is the probability that it $\mu$ is compatible with the j-pdg $\mathcal M = (\mathcal P, \mat c)$. 
+% way of representing both degree and likelihood of incompatibility of $\mu$ with our jo-pdg,   probability distribution of numerical values for the incompatibility $\mu$.
+% The natural description of both degree and likelihood is a probability distribution over possible degrees of inconsistency.  
+So, the appropriate generalization, which we call $\IncD_{\mathfrak M}(\mu)$ ought to be a (finitely supported) probability distribution over real numbers---namely, the one that models the process of sampling a subset of edges $\dg N \sim \Pr_{\mathcal M}$ and measuring the inconsistency of the induced subpdg.  
+Formally, we have:
+
+\begin{align*}
+    \IncD_{\mathfrak M} 
+        % &: \Delta\!\V \to \Delta \mathbb R^+
+        % \\&= \mu \mapsto ~
+        (\mu) &= \sum_{E \subset \Ed} \Pr_{\mathcal M}(E)\, \delta_{%
+            \textstyle(\Inc_{\dg M |_E}(\mu))}
+            % \qquad= \Inc_{-}^\#(\Pr_{\mathcal M})
+            \\&= \sum_{E \subset \Ed} \Pr_{\mathcal P, \mat c}(E) \,\delta_{%
+                \textstyle(\Inc_{(\mathcal P, \bbeta) |_E}(\mu))}
+\end{align*}
+where $\dg M |_E$ is the subpdg of $\dg M$ obtained by discarding all edges outside of $E$, and $\delta_{x}$ is the degenerate distribution that places all mass on $x$. 
+{\color{gray}(Equivalently, $\Inc_{\mathfrak M}$ may be defined as the pushforward of the probability $\Pr_{\mathcal M}$ over induced sub-o-pdgs through the function that measures the incompatibility of an o-pdg. )}
+
+There are two aspects of this distribution that are of particular interest to us (because they correspond to the semantics given by our two different flavors of pdgs): the expectation of this distribution, and the probability it places on the number zero. 
 
 \begin{prop}
-    
+    Let $\mathfrak M = (\mathcal P, \bbeta, \mat c)$ be a jo-pdg, and $\mu \in \Delta\!\V$ be a joint probability over its variables. 
+    Then the expectation of the incompatibility distribution is
+    \begin{align*}
+        \Ex\!\IncD_{\mathfrak M} 
+            &= \mu\mapsto \sum_{L \in \mathcal E} \beta\ssub L c \ssub L \kldiv\mu{p\ssub L} 
+            = \Inc_{(\mathcal P,\, \bbeta \odot \mat c)},
+    \end{align*}
+    \vspace{-1ex}
+    where $\odot$ denotes the element-wise product of the two vectors.
 \end{prop}
 
+At the same time, 
+% using ``$\Inc$'' to denote the random variable 
+\begin{prop}
+    \begin{align*}
+        \IncD_{\mathfrak M}(\mu)(\Inc = 0) = 
+        % \sum_{E \subset \Ed} \Pr_{\mat c} 
+        \Pr_{\mathcal M}\Big( \Inc_{(\dg N,\bbeta)}(\mu) = 0\Big)
+        \ge
+        \mathrm{C}\!\Pr_{\mathcal M}(\mu) 
+            % \Pr_{\mat c} \left\{ E : \sum_{L \in E} \beta_L = 0 \right\}.
+    \end{align*}
+    with equality if $\bbeta$ is strictly positive.
+\end{prop}
+
+
+Let's look at some elementary consequences of what we know so far, beginning with how o-pdgs and j-pdgs play out as special cases of jo-pdgs.
+\begin{enumerate}
+    \item If we regard an o-pdg $\dg M = (\mathcal P, \bbeta)$ as the jo-pdg $\mathfrak M := (\mathcal P, \mat 1, \bbeta)$ in which every edge appears with probability one, then 
+    \begin{enumerate}
+        \item  $\IncD_{\mathfrak M}(\mu)$ is the degenerate distribution $\delta_{\Inc_{\dg M}(\mu)}$ that places all mass on $\Inc_{\dg M}(\mu)$, the degree to which $\mu$ is incompatible with $\dg M$. 
+        \item Consequently, the expected incompatibility $\Ex\!\IncD_{\mathfrak M}(\mu) = \Inc_{\dg M}(\mu)$ reduces to incompatibility with $\dg M$, while
+        \item the probability of compatibility reduces to the indicator function for the set of distributions compatible with all cpds, i.e., 
+        % $\mathrm{C}\!\Pr_{(\mathcal P, \mat 1)}(\mu) = \mathbbm1_{\SD{\mathcal P}}$.
+        \[
+            \mathrm{C}\!\Pr_{\mathclap{(\mathcal P, \mat 1)}}\,(\mu) = \mathbbm1_{\textstyle\SD{\mathcal P}}
+            := \begin{cases}
+                1 & \text { if }\mu \in \SD{p} \\ 0 & \text{ otherwise.}
+            \end{cases}
+        \]
+    \end{enumerate}
+    
+    So to summarize: regarding an o-pdg as a jo-pdg, the aspect of $\IncD$ that corresponds to an o-pdg (its the expectation) just equals inc $\Inc$, while the probability that it equals zero just reflects the set-of-consistent-distributions semantics (restricted to those cpds with $\beta > 0$).
+    
+    \item As discussed above, there are two natural choices for how view a j-pdg $\mathcal M = (\mathcal P, \mat c)$ as a jo-pdg. We can either identify it with $\mathfrak M_1 := (\mathcal P, \mat c, \mat 1)$, or $\mathfrak M_\infty := (\mathcal P, \mat c, \boldsymbol\infty)$. 
+    Now:
+    \begin{enumerate}
+        \item  $\IncD_{\mathfrak M_1}(\mu)$ is a distribution with support over various values between $0$ and $\Inc_{(\mathcal P, \mat 1)}$, while
+            $\IncD_{\mathfrak M_\infty}(\mu) = (m) \delta_0 + (1-m) \delta_\infty$,
+            where 
+            \[
+            m = \sum_{E \subset \Ed} \Pr_{\mat c}(E) \mathbbm1[ \mu \in \SD{\mathcal P|_E}]
+            \]
+            is the probability of drawing a set of edges from 
+            % $\Pr_{(\mathcal P, \mat c)}$
+            $\Pr_{\cal M}$
+            that are consistent with $\mu$. 
+            
+        \item The expected inconsistency of $\mu$ with $\mathfrak M_1$ is the same as the inconsistency of an o-pdg with the same cpds and confidences $\bbeta := \mat c$.
+        Meanwhile, the expected inconsistency of $\mu$ with $\mathfrak M_\infty$ is zero if $\mu$ is consistent with all cpds $p\ssub L$ with $c\ssub L> 0$, and $\infty$ if not.  That is, 
+        \[
+            \Ex\!\IncD_{\mathfrak M_1}(\mu) = \Inc_{(\mathcal P, \mat c)}(\mu)
+                \qquad \text{and}\qquad
+            \Ex\!\IncD_{\mathfrak M_1}(\mu) = \infty \mathbbm1_{\textstyle\SD{\mathcal P}}.
+        \]
+        \item The probability of zero is the same in both cases:
+        \[
+            % \mathrm{C}\!\Pr_{\mathclap{\mathfrak M_1}}(\mu) 
+            % = \mathrm{C}\!\Pr_{\mathclap{\mathfrak M_\infty}}(\mu) 
+            \IncD_{\mathfrak M_1}(\mu)(\Inc=0)
+            = \IncD_{\mathfrak M_\infty}(\mu)(\Inc = 0)
+            = \mathrm{C}\!\Pr_{\cal M}(\mu).
+            %
+        \]
+    \end{enumerate}
+    So to summarize: regarding a j-pdg as a jo-pdg with $\bbeta = \boldsymbol\infty$ gives a result symmetric to what we had above: the aspect of $\IncD$ which corresponds to j-pdg semantics (the probability of getting zero inconsistency) remains unchanged, while the aspect corresonding to o-pdg semantics (its expectation) just reflects the set-of-distribution semantics (restricted to those cpds with $c > 0$).
+    
+    However, the other way of regardng a j-pdg as a jo-pdg---with $\bbeta := \mat 1$---gives us a foothold for how to begin using j-pdgs to model o-pdgs.
+    In particular, it gives us a way of viewing certain values of $\beta$ as equivalent to probabilities, at least in expectation.
+\end{enumerate}
+
+These examples justify a simplification of notation for jo-pdgs:
+\begin{align*}
+    \Inc_{\mathfrak M}(\mu) &:= \Ex\IncD_{\mathfrak M}(\mu) \\ 
+    %\qquad\text{and}\qquad 
+    \mathrm{CPr}_{\mathfrak M}(\mu) &:= \IncD_{\mathfrak M}(\mu)(\Inc = 0).
+\end{align*}
+
+% \section{Equivalence}
+% 
+% \begin{prop}
+%     For every o-pdg $\dg M = (\mathcal P, \bbeta)$ with finite confidences $\bbeta < \infty$, 
+%     there is a j-pdg $\mathcal M = (\mathcal P', )$    
+% \end{prop}
+% 
+% \section{Qualitative Confidences}
+
+
+\clearpage
 \section{}
 
 \[
@@ -75,5 +260,49 @@ Of course, we have the natural inclusions
     \iota &: \{0, 1\} \to [0,1] \\
 \end{align*}
 
+
+\appendix
+\section{Proofs}
+\recall{prop:exp}
+\begin{lproof}\label{proof:exp}
+\begin{align*}
+    \Inc_{\mathfrak M}(\mu) &= \Ex_{\dg N \sim \Pr_{\mathfrak M}} [ \Inc_{\dg N}(\mu) ] \\
+        &= \sum_{\dg N \subset \mathcal P} \Pr_{\mathfrak M}(\dg N)
+            \Inc_{\dg N}(\mu) \\
+        &= \sum_{E \subset \Ed} 
+            \prod_{L \in \Ed}
+            \Big( c\ssub L ~\text{ if }~ L \in E \text{ else }1 - c\ssub L \Big)
+            \left(
+                \sum_{L \in E}
+                    \kldiv\mu{p\ssub L}
+                \right) \\
+        &= \sum_{E \subset \Ed} 
+            \prod_{L \in \Ed \setminus E} (1-c_L)
+            \prod_{L \in E} c_L
+            \left(
+                \sum_{L \in E}
+                    \kldiv\mu{p\ssub L}
+                \right) \\
+    \intertext{collecting terms, we compute}
+        &= \sum_{L \in \Ed} \kldiv\mu{p\ssub L} \left(
+                \sum_{E : L \in E \subset \Ed}
+                \prod_{i \in \Ed \setminus E} (1-c_i)
+                \prod_{i \in E} c_i
+        \right) \\
+        &= \sum_{L \in \Ed} \kldiv\mu{p\ssub L} c_L \Bigg(
+            \sum_{E \subset \Ed \setminus \{L\} }
+            \prod_{i \in \Ed \setminus E \setminus \{L\} } (1-c_i)
+            \prod_{i \in E} c_i
+        \Bigg). \\
+\intertext{Now, the key is to realize that the two products on the right are simply the probability of the edges $E$ being selected from the sub-j-pdg $\mathfrak M \setminus L$ which has the edge $L$ removed, so we have }
+        &= \sum_{L \in \Ed} \kldiv\mu{p\ssub L} c_L \Bigg(
+            \sum_{E \subset \Ed \setminus \{L\} }
+            \Pr_{\mathfrak M \setminus L} ( E )
+        \Bigg),\\
+\intertext{but each subset $E$ of edges corresponds to a disjoint event, and together they exhaust all of the posibilities, so the sum of their probabilities must equal 1, giving us}
+        &= \sum_{L \in \Ed} c_L \kldiv\mu{p\ssub L}
+\end{align*}
+as desired.
+\end{lproof}
 
 \end{document}
