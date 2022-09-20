@@ -88,6 +88,10 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 		n_params = sum(p.size for p in M.edges('P')),
 		n_edges = len(M.Ed)
 	)
+    
+	print(f'{idstr:=^50}')
+	print(stats)
+	print(f'{"":=^50}')
 		
 
 	# for each optimization, log:
@@ -101,6 +105,8 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 		dist = glog(idstr, method, M, *args, **kwargs)
 		inc = M.Inc(dist).real
 		idef = M.IDef(dist)
+
+		print(f'{idstr:<20} \t ',args, kwargs,' \n inc : ', inc,'\t idef: ', idef)
 
 		store(*args,inc=inc,idef=idef,
 			**stats, **kwargs).set(dist)
