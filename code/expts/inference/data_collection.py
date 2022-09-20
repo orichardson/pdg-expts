@@ -47,6 +47,10 @@ def wrap(fn, return_bin, fname):
 			pickle.dump(rslt, f)
 
 		return_bin.send({'time' : total_time})
+		
+		print('time: ', total_time)
+		print("sending!")
+		print(rslt)
 		return_bin.send(rslt)
 	
 	return fn_wrapped
