@@ -23,6 +23,10 @@ import multiprocessing as multiproc
 import time
 import pickle
 import logging
+
+import sys
+sys.path.append("../..");
+
 # logging.basicConfig(format='%(asctime)s %(message)s', 
 # 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
@@ -89,7 +93,7 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 		n_edges = len(M.Ed)
 	)
     
-	print(f'{idstr:=^50}')
+	print(f'{" "+idstr+" ":=^50}')
 	print(stats)
 	print(f'{"":=^50}')
 		
