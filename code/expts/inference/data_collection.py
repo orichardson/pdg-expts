@@ -2,6 +2,7 @@
 Given a PDG, collet 
 """
 
+from collections import namedtuple
 import numpy as np
 
 from pgmpy.inference import BeliefPropagation
@@ -51,7 +52,7 @@ def wrap(fn, return_bin, fname):
 	return fn_wrapped
 
 
-
+Rslt = namedtuple('computed', ['result', 'total_time', 'max_mem'])
 def glog(fname, func, *args, **kwargs):
 	recver, sender = multiproc.Pipe(False) #
 
@@ -65,6 +66,8 @@ def glog(fname, func, *args, **kwargs):
 	sender.close()
 
 	while not recver.poll():
+		psu_p = psutil.Process(p.pid)
+
 		max_mem = max(max_mem, psu_p.memory_info().vms)
 		time.sleep(sleep_time)
 		sleep_time *= 1.5
@@ -75,11 +78,7 @@ def glog(fname, func, *args, **kwargs):
 	total_time = recver.recv()['time']
 	rslt = recver.recv()
 
-	return dict(
-		total_time = total_time,
-		max_mem = max_mem,
-		result = rslt,
-	)
+	return Rslt(rslt, total_time, max_mem)
 
 
 def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
@@ -113,13 +112,13 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 
 	def log(idstr, method, *args, **kwargs):
 		print('>> ', idstr, method.__name__, args, kwargs)
-		dist = glog(idstr, method, M, *args, **kwargs)
+		dist, total_time, max_mem = glog(idstr, method, M, *args, **kwargs)
 		inc = M.Inc(dist).real
 		idef = M.IDef(dist)
 
 		print(f'{idstr:<20} \t ',args, kwargs,' \n inc : ', inc,'\t idef: ', idef)
 
-		store(*args,inc=inc,idef=idef,
+		store(*args,inc=inc,idef=idef, total_time=total_time, max_mem=max_mem,
 			**stats, **kwargs).set(dist)
 
 	log(idstr+".ip.-idef", ip.cvx_opt_joint, also_idef=False)
