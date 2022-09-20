@@ -7,6 +7,11 @@ import numpy as np
 from pgmpy.inference import BeliefPropagation
 from pgmpy.utils import get_example_model
 
+import sys
+#sys.path.append("../../..")
+sys.path.append("../..")
+print(sys.path)
+
 from pdg.pdg import PDG
 from pdg.store import TensorLibrary
 from pdg.rv import Variable as Var
@@ -18,11 +23,14 @@ from pdg.alg import torch_opt
 
 ## TIMING / LOGGING UTILS
 import psutil
+from psutil._common import bytes2human
 # from multiprocessing import Process
 import multiprocessing as multiproc
 import time
 import pickle
 import logging
+
+
 # logging.basicConfig(format='%(asctime)s %(message)s', 
 # 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
@@ -57,13 +65,14 @@ def glog(fname, func, *args, **kwargs):
 	sender.close()
 
 	while not recver.poll():
-		max_mem = max(max_mem, psu_p.memory_info().rss)
+		max_mem = max(max_mem, psu_p.memory_info().vms)
 		time.sleep(sleep_time)
 		sleep_time *= 1.5
-		print(psu_p.memory_info())
+		print(bytes2human(psu_p.memory_info().vms))
 
-	total_time = recver.get()['time']
-	rslt = recver.get()
+
+	total_time = recver.recv()['time']
+	rslt = recver.recv()
 
 	return dict(
 		total_time = total_time,
