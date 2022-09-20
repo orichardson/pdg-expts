@@ -46,25 +46,25 @@ def wrap(fn, return_bin, fname):
 		with open(fname+'.pickle', 'wb') as f:
 			pickle.dump(rslt, f)
 
-		# return_bin.send({'time' : total_time})
-		return_bin['time'] = total_time
+		return_bin.send({'time' : total_time})
+		# return_bin['time'] = total_time
 		
 		print('time: ', total_time)
 		print("sending!")
 		print(rslt)
-		# return_bin.send(rslt)
-		return_bin['rslt'] = rslt
+		return_bin.send(rslt)
+		# return_bin['rslt'] = rslt
 	
 	return fn_wrapped
 
 
 Rslt = namedtuple('computed', ['result', 'total_time', 'max_mem'])
 def glog(fname, func, *args, **kwargs):
-	# recver, sender = multiproc.Pipe(False) #
-	ret_bin = {}
+	recver, sender = multiproc.Pipe(False) #
+	# ret_bin = {}
 
-	# p = multiproc.Process(target=wrap(func, sender, fname), args=args, kwargs=kwargs)
-	p = multiproc.Process(target=wrap(func, ret_bin, fname), args=args, kwargs=kwargs)
+	p = multiproc.Process(target=wrap(func, sender, fname), args=args, kwargs=kwargs)
+	# p = multiproc.Process(target=wrap(func, ret_bin, fname), args=args, kwargs=kwargs)
 	psu_p = psutil.Process(p.pid)
 
 	max_mem = 0
@@ -73,8 +73,9 @@ def glog(fname, func, *args, **kwargs):
 	p.start()
 	# sender.close()
 
-	# while not recver.poll():
-	while 'rslt' not in ret_bin:
+	while not recver.poll():
+	# while 'rslt' not in ret_bin:
+		# print(ret_bin.keys())
 		psu_p = psutil.Process(p.pid)
 
 		max_mem = max(max_mem, psu_p.memory_info().rss)
@@ -84,11 +85,11 @@ def glog(fname, func, *args, **kwargs):
 		# print({k : bytes2human(b) for k,b in psu_p.memory_info()._asdict().items()})
 
 
-	# total_time = recver.recv()['time']
-	total_time = ret_bin['time']
-	# print('beginning big recieve')
-	# rslt = recver.recv()
-	rslt = ret_bin['rslt']
+	total_time = recver.recv()['time']
+	# total_time = ret_bin['time']
+	print('beginning big recieve')
+	rslt = recver.recv()
+	# rslt = ret_bin['rslt']
 
 	return Rslt(rslt, total_time, max_mem)
 
