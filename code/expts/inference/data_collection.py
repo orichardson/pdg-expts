@@ -68,7 +68,8 @@ def glog(fname, func, *args, **kwargs):
 		max_mem = max(max_mem, psu_p.memory_info().vms)
 		time.sleep(sleep_time)
 		sleep_time *= 1.5
-		print(bytes2human(psu_p.memory_info().vms))
+		# print(bytes2human(psu_p.memory_info().vms))
+		print({k : bytes2human(b) for k,b in psu_p.memory_info()._asdict().items()})
 
 
 	total_time = recver.recv()['time']
@@ -111,6 +112,7 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 
 
 	def log(idstr, method, *args, **kwargs):
+		print('>> ', idstr, method.__name__, args, kwargs)
 		dist = glog(idstr, method, M, *args, **kwargs)
 		inc = M.Inc(dist).real
 		idef = M.IDef(dist)
@@ -143,7 +145,7 @@ def colect_data(id:str, bn, store):
 #%%
 # %cd ../..
 # %pwd
-# %load_ext autoreload
+# %load_ext autoreloatd
 # %autoreload 2
 
 
