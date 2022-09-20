@@ -63,19 +63,20 @@ def glog(fname, func, *args, **kwargs):
 	sleep_time = 1E-4
 
 	p.start()
-	sender.close()
+	# sender.close()
 
 	while not recver.poll():
 		psu_p = psutil.Process(p.pid)
 
-		max_mem = max(max_mem, psu_p.memory_info().vms)
+		max_mem = max(max_mem, psu_p.memory_info().rss)
 		time.sleep(sleep_time)
 		sleep_time *= 1.5
 		# print(bytes2human(psu_p.memory_info().vms))
-		print({k : bytes2human(b) for k,b in psu_p.memory_info()._asdict().items()})
+		# print({k : bytes2human(b) for k,b in psu_p.memory_info()._asdict().items()})
 
 
 	total_time = recver.recv()['time']
+	print('beginning big recieve')
 	rslt = recver.recv()
 
 	return Rslt(rslt, total_time, max_mem)
@@ -117,6 +118,7 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 		idef = M.IDef(dist)
 
 		print(f'{idstr:<20} \t ',args, kwargs,' \n inc : ', inc,'\t idef: ', idef)
+		print(' '*20, 'memory: ', bytes2human(max_mem), ' \t time: ', total_time, '(sec)')
 
 		store(*args,inc=inc,idef=idef, total_time=total_time, max_mem=max_mem,
 			**stats, **kwargs).set(dist)
