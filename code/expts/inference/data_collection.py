@@ -49,6 +49,9 @@ def wrap(fn, return_bin, fname):
 		return_bin.send({'time' : total_time})
 		# return_bin['time'] = total_time
 		
+		if isinstance(rslt, RJD) and rslt._torch:
+			rslt = rslt.npify()
+		
 		print('time: ', total_time)
 		print("sending!")
 		print(rslt)
