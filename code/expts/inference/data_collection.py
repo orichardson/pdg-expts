@@ -16,7 +16,7 @@ print(sys.path)
 from pdg.pdg import PDG
 from pdg.store import TensorLibrary
 from pdg.rv import Variable as Var
-from pdg.dist import CPT, RawJointDist as RJD 
+from pdg.dist import CPT, RawJointDist as RJD, Dist
 
 from pdg.alg import interior_pt as ip
 from pdg.alg import torch_opt
@@ -34,6 +34,41 @@ import logging
 
 # logging.basicConfig(format='%(asctime)s %(message)s', 
 # 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
+
+
+
+#### INDEPENDENT VARIABLES / INPUTS #######
+#  - method (lir / cvx opt / ...)
+#  - input stats (size of graph, etc.)
+#  - hyperparameters (learning rate, iterations, tol, optimizer)
+#  - gamma
+#
+#### DEPENDENT VARIABLES / OUTPUTS ########
+#  - time taken
+#  - memory taken
+#  - training curve (if available): loss over time
+#  - (Inc, Idef) of final product
+DataPt = namedtuple('Datum', 
+	# ['result', 'total_time', 'max_mem'])
+	['method', 'input_stats', 'input_name', 'parameters', 'gamma',
+		'inc', 'idef', 'total_time', 'max_mem', 'timestamp']
+)
+
+def compute_rjdout(fn, M, input_name) -> DataPt:
+	# raise NotImplemented
+
+	return DataPt(
+		method=fn.__name__,
+		input_stats = stats,
+		input_name = name,
+		parameters=(args, kwargs),
+		gamma=kwargs['gamma'] if gamma in kwargs else 0,
+		inc=M.Inc(rslt).real,
+		idef = M.Idef(rslt),
+		total_time=total_time,
+		max_mem=max_mem,
+		timestamp=time.time_ns()
+	)
 
 
 
@@ -61,7 +96,6 @@ def wrap(fn, return_bin, fname):
 	return fn_wrapped
 
 
-Rslt = namedtuple('computed', ['result', 'total_time', 'max_mem'])
 def glog(fname, func, *args, **kwargs):
 	recver, sender = multiproc.Pipe(False) #
 	# ret_bin = {}
@@ -119,7 +153,14 @@ def collect_inference_data_for(idstr: str, M:PDG,  store:TensorLibrary=None):
 	print(f'{"":=^50}')
 		
 
-	# for each optimization, log:
+	########### for each optimization, log:
+	#### INDEPENDENT VARIABLES / INPUTS #######
+	#  - method (lir / cvx opt / ...)
+	#  - input stats (size of graph, etc.)
+	#  - hyperparameters (learning rate, iterations, tol, optimizer)
+	#  - gamma
+	#
+	#### DEPENDENT VARIABLES / OUTPUTS ########
 	#  - time taken
 	#  - memory taken
 	#  - training curve (if available): loss over time
