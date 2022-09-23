@@ -103,7 +103,7 @@ def run_expt_log_datapt_worker(
 		method=fn.__name__,
 		input_stats = input_stats,
 		input_name = input_name,
-		parameters=(args, kwargs),
+		parameters=(tuple(a for a in args if not isinstance(a, PDG)), kwargs),
 		gamma=kwargs['gamma'] if 'gamma' in kwargs else 0,
 		# inc=M.Inc(rslt).real,
 		# idef = M.IEef(rslt),
