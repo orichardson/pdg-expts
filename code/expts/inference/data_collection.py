@@ -172,8 +172,7 @@ def mem_track( proc_id_recvr, response_line ):
 		time.sleep(sleep_time)
 		if sleep_time < 0.2:
 			sleep_time *= 1.4
-		else:
-			print("<memtracker sleeping>")
+		# else: print("<memtracker sleeping>")
 
 	with open("memory_summary.json", 'w') as f:
 		json.dump(maxmem_log)
@@ -212,8 +211,9 @@ def main():
 	jobnum = [0]
 
 	# global available_cores
-	available_cores = [ os.cpu_count() - 1 ]  # max with this many threads
-	print("total cpu count: ", available_cores[0])
+	# available_cores = [ os.cpu_count() - 1 ]  # max with this many threads
+	available_cores = multiproc.Value('i', os.cpu_count() -1 )
+	print("total cpu count: ", available_cores.value)
 
 	def sweep(waiting_time=1E-2):
 
@@ -222,15 +222,18 @@ def main():
 			proc.join(waiting_time)
 			if not proc.is_alive():
 				main_sender.send(proc.pid)
+				m_m = main_recvr.recv()
 				results[namenum] = rslt_recvr.recv()
-				results[namenum]._replace(max_mem = main_recvr.recv())
+				results[namenum] = results[namenum]._replace(max_mem = m_m)
 				break
 
 		else:
 			return False
 
 		# nonlocal available_cores, loose_ends
-		available_cores[0] += 1
+		with available_cores.get_lock():
+			available_cores.value += 1 
+
 		del loose_ends[namenum]
 		print('cleaned up ', namenum)
 		return True
@@ -240,8 +243,8 @@ def main():
 
 		# nonlocal available_cores
 		print('requested enqueue: ', input_name, fn.__name__, kwargs)
-		while available_cores[0] <= 0:
-			print(' zzz ',end='')
+		while available_cores.value <= 0:
+			print(' zzz (%d)'%available_cores.value)
 			if not sweep():
 				time.sleep(0.5)
 		
@@ -257,7 +260,8 @@ def main():
 			# wait for next thread to finish ... with join? but which one?
 
 		p.start()
-		available_cores[0] -= 1
+		with available_cores.get_lock():
+			available_cores.value -= 1
 
 		# rslt_later = pool.apply_async(run_expt_log_datapt_worker, 
 		# 	args=(bn_name, jobnum), 
