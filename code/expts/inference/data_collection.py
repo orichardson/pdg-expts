@@ -169,8 +169,12 @@ def mem_track( proc_id_recvr, response_line ):
 		dead = 0
 		for pid in maxmem_log.keys():
 			if psutil.pid_exists(pid):
-				curmem = total_mem_recursive(pid)
-				maxmem_log[pid] = max(maxmem_log[pid], curmem)
+				try:
+					curmem = total_mem_recursive(pid)
+					maxmem_log[pid] = max(maxmem_log[pid], curmem)
+				except psutil.NoSuchProcess:
+					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
+					dead += 1
 			else:
 				# sys.stderr.write("oopsies, PID %d does not exist (anymore).\n"%pid)
 				# sys.stderr.flush()
