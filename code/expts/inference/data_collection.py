@@ -146,17 +146,17 @@ def mem_track( proc_id_recvr, response_line ):
 			new_pid = proc_id_recvr.recv()
 
 			if new_pid == "END": 
-				print("\n ===== memory tracker recieved END =====")
+				print("\n ===== memory tracker recieved END =====", flush=True)
 				closed = True
 				proc_id_recvr.close()
 
 			elif new_pid in maxmem_log: 
-				print("MEMTRACK: removing ", new_pid)
+				print("MEMTRACK: removing ", new_pid, flush=True)
 				response_line.send(maxmem_log[new_pid])
 				del maxmem_log[new_pid]				
 			else:
 				# processes.append(new_pid) 
-				print("MEMTRACK: new pid ", new_pid)
+				print("MEMTRACK: new pid ", new_pid, flush=True)
 				maxmem_log[new_pid] = 0
 				sleep_time = 1E-3
 
@@ -166,11 +166,14 @@ def mem_track( proc_id_recvr, response_line ):
 				curmem = total_mem_recursive(pid)
 				maxmem_log[pid] = max(maxmem_log[pid], curmem)
 			else:
-				sys.stderr.write("oopsies, PID %d does not exist (anymore)."%pid)
+				sys.stderr.write("oopsies, PID %d does not exist (anymore).\n"%pid)
+				sys.stderr.flush()
 
 		time.sleep(sleep_time)
 		if sleep_time < 0.2:
 			sleep_time *= 1.4
+		else:
+			print("<memtracker sleeping>")
 
 	with open("memory_summary.json", 'w') as f:
 		json.dump(maxmem_log)
