@@ -29,7 +29,7 @@ import psutil
 from psutil._common import bytes2human
 # from multiprocessing import Process
 import multiprocessing as multiproc
-import time
+import time, datetime
 import pickle
 import logging
 import os
@@ -107,7 +107,8 @@ def run_expt_log_datapt_worker(
 		total_time=total_time,
 		# max_mem=mem_diff,
 		max_mem=-1,
-		timestamp=time.time_ns()
+		# timestamp=datetime.datetime.now().strftime("%Y")
+		timestamp=str(datetime.datetime.now())
 	)
 
 	print('finished!')
