@@ -72,6 +72,11 @@ def run_expt_log_datapt_worker(
 	try:
 		# rslt = fn(M, *args, **kwargs)
 		rslt = fn(*args, **kwargs)
+
+		if isinstance(rslt, RJD):
+			if rslt._torch:
+				rslt = rslt.npify()
+
 	except:
 		with open(f"datapts/{input_name}-{job_number}.err", "w") as f:
 			json.dump(datapt, f)
@@ -89,7 +94,7 @@ def run_expt_log_datapt_worker(
 
 	if output_processor is None:
 		M = args[0] # assume M is first argument
-		inc = M.Inc(rslt)
+		inc = M.Inc(rslt).real
 		idef = M.IDef(rslt)
 	else:
 		inc,idef = output_processor(rslt)
