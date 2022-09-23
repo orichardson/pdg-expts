@@ -189,11 +189,11 @@ def main():
 	results = {} # (id_name, jobnumber) -> DataPt
 
 	# with multiproc.Pool() as pool:
-	jobnum = 0
+	jobnum = [0]
 
 	# global available_cores
-	available_cores = os.cpu_count() - 1  # max with this many threads
-	print("total cpu count: ", available_cores)
+	available_cores = [ os.cpu_count() - 1 ]  # max with this many threads
+	print("total cpu count: ", available_cores[0])
 
 	def sweep(waiting_time=1E-2):
 
@@ -209,21 +209,21 @@ def main():
 		else:
 			return False
 
-		# global available_cores
-		available_cores += 1
+		# nonlocal available_cores, loose_ends
+		available_cores[0] += 1
 		del loose_ends[namenum]				
 		return True
 
 	def enqueue_expt(input_name, input_stats, fn, *args, output_processor=None, **kwargs):
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 
-		# global available_cores
-		while available_cores <= 0:
+		# nonlocal available_cores
+		while available_cores[0] <= 0:
 			if not sweep():
 				time.sleep(0.5)
 		
 		p = multiproc.Process(target=run_expt_log_datapt_worker,
-				args=(bn_name, jobnum, input_stats), kwargs=dict(
+				args=(bn_name, jobnum[0], input_stats), kwargs=dict(
 					rslt_connection = rslt_sender,
 					fn=fn, args=args, kwargs=kwargs,
 					output_processor=output_processor
@@ -234,7 +234,7 @@ def main():
 			# wait for next thread to finish ... with join? but which one?
 
 		p.start()
-		available_cores -= 1
+		available_cores[0] -= 1
 
 		# rslt_later = pool.apply_async(run_expt_log_datapt_worker, 
 		# 	args=(bn_name, jobnum), 
@@ -248,10 +248,10 @@ def main():
 		rslt_sender.close()
 
 		main_sender.send(p.pid)
-		pid_map[p.pid] = (input_name,jobnum)
-		loose_ends[(input_name,jobnum)] = (rslt_recvr, p)
+		pid_map[p.pid] = (input_name,jobnum[0])
+		loose_ends[(input_name,jobnum[0])] = (rslt_recvr, p)
 
-		jobnum += 1
+		jobnum[0] += 1
 
 	
 
