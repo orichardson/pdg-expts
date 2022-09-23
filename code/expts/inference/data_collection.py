@@ -269,6 +269,8 @@ def main():
 			# wait for next thread to finish ... with join? but which one?
 
 		p.start()
+		rslt_sender.close()
+
 		with available_cores.get_lock():
 			available_cores.value -= 1
 
@@ -281,7 +283,6 @@ def main():
 		# 	),
 		# 	callback=print)
 
-		rslt_sender.close()
 
 		main_sender.send(p.pid)
 		pid_map[p.pid] = (input_name,jobnum[0])
