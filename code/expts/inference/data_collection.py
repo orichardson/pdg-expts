@@ -77,9 +77,13 @@ def run_expt_log_datapt_worker(
 			if rslt._torch:
 				rslt = rslt.npify()
 
-	except:
+	except Exception as e:
 		with open(f"datapts/{input_name}-{job_number}.err", "w") as f:
-			json.dump(datapt, f)
+			sys.stderr.write(f"==== ERROR WHILE HANDLING {input_name}, {job_number}, {fn.__name__}, {kwargs}\n\n"
+				 + "".join(traceback.TracebackException.from_exception(e).format()))
+			# json.dump(datapt, f)
+			f.writelines(traceback.TracebackException.from_exception(e).format())
+			rslt_connection.send(None)
 
 	# prefix = f"{input_name+'-'+str(job_number):>20}|"
 	# print(prefix, "requesting memory")
@@ -227,9 +231,13 @@ def main():
 				main_sender.send(proc.pid)
 
 				try:
+					assert rslt_recvr.poll(), "process is dead, but there's no result??; "+str(namenum)
+
 					m_m = main_recvr.recv()
-					results[namenum] = rslt_recvr.recv()
-					results[namenum] = results[namenum]._replace(max_mem = m_m)
+
+					result = rslt_recvr.recv()
+					results[namenum] = None if result is None else result._replace(max_mem = m_m)
+					
 				except Exception as ex:
 					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 
