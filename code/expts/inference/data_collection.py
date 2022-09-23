@@ -51,7 +51,7 @@ import os
 #  - memory taken
 #  - training curve (if available): loss over time
 #  - (Inc, Idef) of final product
-DataPt = namedtuple('Datum', 
+DataPt = namedtuple('DataPt', 
 	# ['result', 'total_time', 'max_mem'])
 	['method', 'input_stats', 'input_name', 'parameters', 'gamma',
 		'inc', 'idef', 'total_time', 'max_mem', 'timestamp']
@@ -269,7 +269,7 @@ def main():
 		stats = dict(
 			n_vars = len(pdg.varlist),
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
-			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also
+			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also	
 			n_edges = len(pdg.Ed)
 		)
 
