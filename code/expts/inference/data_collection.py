@@ -169,7 +169,7 @@ example_bn_names =  [
 
 zerofn = lambda r: (0,0)
 
-if __name__ == '__main__':
+def main():
 	store = TensorLibrary()
 
 	if not os.path.exists('./datapts'):
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 	# with multiproc.Pool() as pool:
 	jobnum = 0
 
-	global available_cores
+	# global available_cores
 	available_cores = os.cpu_count() - 1  # max with this many threads
 	print("total cpu count: ", available_cores)
 
@@ -209,7 +209,7 @@ if __name__ == '__main__':
 		else:
 			return False
 
-		global available_cores
+		# global available_cores
 		available_cores += 1
 		del loose_ends[namenum]				
 		return True
@@ -217,7 +217,7 @@ if __name__ == '__main__':
 	def enqueue_expt(input_name, input_stats, fn, *args, output_processor=None, **kwargs):
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 
-		global available_cores
+		# global available_cores
 		while available_cores <= 0:
 			if not sweep():
 				time.sleep(0.5)
@@ -290,5 +290,7 @@ if __name__ == '__main__':
 	# 	pickle.dump(store, f)
 	with open("RESULTS.json", 'w') as f:
 		json.dump(results, f)
-	
+
+if __name__ == '__main__':
+	main()
 
