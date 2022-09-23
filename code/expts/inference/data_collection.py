@@ -184,6 +184,7 @@ def main():
 
 	mem_tracker = multiproc.Process(target=mem_track, args=(memtrack_recvr, memtrack_sender))
 
+	mem_tracker.start()
 	# is this a good idea? I have no idea.
 	memtrack_sender.close()
 	memtrack_recvr.close()
@@ -223,7 +224,7 @@ def main():
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 
 		# nonlocal available_cores
-		print()
+		print('requested enqueue: ', input_name, fn.__name__, kwargs)
 		while available_cores[0] <= 0:
 			print(' zzz ',end='')
 			if not sweep():
@@ -290,8 +291,10 @@ def main():
 					torch_opt.opt_dist, pdg,
 					gamma=gamma, optimizer=ozrname)
 				
-				
-
+	
+	print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for memory tracking thread to finish up...")
+	mem_tracker.join()
+	print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ... done!")
 
 	# with open("library.pickle", 'w') as f:
 	# 	pickle.dump(store, f)
