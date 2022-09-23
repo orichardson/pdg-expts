@@ -110,6 +110,9 @@ def run_expt_log_datapt_worker(
 		timestamp=time.time_ns()
 	)
 
+	print('finished!')
+	print(datapt)
+
 	with open(f"datapts/{input_name}-{job_number}.pt", "w") as f:
 		json.dump(datapt._asdict(), f)
 
@@ -211,14 +214,17 @@ def main():
 
 		# nonlocal available_cores, loose_ends
 		available_cores[0] += 1
-		del loose_ends[namenum]				
+		del loose_ends[namenum]
+		print('cleaned up ', namenum)
 		return True
 
 	def enqueue_expt(input_name, input_stats, fn, *args, output_processor=None, **kwargs):
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 
 		# nonlocal available_cores
+		print()
 		while available_cores[0] <= 0:
+			print(' zzz ',end='')
 			if not sweep():
 				time.sleep(0.5)
 		
