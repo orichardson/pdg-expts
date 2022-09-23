@@ -166,17 +166,23 @@ def mem_track( proc_id_recvr, response_line ):
 				sleep_time = 1E-3
 
 		
+		dead = 0
 		for pid in maxmem_log.keys():
 			if psutil.pid_exists(pid):
 				curmem = total_mem_recursive(pid)
 				maxmem_log[pid] = max(maxmem_log[pid], curmem)
 			else:
-				sys.stderr.write("oopsies, PID %d does not exist (anymore).\n"%pid)
-				sys.stderr.flush()
+				# sys.stderr.write("oopsies, PID %d does not exist (anymore).\n"%pid)
+				# sys.stderr.flush()
+				# pass
+				dead += 1
 
 		time.sleep(sleep_time)
 		if sleep_time < 0.2:
 			sleep_time *= 1.4
+		else:
+			if dead > 0:
+				print(' dead processes: [%d/%d]'%(dead, len(maxmem_log)))
 		# else: print("<memtracker sleeping>")
 
 	with open("memory_summary.json", 'w') as f:
@@ -237,7 +243,7 @@ def main():
 
 					result = rslt_recvr.recv()
 					results[namenum] = None if result is None else result._replace(max_mem = m_m)
-					
+
 				except Exception as ex:
 					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 
@@ -311,9 +317,14 @@ def main():
 			n_edges = len(pdg.Ed)
 		)
 
-		bp = BeliefPropagation(bn)
-		# glog(bn_name+"-as-FG.bp", bp.calibrate)
-		enqueue_expt(bn_name+"-belief-prop",stats, bp.calibrate, output_processor=zerofn)
+		try:
+			bp = BeliefPropagation(bn)
+			# glog(bn_name+"-as-FG.bp", bp.calibrate)
+			enqueue_expt(bn_name+"-belief-prop",stats, bp.calibrate, output_processor=zerofn)
+		except Exception as ex:
+			jobnum += 1
+			print("BP failed (probably not connected)")
+			sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 				
 		enqueue_expt(bn_name+"-as-pdg.ip.-idef",stats, ip.cvx_opt_joint, pdg, also_idef=False)
 		enqueue_expt(bn_name+"-as-pdg.ip.+idef",stats, ip.cvx_opt_joint, pdg, also_idef=True)
