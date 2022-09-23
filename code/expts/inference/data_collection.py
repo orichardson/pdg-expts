@@ -269,7 +269,7 @@ def main():
 		stats = dict(
 			n_vars = len(pdg.varlist),
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
-			n_params = sum(p.size for p in pdg.edges('P')),
+			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also
 			n_edges = len(pdg.Ed)
 		)
 
