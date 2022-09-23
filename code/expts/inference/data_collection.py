@@ -169,7 +169,7 @@ def mem_track( proc_id_recvr, response_line ):
 				sys.stderr.write("oopsies, PID %d does not exist (anymore)."%pid)
 
 		time.sleep(sleep_time)
-		if sleep_time < 0.5:
+		if sleep_time < 0.2:
 			sleep_time *= 1.4
 
 	with open("memory_summary.json", 'w') as f:
@@ -220,7 +220,7 @@ def main():
 			if not proc.is_alive():
 				main_sender.send(proc.pid)
 				results[namenum] = rslt_recvr.recv()
-				results[namenum].max_mem = main_recvr.recv()
+				results[namenum]._replace(max_mem = main_recvr.recv())
 				break
 
 		else:
