@@ -322,7 +322,7 @@ def main():
 			# glog(bn_name+"-as-FG.bp", bp.calibrate)
 			enqueue_expt(bn_name+"-belief-prop",stats, bp.calibrate, output_processor=zerofn)
 		except Exception as ex:
-			jobnum += 1
+			jobnum[0] += 1
 			print("BP failed (probably not connected)")
 			sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 				
