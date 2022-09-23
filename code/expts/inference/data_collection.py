@@ -191,10 +191,12 @@ if __name__ == '__main__':
 	# with multiproc.Pool() as pool:
 	jobnum = 0
 
+	global available_cores
 	available_cores = os.cpu_count() - 1  # max with this many threads
 	print("total cpu count: ", available_cores)
 
 	def sweep(waiting_time=1E-2):
+
 		""" returns True if there was any result that freed """
 		for namenum, (rslt_recvr, proc) in loose_ends.items():
 			proc.join(waiting_time)
@@ -207,6 +209,7 @@ if __name__ == '__main__':
 		else:
 			return False
 
+		global available_cores
 		available_cores += 1
 		del loose_ends[namenum]				
 		return True
@@ -214,6 +217,7 @@ if __name__ == '__main__':
 	def enqueue_expt(input_name, input_stats, fn, *args, output_processor=None, **kwargs):
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 
+		global available_cores
 		while available_cores <= 0:
 			if not sweep():
 				time.sleep(0.5)
