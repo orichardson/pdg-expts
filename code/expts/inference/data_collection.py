@@ -31,7 +31,7 @@ from psutil._common import bytes2human
 import multiprocessing as multiproc
 import time, datetime
 import pickle
-import logging
+import logging, traceback
 import os
 
 
@@ -123,6 +123,7 @@ def run_expt_log_datapt_worker(
 		json.dump(datapt._asdict(), f)
 
 	rslt_connection.send(datapt)
+	rslt_connection.close()
 	# return datapt
 
 
@@ -176,7 +177,9 @@ def mem_track( proc_id_recvr, response_line ):
 
 	with open("memory_summary.json", 'w') as f:
 		json.dump(maxmem_log)
+
 	response_line.send(maxmem_log)
+	response_line.close()
 
 
 example_bn_names =  [ 
@@ -222,10 +225,16 @@ def main():
 			proc.join(waiting_time)
 			if not proc.is_alive():
 				main_sender.send(proc.pid)
-				m_m = main_recvr.recv()
-				results[namenum] = rslt_recvr.recv()
-				results[namenum] = results[namenum]._replace(max_mem = m_m)
-				break
+
+				try:
+					m_m = main_recvr.recv()
+					results[namenum] = rslt_recvr.recv()
+					results[namenum] = results[namenum]._replace(max_mem = m_m)
+				except Exception as ex:
+					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
+
+				finally:
+					break
 
 		else:
 			return False
