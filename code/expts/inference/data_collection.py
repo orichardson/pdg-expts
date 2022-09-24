@@ -322,6 +322,9 @@ def main():
 		)
 
 		try:
+			if jobnum[0] > 80:
+				import pdb; pdb.set_trace()
+				
 			bp = BeliefPropagation(bn)
 			# glog(bn_name+"-as-FG.bp", bp.calibrate)
 			enqueue_expt(bn_name+"-belief-prop",stats, bp.calibrate, output_processor=zerofn)
