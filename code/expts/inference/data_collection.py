@@ -322,15 +322,14 @@ def main():
 		)
 
 		try:
-			if jobnum[0] > 80:
-				import pdb; pdb.set_trace()
-				
+			# if jobnum[0] > 80:
+			# 	import pdb; pdb.set_trace()
 			bp = BeliefPropagation(bn)
 			# glog(bn_name+"-as-FG.bp", bp.calibrate)
 			enqueue_expt(bn_name+"-belief-prop",stats, bp.calibrate, output_processor=zerofn)
 		except Exception as ex:
 			jobnum[0] += 1
-			print("BP failed (probably not connected)")
+			print("BP failed (probably not connected)", flush=True)
 			sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 				
 		enqueue_expt(bn_name+"-as-pdg.ip.-idef",stats, ip.cvx_opt_joint, pdg, also_idef=False)
