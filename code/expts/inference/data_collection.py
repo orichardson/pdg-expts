@@ -172,7 +172,7 @@ def mem_track( proc_id_recvr, response_line ):
 				try:
 					curmem = total_mem_recursive(pid)
 					maxmem_log[pid] = max(maxmem_log[pid], curmem)
-				except psutil.NoSuchProcess:
+				except psutil.NoSuchProcess as ex:
 					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
 					dead += 1
 			else:
