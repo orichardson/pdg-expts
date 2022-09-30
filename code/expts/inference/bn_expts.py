@@ -10,7 +10,9 @@ example_bn_names =  [
 	# "link", "munin1", "munin2", "munin3", "munin4", "pathfinder", "pigs", "munin" 
 ]
 
-parser.add_argument("--BNs", action="store_true", default=example_bn_names, nargs='*',
+parser.add_argument("--idef", action="store_true")
+
+parser.add_argument("--BNs", default=example_bn_names, nargs='*',
 	help="do a second optimization to also optimize IDef subject to Inc minimization")
 args=parser.parse_args()
 
