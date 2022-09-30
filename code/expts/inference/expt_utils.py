@@ -305,6 +305,11 @@ class MultiExptInfrastructure:
 
 	def done(self):
 		self.to_memtracker.send("END")
+		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for remaining processes ...")
+		
+		while len(self.loose_ends):
+			self.sweep()
+
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for memory tracking thread to finish up...")
 		self.mem_tracker.join()
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] ... done!")
