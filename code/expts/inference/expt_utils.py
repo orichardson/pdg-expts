@@ -1,11 +1,6 @@
 from collections import namedtuple
 import json
 
-import sys
-#sys.path.append("../../..")
-sys.path.append("../..")
-print(sys.path)
-
 from pdg.pdg import PDG
 # from pdg.store import TensorLibrary
 # from pdg.rv import Variable as Var
@@ -189,7 +184,7 @@ def mem_track( proc_id_recvr, response_line ):
 		# else: print("<memtracker sleeping>")
 
 	with open("memory_summary.json", 'w') as f:
-		json.dump(maxmem_log)
+		json.dump(maxmem_log, f)
 
 	response_line.send(maxmem_log)
 	response_line.close()
