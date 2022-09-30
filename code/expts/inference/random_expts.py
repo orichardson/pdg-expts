@@ -35,6 +35,7 @@ import networkx as nx
 import json
 import random
 from functools import reduce
+# from itertools import chain
 from operator import and_
 
 # from pgmpy.inference import BeliefPropagation
@@ -50,6 +51,7 @@ from pdg.alg import torch_opt
 
 from expt_utils import MultiExptInfrastructure
 
+var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
 
 if __name__ == '__main__':
 	expt = MultiExptInfrastructure(args.datadir)
@@ -57,12 +59,12 @@ if __name__ == '__main__':
 	for i in range(args.num_pdgs):
 		pdg = PDG()
 		for v in range(args.num_vars):
-			pdg += Var.alph("X%d_"%v, random.randint(*args.num_vals))
+			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
 
 		for e in range(args.num_edges):
 			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
-			print('remaining', [ v for v in pdg.varlist if v not in src])
-			print('args.tgt_range: ', args.tgt_range)
+			# print('remaining', [ v for v in pdg.varlist if v not in src])
+			# print('args.tgt_range: ', args.tgt_range)
 			tgt = random.sample([ v for v in pdg.varlist if v not in src], k=random.randint(*args.tgt_range))
 
 			# print(src, tgt)

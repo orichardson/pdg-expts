@@ -16,6 +16,9 @@ import traceback
 import os, sys # for stderr, getpid()
 
 
+import numpy
+numpy.warnings.filterwarnings('error', category=numpy.VisibleDeprecationWarning)
+
 
 # logging.basicConfig(format='%(asctime)s %(message)s', 
 # 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
