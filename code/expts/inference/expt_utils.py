@@ -144,22 +144,22 @@ def mem_track( proc_id_recvr, response_line ):
 	sleep_time = 1E-3
 
 	while len(maxmem_log) > 0 or not closed:
-		if not closed and proc_id_recvr.poll():
-			new_pid = proc_id_recvr.recv()
+		if proc_id_recvr.poll():
+			pid = proc_id_recvr.recv()
 
-			if new_pid == "END": 
+			if pid == "END": 
 				print("\n ===== memory tracker recieved END =====", flush=True)
 				closed = True
 				# proc_id_recvr.close()
 
-			elif new_pid in maxmem_log: 
-				print("MEMTRACK: removing ", new_pid, flush=True)
-				response_line.send(maxmem_log[new_pid])
-				del maxmem_log[new_pid]				
-			else:
+			elif pid in maxmem_log: 
+				print("MEMTRACK: removing ", pid, flush=True)
+				response_line.send(maxmem_log[pid])
+				del maxmem_log[pid]				
+			elif not closed:
 				# processes.append(new_pid) 
-				print("MEMTRACK: new pid ", new_pid, flush=True)
-				maxmem_log[new_pid] = 0
+				print("MEMTRACK: new pid ", pid, flush=True)
+				maxmem_log[pid] = 0
 				sleep_time = 1E-3
 
 		
@@ -311,6 +311,7 @@ class MultiExptInfrastructure:
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for remaining processes ...")
 		
 		while len(self.loose_ends):
+			print('.', end='')
 			self.sweep()
 
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for memory tracking thread to finish up...")
