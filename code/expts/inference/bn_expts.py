@@ -24,43 +24,19 @@ import numpy as np
 from pgmpy.inference import BeliefPropagation
 from pgmpy.utils import get_example_model
 
-import sys; sys.path.append("../..")
-
 from pdg.pdg import PDG
 from pdg.store import TensorLibrary
+
 # from pdg.rv import Variable as Var
 # from pdg.dist import CPT, RawJointDist as RJD, Dist
+
 from pdg.alg import interior_pt as ip
 from pdg.alg import torch_opt
-## TIMING / LOGGING UTILS
 import traceback
+import sys
 
 
-# from expt_utils import DataPt, mem_track, run_expt_log_datapt_worker
 from expt_utils import MultiExptInfrastructure
-
-# logging.basicConfig(format='%(asctime)s %(message)s', 
-# 	filename='example.log', encoding='utf-8', level=logging.DEBUG)
-
-
-
-
-
-#### INDEPENDENT VARIABLES / INPUTS #######
-#  - method (lir / cvx opt / ...)
-#  - input stats (size of graph, etc.)
-#  - hyperparameters (learning rate, iterations, tol, optimizer)
-#  - gamma
-#
-#### DEPENDENT VARIABLES / OUTPUTS ########
-#  - time taken
-#  - memory taken
-#  - training curve (if available): loss over time
-#  - (Inc, Idef) of final product
-
-
-
-
 
 
 if __name__ == '__main__':
