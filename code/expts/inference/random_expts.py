@@ -61,7 +61,10 @@ if __name__ == '__main__':
 
 		for e in range(args.num_edges):
 			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
+			print('remaining', [ v for v in pdg.varlist if v not in src])
+			print('args.tgt_range: ', args.tgt_range)
 			tgt = random.sample([ v for v in pdg.varlist if v not in src], k=random.randint(*args.tgt_range))
+
 			# print(src, tgt)
 
 			# pdg += CPT.make_random( reduce(and_, src, initial=Unit), reduce(and_, tgt, initial=Unit) )
