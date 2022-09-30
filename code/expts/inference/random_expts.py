@@ -10,14 +10,22 @@ parser.add_argument("-n", "--num-vars", default=10, type=int,
 	help="number of PDGs to generate.")
 parser.add_argument("-e", "--num-edges", default=12, type=int,
 	help="number of PDGs to generate.")
-parser.add_argument("-v", "--num-vals", nargs=2, default=[2,2],
+parser.add_argument("-v", "--num-vals", nargs=2, type=int,
+	default=[2,2],
 	help="range of values (upper & lower) for each variable")
-parser.add_argument("-s", "--src-range", nargs=2, default=[0,3],
+parser.add_argument("-s", "--src-range", nargs=2, 
+	default=[0,3],
 	help="bounds for how many sources each edge can have")
-parser.add_argument("-t", "--tgt-range", nargs=2, default=[1,2],
+parser.add_argument("-t", "--tgt-range", nargs=2, 
+	default=[1,2],
 	help="bounds for how many targets each edge can have")
-parser.add_argument("-z", "--ozrs", nargs='*', default=['adam', 'lbfgs' ,'asgd'],
+parser.add_argument("-z", "--ozrs", nargs='*', 
+	default=['adam', 'lbfgs' ,'asgd'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
+parser.add_argument("-g", "--gammas", nargs='*', 
+	default=[1E-12, 1E-8, 1E-4, 1E-2, 1, 2],
+	help="Selection of gamma values")
+
 
 args=parser.parse_args()
 
@@ -71,7 +79,7 @@ if __name__ == '__main__':
 		expt.enqueue("cvx+idef", stats, ip.cvx_opt_joint, pdg, also_idef=True)
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
-		for gamma in [1E-12, 1E-8, 1E-4, 1E-2, 1, 2]:
+		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 					 ip.cccp_opt_joint, pdg, gamma=gamma)
 			
