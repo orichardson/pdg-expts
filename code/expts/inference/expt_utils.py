@@ -150,7 +150,7 @@ def mem_track( proc_id_recvr, response_line ):
 			if new_pid == "END": 
 				print("\n ===== memory tracker recieved END =====", flush=True)
 				closed = True
-				proc_id_recvr.close()
+				# proc_id_recvr.close()
 
 			elif new_pid in maxmem_log: 
 				print("MEMTRACK: removing ", new_pid, flush=True)
@@ -186,11 +186,14 @@ def mem_track( proc_id_recvr, response_line ):
 				print(' dead processes: [%d/%d]'%(dead, len(maxmem_log)))
 		# else: print("<memtracker sleeping>")
 
+	proc_id_recvr.close()
+	
 	with open("memory_summary.json", 'w') as f:
 		json.dump(maxmem_log, f)
 
 	response_line.send(maxmem_log)
 	response_line.close()
+
 
 # Infrastructure = namedtuple("Infrastructure", ['enqueue'])
 
