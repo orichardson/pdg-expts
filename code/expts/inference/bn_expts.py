@@ -1,6 +1,6 @@
 import argparse
 parser = argparse.ArgumentParser(description="collect experimental data from Bayesian Networks")
-parser.add_argument("--data-dir", metavar='datadir', type=str, 
+parser.add_argument("--data-dir", dest='datadir', type=str, 
 	default='bn-data',
 	help="the name of directory to store points in")
 
