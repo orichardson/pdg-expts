@@ -16,6 +16,8 @@ parser.add_argument("-s", "--src-range", nargs=2, default=[0,3],
 	help="bounds for how many sources each edge can have")
 parser.add_argument("-t", "--tgt-range", nargs=2, default=[1,2],
 	help="bounds for how many targets each edge can have")
+parser.add_argument("-z", "--ozrs", nargs='*', default=['adam', 'lbfgs' ,'asgd'],
+	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
 
 args=parser.parse_args()
 
@@ -51,10 +53,11 @@ if __name__ == '__main__':
 
 		for e in range(args.num_edges):
 			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
-			tgt = random.choices(pdg.varlist, k=random.randint(*args.tgt_range))
+			tgt = random.sample([ v for v in pdg.varlist if v not in src], k=random.randint(*args.tgt_range))
 			# print(src, tgt)
 
 			# pdg += CPT.make_random( reduce(and_, src, initial=Unit), reduce(and_, tgt, initial=Unit) )
+			print(f"{Var.product(src).name:>20} --> {Var.product(tgt).name:<20}")
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
 			
 		stats = dict(
@@ -72,7 +75,8 @@ if __name__ == '__main__':
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 					 ip.cccp_opt_joint, pdg, gamma=gamma)
 			
-			for ozrname in ['adam', "lbfgs", "asgd"]:
+			# for ozrname in ['adam', "lbfgs", "asgd"]:
+			for ozrname in args.ozrs:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
 					torch_opt.opt_dist, pdg,
 					gamma=gamma, optimizer=ozrname)
