@@ -101,5 +101,5 @@ if __name__ == '__main__':
 	# 	pickle.dump(store, f)
 	# print(expt.results)
 	with open("RESULTS.json", 'w') as f:
-		json.dump([r._asdict() for r in expt.results.values()], f)
+		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)
 
