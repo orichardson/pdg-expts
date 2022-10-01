@@ -67,9 +67,8 @@ def run_expt_log_datapt_worker( DATA_DIR,
 		# rslt = fn(M, *args, **kwargs)
 		rslt = fn(*args, **kwargs)
 
-		if isinstance(rslt, RJD):
-			if rslt._torch:
-				rslt = rslt.npify()
+		if isinstance(rslt, RJD) and rslt._torch:
+			rslt = rslt.npify()
 
 	except Exception as e:
 		with open(fileprefix+".err", "w") as f:
@@ -311,7 +310,7 @@ class MultiExptInfrastructure:
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for remaining processes ...")
 		
 		while len(self.loose_ends):
-			print('.', end='')
+			# print('.', end='')
 			self.sweep()
 
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for memory tracking thread to finish up...")

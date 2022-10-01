@@ -99,6 +99,7 @@ if __name__ == '__main__':
 
 	# with open("library.pickle", 'w') as f:
 	# 	pickle.dump(store, f)
+	# print(expt.results)
 	with open("RESULTS.json", 'w') as f:
-		json.dump(expt.results, f)
+		json.dump([r._asdict() for r in expt.results.values()], f)
 
