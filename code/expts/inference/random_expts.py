@@ -48,7 +48,7 @@ from pdg.dist import CPT, RawJointDist as RJD
 from pdg.alg import interior_pt as ip
 from pdg.alg import torch_opt
 
-
+import os
 from expt_utils import MultiExptInfrastructure
 
 var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
@@ -74,23 +74,28 @@ if __name__ == '__main__':
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
 			
 		stats = dict(
+			graph_id = i,
 			n_vars = len(pdg.varlist),
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
 			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also	
 			n_edges = len(pdg.Ed)
 		)
 					
-		expt.enqueue("cvx-idef", stats, ip.cvx_opt_joint, pdg, also_idef=False)
-		expt.enqueue("cvx+idef", stats, ip.cvx_opt_joint, pdg, also_idef=True)
+		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)
+		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=True)
+		expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False)
+		expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
 		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
-					 ip.cccp_opt_joint, pdg, gamma=gamma)
+								ip.cccp_opt_joint, pdg, gamma=gamma)
+			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
 			for ozrname in args.ozrs:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
+				# expt.enqueue(str(i), stats,
 					torch_opt.opt_dist, pdg,
 					gamma=gamma, optimizer=ozrname)
 				
