@@ -8,8 +8,9 @@ parser.add_argument("-N", "--num-pdgs", default=1000, type=int,
 	help="number of PDGs to generate.")
 parser.add_argument("-n", "--num-vars", default=10, type=int,
 	help="number of PDGs to generate.")
-parser.add_argument("-e", "--num-edges", default=12, type=int,
-	help="number of PDGs to generate.")
+parser.add_argument("-e", "--edge-range", nargs=2, default=[8,15], type=int,
+	help="number of pdg edges to generate (upper & lower).")
+parser.add_argument( "--num-edges", type=int,help="number of PDGs to generate.")
 parser.add_argument("-v", "--num-vals", nargs=2, type=int,
 	default=[2,2],
 	help="range of values (upper & lower) for each variable")
@@ -61,6 +62,7 @@ if __name__ == '__main__':
 		for v in range(args.num_vars):
 			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
 
+		num_edges = args.num_edges if 'num_edges' in args else random.randint(*args.edge_range)
 		for e in range(args.num_edges):
 			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
 			# print('remaining', [ v for v in pdg.varlist if v not in src])
