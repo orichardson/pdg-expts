@@ -39,16 +39,40 @@ df = pd.concat([
 ], axis=1) 
 # df = pd.json_normalize(df)
 
+df = df.loc[:,~df.columns.duplicated()].copy() # get rid of extra "gamma" column
+
+df['graph_id'] = df['input_name'].apply(lambda inpn: inpn[:inpn.find('-')])
+
+mapping = df.groupby(['n_worlds', 'n_params', 'n_edges'])['graph_id'].apply(set)
+
+df.loc[df.method=='cvx_opt_joint', 'graph_id'] = df[df.method=='cvx_opt_joint'].apply(
+        lambda x: next(iter(n for n in mapping[
+        (x.n_worlds, x.n_params, x.n_edges)] if n.isnumeric())), axis=1)
+
+# df.loc[df.method=='cvx_opt_joint', 'graph_id'] = None
+df['inc_gap'] = df['graph_id']
+
+df['gamma'] += 1E-15
+
 
 #%%
 from matplotlib.colors import LogNorm
 import seaborn as sns
 
-df['gamma'] += 1E-13
 sns.scatterplot(data=df, 
     x='inc', y='idef',hue='gamma',hue_norm=LogNorm(),style='method',
     alpha=0.5,
     s=50)
+
+#%%
+
+sns.swarmplot(data=df, 
+    x='total_time', y='method', hue='inc')
+
+#%%
+sns.lineplot(data=df,x='total_time', hue='method', y='inc')
+
+
 
 #%%
 blu_org = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
@@ -62,9 +86,10 @@ ax = sns.scatterplot(data=df,
 idef_range = np.linspace(df['idef'].min(), df['idef'].max(), 100)
 pareto_opt = [df[df['idef'] <= idf]['inc'].min() for idf in idef_range]
 
-df['gammas'].unique()
-
 sns.lineplot(y=idef_range, x=pareto_opt, orient='y', ax=ax)
+
+
+
 
 #%%
 sns.set_theme()
