@@ -197,7 +197,7 @@ def mem_track( proc_id_recvr, response_line ):
 # Infrastructure = namedtuple("Infrastructure", ['enqueue'])
 
 class MultiExptInfrastructure: 
-	def __init__(self, datadir='datapts'):
+	def __init__(self, datadir='datapts', n_threads=None):
 		self.datadir = datadir 
 		if not os.path.exists(datadir):
 			os.makedirs(datadir)
@@ -226,15 +226,15 @@ class MultiExptInfrastructure:
 
 		# global available_cores
 		# available_cores = [ os.cpu_count() - 1 ]  # max with this many threads
-		self.available_cores = multiproc.Value('i', os.cpu_count() -1 )
-
-		print("total cpu count: ", self.available_cores.value)
+		self.available_cores = multiproc.Value('i',
+			os.cpu_count()-1 if n_threads is None else n_threads )
+		print("total cpu count: ", os.cpu_count(), ';  using: ', self.available_cores.value)
 
 	def sweep(self, waiting_time=1E-2):
 		""" returns True if there was any result that freed """
 		for namenum, (rslt_recvr, proc) in self.loose_ends.items():
-			proc.join(waiting_time)
 			if not proc.is_alive():
+				proc.join(waiting_time)
 				self.to_memtracker.send(proc.pid)
 
 				try:

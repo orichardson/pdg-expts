@@ -26,7 +26,8 @@ parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
 	default=[1E-12, 1E-8, 1E-4, 1E-2, 1, 2],
 	help="Selection of gamma values")
-
+parser.add_argument("--num-cores", type=int)
+parser.add_argument("--verbose", action="store_true", default=False)
 
 args=parser.parse_args()
 
@@ -55,15 +56,17 @@ from expt_utils import MultiExptInfrastructure
 var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
 
 if __name__ == '__main__':
-	expt = MultiExptInfrastructure(args.datadir)
+	verb = args.verbose
+	expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores)
 
 	for i in range(args.num_pdgs):
 		pdg = PDG()
 		for v in range(args.num_vars):
 			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
 
-		num_edges = args.num_edges if 'num_edges' in args else random.randint(*args.edge_range)
-		for e in range(args.num_edges):
+		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
+		print(args, 'num_edges' in args, num_edges)
+		for e in range(num_edges):
 			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
 			# print('remaining', [ v for v in pdg.varlist if v not in src])
 			# print('args.tgt_range: ', args.tgt_range)
@@ -85,13 +88,14 @@ if __name__ == '__main__':
 					
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=True)
-		expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False)
-		expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
+		expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False, verbose=verb)
+		expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True,verbose=verb)
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
 		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
-								ip.cccp_opt_joint, pdg, gamma=gamma)
+								ip.cccp_opt_joint, pdg, 
+								gamma=gamma, verbose=verb)
 			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
