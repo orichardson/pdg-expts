@@ -59,9 +59,9 @@ def run_expt_log_datapt_worker( DATA_DIR,
 		f"output to be saved in \"{fileprefix}\"")
 	
 
-	init_time = time.time()
 	# init_mem  = psutil.Process(os.getpid()).memory_info().rss
 	init_mem = total_mem_recursive(os.getpid())
+	init_time = time.time()
 
 	try:
 		# rslt = fn(M, *args, **kwargs)
@@ -70,59 +70,60 @@ def run_expt_log_datapt_worker( DATA_DIR,
 		if isinstance(rslt, RJD) and rslt._torch:
 			rslt = rslt.npify()
 
+
+		total_time = time.time() - init_time
+		# print(prefix, "about to wait for memory usage")
+		# max_mem = mem_connection.recv() # should have sent back memory usage.
+		# print(prefix, "recieved memory usage")
+		# mem_diff = max_mem - init_mem
+
+		if output_processor is None:
+			M = args[0] # assume M is first argument
+			inc = M.Inc(rslt)
+			idef = M.IDef(rslt)
+		else:
+			inc,idef = output_processor(rslt)
+
+		datapt = DataPt(
+			method=fn.__name__,
+			input_stats = input_stats,
+			input_name = input_name,
+			parameters=(tuple(a for a in args if not isinstance(a, PDG)), kwargs),
+			gamma=kwargs['gamma'] if 'gamma' in kwargs else 0,
+			# inc=M.Inc(rslt).real,
+			# idef = M.IEef(rslt),
+			inc = inc,
+			idef = idef,
+			total_time=total_time,
+			# max_mem=mem_diff,
+			max_mem=-1,
+			# timestamp=datetime.datetime.now().strftime("%Y")
+			timestamp=str(datetime.datetime.now())
+		)
+
+		print('finished!')
+		print(datapt)
+
+		with open(fileprefix+".pt", "w") as f:
+			json.dump(datapt._asdict(), f)
+
+		rslt_connection.send(datapt)
+
 	except Exception as e:
 		with open(fileprefix+".err", "w") as f:
 			sys.stderr.write(f"==== ERROR WHILE HANDLING {input_name}, {job_number}, {fn.__name__}, {kwargs}\n\n"
 				 + "".join(traceback.TracebackException.from_exception(e).format()))
 			# json.dump(datapt, f)
 			f.writelines(traceback.TracebackException.from_exception(e).format())
-			rslt_connection.send(None)
-			rslt_connection.close()
-			return
+		rslt_connection.send(None)
+	
+	finally:
+		rslt_connection.close()
 
 	# prefix = f"{input_name+'-'+str(job_number):>20}|"
 	# print(prefix, "requesting memory")
 	# connection.send("done!")
 	# mem_connection.send(os.getpid())
-
-	total_time = time.time() - init_time
-	# print(prefix, "about to wait for memory usage")
-	# max_mem = mem_connection.recv() # should have sent back memory usage.
-	# print(prefix, "recieved memory usage")
-	# mem_diff = max_mem - init_mem
-
-	if output_processor is None:
-		M = args[0] # assume M is first argument
-		inc = M.Inc(rslt)
-		idef = M.IDef(rslt)
-	else:
-		inc,idef = output_processor(rslt)
-
-	datapt = DataPt(
-		method=fn.__name__,
-		input_stats = input_stats,
-		input_name = input_name,
-		parameters=(tuple(a for a in args if not isinstance(a, PDG)), kwargs),
-		gamma=kwargs['gamma'] if 'gamma' in kwargs else 0,
-		# inc=M.Inc(rslt).real,
-		# idef = M.IEef(rslt),
-		inc = inc,
-		idef = idef,
-		total_time=total_time,
-		# max_mem=mem_diff,
-		max_mem=-1,
-		# timestamp=datetime.datetime.now().strftime("%Y")
-		timestamp=str(datetime.datetime.now())
-	)
-
-	print('finished!')
-	print(datapt)
-
-	with open(fileprefix+".pt", "w") as f:
-		json.dump(datapt._asdict(), f)
-
-	rslt_connection.send(datapt)
-	rslt_connection.close()
 	# return datapt
 
 
@@ -230,11 +231,11 @@ class MultiExptInfrastructure:
 			os.cpu_count()-1 if n_threads is None else n_threads )
 		print("total cpu count: ", os.cpu_count(), ';  using: ', self.available_cores.value)
 
-	def sweep(self, waiting_time=1E-2):
+	def sweep(self):
 		""" returns True if there was any result that freed """
 		for namenum, (rslt_recvr, proc) in self.loose_ends.items():
 			if not proc.is_alive():
-				proc.join(waiting_time)
+				proc.join()
 				self.to_memtracker.send(proc.pid)
 
 				try:
@@ -244,9 +245,14 @@ class MultiExptInfrastructure:
 
 					result = rslt_recvr.recv()
 					self.results[namenum] = None if result is None else result._replace(max_mem = m_m)
-
+				
+				except EOFError:
+					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
+						+ str(namenum in self.results))
 				except Exception as ex:
-					sys.stderr.write("".join(traceback.TracebackException.from_exception(ex).format()))
+					sys.stderr.write(
+						f"\n @ PROCESS {namenum}; "+
+						"".join(traceback.TracebackException.from_exception(ex).format()))
 
 				finally:
 					break
