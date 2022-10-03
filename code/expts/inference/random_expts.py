@@ -51,15 +51,33 @@ from pdg.alg import interior_pt as ip
 from pdg.alg import torch_opt
 
 import os
+import signal
+import pickle
 from expt_utils import MultiExptInfrastructure
 
+
+global expt
+expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores)
+
+def terminate_signal(signalnum, *args):
+	global expt
+	expt.finish_now = True
+
+signal.signal(signal.SIGINT, terminate_signal)
+signal.signal(signal.SIGTERM, terminate_signal)
+
+
+
+
 var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
+verb = args.verbose
 
-if __name__ == '__main__':
-	verb = args.verbose
-	expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores)
-
+try:
 	for i in range(args.num_pdgs):
+		if expt.finish_now:
+			print("Exiting!")
+			break
+
 		pdg = PDG()
 		for v in range(args.num_vars):
 			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
@@ -77,6 +95,9 @@ if __name__ == '__main__':
 			# pdg += CPT.make_random( reduce(and_, src, initial=Unit), reduce(and_, tgt, initial=Unit) )
 			print(f"{Var.product(src).name:>20} --> {Var.product(tgt).name:<20}")
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
+
+		with open("%d.pdg", 'wb') as fh:
+			pickle.dump(pdg, fh)
 			
 		stats = dict(
 			graph_id = i,
@@ -108,10 +129,17 @@ if __name__ == '__main__':
 				
 	
 	expt.done()
+except (KeyboardInterrupt, InterruptedError) as e:
+	print("Interrupted! Dumping results ... ")
+
+finally:
+	with open("RESULTS.json", 'w') as f:
+		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)
+	
+	print('... finished writing to "RESULTS.json! ')
+
 
 	# with open("library.pickle", 'w') as f:
 	# 	pickle.dump(store, f)
 	# print(expt.results)
-	with open("RESULTS.json", 'w') as f:
-		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)
 

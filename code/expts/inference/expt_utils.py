@@ -221,6 +221,8 @@ class MultiExptInfrastructure:
 		self.pid_map = {} # pid -> (id_name, jobnumber)
 		self.results = {} # (id_name, jobnumber) -> DataPt
 
+		self.finish_now = False
+
 		# with multiproc.Pool() as pool:
 		# jobnum = [0]
 		self.jobnum = 0
@@ -233,6 +235,9 @@ class MultiExptInfrastructure:
 
 	def sweep(self):
 		""" returns True if there was any result that freed """
+		if self.finish_now:
+			raise InterruptedError
+
 		for namenum, (rslt_recvr, proc) in self.loose_ends.items():
 			if not proc.is_alive():
 				proc.join()
@@ -317,6 +322,8 @@ class MultiExptInfrastructure:
 		
 		while len(self.loose_ends):
 			# print('.', end='')
+			# if self.finish_now:  raise InterruptedError
+			time.sleep(0.5)
 			self.sweep()
 
 		print(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] waiting for memory tracking thread to finish up...")

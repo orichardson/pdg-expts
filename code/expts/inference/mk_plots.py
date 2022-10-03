@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import json
 
-fname = 'random-pdg-data-aggregated.json'
+fname = 'random-pdg-data-aggregated-2.json'
 # fname ='datapts-all.json'
 with open(fname, 'r') as f:
     data = json.load(f)
@@ -41,16 +41,17 @@ df = pd.concat([
 
 df = df.loc[:,~df.columns.duplicated()].copy() # get rid of extra "gamma" column
 
-df['graph_id'] = df['input_name'].apply(lambda inpn: inpn[:inpn.find('-')])
+if 'graph_id' not in df.columns:
+    df['graph_id'] = df['input_name'].apply(lambda inpn: inpn[:inpn.find('-')])
 
-mapping = df.groupby(['n_worlds', 'n_params', 'n_edges'])['graph_id'].apply(set)
+    mapping = df.groupby(['n_worlds', 'n_params', 'n_edges'])['graph_id'].apply(set)
 
-df.loc[df.method=='cvx_opt_joint', 'graph_id'] = df[df.method=='cvx_opt_joint'].apply(
-        lambda x: next(iter(n for n in mapping[
-        (x.n_worlds, x.n_params, x.n_edges)] if n.isnumeric())), axis=1)
+    df.loc[df.method=='cvx_opt_joint', 'graph_id'] = df[df.method=='cvx_opt_joint'].apply(
+            lambda x: next(iter(n for n in mapping[
+            (x.n_worlds, x.n_params, x.n_edges)] if n.isnumeric())), axis=1)
 
 # df.loc[df.method=='cvx_opt_joint', 'graph_id'] = None
-df['inc_gap'] = df['graph_id']
+# df['inc_gap'] = df['graph_id']
 
 df['gamma'] += 1E-15
 
@@ -67,7 +68,9 @@ sns.scatterplot(data=df,
 #%%
 
 sns.swarmplot(data=df, 
-    x='total_time', y='method', hue='inc')
+    x='total_time', y='method', hue='inc',
+    # hue_norm=LogNorm()
+    )
 
 #%%
 sns.lineplot(data=df,x='total_time', hue='method', y='inc')
