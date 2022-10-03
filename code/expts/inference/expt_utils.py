@@ -248,7 +248,7 @@ class MultiExptInfrastructure:
 				
 				except EOFError:
 					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
-						+ str(namenum in self.results))
+						+ str(namenum in self.results)+"\n",flush=True)
 				except Exception as ex:
 					sys.stderr.write(
 						f"\n @ PROCESS {namenum}; "+

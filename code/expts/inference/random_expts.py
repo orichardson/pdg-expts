@@ -88,14 +88,15 @@ if __name__ == '__main__':
 					
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=True)
-		expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False, verbose=verb)
-		expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True,verbose=verb)
+		expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False)
+		expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
+		#,verbose=verb
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
 		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 								ip.cccp_opt_joint, pdg, 
-								gamma=gamma, verbose=verb)
+								gamma=gamma) #, verbose=verb
 			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
