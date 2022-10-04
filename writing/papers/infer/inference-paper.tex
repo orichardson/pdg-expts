@@ -88,9 +88,10 @@
 \section{INTRODUCTION}
 
 % How expensive 
-This paper provides some partial answers to the 
+% This paper provides some partial answers to the 
 How difficult is it to estimate how inconsistent your beliefs are?
-And to properly resolve the inconsistency? 
+How difficult is it to best sort through these inconsistencies? 
+This paper formalizes and partially answers to these questions.
 
 Probabilistic Dependency Graphs, or pdgs \parencite{pdg-aaai},
 are a particularly flexible class of probabilistic graphical models, which subsumes Bayesian Networks and Factor Graphs.
@@ -99,8 +100,7 @@ The primary force behind the expressiveness of pdgs is their ability to capture 
 Beyond its role in undergirding the semantics of pdgs, 
 this measurement of inconsistency  
 
-in addition 
-The degree of inconsistency 
+
  \parencite{one-true-loss}.
 Diagrammatic Calculus.
 All of this paints a story 
@@ -120,6 +120,8 @@ However, their asymptotics are not much worse.
 \textbf{Basic notation.}
 % This paper concerns the 
 Let $\mat 1$ denote the all-ones vector.
+Tensor product
+
 We write $\Delta S$ to denote the set of proability distributions over a finite set $S$.
 Every variable $X$ can take on a finite set $\V(X)$ of possible values. 
 % If $S$ is a finite set, we write $\Delta S$ for the set of probability distributions over $S$, i.e., the simplex over its elements. 
@@ -132,12 +134,13 @@ we write $\mu(X)$ for its marginal distribution on $X$, and $\mu(Y|X)$ for the c
 \textbf{Probabilistic Dependency Graphs.}
 % \textbf{PDGs.}
 We now give a quick overview of the PDG formalism,
-following the more careful expositions in \textcite{pdg-aaai,one-true-loss}.
+following the more carefully motivated
+expositions of \textcite{pdg-aaai,one-true-loss}.
 %
 % Let $\N$ be a set of variables, and 
 %
-Fix a set $\N$ of variables. 
-A probabilistic dependency graph (pdg) over is a collection of cpds involving the variables $\N$, weighted by two kinds of confidence. More precisely:
+% Fix a set $\N$ of variables. 
+A probabilistic dependency graph (pdg) is just a collection of cpds, weighted by two kinds of confidence. More precisely:
 
 \begin{defn}
     a pdg $\dg M
@@ -148,7 +151,7 @@ A probabilistic dependency graph (pdg) over is a collection of cpds involving th
     \begin{itemize}[nosep]
         \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
         \item a cpd $p\ssub L (\Tgt L | \Src L)$ on the target variables given the source variables,
-        \item a weight $\beta\ssub L \in \mathbb R$ indicating 
+        \item a weight $\beta\ssub L \in \Rext$ indicating 
             the modeler's confidence in the cpd $p\ssub L(\Tgt L | \Src L)$, and 
         \item a weight $\alpha\ssub L \in \mathbb R$ indicating 
             the modeler's confidence that the edge $L$ corresponds to an independent mechanism that determines $\Tgt L$ given $\Src L$. 
@@ -165,15 +168,36 @@ The incompatibility of a joint distribution $\mu(\N)$ over all variables, with s
         % \Ex_{\mu} \sum_{L \in \Ed} \beta\ssub L 
         %     \log \frac{\mu(\Tgt_L \mid \Src_L)}{p\ssub L(\Tgt_L \mid \Src_L)}
 \end{align*}
-Meanwhile, the information deficiency of a distribution is given by
+$\Inc$ is called the ``quantitative'' term because it measures $\mu$'s discrepency
+with the quantitative data in the cpds. 
+Meanwhile, there is also a ``qualitative'' term, called the \emph{information deficiency}, given by
+% \begin{align*}
+$
+    \IDef{\dg M}(\mu) := - \H(\mu) + \sum_{L \in \Ed} \alpha\ssub L\, \H_\mu(\Tgt L | \Src L).
+$.
+Although we won't motivate it here, note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$. 
+% \end{align*}
+The PDG semantics are then given by a scoring fuction: 
+$\bbr{\dg M}: \Delta \V\N \to \Rext$
+the linear combination
 \begin{align*}
-    \IDef{\dg M} := - \H(\mu) + \sum_{L \in \Ed} \alpha\ssub L\, \H_\mu(\Tgt L | \Src L)
+    \bbr{\dg M}_\gamma(\mu) &:= \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu) 
+        \\&= \EX_{\mu}\left[\, \sum_{L \in \Ed} \log \frac
+            {\mu(\Tgt L| \Src L)^{\beta\ssub L - \gamma \alpha \ssub L}}
+            {p\ssub L(\Tgt L | \Src L)^{\beta \ssub L}}
+        \right] - \gamma \H(\mu)
+        .
 \end{align*}
+
+The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denotes the set of optimal distributions at a particular $\gamma$.
+Of particular interest is the ``quantitative limit'' as $\gamma \to 0$, 
+in which there is a unique optimal joint distribution, $\bbr{\dg M}^*$, which achieves the smallest information deficiency among those distributions maximally compatible with $\dg M$. 
 
 The inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
 \begin{align*}
-    \aar{\dg M} := \inf_{\mu \in \Delta\V(\N)} \bbr{\dg M}_\gamma(\mu)
+    \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\N}\, \bbr{\dg M}_\gamma(\mu).
 \end{align*}
+To parallel 
 
 \textbf{Exponential Cones.}
 The exponential cone is the convex set
@@ -189,7 +213,8 @@ The exponential cone is the convex set
 
 
 \section{UPDATING AND INFERENCE VIA INCONSISTENCY MINIMIZATION}
-What 
+
+
 
 \begin{linked}{prop}{optimalYgivenX}
 	% \label{prop:optimalYgivenX}
@@ -220,47 +245,157 @@ the expression beomes simpler.
 %     	$.
 % \end{prop}
 
-\section{A POLYNOMIAL ALGORITHM FOR THE CASE OF BOUNDED TREE-WIDTH}
+\section{REDUCTION TO A LINEAR PROGRAM WITH EXPONENTIAL CONE CONSTRAINTS}
 
-The key observation is that the PDG objective $\bbr{\dg M}_\gamma$ can be written
+We now present the central finding of our paper: formalizing the critical observation that the PDG objective $\bbr{\dg M}_\gamma$ can be written
 as a linear optimization problem with exponential cone constraints.
 
-To illustrate the idea, consider the special case in which our PDG contains only one variable $X$, which takes values $\V(X) = \{1, \ldots, n\}$. 
-Suppose further that for every edge $j \in \Ed = \{1, \ldots, m\}$, $p\ssub L(X)$ is an unconditional dsitribution over $X$. 
-    % i.e., $\Tgt k = X$, and $\Src k = \emptyset$.
-Such unconditional probabilities may be identified with unit vectors $\mat p\ssub L \in \mathbb R^n$.  Similarly a candidate (``joint'') distribution $\mu(X)$
-may be represented as a unit vector $\mat m \in \mathbb R^n$. 
-Now, consider another collection of vectors $\{\mat t\ssub {\,L}\,\in \mathbb R^n\}_{L \in \Ed}$ and notice that:
+We will proceed as follows: 
+\begin{enumerate}[itemsep=0pt]
+    \item
+    illustrate how to find the minimizers of $\Inc$, in a simple setting with only one variable and no conditional distributions.
+    \item
+    show how the same approach can be generalized to find minimizers of $\Inc$ in general PDGs,
+    \item \label{item:+idef}
+    show how to find $\bbr{\dg M}^*$, the unique distribution specified by $\dg M$ in the quantitative limit.
+    
+    \item \label{item:cccp}
+    employ the convex-concave procedure 
+    \parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
+        
+    \item 
+    Finally, show how \cref{item:+idef,item:cccp} can also be achieved 
+    with a more efficient compact representation of a distribution, for PDGs that have
+    bounded tree-width.
+\end{enumerate}
 
+\subsection{}\label{sec:illust}
+
+To illustrate the idea, consider the special case in which our PDG contains only one variable $X$, which takes values $\V(X) = \{1, \ldots, n\}$. 
+Suppose further that for every edge $j \in \Ed = \{1, \ldots, m\}$, the cpd $p_j(X)$ is an unconditional dsitribution over $X$. 
+    % i.e., $\Tgt k = X$, and $\Src k = \emptyset$.
+% Such unconditional probabilities may be identified with unit vectors $\mat p\ssub L \in \mathbb R^n$.  Similarly a candidate (``joint'') distribution $\mu(X)$
+Such unconditional probabilities may be identified with unit vectors $\mat p_j \in \mathbb R^n$, and all $m$ of them may stacked together to form a stochastic matrix $\mat P = [\,p_{ij}] \in [0,1]^{n \times m}$.
+Of course, a candidate (``joint'') distribution $\mu(X)$
+may be represented as a unit vector $\mat m \in \mathbb R^n$. 
+%
+% Now, consider another collection of vectors $\{\mat t\ssub {\,L}\,\in \mathbb R^n\}_{L \in \Ed}$ and notice that:
+% \begin{align*}
+%     \forall  L &\in \Ed.~~ 
+%     (-\mat t\ssub L\,, \mat m, \mat p\ssub L) \in K_{\exp}^n \\
+%         &\iff 
+%             \forall  L \in \Ed.~~
+%             \mat t \succeq {\mat m} \log \frac{\mat m}{\mat p}
+%         \\&\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
+% \end{align*}
+Now consider a matrix $\mat T = [t_{ij}] \in \Rext^{n \times m}$,
+and observe that:
 \begin{align*}
-    \forall  L &\in \Ed.~~ 
-    (-\mat t\ssub L\,, \mat m, \mat p\ssub L) \in K_{\exp}^n \\
-        &\iff 
-            \forall  L \in \Ed.~~
-            \mat t \succeq {\mat m} \log \frac{\mat m}{\mat p}
-        \\&\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
+    &(- \mat T,~ \mat m \otimes \mat 1,~ \mat P) \in K_{\exp}^{n \times m} \\
+    &\iff \forall  i,j \in [n]\!\times\![m].~~ 
+        (- t_{ij}, m_{i}, p_{ij}) \in K_{\exp} \\
+    &\iff \forall  i,j \in [n]\!\times\![m].~~ 
+            t_{ij} \ge m_i \log \frac{m_i}{p_{ij}} \\
+    &\implies \forall j \in [n].~~  {\textstyle\sum_i} t_{ij}  \ge \kldiv{\mu}{p_j} \\
+    &\implies \sum_{i,j} \beta_j t_{ij}  \ge \beta_j \kldiv{\mu}{p_j} \\
+    &\iff \mat 1^{\sf T} \mat T \bbeta \ge \Inc(\mu)
+    .
+    % &\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
 \end{align*}
-So now, if $(\mat t, \mat m)$ are a solution to the convex problem
+
+So now, if $(\mat T, \mat m)$ are a solution to the convex program
 \[
     % \mathop{\text{minimize}}
     \min
-    \limits_{\mat m, \mat t}~~
-        \mat t ^{\sf T} \mat 1
+    \limits_{\mat m, \mat T}~~
+        \mat 1^{\sf T} \mat T \bbeta 
     \quad\text{subject to}\quad 
     \begin{cases}
-        (-\mat t, \mat m, \mat p) \in K_{\exp}^{kn} \\
-        \mat m^{\sf T} \mat 1 = 1
+        (-\mat T, \mat m\otimes \mat 1,\, \mat P) \in K_{\exp}^{n \times m} \\
+        \mat 1^{\sf T} \mat m  = 1
     \end{cases},
 \]
-then 
+then (1) the inconsistency $\aar{\dg M} = \mat 1^{\sf T} \mat T \bbeta$ equals the optimal objective value, and 
+(2) $\mu \in \bbr{\dg M}^*_0$ is maximally compatible with $\mu$. 
+% This illustrates the general principle, but 
 
-\footnote{Indeed, $K_{\exp}$ is sometimes called the ``relative entropy cone'' for this reason.} 
+\subsection{Adding More Variables, Conditionals, Marginals}
+
+% Having seen some of the details of the maxtrix computations, let's now move up a level, and make the identifications between distributions and vectors implicitly. 
+% For example, we will implicitly identify a joint distribution $\mu$ 
+% with the appropriate vector 
+Now, let's consider the general case of a pdg 
+$\dg M = (\N, \Ed, \mathcal P, \balpha, \bbeta)$.
+For each $L \in \Ed$, let $N_L := |\V(\Src L, \Tgt L)|$ be the dimension of joint settings of the source and target values of $L$, i.e., the dimension of the cpd $p \ssub L$.
+
+Let $K := \sum_{L \in \Ed} N_L$ be the total dimension
+of all of the condtional probabilities in $\dg M$.
+
+Let $t = (t^L)_{L \in \Ed} \in \Rext^{K}$.
+let $\Pi_{X}$ be the projection map that marginalizes to the variables $X$. 
+
+Consider the problem
+
+\begin{align*}
+    % \min_{\mu, t} &\qquad
+    \min_{\mat m, \mat t} &\qquad
+        % \Vert t \Vert_1  
+        \sum_{L}\beta_L | t^L |
+    \\
+    \text{subject to}&\qquad
+        % (-t^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L)) 
+        % (-t^L, \Pi_{(\Src L \Tgt L)}\mu, \Pi_{(\Src L)} (\mu) p\ssub L(\Tgt L | \Src L)) 
+        (-t^L,~ \Pi_{\Src L\!\Tgt L}\mat m,~
+            \mat P\!\ssub L \Pi_{\Src L} \mat m ) 
+        % (-t^L_{xy}, \mu(x,y), )
+            \in K_{\exp},\\
+        &\qquad 
+            % \mu \ge 0, ~~ | \mu | = 1.
+            \mat m \ge 0, ~~ | \mat m | = 1.
+            \numberthis\label{eq:joint-prob}
+\end{align*}
+
+% This convex program has $K+1$ constraints 
+\TODO[ Should we convert this to a different form? 
+    The fact that you can even write constraints this way hinges on the fact 
+    that it's still a diciplined convex program to enforce exponential cone constraints
+    on affine transformations of the program variables. ]
+
+Logic similar to that in \cref{sec:illust} gives yields: 
+\begin{prop}
+    If $(\mu, t)$ are a solution to \eqref{eq:joint-prob}, then
+    $\mu \in \bbr{\dg M}_0^*$,
+    % i.e., is maximally compatible with $\dg M$, and
+    and
+    $\sum_{L}\beta_L |t^L| = \aar{\dg M}$.
+\end{prop}
 
 
-\subsection{Tree Deomposition}
+\subsection{Incorporating IDef}
+
+% To do this second pass, we will need this second property
+% As $\gamma \to 0$, the limit of $\bbr{\dg M}_\gamma$
+
+So far, we have only found a distribution
+
+\begin{prop}\label{prop:marginonly}
+	For any PDG $\dg M$, 
+	the highest-compatibility distributions (the minimizers $\bbr{\dg M}_0^*$ of $\Inc_{\dg M}$) all have the same conditional probabilities along the edges of $\dg M$.   
+	That is to say, if there is an edge $\ed LXY \in \Ed^{\dg M}$, and $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$ are quantitatively optimal distributions, then $\mu_1(Y|X) = \mu_2(Y|X)$.  
+\end{prop}
+
+As a result, 
+
+\subsection{The Convex-Concave Procedure}
+
+% \footnote{Indeed, $K_{\exp}$ is sometimes called the ``relative entropy cone'' for this reason.} 
+
+
+% \subsection{Tree Deomposition
+\subsection{A Polynomial Algorithm for the Case of Bounded Tree-Width}
 The first property that makes this possible is 
 
-\begin{linked}[Marov Property for PDGs]{prop}{markov-property}
+\begin{linked}[Markov Property for PDGs]{prop}{markov-property}
 	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
 	% Then for all $\gamma > 0$, we have that
 	% \[
@@ -299,14 +434,8 @@ How do we square this with the \citeauthor{pdg-aaai}'s claim that PDGs are more 
 
 % This may be surprising, given how \citeauthor{pdg-aaai} position their model as strictly more expressive than other graphical models, because it implies that the optimal distribution 
 
-\TODO
+\TODO[TODO: answer this question]
 
-To do this second pass, we will need this second property
-\begin{prop}\label{prop:marginonly}
-	For any PDG $\dg M$, 
-	the highest-compatibility distributions (the minimizers $\bbr{\dg M}_0^*$ of $\Inc_{\dg M}$) all have the same conditional probabilities along the edges of $\dg M$.   
-	That is to say, if there is an edge $\ed LXY \in \Ed^{\dg M}$, and $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$ are quantitatively optimal distributions, then $\mu_1(Y|X) = \mu_2(Y|X)$.  
-\end{prop}
 
 
 \begin{theorem}
@@ -314,6 +443,12 @@ To do this second pass, we will need this second property
 \end{theorem}
 
 \section{OTHER APPROACHES TO PDG INFERENCE}
+
+\subsection{Relaxations}
+Just as it is possible to do belief propogation on cluster graphs that are not trees,
+so too is it possible to apply 
+\cref{alg:ip-expcone}
+
 \subsection{Variational Approaches}
 
 Because of the deep connection between variational approaches 
@@ -334,8 +469,19 @@ If we do not restrict to finite variables, then the problem is much worse.
     The problem of deciding whether a PDG whose variables take values in $\mathbb N$ is not computable.
 \end{linked}
 
-
+\section{IMPLEMENTATION}
 \section{EMPERICAL EVALUATION}
 \section{DISCUSSION}
 
+\subsubsection*{Acknowledgements}
+% All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support. 
+% To preserve the anonymity, please include acknowledgments \emph{only} in the camera-ready papers.
+
+\subsubsection*{References}
+\printbibliography
+
+
+\clearpage
+\appendix
+\section{Proofs}
 \end{document}

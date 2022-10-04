@@ -250,10 +250,13 @@ class MultiExptInfrastructure:
 					m_m = self.from_memtracker.recv()
 
 					result = rslt_recvr.recv()
-					self.results[namenum] = None if result is None else result._replace(max_mem = m_m)
 
-					with open(self.datadir+"/"+namenum[0]+"-"+str(namenum[1])+".mpt", 'w') as fh:
-						json.dump(self.results[namenum], fh)
+					if result is None:
+						self.results[namenum] = None
+					else:
+						self.results[namenum] = result._replace(max_mem = m_m)
+						with open(self.datadir+"/"+namenum[0]+"-"+str(namenum[1])+".mpt", 'w') as fh:
+							json.dump(self.results[namenum]._asdict(), fh)
 				
 				except EOFError:
 					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
