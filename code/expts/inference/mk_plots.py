@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import json
 
-fname = 'random-pdg-data-aggregated-2.json'
+fname = 'random-pdg-data-aggregated-3.json'
+# fname = 'random-pdg-data-aggregated-2.json'
 # fname ='datapts-all.json'
 with open(fname, 'r') as f:
     data = json.load(f)

@@ -1,6 +1,6 @@
 \documentclass[twoside]{article}
 
-\usepackage[accepted]{aistats2023}
+\usepackage{aistats2023}
 
 % If your paper is accepted, change the options for the package
 % aistats2023 as follows:
@@ -45,7 +45,7 @@
 
 \twocolumn[
 
-\aistatstitle{Inference in Probabilistic Dependency Graphs,
+\aistatstitle{Inference in Probabilistic Dependency Graphs,\\
     via Exponential Cones and Otherwise}
 
 \aistatsauthor{ Oliver E Richardson \And Joseph Y Halpern \And  Christopher De Sa }
@@ -55,8 +55,8 @@
 ]
 
 \begin{abstract}
-    We provide the first tractable inference algorithm for Probabilistic Dependency Graphs (PDGs) with finite variables, placing PDGs on asymptotically similar footing as other graphical models, such as Bayesian Networks and Factor Graphs.
-    This may be surprising, because PDGs are much more expressive than these other models, and also because (as we show) a PDG inference algorithm can be used 
+    We provide the first tractable inference algorithm for Probabilistic Dependency Graphs (PDGs) with discrete variables, thereby placing PDGs on asymptotically similar footing as other graphical models, such as Bayesian Networks and Factor Graphs.
+    This may be surprising, because PDGs are much more expressive than these other models, and also because a PDG inference algorithm can be used 
     % for ``inconsistency minimization'', 
     % which has been argued to be widely useful. 
     to resolve inconsistencies, which has been proposed as a generic modeling task. 
@@ -87,23 +87,109 @@
 
 \section{INTRODUCTION}
 
-Probabilistic Dependency Graphs \cite{} are a 
-very general class of graphical models, 
-that has intimate connections with learning problems. 
+% How expensive 
+This paper provides some partial answers to the 
+How difficult is it to estimate how inconsistent your beliefs are?
+And to properly resolve the inconsistency? 
+
+Probabilistic Dependency Graphs, or pdgs \parencite{pdg-aaai},
+are a particularly flexible class of probabilistic graphical models, which subsumes Bayesian Networks and Factor Graphs.
+The primary force behind the expressiveness of pdgs is their ability to capture inconsistent beliefs and measure the degree of this inconsistency.
+%
+Beyond its role in undergirding the semantics of pdgs, 
+this measurement of inconsistency  
+
+in addition 
+The degree of inconsistency 
+ \parencite{one-true-loss}.
+Diagrammatic Calculus.
+All of this paints a story 
+
+But what use is a model without an inference algorithm? 
+We analyze the complexity of inference and updating in pdgs, and 
+provide an efficient algorithm and exponenital cones.
+We then lean heavily on recent work 
+\parencite{dahl2022primal} showing that 
+such problems can be 
+
+In practice, we find that our algorithms are not as fast as exact inference methods for existing graphical models, such as beleif propogation.   
+However, their asymptotics are not much worse.
+
+\section{PRELIMINARIES}
+
+\textbf{Basic notation.}
+% This paper concerns the 
+Let $\mat 1$ denote the all-ones vector.
+We write $\Delta S$ to denote the set of proability distributions over a finite set $S$.
+Every variable $X$ can take on a finite set $\V(X)$ of possible values. 
+% If $S$ is a finite set, we write $\Delta S$ for the set of probability distributions over $S$, i.e., the simplex over its elements. 
+A conditional probability distribution (cpd) $p(Y|X)$ is a map 
+$p : \V(X) \to \Delta \V(Y)$, so it assigns, to every $x \in \V(X)$, a probability distribution $p(Y|x) \in \Delta Y$, which is shorthand for $p(Y|X\!\!=\!x)$.
+Given a joint distribution $\mu$ over many variables including both $X$ and $Y$, 
+we write $\mu(X)$ for its marginal distribution on $X$, and $\mu(Y|X)$ for the cpd obtained by first conditioning on $X$ and then marginalizing to $Y$. 
 
 
+\textbf{Probabilistic Dependency Graphs.}
+% \textbf{PDGs.}
+We now give a quick overview of the PDG formalism,
+following the more careful expositions in \textcite{pdg-aaai,one-true-loss}.
+%
+% Let $\N$ be a set of variables, and 
+%
+Fix a set $\N$ of variables. 
+A probabilistic dependency graph (pdg) over is a collection of cpds involving the variables $\N$, weighted by two kinds of confidence. More precisely:
 
-\section{COMPLEXITY OF INFERENCE}
+\begin{defn}
+    a pdg $\dg M
+     % = (\mathcal P, \balpha, \bbeta)$ 
+    $
+    over $\N$ is a set $\Ed$ of edges, 
+    each $L \in \Ed$ of which is associated with:
+    \begin{itemize}[nosep]
+        \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
+        \item a cpd $p\ssub L (\Tgt L | \Src L)$ on the target variables given the source variables,
+        \item a weight $\beta\ssub L \in \mathbb R$ indicating 
+            the modeler's confidence in the cpd $p\ssub L(\Tgt L | \Src L)$, and 
+        \item a weight $\alpha\ssub L \in \mathbb R$ indicating 
+            the modeler's confidence that the edge $L$ corresponds to an independent mechanism that determines $\Tgt L$ given $\Src L$. 
+        \qedhere
+    %     % \item $\mathcal P = \{ p\ssub L (\mat T_L | \mat S_L) \}_{L \in \Ed}$ is an indexed set of cpds   
+    %     \item $\bbeta$ 
+    \end{itemize}
+\end{defn}
 
-% \begin{prop}
-% \begin
-%     	% \label{prop:optimalYgivenX}
-%     	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
-%     	$\displaystyle
-%     		\argmin_{p : X \to \Delta Y} \aar{\dg M + p}_\gamma =
-%     		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
-%     	$.
-% \end{prop}
+The incompatibility of a joint distribution $\mu(\N)$ over all variables, with such a PDG is given by a weighted sum of relative entropies:
+\begin{align*}
+    \Inc_{\dg M}(\mu) :=
+        \sum_{L \in \Ed} \beta\ssub L\, \kldiv[\Big]{\mu(\Tgt L,\Src L)}{p\ssub L(\Tgt L | \Src L) \mu(\Src L)}.
+        % \Ex_{\mu} \sum_{L \in \Ed} \beta\ssub L 
+        %     \log \frac{\mu(\Tgt_L \mid \Src_L)}{p\ssub L(\Tgt_L \mid \Src_L)}
+\end{align*}
+Meanwhile, the information deficiency of a distribution is given by
+\begin{align*}
+    \IDef{\dg M} := - \H(\mu) + \sum_{L \in \Ed} \alpha\ssub L\, \H_\mu(\Tgt L | \Src L)
+\end{align*}
+
+The inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
+\begin{align*}
+    \aar{\dg M} := \inf_{\mu \in \Delta\V(\N)} \bbr{\dg M}_\gamma(\mu)
+\end{align*}
+
+\textbf{Exponential Cones.}
+The exponential cone is the convex set
+\begin{align*}
+    K_{\mskip-1mu\exp} &:=\!\!\!\!\!\!
+        \begin{aligned}
+        \big\{ (x_1, x_2, x_3) &: 
+                x_1 \ge x_2 e^{x_3 / x_2},\, x_2 > 0 \big\} 
+        \\\quad \mathbin{\cup}\, \big\{ (x_1, 0, x_3) &: x_1 \ge 0,\, x_3 \le 0 \big\} 
+    \end{aligned}
+    \subset \mathbb R^3.
+\end{align*}
+
+
+\section{UPDATING AND INFERENCE VIA INCONSISTENCY MINIMIZATION}
+What 
 
 \begin{linked}{prop}{optimalYgivenX}
 	% \label{prop:optimalYgivenX}
@@ -122,5 +208,134 @@ the expression beomes simpler.
 		\bbr{\dg M}^*(Y | X)
 	$ uniquely minimizes $p(Y\mid X) \mapsto \aar{\dg M + p}$.
 \end{linked}
+
+
+% \begin{prop}
+% \begin
+%     	% \label{prop:optimalYgivenX}
+%     	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
+%     	$\displaystyle
+%     		\argmin_{p : X \to \Delta Y} \aar{\dg M + p}_\gamma =
+%     		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
+%     	$.
+% \end{prop}
+
+\section{A POLYNOMIAL ALGORITHM FOR THE CASE OF BOUNDED TREE-WIDTH}
+
+The key observation is that the PDG objective $\bbr{\dg M}_\gamma$ can be written
+as a linear optimization problem with exponential cone constraints.
+
+To illustrate the idea, consider the special case in which our PDG contains only one variable $X$, which takes values $\V(X) = \{1, \ldots, n\}$. 
+Suppose further that for every edge $j \in \Ed = \{1, \ldots, m\}$, $p\ssub L(X)$ is an unconditional dsitribution over $X$. 
+    % i.e., $\Tgt k = X$, and $\Src k = \emptyset$.
+Such unconditional probabilities may be identified with unit vectors $\mat p\ssub L \in \mathbb R^n$.  Similarly a candidate (``joint'') distribution $\mu(X)$
+may be represented as a unit vector $\mat m \in \mathbb R^n$. 
+Now, consider another collection of vectors $\{\mat t\ssub {\,L}\,\in \mathbb R^n\}_{L \in \Ed}$ and notice that:
+
+\begin{align*}
+    \forall  L &\in \Ed.~~ 
+    (-\mat t\ssub L\,, \mat m, \mat p\ssub L) \in K_{\exp}^n \\
+        &\iff 
+            \forall  L \in \Ed.~~
+            \mat t \succeq {\mat m} \log \frac{\mat m}{\mat p}
+        \\&\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
+\end{align*}
+So now, if $(\mat t, \mat m)$ are a solution to the convex problem
+\[
+    % \mathop{\text{minimize}}
+    \min
+    \limits_{\mat m, \mat t}~~
+        \mat t ^{\sf T} \mat 1
+    \quad\text{subject to}\quad 
+    \begin{cases}
+        (-\mat t, \mat m, \mat p) \in K_{\exp}^{kn} \\
+        \mat m^{\sf T} \mat 1 = 1
+    \end{cases},
+\]
+then 
+
+\footnote{Indeed, $K_{\exp}$ is sometimes called the ``relative entropy cone'' for this reason.} 
+
+
+\subsection{Tree Deomposition}
+The first property that makes this possible is 
+
+\begin{linked}[Marov Property for PDGs]{prop}{markov-property}
+	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
+	% Then for all $\gamma > 0$, we have that
+	% \[
+	%  	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+	% 		% \subset
+	% 		~\models~
+	% 	% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+	% 	\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+	% \]
+	% That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
+	% Suppose $\dg M_1$ and $\dg M_2$ are value-compatible PDGs,
+	% with respective sets of nodes $\mat X_1 := \N^{\dg M_1}$ and
+	% $\mat X_2 := \N^{\dg M_2}$.
+	Suppose $\dg M_1$ and $\dg M_2$, over respective sets of variables $\mat X_1$ and $\mat X_2$.
+	 % and let $\mathbf X$ denote the variables they have in common.
+	Then for all $\gamma > 0$, we have that
+	\[
+	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
+			% \subset
+			~\models~
+		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
+		% \N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
+		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2
+	\]
+	That is, in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$ for some $\gamma>0$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given the variables they have in common.
+\end{linked}
+
+One consequence of \cref{prop:markov-property} is that every distribution that a PDG
+can pick out, for any $\gamma$ and also in the limit as $\gamma \to 0$, can also be described as a factor graph with the same structure as that PDG.
+How do we square this with the \citeauthor{pdg-aaai}'s claim that PDGs are more general than factor graphs?
+
+
+
+
+
+% This may be surprising, given how \citeauthor{pdg-aaai} position their model as strictly more expressive than other graphical models, because it implies that the optimal distribution 
+
+\TODO
+
+To do this second pass, we will need this second property
+\begin{prop}\label{prop:marginonly}
+	For any PDG $\dg M$, 
+	the highest-compatibility distributions (the minimizers $\bbr{\dg M}_0^*$ of $\Inc_{\dg M}$) all have the same conditional probabilities along the edges of $\dg M$.   
+	That is to say, if there is an edge $\ed LXY \in \Ed^{\dg M}$, and $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$ are quantitatively optimal distributions, then $\mu_1(Y|X) = \mu_2(Y|X)$.  
+\end{prop}
+
+
+\begin{theorem}
+    
+\end{theorem}
+
+\section{OTHER APPROACHES TO PDG INFERENCE}
+\subsection{Variational Approaches}
+
+Because of the deep connection between variational approaches 
+shown in \parencite{one-true-loss}, 
+
+\section{THEORETICAL ANALYSIS: THE COMPLEXITY OF INFERENCE}
+
+\begin{linked}{prop}{consistent-NP-hard}
+	Deciding if $\dg M$ is consistent is NP-hard.
+\end{linked}
+\begin{linked}{prop}{sharp-p-hard}
+	Computing $\aar{\dg M}_\gamma$ is \#P-hard, for $\gamma > 0$.
+\end{linked}
+
+If we do not restrict to finite variables, then the problem is much worse.
+
+\begin{linked}{conj}{incomputable}
+    The problem of deciding whether a PDG whose variables take values in $\mathbb N$ is not computable.
+\end{linked}
+
+
+\section{EMPERICAL EVALUATION}
+\section{DISCUSSION}
 
 \end{document}
