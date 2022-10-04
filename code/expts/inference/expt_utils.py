@@ -154,8 +154,9 @@ def mem_track( proc_id_recvr, response_line ):
 
 			elif pid in maxmem_log: 
 				print("MEMTRACK: removing ", pid, flush=True)
-				response_line.send(maxmem_log[pid])
+				mm = maxmem_log[pid]
 				del maxmem_log[pid]				
+				response_line.send(mm)
 			elif not closed:
 				# processes.append(new_pid) 
 				print("MEMTRACK: new pid ", pid, flush=True)
@@ -250,6 +251,9 @@ class MultiExptInfrastructure:
 
 					result = rslt_recvr.recv()
 					self.results[namenum] = None if result is None else result._replace(max_mem = m_m)
+
+					with open(self.datadir+"/"+namenum[0]+"-"+str(namenum[1])+".mpt", 'w') as fh:
+						json.dump(self.results[namenum], fh)
 				
 				except EOFError:
 					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
