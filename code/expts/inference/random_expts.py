@@ -96,7 +96,7 @@ try:
 			print(f"{Var.product(src).name:>20} --> {Var.product(tgt).name:<20}")
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
 
-		with open("%d.pdg", 'wb') as fh:
+		with open(args.datadir+"/%d.pdg" % i, 'wb') as fh:
 			pickle.dump(pdg, fh)
 			
 		stats = dict(
