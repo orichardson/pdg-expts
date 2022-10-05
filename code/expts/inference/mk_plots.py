@@ -6,7 +6,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import json
 
-fname = 'random-pdg-data-aggregated-3.json'
+fname = 'tmp-aggregated.json'
+# fname = 'random-pdg-data-aggregated-3.json'
 # fname = 'random-pdg-data-aggregated-2.json'
 # fname ='datapts-all.json'
 with open(fname, 'r') as f:
@@ -55,6 +56,11 @@ if 'graph_id' not in df.columns:
 # df['inc_gap'] = df['graph_id']
 
 df['gamma'] += 1E-15
+df['obj'] = df['inc'] + df['gamma'] * df['idef']
+
+best = { (gid, gamma) : df[(df.graph_id == gid) & (df.gamma == gamma)].obj.min()
+     for gid,gamma in df[['graph_id', 'gamma']].value_counts().index }
+df['gap'] = df.apply(lambda x: x.obj - best[(x.graph_id, x.gamma) + 1e-20], axis=1)
 
 
 #%%
@@ -69,8 +75,8 @@ sns.scatterplot(data=df,
 #%%
 
 sns.swarmplot(data=df, 
-    x='total_time', y='method', hue='inc',
-    # hue_norm=LogNorm()
+    x='total_time', y='method', hue='gap',
+    hue_norm=LogNorm()
     )
 
 #%%
@@ -78,7 +84,7 @@ sns.lineplot(data=df,x='total_time', hue='method', y='inc')
 
 
 
-#%%
+#%%  
 blu_org = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
 
 ax = sns.scatterplot(data=df, 
@@ -94,6 +100,27 @@ sns.lineplot(y=idef_range, x=pareto_opt, orient='y', ax=ax)
 
 
 
+#%%
+
+sns.scatterplot(data=df, 
+    x='total_time', y='obj',hue='method',style='method',
+    hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
+    alpha=0.2, # cmap=blu_org,
+    s=50,linewidth=0)
+
+
+#%% ####
+# sns.scatterplot(data=df, 
+#     x='total_time', y='obj',hue='method',style='method',
+#     hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
+#     alpha=0.2, # cmap=blu_org,
+#     s=50,linewidth=0)
+fig, (ax1, ax2) = plt.subplots(1, 2)
+sns.lineplot(data=df,
+    x='n_edges', y='total_time', hue='method', ax=ax1)
+sns.lineplot(data=df,
+    x='n_worlds', y='total_time', hue='method', ax=ax2)
+
 
 #%%
 sns.set_theme()
@@ -107,7 +134,7 @@ sns.displot(data=df, x='inc', col='method', kde=True)
 sns.kdeplot(data=df, x='inc', y='total_time', hue='method', fill=True, alpha=0.5, levels=100)
 
 #%%
-sns.kdeplot(data=df, x='inc', y='idef', fill=True, alpha=0.9, levels=10)
+sns.kdeplot(data=df, x='inc', y='idef', hue='method', fill=True, alpha=0.9, levels=10)
 
 #%%
 sns.set_theme() 

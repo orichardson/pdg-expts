@@ -26,7 +26,7 @@ parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
 	default=[1E-12, 1E-8, 1E-4, 1E-2, 1, 2],
 	help="Selection of gamma values")
-parser.add_argument("--num-cores", type=int)
+parser.add_argument("--num-cores", type=int, default=-1)
 parser.add_argument("--verbose", action="store_true", default=False)
 
 args=parser.parse_args()
