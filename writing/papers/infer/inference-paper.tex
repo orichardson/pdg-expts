@@ -94,7 +94,7 @@ How difficult is it to best sort through these inconsistencies?
 This paper formalizes and partially answers to these questions.
 
 Probabilistic Dependency Graphs, or pdgs \parencite{pdg-aaai},
-are a particularly flexible class of probabilistic graphical models, which subsumes Bayesian Networks and Factor Graphs.
+are a particularly flexible class of probabilistic graphical models, which subsumes Bayesian Networks and Markov Random Fields.
 The primary force behind the expressiveness of pdgs is their ability to capture inconsistent beliefs and measure the degree of this inconsistency.
 %
 Beyond its role in undergirding the semantics of pdgs, 
@@ -120,7 +120,20 @@ However, their asymptotics are not much worse.
 \textbf{Basic notation.}
 % This paper concerns the 
 Let $\mat 1$ denote the all-ones vector.
-Tensor product
+
+{\color{red}\tt
+TODO: unexplained notation / concepts
+\begin{enumerate}[nosep]
+\raggedright
+\item tensor product $\otimes$
+\item relative entropy $\kldiv\mu\nu$, conditional entropy $\H(Y|X)$
+\item jusxtaposition of variables to make new variables, e.g., $XY$ is a variable.
+\item PDG unions via $+$
+\item Extended reals $\Rext := \mathbb R \cup \{\infty\}$
+\item Tree width
+\end{enumerate}
+}
+
 
 We write $\Delta S$ to denote the set of proability distributions over a finite set $S$.
 Every variable $X$ can take on a finite set $\V(X)$ of possible values. 
@@ -130,6 +143,7 @@ $p : \V(X) \to \Delta \V(Y)$, so it assigns, to every $x \in \V(X)$, a probabili
 Given a joint distribution $\mu$ over many variables including both $X$ and $Y$, 
 we write $\mu(X)$ for its marginal distribution on $X$, and $\mu(Y|X)$ for the cpd obtained by first conditioning on $X$ and then marginalizing to $Y$. 
 
+\textbf{Graph Theory.}
 
 \textbf{Probabilistic Dependency Graphs.}
 % \textbf{PDGs.}
@@ -149,7 +163,8 @@ A probabilistic dependency graph (pdg) is just a collection of cpds, weighted by
     over $\N$ is a set $\Ed$ of edges, 
     each $L \in \Ed$ of which is associated with:
     \begin{itemize}[nosep]
-        \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
+        % \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
+        \item variables $\Src L, \Tgt L \in \N$, the source and target of $L$;
         \item a cpd $p\ssub L (\Tgt L | \Src L)$ on the target variables given the source variables,
         \item a weight $\beta\ssub L \in \Rext$ indicating 
             the modeler's confidence in the cpd $p\ssub L(\Tgt L | \Src L)$, and 
@@ -174,8 +189,10 @@ Meanwhile, there is also a ``qualitative'' term, called the \emph{information de
 % \begin{align*}
 $
     \IDef{\dg M}(\mu) := - \H(\mu) + \sum_{L \in \Ed} \alpha\ssub L\, \H_\mu(\Tgt L | \Src L).
-$.
-Although we won't motivate it here, note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$. 
+$
+% Although we won't motivate it here, 
+
+Note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$. 
 % \end{align*}
 The PDG semantics are then given by a scoring fuction: 
 $\bbr{\dg M}: \Delta \V\N \to \Rext$
@@ -191,13 +208,16 @@ the linear combination
 
 The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denotes the set of optimal distributions at a particular $\gamma$.
 Of particular interest is the ``quantitative limit'' as $\gamma \to 0$, 
-in which there is a unique optimal joint distribution, $\bbr{\dg M}^*$, which achieves the smallest information deficiency among those distributions maximally compatible with $\dg M$. 
+at which there is a unique optimal joint distribution, $\bbr{\dg M}^*$.
+This distribution uniquely achieves the smallest information deficiency among those distributions maximally compatible with $\dg M$. 
+
+One should be careful to distinguish this joint distribution $\bbr{\dg M}^* \in \Delta\V \N$, which arises in the limit as $\gamma \to 0$, from $\bbr{\dg M}^*_0$, the set of distributions that minimize $\Inc_{\dg M}$ which contains $\bbr{\dg M}^*$, and possibly many others. 
 
 The inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
 \begin{align*}
     \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\N}\, \bbr{\dg M}_\gamma(\mu).
 \end{align*}
-To parallel the notation for the quantitative
+To parallel the notation for scoring functions, when we omit the subscript, we refer to the limit as $\gamma\to 0$, which, unlike before, obeys $\aar{\dg M} = \aar{\dg M}_0$. 
 
 \textbf{Exponential Cones.}
 The exponential cone is the convex set
@@ -211,8 +231,14 @@ The exponential cone is the convex set
     \subset \mathbb R^3.
 \end{align*}
 
+\TODO[Should I talk about disciplined convex programming here? 
+    It might go something like this:]
+
+
 
 \section{UPDATING AND INFERENCE VIA INCONSISTENCY MINIMIZATION}
+
+
 
 
 
@@ -221,7 +247,9 @@ The exponential cone is the convex set
 	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
     For all variables $X,Y$, and $\gamma > 0$, 
 	$$\displaystyle
-		\argmin_{p : X \to \Delta Y} \aar{\dg M + p}_\gamma =
+		% \argmin_{p : X \to \Delta Y}
+		\argmin_{p(Y|X)}\,
+        \aar{\dg M + p}_\gamma =
 		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
 	.$$
 \end{linked}
@@ -245,7 +273,7 @@ the expression beomes simpler.
 %     	$.
 % \end{prop}
 
-\section{REDUCTION TO A LINEAR PROGRAM WITH EXPONENTIAL CONE CONSTRAINTS}
+\section{REDUCTION TO A CONVEX PROGRAM WITH EXPONENTIAL CONE CONSTRAINTS}
 
 We now present the central finding of our paper: formalizing the critical observation that the PDG objective $\bbr{\dg M}_\gamma$ can be written
 as a linear optimization problem with exponential cone constraints.
@@ -259,13 +287,14 @@ We will proceed as follows:
     \item \label{item:+idef}
     show how to find $\bbr{\dg M}^*$, the unique distribution specified by $\dg M$ in the quantitative limit.
     
-    \item \label{item:cccp}
-    employ the convex-concave procedure 
-    \parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
-        
+    % \item \label{item:cccp}
+    % employ the convex-concave procedure 
+    % \parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
+    % 
     \item 
-    Finally, show how \cref{item:+idef,item:cccp} can also be achieved 
-    with a more efficient compact representation of a distribution, for PDGs that have
+    % Finally, show how \cref{item:+idef,item:cccp} can also be achieved 
+    Finally, show how this can all be done
+    with a more efficient compact representation, for PDGs that have
     bounded tree-width.
 \end{enumerate}
 
@@ -275,7 +304,7 @@ To illustrate the idea, consider the special case in which our PDG contains only
 Suppose further that for every edge $j \in \Ed = \{1, \ldots, m\}$, the cpd $p_j(X)$ is an unconditional dsitribution over $X$. 
     % i.e., $\Tgt k = X$, and $\Src k = \emptyset$.
 % Such unconditional probabilities may be identified with unit vectors $\mat p\ssub L \in \mathbb R^n$.  Similarly a candidate (``joint'') distribution $\mu(X)$
-Such unconditional probabilities may be identified with unit vectors $\mat p_j \in \mathbb R^n$, and all $m$ of them may stacked together to form a stochastic matrix $\mat P = [\,p_{ij}] \in [0,1]^{n \times m}$.
+Such unconditional probabilities may be identified with unit vectors $\mat p_j \in \mathbb R^n$, and all $m$ of them may conjoined to form a stochastic matrix $\mat P = [\,p_{ij}] \in [0,1]^{n \times m}$.
 Of course, a candidate (``joint'') distribution $\mu(X)$
 may be represented as a unit vector $\mat m \in \mathbb R^n$. 
 %
@@ -288,34 +317,34 @@ may be represented as a unit vector $\mat m \in \mathbb R^n$.
 %             \mat t \succeq {\mat m} \log \frac{\mat m}{\mat p}
 %         \\&\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
 % \end{align*}
-Now consider a matrix $\mat T = [t_{ij}] \in \Rext^{n \times m}$,
+Now consider a matrix $\mat U = [u_{ij}] \in \Rext^{n \times m}$,
 and observe that:
 \begin{align*}
-    &(- \mat T,~ \mat m \otimes \mat 1,~ \mat P) \in K_{\exp}^{n \times m} \\
+    &(- \mat U,~ \mat m \otimes \mat 1,~ \mat P) \in K_{\exp}^{n \times m} \\
     &\iff \forall  i,j \in [n]\!\times\![m].~~ 
-        (- t_{ij}, m_{i}, p_{ij}) \in K_{\exp} \\
+        (- u_{ij}, m_{i}, p_{ij}) \in K_{\exp} \\
     &\iff \forall  i,j \in [n]\!\times\![m].~~ 
-            t_{ij} \ge m_i \log \frac{m_i}{p_{ij}} \\
-    &\implies \forall j \in [n].~~  {\textstyle\sum_i} t_{ij}  \ge \kldiv{\mu}{p_j} \\
-    &\implies \sum_{i,j} \beta_j t_{ij}  \ge \beta_j \kldiv{\mu}{p_j} \\
-    &\iff \mat 1^{\sf T} \mat T \bbeta \ge \Inc(\mu)
+            u_{ij} \ge m_i \log \frac{m_i}{p_{ij}} \\
+    &\implies \forall j \in [n].~~  {\textstyle\sum_i} u_{ij}  \ge \kldiv{\mu}{p_j} \\
+    &\implies \sum_{i,j} \beta_j u_{ij}  \ge \beta_j \kldiv{\mu}{p_j} \\
+    &\iff \mat 1^{\sf T} \mat U \bbeta \ge \Inc(\mu)
     .
     % &\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
 \end{align*}
 
-So now, if $(\mat T, \mat m)$ are a solution to the convex program
+So now, if $(\mat U, \mat m)$ are a solution to the convex program
 \[
     % \mathop{\text{minimize}}
     \min
     \limits_{\mat m, \mat T}~~
-        \mat 1^{\sf T} \mat T \bbeta 
+        \mat 1^{\sf T} \mat U \bbeta 
     \quad\text{subject to}\quad 
     \begin{cases}
-        (-\mat T, \mat m\otimes \mat 1,\, \mat P) \in K_{\exp}^{n \times m} \\
+        (-\mat U, \mat m\otimes \mat 1,\, \mat P) \in K_{\exp}^{n \times m} \\
         \mat 1^{\sf T} \mat m  = 1
     \end{cases},
 \]
-then (1) the inconsistency $\aar{\dg M} = \mat 1^{\sf T} \mat T \bbeta$ equals the optimal objective value, and 
+then (1) the inconsistency $\aar{\dg M} = \mat 1^{\sf T} \mat U \bbeta$ equals the optimal objective value, and 
 (2) $\mu \in \bbr{\dg M}^*_0$ is maximally compatible with $\mu$. 
 % This illustrates the general principle, but 
 
@@ -345,8 +374,8 @@ Consider the problem
     \text{subject to:}&\quad
         % (-t^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L)) 
         % (-t^L, \Pi_{(\Src L \Tgt L)}\mu, \Pi_{(\Src L)} (\mu) p\ssub L(\Tgt L | \Src L)) 
-        (-t^L,~ \Pi_{\Src L\!\Tgt L}\mat m,~
-            (\mat P\!\ssub L \otimes \mat 1) \Pi_{\Src L} \mat m ) 
+        \big(-t^L,~ \Pi_{\Src L\!\Tgt L}\mat m,~
+            (\mat 1 \otimes \mat P\!\ssub L ) (\Pi_{\Src L} \mat m) \big) 
         % (-t^L_{xy}, \mu(x,y), )
             \in K_{\exp},\\
         &\qquad 
@@ -356,10 +385,13 @@ Consider the problem
 \end{align*}
 
 % This convex program has $K+1$ constraints 
-\TODO[ Should we convert this to a different form? 
-    The fact that you can even write constraints this way hinges on the fact 
-    that it's still a diciplined convex program to enforce exponential cone constraints
-    on affine transformations of the program variables. ]
+\TODO[ I've rewritten this a couple times, and it's always pretty ugly.
+    One higher level question: should we convert this to a different form? 
+    The fact that we can even write constraints this way hinges on the fact
+    that the arguments to the exponential cone are
+    affine transformations of the program variables, which 
+    this presentation sweeps under the rug entirely.
+    \hfill ]
 
 Logic similar to that in \cref{sec:illust} gives yields: 
 \begin{prop}
@@ -370,6 +402,8 @@ Logic similar to that in \cref{sec:illust} gives yields:
     $\sum_{L}\beta_L |t^L| = \aar{\dg M}$.
 \end{prop}
 
+This is a start, but what we were really after was the unique distribution
+$\bbr{\dg M}^*$ that also minimizes $\IDef{\dg M}$.
 
 \subsection{Incorporating IDef}
 
@@ -379,9 +413,11 @@ Logic similar to that in \cref{sec:illust} gives yields:
 So far, we have only found \emph{some} distribution that minimizes $\Inc$; 
 we really wanted to find the unique distribution $\bbr{\dg M}^*$.
 % Fortunately, this can be done by simply running a second optimization problem, 
-It turns out that this can be done by using the results of the problem we already have from \eqref{eq:joint-prob}, to construct a second optimization problem of a similar size.
-To justify our approach, we will to prove two more results.
-First, a characterization of 
+It turns out that a solution to \eqref{eq:joint-prob}  to construct a second optimization problem of a similar size.
+% To justify our approach, we will to prove two more results.
+To justify our approach, we need a little more math. 
+% First, a characterization of 
+First, a characterization of the set $\bbr{\dg M}^*_0$ of distributions that are maximally compatible with $\dg M$. 
 
 \begin{prop}\label{prop:marginonly}
 	For any PDG $\dg M$, 
@@ -393,17 +429,25 @@ As a result, having already found one minimizer of $\Inc_{\dg M}$ via \eqref{eq:
 
 We now run into a second issue: IDef is not convex in $\mu$. 
 Fortunately, when we constrain to distributions that optimize $\Inc$, 
-it equals another function that is. 
+% it equals another function that is. 
+it is.
 Moreover, this function can also be represented with exponential cones.
 
-% \begin{prop}
-Suppose $\mu \in \bbr{\dg M}_0^*$.
+\begin{prop}
+For $\mu \in \bbr{\dg M}_0^*$, 
+we have
 \[
-    \IDef{\dg M}(\mu) = 
+    \IDef{\dg M}(\mu) = \kldiv[\bigg]{\mu}{ \prod_{L \in \Ed} \nu(\Tgt L | \Src L) }
+        + K(\dg M)
 \]
-% \end{prop}
+where $\{ \nu(\Tgt L | \Src L ) \}_{L \in \Ed}$ are the
+conditional marginals along the edges $\Ed$ 
+shared by all distributions in $\bbr{\dg M}^*_0$,
+(per \cref{prop:marginonly}),
+and $K(\dg M)$ does not depend on $\mu$. 
+\end{prop}
 
-\subsection{The Convex-Concave Procedure}
+
 
 % \footnote{Indeed, $K_{\exp}$ is sometimes called the ``relative entropy cone'' for this reason.} 
 
@@ -436,29 +480,93 @@ The first property that makes this possible is
 		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
 		% \N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
 		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
-		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2
+		\mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2.
 	\]
-	That is, in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$ for some $\gamma>0$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given the variables they have in common.
+	That is to say: in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$,
+     % for some $\gamma>0$, 
+    the variables of $\dg M_1$ and of $\dg M_2$ are conditionally independent given the variables they have in common.
 \end{linked}
 
 One consequence of \cref{prop:markov-property} is that every distribution that a PDG
-can pick out, for any $\gamma$ and also in the limit as $\gamma \to 0$, can also be described as a factor graph with the same structure as that PDG.
+can pick out (for any choice of $\gamma > 0$ and also in the limit as $\gamma \to 0$), can also be described as a factor graph with the same structure as that PDG.
 How do we square this with the \citeauthor{pdg-aaai}'s claim that PDGs are more general than factor graphs?
-
-
-
 
 
 % This may be surprising, given how \citeauthor{pdg-aaai} position their model as strictly more expressive than other graphical models, because it implies that the optimal distribution 
 
-\TODO[TODO: answer this question]
+\TODO[TODO: answer this question.\\
+    The short answer: PDGs still compose differently, and in a way that respects the meaning of the probabilities. And just because you can find a factor graph that would have given you the right distribution after the fact, doesn't mean you could have specified the component factors.]
+% The answer is simply that 
 
 
 
-\begin{theorem}
-    
-\end{theorem}
+\section{THEORETICAL ANALYSIS: THE COMPLEXITY OF INFERENCE}
 
+Since inference in other graphical models is already NP-hard, 
+and the class of PDGs subsumes capture them, it should be no surprise 
+that inference in PDGs is NP hard as well.
+%
+%
+One might imagine that \emph{resolving} the inconsistency is the hard part,
+    as opposed to noticing it. 
+Might it easier to simply determine whether or not a PDG is inconsistent?
+% With some wishful thinking, one might imagine it possible
+Alas, it is not.
+% this is not the case either.
+
+\begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
+    \begin{enumerate}[nosep,label={\rm{(\alph*)}}]
+    \item Deciding if $\dg M$ is consistent is NP-hard.
+    \item Computing $\aar{\dg M}_\gamma$ is \#P-hard, for all $\gamma > 0$.
+    \end{enumerate}
+\end{linked}
+
+After all, as we saw in \Cref{sec:}, an oracle that tells you your degree
+of inconsistency can be combined with a convex optimization algorithm to determine marginals in a way that does not scale with the rest of the graph. 
+
+If we do not restrict to finite variables, then the problem is much worse.
+
+\begin{linked}{conj}{incomputable}
+    The problem of deciding whether a PDG whose variables take values in $\mathbb N$ is not computable.
+\end{linked}
+
+Now, essentially all of this is true for  
+
+\begin{linked}{theorem}{main}
+    % For   O( 3 n * ((3n+m+1)^3 ) * log(√n / ϵ) )  =   O( n^4 log(n)  log(1 / ϵ) )
+There is an algorithm that takes $O(n^4 \log n  \log \nf1\epsilon )$ time,
+and finds a point $\epsilon$-close in residual norm to the optimal distribution
+$\bbr{\dg M}^*$, where $n$ is the total number of parameters needed to cover a clique tree.
+\end{linked}
+
+\TODO[ Finding the optimal clique tree is NP-hard. 
+    So how can we guarantee we won't get a bad clique tree (i.e., much wider than the tree-width) so as to claim that we can do inference much faster than in polynomial time? \hskip-1.1em ]
+
+The proof relies almost entirely on the analysis of \textcite{badenbroek2021algorithm},
+which certifies that the optimization algorithm 
+proposed in \textcite{dahl2022primal} works in polynomial time. 
+
+\begin{table}
+    % Let $m$ denote the 
+    \begin{tabular}{ccc}
+        & Belief Propogation (for MRFs / BNs) &  Exponential Cone Optimizatin (for PDGs) \\
+        Time & $O(m t)$ & $O( m^4 \log m )$ \\
+        Space & $O(m + )$ & $O( m )$
+    \end{tabular}
+    \caption{ }
+\end{table}
+
+
+\section{INFERENCE WHEN
+    \texorpdfstring{$\boldsymbol\gamma \boldsymbol> \mat 0$}{gamma > 0},
+    VIA THE CONVEX-CONCAVE PROCEDURE }
+
+We have now given an algorithm that will efficiently    
+
+
+employ the convex-concave procedure 
+\parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
+        
 \section{OTHER APPROACHES TO PDG INFERENCE}
 
 \subsection{Relaxations}
@@ -471,24 +579,14 @@ so too is it possible to apply
 Because of the deep connection between variational approaches 
 shown in \parencite{one-true-loss}, 
 
-\section{THEORETICAL ANALYSIS: THE COMPLEXITY OF INFERENCE}
 
-\begin{linked}{prop}{consistent-NP-hard}
-	Deciding if $\dg M$ is consistent is NP-hard.
-\end{linked}
-\begin{linked}{prop}{sharp-p-hard}
-	Computing $\aar{\dg M}_\gamma$ is \#P-hard, for $\gamma > 0$.
-\end{linked}
-
-If we do not restrict to finite variables, then the problem is much worse.
-
-\begin{linked}{conj}{incomputable}
-    The problem of deciding whether a PDG whose variables take values in $\mathbb N$ is not computable.
-\end{linked}
 
 \section{IMPLEMENTATION}
 \section{EMPERICAL EVALUATION}
 \section{DISCUSSION}
+
+% Our anaysis 
+Our analysis shows that inference in PDGs with bounded tree-width can be done 
 
 \subsubsection*{Acknowledgements}
 % All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors that provided financial support. 
@@ -499,6 +597,173 @@ If we do not restrict to finite variables, then the problem is much worse.
 
 
 \clearpage
+\onecolumn
 \appendix
 \section{Proofs}
+
+\recall{theorem:main}
+\begin{lproof}\label{proof:main}
+\end{lproof}
+
+\subsection{}
+\recall{prop:markov-property}
+\begin{lproof}
+	Choose $\mu \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$.
+	% Choose $\mu \in \mu^*_\gamma (\dg M_1 \bundle \dg M_2)$.
+	Let $\mu' := \mu(\N_1) \mu(\N_2)$
+	
+	\TODO[Finish Transcribing Proof]
+\end{lproof}
+
+
+\subsection{Hardness Results}
+
+\recall{prop:consistent-NP-hard}
+\begin{lproof} \label{proof:consistent-NP-hard}
+	We can directly encode SAT problems as PDGs.
+	Specifically, let
+	$$\varphi := \bigwedge_{j \in \mathcal J} \bigvee_{i \in \mathcal I(j)} (X_{j,i})$$
+	be a CNF formula over binary variables $\mat X := \bigcup_{j,i} X_{j,i}$. Let
+	$\dg M_\varphi$ be the PDG containing every variable $X \in \mat X$ and a binary
+	variable $C_j$ (taking the value 0 or 1) for each clause $j \in \mathcal J$, as well as the following edges, for each $j \in \mathcal J$:
+	%\{$``$\varphi(\mat X)$''$\}$ with $\V(\varphi) = \{0,1\}$, and
+	\begin{itemize}
+		\item a hyper-edge $\{X_{j,i} : i \in \mathcal I(j)\} \tto C_j$, together with a degenerate cpd
+			encoding the boolean OR function (i.e., the truth of $C_j$ given $\{X_{j,i}\}$);
+		\item an edge $\pdgunit \tto C_j$, together with a cpd asserting $C_j$ be equal to 1.
+	\end{itemize}
+	% We give each edge $\alpha = 0$ and $\beta = 1$.
+	First, note that the number of nodes, edges, and non-zero entries in the cpds are polynomial in the $|\mathcal J|, |\mat X|$, and the total number of parameters in a simple matrix representation of the cpds is also polynomial if $\mathcal I$ is bounded (e.g., if $\varphi$ is a 3-CNF formula).
+	A satisfying assignment $\mat x \models \varphi$ of the variables $\mat X$ can be regarded as a degenerate joint distribution $\delta_{\mat X = \mat x}$ on $\mat X$, and extends uniquely to a full joint distribution $\mu_{\mat x} \in \Delta \V(\dg M_\varphi)$ consistent with all of the edges, by
+	\[ \mu_{\mat x} = \delta_{\mat x} \otimes \delta_{\{C_j = \vee_i  x_{j,i}\}} \]
+
+ 	Conversely, if $\mu$ is a joint distribution consistent with the edges above, then any point $\mat x$ in the support of $\mu(\mat X)$ must be a satisfying assignment, since the two classes of edges respectively ensure that $1 =\mu(C_j\!=\! 1 \mid \mat X \!=\! \mat x) = \bigvee_{i \in \mathcal I(j)} \mat x_{j,i}$ for all $j \in \mathcal J$, and so $\mat x \models \varphi$.
+
+	Thus, $\SD{\dg M_\varphi} \ne \emptyset$ if and only if $\varphi$ is satisfiable, so
+	an algorithm for determining if a PDG is consistent can also be adapted (in polynomial space and time) for use as a SAT solver, and so the problem of determining if a PDG consistent is NP-hard.
+
+% \end{lproof}
+% \recall{prop:sharp-p-hard}
+% \begin{lproof}\label{proof:sharp-p-hard}
+    
+    \medskip\hrule\smallskip
+    
+	\textbf{PART (b).}
+    We prove this by reduction to \#SAT. Again, let $\varphi$ be some CNF formula over $\mat X$, and construct
+	$\dg M_\varphi$ as in \hyperref[proof:consistent-NP-hard]{the proof} of
+	\Cref{prop:consistent-NP-hard}.
+	Furthemore, let $\bbr{\varphi} := \{ \mat x : \mat x \models \varphi \}$ be the set of  assingments to $\mat X$ satisfying $\varphi$, and $\#_\varphi := |\bbr{\dg M}|$ denote the number such assignments. We now claim that
+	\begin{equation}\label{eqn:number-of-solns}
+		\#_\varphi = \exp \left[- \frac1\gamma \aar{ \dg M_\varphi }_\gamma \right].
+	\end{equation}
+ 	If true, we would have a reduced the \#P-hard problem of computing $\#_\varphi$ to the problem of computing $\aar{\dg M}_\gamma$ for fixed $\gamma$. We now proceed with proof \eqref{eqn:number-of-solns}.
+	By definition, we have
+	\[ \aar{\dg M_\varphi}_\gamma = \inf_\mu \Big[ \Inc_{\dg M_\varphi}(\mu) + \gamma \IDef{\dg M_\varphi}(\mu) \Big]. \]
+	We start with a claim about first term.
+	% For the particular PDG $\dg M_\varphi$, the
+
+	\begin{iclaim} \label{claim:separate-inc-varphi}
+		% $\Inc(\dg M_\varphi)$ is finite if and only if $\varphi$ is statisfiable.
+		$\Inc_{\dg M_\varphi}\!(\mu) =
+		% \begin{cases}
+		% 	0 & \text{if}~  \mat x \models \varphi~\text{and}~\mat c = \mat 1
+		% 	 	~\text{for all}~(\mat x, \mat c) \in \supp \mu\\
+		% 	\infty & \text{otherwise}
+		% \end{cases}
+		\begin{cases}
+			0 & \text{if}~  \supp \mu \subseteq \bbr{\varphi} \times \{ \mat 1\} \\
+			\infty & \text{otherwise}
+		\end{cases}$.
+	\end{iclaim}
+	\vspace{-1em}
+	\begin{lproof}
+		Writing out the definition explicitly, the first can be written as
+		\begin{equation}
+			\Inc_{\dg M_\varphi}\!(\mu) = \sum_{j} \left[ \kldiv[\Big]{\mu(C_j)}{\delta_1} +
+				\Ex_{\mat x \sim \mu(\mat X_j)} \kldiv[\Big]{\mu(C_j \mid \mat X_j = \mat x)}{\delta_{\lor_i \mat x_{j,i}}} \right], \label{eqn:explicit-INC-Mvarphi}
+				% &= \sum_{j} \left[
+				% 	\begin{matrix} \mu(C_j\!=\!0) (\infty) \\
+				% 	 	+ \mu(C_j \!=\! 1) \log \mu(C_j \!=\! 1)
+				% 	\end{matrix} +
+				% 	\Ex_{\mat x \sim \mu(\mat X_j)} \kldiv[\Big]{\mu(C_j \mid \mat X_j = \mat x)}{\delta_{\lor_i \mat x_i}} \right],
+		\end{equation}
+		where $\mat X_j = \{X_{ij} : j \in \mathcal I(j)\}$ is the set of variables that
+		appear in clause $j$, and $\delta_{(-)}$ is the probability distribution placing all mass on the point indicated by its subscript.
+		As a reminder, the relative entropy is given by
+		\[ \kldiv[\Big]{\mu(\Omega)}{\nu(\Omega)} := \Ex_{\omega \sim \mu} \log \frac{\mu(\omega)}{\nu(\omega)},
+		\quad\parbox{1.4in}{\centering and in particular, \\ if $\Omega$ is binary,}\quad
+			\kldiv[\big]{\mu(\Omega)}{\delta_\omega} = \begin{cases}
+				0 &  \text{if}~\mu(\omega) = 1 ; \\
+				\infty & \text{otherwise}.
+		\end{cases} \]
+		Applying this to \eqref{eqn:explicit-INC-Mvarphi}, we find that either:
+		\begin{enumerate}[itemsep=0pt]
+			\item Every term of \eqref{eqn:explicit-INC-Mvarphi} is finite (and zero) so $\Inc_{\dg M_\varphi}(\mu) = 0$, which happens when $\mu(C_j = 1) = 1$ and $\mu(C_j = \vee_i~ x_{j,i}) = 1$ for all $j$.  In this case, $\mat c = \mat 1 = \{ \vee_i~x_{j,i} \}_j$ so $\mat x \models \varphi$ for every $(\mat{c,x}) \in \supp \mu$;
+			\item Some term of \eqref{eqn:explicit-INC-Mvarphi} is infinite, so that $\Inc_{\dg M_\varphi}(\mu) = \infty$, which happens if some $j$, either
+
+			\begin{enumerate}
+				\item $\mu(C_j \ne 1) > 0$ --- in which case there is some $(\mat{x,c}) \in \supp \mu$ with $\mat c \ne 1$, or
+				\item $\supp \mu(\mat C) = \{\mat 1\}$, but $\mu(C_j \ne \vee_i~ x_{j,i}) > 0$ --- in which case there is some $(\mat{x,1}) \in \supp \mu$ for which $1 = c_j \ne \vee_i~x_{j,i}\;$, and so $\mat x \not\models \varphi$.
+			\end{enumerate}
+		\end{enumerate}
+		Condensing and rearranging slightly, we have shown that
+		\[
+			\Inc_{\dg M_\varphi}(\mu) =
+			\begin{cases}
+				0 & \text{if}~  \mat x \models \varphi~\text{and}~\mat c = \mat 1
+				 	~\text{for all}~(\mat x, \mat c) \in \supp \mu\\
+				\infty & \text{otherwise}
+			\end{cases}~.
+		\]
+		% So if $\mat x \models \varphi$ for all $\mat x \in \supp \mu(X)$,
+		%
+		% $\Inc_{\dg M_\varphi}(\mu) = 0$
+		% The first term is infinite if $\mu(C_j = 1) < 1$, and the second is infinite
+		% if $\mu(C_j = \lor_i X_{i,j}) < 1$. Thus, if $\Inc_{\dg M_\varphi}(\mu)$ is finite, then $\mat x \sim \mu(\mat X)$ satisfies $\varphi$ with probability 1, and $\varphi$ must be satisfiable.
+		% Conversely,
+	\end{lproof}
+
+	% Thus, if $\Inc_{\dg M_\varphi}(\mu)$ is finite, then every $\mat x \in \supp \mu$ is a satisfying assignment of $\varphi$.
+	Because $\IDef{}$ is bounded, it follows immediately that
+ 	$\aar{\dg M_\varphi}_\gamma$, is finite if and only if
+	there is some distribution $\mu \in \Delta\V(\mat X,\mat C)$ for which $\Inc_{\dg M_\varphi}(\mu)$ is finite, or equivalently, by \Cref{claim:separate-inc-varphi}, iff there exists some $\mu(\mat X) \in \Delta \V(\mat X)$ for which $\supp \mu(\mat X) \subseteq \bbr{\varphi}$, which in turn is true if and only if $\varphi$ is satisfiable.
+
+	In particular, if $\varphi$ is not satisfiable (i.e., $\#_\varphi = 0$), then $\aar{\dg M_\varphi}_\gamma = +\infty$, and
+	\[
+		\exp \left[ -\frac1\gamma \aar{\dg M_\varphi}_\gamma \right] =
+	 		\exp [ - \infty ] = 0 = \#_\varphi,
+	\]
+	so in this case \eqref{eqn:number-of-solns} holds as promised. On the other hand, if $\varphi$ \emph{is} satisfiable, then, again by \Cref{claim:separate-inc-varphi}, every $\mu$ minimizing $\bbr{\dg M_\varphi}_\gamma$, (i.e., every $\mu \in \bbr{\dg M_\varphi}_\gamma^*$) must be supported entirely on $\bbr{\varphi}$ and have $\Inc_{\dg M_\varphi}\!(\mu) = 0$.  As a result, we have
+	\[
+		\aar{\dg M_\varphi}_\gamma =
+			\inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} \gamma\; \IDef{\dg M_\varphi}(\mu) .
+	\]
+	A priori, by the definition of $\IDef{\dg M_\varphi}$, we have
+	\[
+		\IDef{\dg M_\varphi}(\mu) =
+		 	- \H(\mu) + \sum_{j} \Big[ \alpha_{j,1} \H_\mu(C_j \mid \mat X_j)
+						+ \alpha_{j,0} \H_\mu(C_j) \Big],
+	\]
+	where $\alpha_{j,0}$ and $\alpha_{j,1}$ are values of $\alpha$ for the edges of $\dg M_\varphi$, which we have not specified because they are rendered irrelevant by the fact that their corresponding cpds are deterministic. We now show how this plays out in the present case.
+	Any $\mu \in \Delta\big[\bbr{\varphi} \times \{\mat 1\}\big]$ we consider has a degenerate marginal on $\mat C$. Specifcally, for every $j$, we have $\mu(C_j) = \delta_1$, and since entropy is non-negative and never increased by conditioning,
+	$$
+		0 \le \H_\mu(C_j \mid \mat X_j) \le \H_\mu(C_j) = 0.
+	$$
+	Therefore, $\IDef{\dg M_\varphi}(\mu)$ reduces to the negative entropy of $\mu$.
+	Finally, making use of the fact that the maximum entropy distribution $\mu^*$ supported on a finite set $S$ is the uniform distribution on $S$, and has $\H(\mu^*) = \log | S |$, we have
+	\begin{align*}
+		\aar{\dg M_\varphi}_\gamma &= \inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} \gamma\; \IDef{\dg M_\varphi}(\mu) \\
+			&= \inf\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]} -\, \gamma\, \H(\mu) \\
+			&= - \gamma\, \sup\nolimits_{\mu \in \Delta \big[\bbr{\varphi} \times \{\mat 1\}\big]}  \H(\mu) \\
+			&= - \gamma\, \log (\#_\varphi),
+	\end{align*}
+	\hspace{1in}giving us
+	$$
+		\#_\varphi = \exp \left[- \frac1\gamma \aar{ \dg M_\varphi }_\gamma \right],
+	$$
+	as desired. We have now reduced \#SAT to computing $\aar{\dg M}_\gamma$, for $\gamma \in \mathbb R^{>0}$ and an arbitrary PDG $\dg M$, which is therefore \#P-hard.
+\end{lproof}
+
+
+
 \end{document}
