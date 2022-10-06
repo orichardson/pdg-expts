@@ -6,8 +6,8 @@ parser.add_argument("--data-dir", dest='datadir', type=str,
 
 parser.add_argument("-N", "--num-pdgs", default=1000, type=int,
 	help="number of PDGs to generate.")
-parser.add_argument("-n", "--num-vars", default=10, type=int,
-	help="number of PDGs to generate.")
+parser.add_argument("-n", "--num-vars", nargs= 2, default=[9,10], type=int,
+	help="number of variables ine each PDG")
 parser.add_argument("-e", "--edge-range", nargs=2, default=[8,15], type=int,
 	help="number of pdg edges to generate (upper & lower).")
 parser.add_argument( "--num-edges", type=int,help="number of PDGs to generate.")
@@ -23,6 +23,11 @@ parser.add_argument("-t", "--tgt-range", nargs=2,  type=int,
 parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 	default=['adam', 'lbfgs' ,'asgd'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
+
+parser.add_argument("-i", "--num-iters", nargs='*', type=10,
+	default=['adam', 'lbfgs' ,'asgd'],
+	help="How many iterations?")
+
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
 	default=[1E-12, 1E-8, 1E-4, 1E-2, 1, 2],
 	help="Selection of gamma values")
