@@ -13,11 +13,11 @@ import seaborn as sns
 
 # fname = 'tmp-aggregated.json'
 fnames = [
-	('random-pdg-data-aggregated-4.json', 'rand4'),
-	('random-pdg-data-aggregated-3.json', 'rand3'),
-	('random-pdg-data-aggregated-2.json', 'rand2'),
-	# ('datapts-all.json', 'bns0'),  #BNs
-	('random-expts-1.csv', 'rand1')
+	# ('random-pdg-data-aggregated-4.json', 'rand4'),
+	# ('random-pdg-data-aggregated-3.json', 'rand3'),
+	# ('random-pdg-data-aggregated-2.json', 'rand2'),
+	('datapts-all.json', 'bns0'),  #BNs
+	# ('random-expts-1.csv', 'rand1')
 ]
 
 dfs = []
@@ -38,12 +38,15 @@ for (fname, shortid) in fnames:
 
 
 	if 'graph_id' not in tempdf.columns:
-		tempdf['graph_id'] = tempdf['input_name'].apply(lambda inpn: inpn[:inpn.find('-')])
-		mapping = tempdf.groupby(['n_worlds', 'n_params', 'n_edges'])['graph_id'].apply(set)
-		tempdf.loc[tempdf.method=='cvx_opt_joint', 'graph_id'] = tempdf[
-						tempdf.method=='cvx_opt_joint'].apply(
-				lambda x: next(iter(n for n in mapping[
-					(x.n_worlds, x.n_params, x.n_edges)] if n.isnumeric())), axis=1)
+		if not tempdf['input_name'].map(lambda n : '-' in n).any():
+			tempdf['graph_id'] = tempdf['input_name']
+		else:			
+			tempdf['graph_id'] = tempdf['input_name'].apply(lambda inpn: inpn[:inpn.find('-')])
+			mapping = tempdf.groupby(['n_worlds', 'n_params', 'n_edges'])['graph_id'].apply(set)
+			tempdf.loc[tempdf.method=='cvx_opt_joint', 'graph_id'] = tempdf[
+							tempdf.method=='cvx_opt_joint'].apply(
+					lambda x: next(iter(n for n in mapping[
+						(x.n_worlds, x.n_params, x.n_edges)] if n.isnumeric())), axis=1)
 
 	if len(fnames) > 1:
 		tempdf['expt_src'] = fname
@@ -52,9 +55,10 @@ for (fname, shortid) in fnames:
 
 	tempdf = tempdf.loc[:,~tempdf.columns.duplicated()].copy() # get rid of extra "gamma" column
 	dfs.append( tempdf )
+	print(tempdf.columns)
 
 df0 = pd.concat(dfs, axis='index')
-df0.reset_index()
+df0.reset_index(inplace=True)
 df = df0
 
 
@@ -72,7 +76,7 @@ df.loc[df.method=='cccp_opt_joint',
 	'method_fine'] = (df[df.method=='cccp_opt_joint']['gamma'] <= 1).map(
 		{True : 'cccp-VEX', False:'cccp-CAVE'})
 df.loc[df.method=='opt_dist',
-	'method_fine'] = 'torch:'+df[df.method=='opt_dist']['ozr']
+	'method_fine'] = 'torch:'+df[df.method=='opt_dist']['optimizer']
 
 # df.loc[df.method=='cvx_opt_joint', 'graph_id'] = None
 # df['inc_gap'] = df['graph_id']
@@ -114,7 +118,7 @@ fig, ax = plt.subplots(1,1)
 ax.set(xscale='log')
 sns.scatterplot(data=df, 
 	# x='inc',
-	x=df.inc + 1E-8,
+	x=df.inc + 1E-20,
 	y='idef',hue='method',style='method',
 	alpha=0.5, s=50, linewidth=0,
 	ax=ax)
@@ -236,17 +240,17 @@ sns.stripplot(data=dfsmall,
 #%% ####
 df1 = df[df.n_worlds <= 4000]
 # df1 = df
-fig, AX = plt.subplots(2, 2)
+fig, AX = plt.subplots(2, 2, figsize=(15,12))
 AX[0,0].set(yscale='log')
 sns.lineplot(data=df1,
-	x='n_worlds', y='gap', hue='method_fine', ax=AX[0][0])
+	x='n_worlds', y='gap', hue='method', ax=AX[0][0])
 sns.lineplot(data=df1,
-	x='n_worlds', y='total_time', hue='method_fine', ax=AX[0][1])
+	x='n_worlds', y='total_time', hue='method', ax=AX[0][1])
 AX[1,0].set(yscale='log')
 sns.lineplot(data=df1,
-	x='n_worlds', y='gap', hue='method_fine', ax=AX[1][0])
+	x='n_worlds', y='gap', hue='method', ax=AX[1][0])
 sns.lineplot(data=df1,
-	x='n_worlds', y='max_mem', hue='method_fine', ax=AX[1][1])
+	x='n_worlds', y='max_mem', hue='method', ax=AX[1][1])
 
 
 

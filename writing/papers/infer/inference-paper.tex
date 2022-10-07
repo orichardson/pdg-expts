@@ -353,7 +353,7 @@ One might worry that this reformulation could increase the difficulty of optimiz
 Operationally, though, we still haven't made much progress, since
 we still don't have an easy way to compute $\aar{ ~\cdot~ }_\gamma$. 
 In \cref{sec:complexity}, we will see why.
-For now, let's focus instead on addressing \textbf{D2} first, an approach
+For now, let's focus instead on directly addressing \textbf{D2}, an approach
 which will ultimately be more fruitful.
  
 % \begin{linked}{prop}{sementics-via-inconsistency}
@@ -408,7 +408,7 @@ We will proceed as follows:
     bounded tree-width.
 \end{enumerate}
 
-\subsection{}\label{sec:illust}
+\subsection{Warm-Up}\label{sec:illust}
 
 To illustrate the idea, consider the special case in which our PDG contains only one variable $X$, which takes values $\V(X) = \{1, \ldots, n\}$. 
 Suppose further that for every edge $j \in \Ed = \{1, \ldots, k\}$, the cpd $p_j(X)$ is an unconditional dsitribution over $X$. 
@@ -501,8 +501,8 @@ Consider the problem
         % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
         \sum_{L \in \Ed}\beta_L \, \sum_{\mathrlap{s,t \in \V(\Src L, \Tgt L)}} u^L_{s,t}
     \numberthis\label{eq:joint-prob}\\
-    \text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\
-        \forall L \in \Ed.~&(-\mat u^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L)) \in K_{\exp}.
+    \text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\[0.2ex]
+        \forall L \in \Ed.~&\big(-\mat u^L, \mu( \Tgt L,\Src L),p\ssub L(\Tgt L | \Src L)  \mu(\Src L) \big) \in K_{\exp}.
         % (-t^L, \Pi_{(\Src L \Tgt L)}\mu, \Pi_{(\Src L)} (\mu) p\ssub L(\Tgt L | \Src L)) 
         % \big(\!\shortminus\! \mat u\ssub L,~ \Pi_{\Src L\Tgt L}\!(\mat m),~
             % \mat P\!\ssub L (\Pi_{\Src L}\!(\mat m) \otimes \mat 1) \big) 
@@ -533,6 +533,14 @@ Consider the problem
 %     this presentation sweeps under the rug entirely.
 %     \hfill ]
 
+To be more explicit, if $|\V(\Src L)| = s$ and $|\V(\Tgt L)| = t$, 
+the quantity $p\ssub L(\Tgt L | \Src L)\mu(\Src L)$ represents the 
+flattened matrix
+\[
+    (\mat 1 \otimes \mu(\Src L)) \odot p \ssub L(\Tgt L | \Src L)
+    =
+    \mu(\Src L)|_{i}\; p \ssub L(\Tgt L | \Src L)|_{i,j} \in \mathbb R^{t \times s}.
+\]
 Note that the marginals $\mu(\Src L, \Tgt L)$ and $\mu(\Src L)$ are
 linear functions of $\mu$'s simplex representation, as required.
 Logic similar to that in \cref{sec:illust} gives yields: 
@@ -688,6 +696,38 @@ The major consequence of \cref{prop:markov-property} is that we only have to con
 
 \TODO[TODO: Describe the minimum spanning aborescence + Bethe decomposition that makes this work, + also how the IDef calculation can be done]
 
+Suppose we have a collection of clusters
+$\mathcal C$, each of which is identified with a subset of variables,
+and also an assigment of each edge $L \in \Ed$ to a cluster $C_L$.
+
+
+We will now optimize over possible
+cluster marginals $\boldsymbol\mu = \{\mu_C \in \Delta\V(C) \}_{C \in \mathcal C}$,
+which we identify with its simplex representation
+as a vector of demension $\sum_{C \in \mathcal C}|\V(C)|$.
+As before, 
+let $K := \sum_{L \in \Ed} |\V(\Src L, \Tgt L)|$
+and $\mat u := [u^L_{s,t}]^{L \in \Ed,}_{ (s,t) \in \V(\Src L, \Tgt L)}$
+be a free variable in $\Rext^{K}$.
+
+% Let $\mat U = [u^C_{\mat x}]^{C \in \mathcal C,}_{\mat x \in \V(C)}$ be a free vector in 
+% $\Rext^K$.
+
+Consider the problem
+
+\begin{align*}
+    \mathop{\text{\sf minimize}}\limits_{\mu, \mat u} &\quad
+        \sum_{L \in \Ed}\beta_L \, \sum_{\mathrlap{s,t \in \V(\Src L, \Tgt L)}} u^L_{s,t}
+    \numberthis\label{eq:joint-prob}\\
+    \text{\sf subject to:}&\quad
+        \forall C \in \mathcal C.~\mu_C \in \Delta\V(C), \\[-0.2ex]
+        \forall L \in \Ed.~ \big(&\!- \! \mat u^L\!,\, \mu_{C_L}\!(\Src L, \Tgt L), \mu_{C_L}\!(\Src L) p\ssub L(\Tgt L | \Src L)\big) \in K_{\exp} 
+\end{align*}
+
+\begin{theorem}
+    
+\end{theorem}
+
 \section{THEORETICAL ANALYSIS: THE COMPLEXITY OF INFERENCE}
     \label{sec:complexity}
 
@@ -791,18 +831,23 @@ The PDG objective can be written as \parencite[Proposition 4.6]{pdg-aaai}
 \end{align*}
 The first line is the sum of a linear term and a convex one,
 and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
-Once we sort the terms in to convex terms $f(\mu)$ and concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively compute
+Once we sort the terms in to convex terms $f(\mu)$ and concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
 %
 \begin{align*}
     \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
-        \nabla g(\mu)
+        \nabla g(\mu_t)
 \end{align*}
 
 As we will see in \cref{sec:expts}, the aproach presented here section is 
 not very fast, but it is guaranteed to make progress, since
 \begin{align*}
-    f(\mu_{t+1}) \le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}
-        \nabla g(\mu)
+    f(\mu_{t+1}) + g(\mu_{t+1}) &\le  f(\mu_{t+1}) + (\mu_{t+1}-\mu_t)^{\sf T} \nabla g(\mu_t) + g(\mu_t)
+        % &\text{(concavity of $g$)}
+        \\
+    &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)
+        % &\text{(defn of argmin)}
+        \\
+    &= f(\mu_t) + g(\mu_t)
 \end{align*}
 and eventually find an optimum. 
 
@@ -941,6 +986,12 @@ Our analysis shows that inference in PDGs with bounded tree-width can be done .
 
 \recall{theorem:main}
 \begin{lproof}\label{proof:main}
+    We apply the analysis of \textcite{badenbroek2021algorithm}.
+    The primal conic problem
+    \[
+        \inf_{x} \{\langle c, x\rangle : Ax = b, x \in K \tag{D}
+    \]
+    
 \end{lproof}
 
 \subsection{}

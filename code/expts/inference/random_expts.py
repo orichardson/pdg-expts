@@ -24,8 +24,8 @@ parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 	default=['adam', 'lbfgs' ,'asgd'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
 
-parser.add_argument("-i", "--num-iters", nargs='*', type=10,
-	default=['adam', 'lbfgs' ,'asgd'],
+parser.add_argument("-i", "--num-iters", nargs='*', type=int,
+	default=20,
 	help="How many iterations?")
 
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
