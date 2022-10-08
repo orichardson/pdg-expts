@@ -96,6 +96,7 @@ def run_expt_log_datapt_worker( DATA_DIR,
 			idef = idef,
 			total_time=total_time,
 			# max_mem=mem_diff,
+			init_mem=init_mem,
 			max_mem=-1,
 			# timestamp=datetime.datetime.now().strftime("%Y")
 			timestamp=str(datetime.datetime.now())

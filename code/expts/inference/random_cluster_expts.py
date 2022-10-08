@@ -6,11 +6,14 @@ parser.add_argument("--data-dir", dest='datadir', type=str,
 
 parser.add_argument("-N", "--num-pdgs", default=1000, type=int,
 	help="number of PDGs to generate.")
-parser.add_argument("-n", "--num-vars", nargs= 2, default=[9,10], type=int,
+parser.add_argument("-c", "--num-clusters", nargs= 2, default=[3,6], type=int,
 	help="number of variables ine each PDG")
 parser.add_argument("-e", "--edge-range", nargs=2, default=[8,15], type=int,
 	help="number of pdg edges to generate (upper & lower).")
-parser.add_argument( "--num-edges", type=int,help="number of PDGs to generate.")
+# parser.add_argument("-n", "--vars-per-cluster", nargs=2, default=[1,4], type=int,
+	# help="number of variables per cluster.")
+parser.add_argument("-W", "--tree-width", default=[4], type=int,
+	help="number of variables per cluster.")
 parser.add_argument("-v", "--num-vals", nargs=2, type=int,
 	default=[2,2],
 	help="range of values (upper & lower) for each variable")
@@ -73,8 +76,11 @@ signal.signal(signal.SIGTERM, terminate_signal)
 
 
 
+import itertools as itt
 
-var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
+var_names = iter(itt.chain(
+	(chr(i + ord('A')) for i in range(26)) ,
+	("X%d_"%v for v in itt.count()) ))
 verb = args.verbose
 
 try:
@@ -84,17 +90,32 @@ try:
 			break
 
 		pdg = PDG()
-		for v in range(args.num_vars):
-			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
+
+		clusters = []
+		for j in range(args.num_clusters):
+			clusters.append([
+				Var.alph(next(var_names), random.randint(*args.num_vals))
+				for _ in range(random.randint(*args.vars_per_cluster))
+			])
+		ctree = nx.random_tree(args.num_clusters)
+		
+		# for v, vn in zip(range(args.num_vars), var_names):
+		# 	pdg += Var.alph(vn, random.randint(*args.num_vals))
 
 		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
+		successful_edges = 0
 		print(args, 'num_edges' in args, num_edges)
-		for e in range(num_edges):
-			src = random.sample(pdg.varlist, k=random.randint(*args.src_range))
-			# print('remaining', [ v for v in pdg.varlist if v not in src])
-			# print('args.tgt_range: ', args.tgt_range)
-			tgt = random.sample([ v for v in pdg.varlist if v not in src], k=random.randint(*args.tgt_range))
 
+		for e in range(num_edges):
+			c1,c2 = random.choice(list(ctree.edges()))
+			options = clusters[c1]+clusters[c2]
+
+			try:
+				src = random.sample(options, k=random.randint(*args.src_range))
+				# print('remaining', [ v for v in pdg.varlist if v not in src])
+				# print('args.tgt_range: ', args.tgt_range)
+				tgt = random.sample([ v for v in options if v not in src], k=random.randint(*args.tgt_range))
+			except ValueError:
 			# print(src, tgt)
 
 			# pdg += CPT.make_random( reduce(and_, src, initial=Unit), reduce(and_, tgt, initial=Unit) )
@@ -131,12 +152,7 @@ try:
 				# expt.enqueue(str(i), stats,
 					torch_opt.opt_dist, pdg,
 					gamma=gamma, optimizer=ozrname)
-		
-
-		#Finally, just multiply the cpds for gamma = 1. 
-		expt.enqueue(
-			"%d--factor-multiplication", dict(gamma=1, **stats),
-				PDG.factor_product, pdg)
+				
 	
 	expt.done()
 except (KeyboardInterrupt, InterruptedError) as e:
