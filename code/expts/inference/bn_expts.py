@@ -5,15 +5,25 @@ parser.add_argument("--data-dir", dest='datadir', type=str,
 	help="the name of directory to store points in")
 
 example_bn_names =  [ 
-	"asia", "cancer", "earthquake", "sachs", "survey", "alarm", "barley", "child",
-	# "insurance", "mildew", "water", "hailfinder", "hepar2", "win95pts", "andes", "diabetes",
+	"asia", "cancer", "earthquake", "sachs", "survey", "insurance", "child",
+	#  "barley", "alarm",
+	#  "mildew", "water", "hailfinder", "hepar2", "win95pts", "andes", "diabetes",
 	# "link", "munin1", "munin2", "munin3", "munin4", "pathfinder", "pigs", "munin" 
 ]
+parser.add_argument("-z", "--ozrs", nargs='*', type=str,
+	default=['adam', 'lbfgs' ,'asgd'],
+	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
 
-parser.add_argument("--idef", action="store_true")
+# parser.add_argument("--idef", action="store_true")
 
 parser.add_argument("--BNs", default=example_bn_names, nargs='*',
 	help="do a second optimization to also optimize IDef subject to Inc minimization")
+parser.add_argument("-g", "--gammas", nargs='*', type=float,
+	default=[1E-8, 1E-4, 1E-2, 1, 2, 10],
+	help="Selection of gamma values")
+parser.add_argument("--num-cores", type=int, default=-1)
+parser.add_argument("--verbose", action="store_true", default=False)
+
 args=parser.parse_args()
 
 
@@ -42,15 +52,20 @@ from expt_utils import MultiExptInfrastructure
 if __name__ == '__main__':
 	# main()
 # def main():
-	store = TensorLibrary()
+	expt = MultiExptInfrastructure(args.datadir,  n_threads=args.num_cores)
 
-	expt = MultiExptInfrastructure(args.datadir)
+	niters = {
+		'adam': [500, 1500, 5000],
+		'lbfgs': [50, 150, 400],
+		'asgd': [500, 1500, 5000]
+	}
 
 	for bn_name in example_bn_names:
 		bn = get_example_model(bn_name)
 		pdg = PDG.from_BN(bn)
 
 		stats = dict(
+			graph_id = bn_name,
 			n_vars = len(pdg.varlist),
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
 			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also	
@@ -68,22 +83,19 @@ if __name__ == '__main__':
 				
 		expt.enqueue(bn_name+"-as-pdg.ip.-idef",stats, ip.cvx_opt_joint, pdg, also_idef=False)
 		expt.enqueue(bn_name+"-as-pdg.ip.+idef",stats, ip.cvx_opt_joint, pdg, also_idef=True)
-		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
-		for gamma in [1E-12, 1E-8, 1E-4, 1E-2, 1, 2]:
+		for gamma in args.gammas:
 			expt.enqueue(bn_name+"-as-pdg.cccp.gamma%.0e"%gamma, stats,
 					 ip.cccp_opt_joint, pdg, gamma=gamma)
-			
-			for ozrname in ['adam', "lbfgs", "asgd"]:
-				expt.enqueue(bn_name+"-as-pdg.torch.gamma%.0e"%gamma, stats,
-					torch_opt.opt_dist, pdg,
-					gamma=gamma, optimizer=ozrname)
+			for ozrname in args.ozrs:
+				for oi in niters[ozrname]:
+					expt.enqueue(bn_name+".torch(%d).gamma%.0e"%(ozrname,gamma), stats,
+						torch_opt.opt_dist, pdg,
+						gamma=gamma, optimizer=ozrname, iters=oi)
 				
 
 	expt.done()
 
-	# with open("library.pickle", 'w') as f:
-	# 	pickle.dump(store, f)
 	with open("RESULTS.json", 'w') as f:
 		json.dump(expt.results, f)
 

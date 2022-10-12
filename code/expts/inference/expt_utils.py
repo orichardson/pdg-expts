@@ -232,7 +232,7 @@ class MultiExptInfrastructure:
 		# global available_cores
 		# available_cores = [ os.cpu_count() - 1 ]  # max with this many threads
 		self.available_cores = multiproc.Value('i',
-			os.cpu_count()-1 if n_threads is None else n_threads )
+			os.cpu_count()-2 if (n_threads is None or n_threads <= 0) else n_threads )
 		print("total cpu count: ", os.cpu_count(), ';  using: ', self.available_cores.value)
 
 	def sweep(self):

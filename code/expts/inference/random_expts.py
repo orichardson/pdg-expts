@@ -23,7 +23,9 @@ parser.add_argument("-t", "--tgt-range", nargs=2,  type=int,
 parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 	default=['adam', 'lbfgs' ,'asgd'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
-
+parser.add_argument("-r", "--reprs", nargs='*', type=str,
+	default=['simplex', 'gibbs'],
+	help="Which representation to use? Choose from {simplex, gibbs, soft-simplex}")
 parser.add_argument("-i", "--num-iters", nargs='*', type=int,
 	default=20,
 	help="How many iterations?")
@@ -77,6 +79,13 @@ signal.signal(signal.SIGTERM, terminate_signal)
 var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
 verb = args.verbose
 
+niters = {
+	'adam': [500, 1500, 5000],
+	'lbfgs': [50, 150, 400],
+	'asgd': [500, 1500, 5000],
+	# 'cccp' : [5, 10, 15, 20, 25]
+}
+
 try:
 	for i in range(args.num_pdgs):
 		if expt.finish_now:
@@ -126,11 +135,13 @@ try:
 			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
-			for ozrname in args.ozrs:
-				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
-				# expt.enqueue(str(i), stats,
-					torch_opt.opt_dist, pdg,
-					gamma=gamma, optimizer=ozrname)
+			for rep in args.reprs:
+				for ozrname in args.ozrs:
+					for oi in niters[ozrname]:
+						expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
+						# expt.enqueue(str(i), stats,
+							torch_opt.opt_dist, pdg,
+							gamma=gamma, optimizer=ozrname, iters=oi, representation=rep)
 		
 
 		#Finally, just multiply the cpds for gamma = 1. 
