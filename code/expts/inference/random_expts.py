@@ -93,7 +93,7 @@ try:
 			break
 
 		pdg = PDG()
-		for v in range(args.num_vars):
+		for v in range(*args.num_vars):
 			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
 
 		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
