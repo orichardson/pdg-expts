@@ -44,7 +44,7 @@ class dotdict(dict):
 DataPt = namedtuple('DataPt', 
 	# ['result', 'total_time', 'max_mem'])
 	['method', 'input_stats', 'input_name', 'parameters', 'gamma',
-		'inc', 'idef', 'total_time', 'max_mem', 'timestamp']
+		'inc', 'idef', 'total_time', 'init_mem', 'max_mem', 'timestamp']
 )
 
 def run_expt_log_datapt_worker( DATA_DIR,

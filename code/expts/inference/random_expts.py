@@ -76,7 +76,7 @@ signal.signal(signal.SIGTERM, terminate_signal)
 
 
 
-var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(args.num_vars)]
+var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(*args.num_vars)]
 verb = args.verbose
 
 niters = {
