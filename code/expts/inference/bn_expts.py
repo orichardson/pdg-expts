@@ -91,7 +91,7 @@ if __name__ == '__main__':
 					 ip.cccp_opt_joint, pdg, gamma=gamma)
 			for ozrname in args.ozrs:
 				for oi in niters[ozrname]:
-					expt.enqueue(bn_name+".torch(%d).gamma%.0e"%(ozrname,gamma), stats,
+					expt.enqueue(bn_name+".torch(%s).gamma%.0e"%(ozrname,gamma), stats,
 						torch_opt.opt_dist, pdg,
 						gamma=gamma, optimizer=ozrname, iters=oi)
 				
