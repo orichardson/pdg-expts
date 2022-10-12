@@ -34,8 +34,10 @@ import numpy as np
 from pgmpy.inference import BeliefPropagation
 from pgmpy.utils import get_example_model
 
+
+import sys; sys.path.append("../..")
+
 from pdg.pdg import PDG
-from pdg.store import TensorLibrary
 
 # from pdg.rv import Variable as Var
 # from pdg.dist import CPT, RawJointDist as RJD, Dist
