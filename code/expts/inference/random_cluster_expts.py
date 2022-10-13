@@ -124,7 +124,7 @@ def random_k_tree(n, k):
 def pprocessor(M):
 	def process_pseudomarginals(cpm):
 		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
-		assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
+		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
 		return (cpm.inc, cpm.idef)
 	return process_pseudomarginals
 
