@@ -150,9 +150,10 @@ try:
 
 		while len(pdg.edgedata) < m:
 			# c1,c2 = random.choice(list(ctree.edges()))
-			c1 = random.choice(list(ctree.nodes()))
-			c2 = random.choice(list(ctree[c1]))
-			options = [pdg.varlist[i] for i in set(c1) | set(c2)]
+			# c1 = random.choice(list(ctree.nodes()))
+			# c2 = random.choice(list(ctree[c1]))
+			# options = [pdg.varlist[i] for i in set(c1) | set(c2)]
+			options = random.choice(list(ctree.nodes()))
 
 			try:
 				src = random.sample(options, k=random.randint(*args.src_range))
