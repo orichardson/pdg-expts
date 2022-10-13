@@ -48,7 +48,10 @@
 %joe1: I would cut the second part of the title
 %  \aistatstitle{Inference in Probabilistic Dependency Graphs,\\
   %    via Exponential Cones and Otherwise}
-    \aistatstitle{Inference in Probabilistic Dependency Graphs}
+  %oli3:
+    % \aistatstitle{Inference in Probabilistic Dependency Graphs}
+    \aistatstitle{Inference in Probabilistic Dependency Graphs,
+        via Exponential Conic Programs}
 
 %joe1: initials need periods
     %\aistatsauthor{ Oliver E Richardson \And Joseph Y Halpern \And
@@ -106,7 +109,7 @@ inference problem.
 % \begin{narrow}
 % %%-----------    A FRANK SUMMARY    ---------------
 % Measuring / Estimating /  Inconsistency is very useful.
-% For instance, (1) propogating it backwards through layers of computation = differentiable learning. 
+% For instance, (1) propagating it backwards through layers of computation = differentiable learning. 
 % 
 % Certain localized versions of it can be used to do other algorithms.
 
@@ -119,15 +122,24 @@ inference problem.
 
 \section{INTRODUCTION}
 
-Suppose we have a collection of probabilistic beliefs. 
-%oli1: we answered the first two questions already
-% Are they self-consistent? 
-How can we tell if they are self-consistent?
-How difficult is it to measure how inconsistent they are?
-% If not, how far off ar they from being consistent?
-How much computation is necessary to synthesize our beliefs into a single joint probability distribution?
-This paper provides answers---both
-theoretical and practical---to these questions. 
+% {\color{gray}
+% Suppose that we have a collection of probabilistic beliefs. 
+% How can we tell if they are self-consistent?
+% How difficult is it to measure how inconsistent they are?
+% How much computation is necessary to synthesize our beliefs into a single joint probability distribution?
+% This paper provides answers---both
+% theoretical and practical---to these questions. }
+%joe3*: While these are interesting questions, they are not the
+%standard questions tyhat have been asked when it comes to inference.
+%since no other approach can capture inconsistency well, no one has
+%asked the question of how inconsistent beliefs are (to the best of my
+%knowledge). Moreover, the notion of inconsistency you're dealing
+%with is an idiosyncratic notion, that you tailored to PDGs.   That
+%means the leadoff paragraph does not situate this work well in the
+%ocntext of what's been done.  It may be better to start with
+%inference (what you denote as (Q)) and then move to inconsistency,
+%rather than the other way around, as you've done.  I think that would
+%make the story read better.
 
 
 % More concretely, we handle
@@ -139,155 +151,80 @@ and Factor Graphs (FGs).
 %The primary force behind the expressiveness of pdgs is their ability
 %to capture inconsistent beliefs, and the natural way of measuring the
 %degree of this inconsistency that the formalism provides.
+Unlike the models they generalize,
 PDGs can capture inconsistent beliefs, and have an associated measure
 %oli2: I cut "of degree" and added quotes
 % of degree of inconsistency that captures how far a PDG is from being consistent.  
-of ``inconsistency'' that quantifies how far a PDG is from being consistent.  
+%oli3: making this less tautological
+% of ``inconsistency'' that quantifies how far a PDG is from being consistent.  
+of ``inconsistency'' that quantifies how far the the probabilities in a PDG are from being self-consistent.
 % Beyond its role in undergirding the semantics of pdgs,
 % Beyond its role in providing the semantics of pdgs, 
 % Beyond its central role in the development of PDG semantics, this inconsistency measurement also captures many standard loss functions and statistical divergences \parencite{one-true-loss}.
-Beyond its central role in the development of PDG semantics, this measurement of inconsistency has proven to be a natural quantity to minimize.
-As shown by \textcite{one-true-loss}, a wide breadth
-    of loss functions and statistical divergences 
+But, also unlike the models they generalize, 
+PDGs have not had an inference algorithm---%
+% there have been no practical algorithms that can answer
+% probabilistic queries about the distribution a PDG represents.
+there has been no practical way to use a PDG to compute answers to
+probabilistic queries.
+% respond to probabilistic queries.
+This paper presents the first such algorithm.
+
+Beyond its central role in the development of PDG semantics, this measure of inconsistency has proved broadly to be a natural quantity to minimize.
+As shown by \textcite{one-true-loss},
+ % a wide breadth of
+many
+    loss functions and statistical divergences 
     % used in practice
     % arise as the inconsistency measurement
     can be viewed as measuring the inconsistency
     of a PDG that models the appropriate context.  
-Consquently, computing and minimizing it seems eminantly useful.
+So, the ability to calculate and minimize inconsistency seems eminantly useful.
 It follows, for instance, that the training process in machine learning can largely be conceptualized as inconsistency minimization. 
-% Furthemore, it is suggested that 
-% might generalize to 
-
-% also captures many standard loss functions and statistical divergences \parencite{one-true-loss}.
-% All of this paints a story of wanting 
-% All of this paints a story of wanting 
-%joe1: none of what you said suggests that minimizing inconsistency is
-%useful.  Specifically, the fact that Inc can be used to capture a
-%number of loss functions and divergences says nothing about why we
-%should care about minimizing inconsistency, nor does the fact that 
-%the semantics is based on Inc.
-% It seems that in a  minimizing inconsistency is a generically useful
- % modeling task.
- %joe1:
- %joe2*: I think here you need to say something about how you can use
- %inconsistency minimization to do inference.  The paper is about
- %inference, after all, and you haven't made the connection.  This is critical
-%oli2: I agree, but I'm a little bit furstrated because it was structurally
-% much closer to doing this before I accepted your %joe1 edits. 
-% I'm rewriting the paragraph.  
-% 
-% However, the earlier work on PDGs does not provide any
-% computational method for calculating whether a PDG is consistent and,
-% if not, its degree of inconsistency.  We provide such methods in this paper.
-%
-%From a pragmatic point of view, though, PDGs are currently not yet
-%very useful.  As it stands, they only have conceptual
-%applications---one can use them to justify 
-%a choice of loss function analytically, or to derive cute diagrammatic proofs
-%of inequalitites you likely already know \parencite{one-true-loss},
-%but it is impossible to compute with them.
-%% What use is a model without an inference algorithm? 
-%Until now, PDGs have been a model without an inference algorithm. 
-
-% But how, in general
-% However, none of the earlier work provides any 
-
-But how does one \emph{calculate} this degree of inconsistency, in general?
+But how {does} one calculate this degree of inconsistency, in general?
 % (let alone minimize it)?
 Earlier work does not say. 
 %
-% Also, how does 
-% In a similar vein, 
-% while PDGs naturally model inconsistent beliefs
-% and generalize other graphical models, i
-Setting aside for a moment this unique aspect
-of PDGs,
-it seems they are not 
-even practical as graphical model, because, unlike the models that they 
-generalize, 
-% PDGs do not have an inference algorithm.
-PDGs have not had an inference algorithm.
-% That is to say, there is no guaranteed method for 
-% There's no way, for instance, to answer probabilistic queries of the form:
-In other words, it was not previously known how to use a PDG
-as a probabilistic model,
-to answer quetions of the form:
-% We  
-% If I wanted to know the marginal probability of some variables $\mat Y$ according to a BN, 
-\begin{equation}
-    \begin{minipage}{0.80\linewidth}
-    \it Given that the variables $\mat X$ take the value $\mat x$, 
-    what is the distribution of the variables $\mat Y$? 
-    \end{minipage}
-    % \tag{$\mat Y|\mat X$}
-    \tag{Q}
-    \label{q:inf}
-\end{equation}
-% we don't know how to query  
-%
-% Although they generalize other graphical models, t
-% We 
-These two practical gaps 
+This problem turns out to be closely related to inference in PDGs,
+and our approach addresses both. 
+% These two practical shortcomings
 % which have made PDGs a purely theoretical construct
-are related, and we provide an algorithm
-that addresses both.
+% are related, and we provide an algorithm
+% that addresses both.
 
-%joe1: where do we do updating?   What inference problems do we
-%consider?  You need to slow down here and explain what we do
-%We analyze the complexity of inference and updating in pdgs, and show
-%joe2: In the previous paragraph you talked about minimizing
-%inconsistency.  Here you talk about the complexity of inference.  You
-%have to make the connection.  
-In more detail,
-we analyze the complexity of inference in PDGs, and illustrate
-the close relationship it has with inconsistency minimization.
-% that it is equivalent to that of inconsistency minimization. 
-%joe1*: I have no idea what exponential-cones constraints are.  Unless
-%this is a completely standard notion in the AIStats community, you
-%*must* give some intuition.  Also, when you talk about reducing the
-%problem to a linear program, (a) I don't know which problem you're
-%talking about and (b) we usually talk about reducing one problem to
-%another, not reducing a problem to a linear program
-%Then, we reduce the problem to a linear program with exponenital cones
-% We then reduce the problem to a linear program with exponential-cones
-% constraints.
-Then, we reduce the problem to a convex optimization problem in standard
-form.
-%joe1
-%We then use a powerful recent interior point method
-This allows us to use powerful interior-point methods
-that can solve such problems in polynomial time \parencite{dahl2022primal}. 
-% We then lean heavily on recent work 
-% \parencite{dahl2022primal} showing that 
-% such problems can be
-%joe1: 
-%We provide a python implementation of our reduction, 
-%and also several generic optimization baselines, and then show
-We then evaluate our approach, showing 
-% that this exponential-cone-based approach is more precise
-%oli2:
-that this exponential-cone-based approach is more precise
-%joe1: what do you mean by "optimization baselines"?
-%oli1: it's hard to answer this directly until we've dug into the inconsistency a little.
-% and, in some cases, faster than optimization baselines.
-and, often, faster than generic optimization baselines.
-%joe1: this belongs in the conclusion, or needs to be rewritten to
-%say "while not currently as fast as inference methods such as belief
-%propagation on the models to which belief propagation can be applied,
-%we are optimistic that further improvements to our methnod are
-%possible.  In any case, our results show that inference on pdgs is feasible.
-While not currently as fast as inference methods such as belief
-propagation on the models to which belief propagation can be applied,
-we are optimistic that further improvements are possible.
-In any case, our results show that inference in PDGs is feasible.
-%However, this approach that our algorithms are not as fast as exact
-%inference methods for existing graphical models, such as beleif
-%propogation. 
-% However, their asymptotics are not much worse.
+Since inference in other graphical models is alredy NP-hard, the same must be true of the more general class of PDGs. 
+% The only hope for tractability is the same class of models 
+Indeed, the best we could hope for would be tractability on the restricted
+class of models on which inference has traditionally been tractable---that is, a polynomial algorithm for models whose underlying structure has bounded tree-width. 
+That is precisely what we have. 
+% same class of graphical models 
+% a polynomial-time algorithm in the case of bounded tree-width. 
+% This is precisely what we prsent here.
+% which means PDGs have the same type of fixed-parameter tractability enjoyed by 
+% BNs and FGs. 
+Interestingly, the constriction is not trivial. 
+% It is not a variant of belief propagation (BP), nor is it
+%
+% Unlike the many variants of exact inference 
+While the many approaches to exact inference in standard graphical models have largely turned out to be different perspectives on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
+% our approach has roots in a very different.
+our approach ....
+% and . 
+% new iterior point methods. 
 
-\section{PRELIMINARIES}
+Our ability to do PDG inference in polynomial time is based on a line of recent work in convex programming that establishes polynomial-time convergence 
+\parencite{badenbroek2021algorithm,dahl2022primal}
+for a class of problems called \emph{exponential conic programs} 
+\parencite{lubin}. 
+Our contribution here is to show that the problem of inference in a PDG can be efficiently converted to an exponential conic program, at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time. 
+Thus, [...] is not only a theoretical result, 
+but we also get efficiency out of the box. 
 
-\textbf{Vector notation.}
+\textbf{Contributions.} 
+
+\section{PRELIMINARIES AND RELATED WORK}
+
+\textbf{Notation.}
 % This paper concerns the 
 % Unless otherwise specified, all scalar quantites range over the extended reals $\Rext := \mathbb R \cup \{\infty\}$. 
 For us, a vector is a map from a finite set to the extended reals
@@ -342,7 +279,7 @@ If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}
 % \end{enumerate}
 % }
 
-\textbf{Probabilities.}
+\textit{Probabilities.}
 We write $\Delta S$ to denote the set of probability distributions over a finite set $S$.
 Every variable $X$ can take on a finite set $\V(X)$ of possible values. 
 % If $S$ is a finite set, we write $\Delta S$ for the set of probability distributions over $S$, i.e., the simplex over its elements. 
@@ -358,7 +295,7 @@ Given a joint distribution $\mu$ over many variables including both $X$ and $Y$,
 we write $\mu(X)$ for its marginal distribution on $X$,
 % $\mu(X,Y)$ for the 
 and $\mu(Y|X)$ for the cpd obtained by first conditioning on $X$ and then marginalizing to $Y$. 
-We measure information in a distribution with entropy $\H(\mu) := \Ex_{\mu} [\log \frac1\mu]$ and conditional entropy $\H_\mu(Y|X) := \Ex_\mu[\log\frac1{\mu(Y|X)}]$, where $X$ and $Y$ are variables.
+We measure information in a distribution with entropy $\H(\mu) := \Ex_{\mu} [\log \frac1\mu]$ and conditional entropy $\H_\mu(Y|X) := \Ex_\mu[\log\nicefrac1{\mu(Y|X)}]$, where $X$ and $Y$ are variables.
 % \textbf{Graph Theory.}
 
 % \textbf{Inference for Graphical Models.}
@@ -369,30 +306,34 @@ We measure information in a distribution with entropy $\H(\mu) := \Ex_{\mu} [\lo
 % % \]
 
 
-\textbf{Graphs.}
+% \textbf{Hypergraphs, Tree Decompositions, and Treewidth.}
+\textbf{Hypergraphs and Treewidth.}
 %joe2: what's the INTUITION for a hyperedge?  
 %oli2: I don't get why this is necessary. At this point it's just an analogue of a
 % graph. Would you want me to give intuition for what an edge of a graph means in 
 % general, if it were slightly less standard?  It's useful generally. 
 A hypergraph $G = (V, \Ed)$ is a set $V$ of vertices, and a collection $\Ed$ of \emph{hyperedges}, which correspond to subsets of $V$. 
-An ordinary graph may be regarded as the special case in which every hyperedge contains exactly two vertices.
+% An ordinary graph may be regarded as the special case in which every hyperedge contains two vertices.
+An ordinary graph may be viewed as the special case in which every hyperedge contains  two vertices.
+% An ordinary graph may be viewed as the special case of a hypergraph in which every hyperedge contains exactly two vertices.
 % There is a natural bijection between hyper-graphs and bipartite graphs.
 
 \begin{defn}
     A \emph{directed hypergraph} $G = (N, \mathcal A)$ is a set $N$ of nodes, and a collection $\mathcal A$ of \emph{hyperarcs}; each $a \in \mathcal A$ 
     is associated with a set $\Src a \subset N$ of source nodes, and a set $\Tgt a \subset N$ target nodes. 
 \end{defn}
-A directed graph is just a directed hypergraph where the source and target sets of every hyperarc are singletons. 
+% A directed graph is just a directed hypergraph where the source and target sets of every hyperarc are singletons. 
+A directed graph can be seen a directed hypergraph in which every source and target set is a singleton. 
 %joe2
 %As one might hope, we can form hypergraph from a directed hypergraph
 We can form a hypergraph from a directed hypergraph
-by ``forgetting the direction of the arrow'', and taking the hyperedge
-to be the union of the source and target sets. 
+by taking the union of the source and target sets,
+thereby ``forgetting the direction of the arrow''.
 % There is also a natural bijection between directed hypergraphs and directed bipartite graphs. 
 
 % Given a hyper-graph $(\N, \Ed)$,
 Many problems that are intractable for general graphs
-are tractable when restricted to trees;
+are tractable when restricted to trees.
 some graphs are closer to trees than others. 
 %
 A tree decomposition of a (hyper)graph $G = (V, \Ed)$ is a tree $(\mathcal C, \mathcal T)$ whose vertices $C \in \mathcal C$, called 
@@ -426,31 +367,31 @@ A tree decomposition of a (hyper)graph $G = (V, \Ed)$ is a tree $(\mathcal C, \m
 \end{enumerate}
 
 The \emph{width} of a tree decomposition is one less than the size of its largest cluster,
-and the \emph{treewidth} of a (hyper) graph $G$ is the smallest possible width of any tree-decomposition of $G$.
-It is NP-hard to determine the tree-width of a graph, but fortunately, if the tree-width is known to be at most some constant, a tree-decomposition may be constructed in linear time \parencite{bodlaender1993linear}.
+and the \emph{treewidth} of a (hyper)graph $G$ is the smallest possible width of any tree decomposition of $G$.
+It is NP-hard to determine the tree-width of a graph, but fortunately, if the tree-width is known to be at most some constant, a tree decomposition may be constructed in linear time \parencite{bodlaender1993linear}.
+Many problems are \parencite{courcelle1990}.
+Inference in graphical models is another such example. 
 
 
-
-
-\textbf{Inference In Standard Graphical Models.}
+\textbf{Graphical Models and Inference.}
 % Fo
 % The trick to doing inference quickly is not to ever represent the the full join
-% In the exact form of belief propogation
-% When belief propogation is used 
-% Belief propogation when run on trees, 
-% Message-passing algorithms such belief propogation, when applied trees, run in linear time and are provably correct.
+% In the exact form of belief propagation
+% When belief propagation is used 
+% Belief propagation when run on trees, 
+% Message-passing algorithms such belief propagation, when applied trees, run in linear time and are provably correct.
 % Running these same algorithms on 
-% graphs that are not trees, such as \emph{loopy} belief propogation,
+% graphs that are not trees, such as \emph{loopy} belief propagation,
 % may not converge, and even if it does, may be incorrect, or even inconsistent \parencite{wainwright2008graphical}. 
 %joe2
-%Message-passing algorithms such belief propogation, when applied
+%Message-passing algorithms such belief propagation, when applied
 %oli2: what's wrong with "message-passing algorithms?" I wanted to be more precise. 
-% There are some inference algorithms (such as belief propogation) that,
-% Message-passing algorithms, such as belief propogation, 
+% There are some inference algorithms (such as belief propagation) that,
+% Message-passing algorithms, such as belief propagation, 
 Given a probabilistic model $\cal M$, which represents a joint distribution $\Pr_{\cal M}$, the goal of an inference algorithm 
 is to respond to probabilistic queries
 \eqref{q:inf} with $\Pr_{\cal M}(\mat Y \mid \mat X \!=\! \mat x)$. 
-Many inference algorithms (such as belief propogation), 
+Many inference algorithms (such as belief propagation), 
 %oli2: not just BNs, but graphical models generally
 % when applied to BNs that are trees, run in linear time and are
 % when applied to graphical models whose underlying structure is a tree,
@@ -459,17 +400,17 @@ when applied to tree-shaped graphical models,
 run in linear time and are
 provably correct.  
 %joe2: if it's the same algorithm, why does it have a different name
-%oli2*: because "belief propogation" run on other models that are not trees
+%oli2*: because "belief propagation" run on other models that are not trees
 % is ambiguous. Sometimes, it refers to the process of first constructing a 
 % tree decomposition, and other times it refers to the process of
 %Running these same algorithms on
-%graphs that are not trees, such as \emph{loopy} belief propogation,
+%graphs that are not trees, such as \emph{loopy} belief propagation,
 %oli2: I dislike your rewrite. How can we reference the same algorithm,
 % when we started with "there are some algorithms"?
 % If the same algorithm is run on BNs that are not trees, then it 
 % may not converge, and even if it does, 
 %oli2: a compromise? 
-If the same algorithms are na{\"i}vely applied to graphs with cycles (such as loopy belief propogation), 
+If the same algorithms are na{\"i}vely applied to graphs with cycles (such as loopy belief propagation), 
 then they may not converge, and even if they do, 
 %joe2: what does it man to be inconsistent?
 %oli2: litterally the same thing we mean. It may find a collection of marginals
@@ -479,7 +420,7 @@ then they may not converge, and even if they do,
 % it may not give the correct answer \parencite{wainwright2008graphical}.  
 may give an answer that is incorrect, or even inconsistent \parencite{wainwright2008graphical}. 
 Nearly all exact inference algorithms for graphical models (variable elimination, clique-tree calibration, message-passing with devision, clique tree optimization), 
-implicitly or explicitly, effectively construct a tree-decomposition of the model, and may be viewed as running on a tree \parencite[\S9-11]{koller2009probabilistic}.
+implicitly or explicitly, effectively construct a tree decomposition of the model, and may be viewed as running on a tree \parencite[\S9-11]{koller2009probabilistic}.
 %oli2: added.
 This is essentially necessary, because under widely believed
 hardness assumptions, the only class of graphical models for which inference is \emph{not} NP-hard is those that have bounded treewidth \parencite{chandrasekaran2012complexity}.
@@ -491,7 +432,7 @@ hardness assumptions, the only class of graphical models for which inference is 
 %all possible queries?  How does it do that?  I'm lost.  You need to
 %SLOW DOWN here.
 %oli2: that's the general idea, yes. 
-% For belief propogation in particular, is possible to save time by distilling the answers to all possible queries via a data-structure called a \emph{clique tree}
+% For belief propagation in particular, is possible to save time by distilling the answers to all possible queries via a data-structure called a \emph{clique tree}
 
 For fixed evidence $\mat X \!=\! \mat x$, it is possible, with very little overhead, to distill the answers to all queries about variables $\mat Y$ in a data-structure called a \emph{clique tree}
 % clique tree calibration
@@ -548,7 +489,7 @@ is just an arbirary collection of cpds and causal assertions,
 %talk about them in the AIStats paper?
 %oli2: no, this is a different presentation. I think it's cleaner in this
 % case because I already had to bring up the hyper-graphs to talk about 
-% tree-decompositions intelligently.
+% tree decompositions intelligently.
     is a directed hypergraph  $(\N, \Ar)$, whose nodes correspond to variables, and
     each $a \in \Ar$ is associated with:
     \begin{itemize}[itemsep=0pt]
@@ -673,7 +614,7 @@ The semantics of a PDG $\dg M$ are then given by a family of scoring fuctions
 $\bbr{\dg M}_\gamma: \Delta \V\N \to \Rext$
 % corresponding to the linear combination
 indexed by a trade-off parameter $\gamma \ge 0$ which controls the importance of 
-$\IDef{}$ relative to $\Inc$. 
+$\IDef{}$ relative to $\Inc$:
 %joe2*: First of all, this is not one semantics, but a family of
 %semantics, indexed by \gamma.  Second, you need to give INTUITION for
 %\gamma.  
@@ -735,7 +676,7 @@ $\Inc_{\dg M}$; the latter set can be shown to contain $\bbr{\dg
 %giving a family of inconsistencies, indexed by \gamma.  So, at best,
 %you can talk about the inconsistency relative to \gamma (which you
 %must MOTIVATE). 
-The inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
+The $\gamma$-inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
 \begin{align*}
     \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\N}\, \bbr{\dg M}_\gamma(\mu).
 \end{align*}
@@ -802,11 +743,6 @@ To parallel the notation for scoring functions, when we omit the subscript, we r
 % Most computer scientists are familiar with linear programming (LP), where the constraints are also linear, and likely also the variants in which the contstraints can quadratic (QP) or that a matrix be positive semidefinite (SDP).
 % Exponential cone constraints are less well-known, in part because provably efficient algorithms for exponential conic programs are relatively recent. 
 \textbf{Exponential Conic Programs.}
-
-\TODO[ Chris: Can you take a look at this section? 
-    I suspect you will be able to address Joe's concerns about intuition
-    in a more satisfactory way. ]
-
 % \emph{Exponential-cone constraints} are another class of constraints,
 % which will be of particular interest to this paper.
 %joe2: Yes, the intjuition is critical
@@ -835,8 +771,11 @@ The exponential cone is the convex set
     \subset \mathbb R^3.
 \end{align*}
 It is also sometimes called the relative entropy cone, because
-$(-u, m, p) \in K_{\exp}$ iff $u$ is an upper bound on $m \log \frac m p$, 
-which is very close to the expression for relative entropy.
+if $\mat m, \mat p \in \mathbb R^n$ are points on a probability simplex,
+then $(-\mat u, \mat m, \mat p) \in K_{\exp}^n$ if and only if
+$\mat u$ is an upper bound on $\mat m \log \frac{\mat m}{\mat p}$, 
+% which is very close to the expression for relative entropy.
+the pointwise contribution to relative entropy in each outcome. 
 %
 An \emph{exponential conic program} is an optimization problem of the form
 \[ 
@@ -853,7 +792,7 @@ Disciplined Convex Programming \parencite{dcp-thesis} is a
 % This approach to convex programing allows us to articulate problems compositionally 
 A disciplined convex program can be compiled to a convex optimization problem in standard form \parencite{agrawal2018rewriting}, which can be handled efficiently.
 Of particular relevance for us is the rule for 
-exponential cones: an exponential cone constraint satisfies dcp 
+exponential cones: an exponential cone constraint is dcp 
 %joe2: I'm lost.  What are the "program variables".
 % provided that $x_1, x_2$ and $x_3$ are affine transformations of the program variables. 
 %oli2: maybe this will help
@@ -864,251 +803,9 @@ the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine t
 % The rule for the exponential cone is simple: the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $a$, $b$, and $c$ are affine transformations of the program variables. 
 
 
-\section{INFERENCE VIA INCONSISTENCY MINIMIZATION}
-    \label{sec:inf-via-inc}
-
-We are now equipped to talk more technically about inference in PDGs. 
-% When working with traditional graphical models, the meaning is clear. 
-%k
-Since PDG semantics are already given in terms of a scoring function,
-% the obvious thing to do is to find a distribution that minimizes it. 
-the obvious thing to do is to find a distribution that minimizes it.
-%joe2*: But what does this minimization have to do with the inference
-%problem you defined above?
-%oli2*: if you have a concrete joint distribution, computing marginal probabilities of it is trivial, and conditioning is not much harder. Did my additions help?
-Such a distribution $\mu$ could straightforwardly be used to answer probabilistic queries \eqref{q:inf} and compute inconsistency.  
-% There are several immediate difficulties.
-There are some immediate difficulties with this approach.
-% We immediately run into some obstacles.
-% There are some obstacles to this.
-
-
-\begin{enumerate}[nosep, label=\textbf{D\arabic*.}]
-    \item Even writing down a distribution $\mu$, let alone evaluating its score $\bbr{\dg M}_\gamma (\mu)$, or minimizing it, takes exponential time.
-    
-    \item Generally speaking, optimization is computationally difficult.
-        Even our most powerful optimization techniques only provably find optima in certain special cases.
-    Unfortunately, while standard optimization techniques seem to work in practice
-%joe1: why don't the standard tools apply in our setting?
-%oli1: the next sentence explains it: the standard tools require Lipshitz-ness or
-% self-concordance. How can I write this more clearly, if I don't really want to go into
-% either but still want to mention the names so that people know what doesn't work? 
-%  (actually, the way the optimizer works is by using a self-concordant barrier function,
-%       which is realted, but we can't use self-concordance directly in the obvious way.)
-%
-%      (more-or-less; see \cref{sec:expts}), the standard theoretical
-      (more or less; see \cref{sec:expts}), the standard theoretical
-      tools do not apply in our setting.
-        % and even if it can be 
-%joe2*: What does it even mean for a pdg to be strictly convex?  
-%oli2*: The scoring function is convex, in its argument $\mu$. Is this unclear from the wording? [[M]]_\gamma is the scoring function. 
-%oli2: adding wording to try to abdicate responsibility for motivation
-        % Despite being strictly convex,
-        To be technical: despite being strictly convex,
-        %oli2: removing because I have too many duplicate citations.
-        % \parencite[at least for small $\gamma$,][]{pdg-aaai},
-        and even $C^\infty$ smooth, 
-%joe1: I have no idea what self-concordant means.  Unless you're sure
-%that over 90% of AIStats folks will now, you must define it and
-%explain why it's relevant.  At least I know what the Lipshitz
-%condition is, but it couldn't hurt to explain that too.
-%joe2*: You still need to explain these terms and MOTIVATE why we care
-%about them.
-%oli2: I don't really. I want this to be a passing remark for those who know about self-concordance (which I'd guess is 40% of AISTATS folks) and Lipshitz-ness (I'd guess > 95% of AISTATS), but I really don't wan't to make a big deal of either of these two things. They're not important to me, they're just the standard tools that I don't think work. What do you think I should do?
-        in general $\bbr{\dg M}_\gamma$ seems to be neither Lipshitz nor self-concordant.
-         % convex (in $\mu$, which is exponentially large),
-    \item Even if we coulld easily find optimizers of the function $\bbr{\dg M}_\gamma$ for fixed $\gamma > 0$, it's still not obvious that this would allow us to calculate the unique limiting distribution $\bbr{\dg M}^*$.
-\end{enumerate}
-
-We will ultimately address each of these issues, but before we do so, 
-% let's start with a shift in perspective.
-let's start by trying to do inference as
-suggested in the final section of \textcite{pdg-aaai}, which meshes well with 
-the persepctive taken in \textcite{one-true-loss}. 
-
-%joe2*: As I said, this should already be in the intro
-%oli2*: As I responded below with %oli1, I disagree because it doesn't pan out;
-% it's just an interesting perspective. I think this is the right place for it. 
-The argument there is that one can do modeling as follows:
-    represent all of the relevant information as cpds, 
-    form a PDG out of them, and 
-%joe2*: I'm lost.  What knobs do we have?  This comes out of the blue.
-%oli2: in this case, just $p(Y|X)$, but I was trying to reerence the general approach
-% of my first AISTATS paper, not talk about this in particular. I've done a minor
-% tweak to the wording to try to make this clear.
-    % play with the knobs you have to to minimize the resulting inconsistency.
-    play with whatever knobs are available, so as to minimize the overall inconsistency.
-% Well, we have a PDG $\dg M$, and we also have a candidate joint distribution $\mu$.
-% What if we put them both on the same footing, in a new PDG, and measure its inconsistency?
-%joe1
-%It is not hard to show that the distribution any distribution $\mu$
-%that minimizes this quantity must also satisfy $\mu \in \bbr{\dg
-% It is not hard to show that any distribution 
-% that minimizes this quantity must be in $\bbr{\dg
-  % M}_\gamma^*$. More generally,  
-Well, we have a PDG $\dg M$, and we wanted to know the probablility of $Y$ given $X$. 
-What happens if we extend $\dg M$ with a guess, say $p(Y|X)$, and then
-%oli2: added, to address your concern below
-alter $p$ so as to minimize inconsistency? 
-As hinted in \textcite{pdg-aaai},
-this
-%oli2: modified
-% would indeed perform our inference task,
-would indeed suffice for inference,
-%oli2: also added
-since the optimal value of $p(Y|X)$ would be the cpd we wanted.
- 
-%joe2*: What does this proposition have to  say about the inference
-%task you defined earlier.  A priori, it doesn't look that closely related.
-%oli2: did my additions above help?
-\begin{linked}{prop}{optimalYgivenX}
-	% \label{prop:optimalYgivenX}
-	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
-    For all variables $X,Y$, and $\gamma > 0$, 
-	$$\displaystyle
-		% \argmin_{p : X \to \Delta Y}
-		\argmin_{p(Y|X)}\,
-        \aar{\dg M + p}_\gamma =
-		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
-	,$$
-% \end{linked}
-% 
-% In the limit of small $\gamma$, since there is only one such distribution,
-% the expression beomes simpler.
-% 
-% \begin{linked}{coro}{smallgammaopt}
-%joe1: What's a "quantiative limit"? 
-%oli1: it's the limit as \gamma -> 0; 
-% I defined it when I defined [[M]]^*, and also it's not necessary
-% to remember the worlds, because the symbols are sufficient to get the meaning.
-and in the quantiative limit, 
-	$\displaystyle
-		\bbr{\dg M}^*(Y | X)
-	$ is the unique minimizer of the function
-$
-    p(Y|X) \mapsto \aar{\dg M + p}
-$
-% which  a conditional probability on $Y$ given $X$ into the PDG $\dg M$. 
-%joe1: I have no idea what you're trying to say here.  What does it
-%mean that it "includes a conditional probability on $Y$ given $X$
-%into the PDG"    
-%oli1: good point--- I'm not just adding ("includig") the new probability, but
-% also measuring its inconsistency.
-% which measures the inconsistency of 
-\end{linked}
-
-%joe1*: The claim that we can use inconsistency to compute the
-%marginal probability of somne (small) set of variables is an
-%important part of the story of why inconsistency is important, and
-%should have come *much* earlier (i.e., in the introduction)
-%
-%oli1: If this was what gave the reason we don't discuss it in the introduction
-Consequently, if we are interested only in querying the marginal probability of some small subset $Y$ of variables conditioned on other ones $X$ (i.e., the usual form of a query to a graphical model), and we had an efficient way to estimate the inconsistency of a guess $p(Y|X)$ with the rest of the model, we would have successfully cleared obstacle \textbf{D1}.
-
-% Since inference in other graphical models is already NP-hard, 
-% and the class of PDGs subsumes capture them, it should be no surprise 
-% that inference in PDGs is NP hard as well.
-%
-%
-% One might imagine that \emph{resolving} the inconsistency is the hard part,
-%     as opposed to noticing it. 
-% Might it easier to simply determine whether or not a PDG is inconsistent?
-
-Since inference in other graphical models is already NP-hard, 
-and PDGs subsume them, it should come as no surprise 
-that inference in PDGs is NP hard as well.
-%
-Still, one might imagine that \emph{resolving} the inconsistency is the hard part,
-    as opposed to noticing it. 
-Might it easier to simply determine whether or not a PDG is inconsistent?
-% If this seems reasonable, you might suspect that this reformulation could increase the difficulty of optimization (\textbf{D2})---that we might lose the several nice properties we do have (strict convexity and smoothness)---but this concern turns out not to be substantiated. 
-%
-%joe2: we don't need to try to get into the reader's head
-%oli2: the problem is that it doesn't (clearly) increase the difficulty of the optimization, so "this could increase" is wrong. I only mean to suggest that one might suspect that. 
-If this were the case, one might imagine that the reformulation
-could increase the difficulty of optimization (\textbf{D2}); 
-%joe2: why do we care if we lose them.  We're trying to do inference.
-%This is copletely unnmotivated.
-%oli2: we're trying to find an optimal joint distribution, which is one
-% first pass at inference. Is it better motivated now?
-% might lose the several nice properties we do have (strict convexity
-might we lose the nice properties we do have (strict convexity
-%joe2
-%and smoothness)---but this concern turns out not to be substantiated.  
-% and smoothness).  This turns not to be the case.
-and smoothness)?  It turns out that we don't.
-
-%joe2*: Again, why do we care about this result?  How does it fit into
-%the story.
-%oli2: smoothness and strict convexity means gradient descent with 
-% an infinitely small step size is guaranteed to find the unique optimum distribution. 
-% It fits into the story because functions with these properties are relatively easy to
-% optimize. At the outset, we know inference is hard. We can ask ourselves: is it the
-% difficulty of optimizing the function, or the difficulty of evaluating it? The answer is
-% the latter.  How can I make this come through?
-\begin{linked}{prop}{smooth-and-strictly-cvx}
-	The map $p \mapsto \aar{\dg M \bundle p}_\gamma$ is smooth and
-		strictly convex 
-        %for $\gamma$%
-	% (concretely: all $\gamma$ less than $\min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$
-    when $\gamma < \min \{1\} \cup \{\beta_L\}_{ L \in \Ed}$.
-	% .
-\end{linked}
-
-Operationally, though, we still haven't made much progress, since
-we still don't have an easy way to compute $\aar{ ~\cdot~ }_\gamma$. 
-% In \cref{sec:complexity}, we will see why.
-This is because there isn't one. 
-% For now, 
-
-\begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
-    \begin{enumerate}[nosep,label={\rm{(\alph*)}}]
-    \item Deciding if $\dg M$ is consistent is NP-hard.
-    \item Computing $\aar{\dg M}_\gamma$ is \#P-hard, for all $\gamma > 0$.
-    \end{enumerate}
-\end{linked}
-
-% Since inference in other graphical models is already NP-hard, 
-% and the class of PDGs subsumes capture them, it should be no surprise 
-% that inference in PDGs is NP hard as well.
-
-Instead, let's focus instead on first directly addressing \textbf{D2}, an approach
-%joe2*: More fruitful for what?  How does this relate to inference?
-%I'm missing the story here (because you haven't told it).
-%oli2: more fruitful in that it will yield an inference algorithm. With all of the extra
-%context that I added, is this closer?
-which will ultimately be more fruitful.
- 
-% \begin{linked}{prop}{sementics-via-inconsistency}
-% 	$\displaystyle
-% 		\bbr{\dg M}_\gamma(\mu)
-% 			% =  \aar*{\dg M \bundle \mu!}_\gamma
-%             =\aar[\Big]{\dg M \bundle \overset{(\beta: \infty)}\mu}_{\!\!\gamma}.
-% 			% \qquad\Big(~= \lim_{t \to \infty} \aar[\Big]{\dg M \bundle \overset{(\beta:t)}\mu}_{\!\!\gamma}
-% 			% 	~\Big)
-% 	% \qquad\text{and}\qquad
-% 	% \bbr{\dg M}(\\)
-% 	$
-% \end{linked}
-% 
-% So it seems that generic optimization algorithms will
-% give us a foothold on inference.
-% However, the PDG objective \eqref{eqn:scoring-fn} 
-
-% \begin{prop}
-% \begin
-%     	% \label{prop:optimalYgivenX}
-%     	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
-%     	$\displaystyle
-%     		\argmin_{p : X \to \Delta Y} \aar{\dg M + p}_\gamma =
-%     		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
-%     	$.
-% \end{prop}
-
-%joe1
-%\section{REDUCTIONS TO CONVEX PROGRAMS WITH EXPONENTIAL CONE CONSTRAINTS}
 % \section{REDUCING TO CONVEX PROGRAMS WITH EXPONENTIAL-CONE CONSTRAINTS}
-\section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
+% \section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
+\section{PDG INFERENCE AS A CONVEX PROGRAM}
 
     \label{sec:reductions}
 %joe1
@@ -1194,11 +891,15 @@ and observe that:
 %joe2: hyou still haven't defined \otimes.  I'd be happy if you could
 %get rid of it altogether.
     &(- \mat U,~ \mat m \otimes \mat 1,~ \mat P) \in K_{\exp}^{n \times k} \\
-    &\iff \forall  i,j \in [n]\!\times\![k].~~ 
+    % &\iff \forall  i,j \in [n]\!\times\![k].~~ 
+    &\iff \forall  i,j.~~ 
         (- u_{ij}, m_{i}, p_{ij}) \in K_{\exp} \\
-    &\iff \forall  i,j \in [n]\!\times\![k].~~ 
+    % &\iff \forall  i,j \in [n]\!\times\![k].~~ 
+    &\iff \forall  i,j.~~ 
             u_{ij} \ge m_i \log \frac{m_i}{p_{ij}} \\
-    &\implies \forall j \in [n].~~  {\textstyle\sum_i} u_{ij}  \ge \kldiv{\mu}{p_j} \\
+    % &\implies \forall j \in [n].~~
+    &\implies \forall j.~~
+        {\textstyle\sum_i} u_{ij}  \ge \kldiv{\mu}{p_j} \\
     &\implies \sum_{i,j} \beta_j u_{ij}  \ge \beta_j \kldiv{\mu}{p_j} \\
     &\iff \mat 1^{\sf T} \mat U \bbeta \ge \Inc(\mu)
     .
@@ -1353,8 +1054,6 @@ First, a characterization of the set $\bbr{\dg M}^*_0$ of distributions that are
 As a result, having already found one minimizer of $\Inc_{\dg M}$ via \eqref{prob:joint-inc}, it suffices to constrain distributions that have the same conditional marginals along the edges, and now optimize $\IDef{}$.%
     \footnote{
         Technically, to deal with the possibility that variables we
-%joe2
-%        are conditioning on might have probability zero,
         are conditioning on have probability zero,  
         we require that $\mu(X,Y)\nu(X) = \mu(X) \nu(X,Y)$, rather than 
         $\mu(Y|X) = \nu(Y|X)$.
@@ -1451,7 +1150,8 @@ and $\mat 1^{\sf T} \mat u = \IDef{\dg M}(\mu)$.
 % \section{TREE DECOMPOSITION IN PDGS}
 % \section{TREE DECOMPOSITION IN PDGS}
 % \section{USING A TREE DECOMPOSITION}
-\section{EXPONENTIAL CONIC PROGRAMS OVER A TREE DECOMPOSITION }
+% \section{EXPONENTIAL CONIC PROGRAMS OVER A TREE DECOMPOSITION }
+\section{POLYNOMIAL-TIME INFERENCE UNDER BOUNDED TREE WIDTH}
 % \subsection{A Less Expensive Representation for PDGs with Small Tree-Width}
     \label{sec:clique-tree-expcone}
 
@@ -1500,7 +1200,7 @@ consider only distributions $\mu$ that come from clique trees.
 
 Suppose that we are given a tree decomposition $(\mathcal C, \mathcal T)$
 of $\dg M$'s underlying hypergraph $\Ar$. 
-Since $(\cal C, T)$ is a tree-decomposition of $\Ar$, we are guaranteed
+Since $(\cal C, T)$ is a tree decomposition of $\Ar$, we are guaranteed
 that the source and target of every arc $a$ lie entirely within at least one cluster.
 Fix a mapping from arcs to clusters, and let $C_a \in \cal C$ be the cluster that corresponds to the edge $a$.
 
@@ -1549,7 +1249,7 @@ for PDGs in the quantitative limit.
     $\bmu$ is a calibrated clique tree, whose coresponding joint distribution 
     is in $\bbr{\dg M}^*_0$.
 \end{prop}
-% Since $(\cal C, T)$ is a tree-decomposition of $\Ed$, we are guaranteed
+% Since $(\cal C, T)$ is a tree decomposition of $\Ed$, we are guaranteed
 % that the source and target of every edge $L$ lie entirely within at least one cluster.
 % Fix a mapping of edges to clusters, and let $C_L \in \cal C$ be the cluster that corresponds to the edge $L$.
 
@@ -1614,7 +1314,7 @@ Note that the denominator $\mu_C(\Pash_C)$ is an affine transformation of $\mu_C
 The upshot is that we have written the joint entropy in a way that 
 splits as a sum of terms over the clusters, each of which can be captured as a dcp exponential cone constraint. 
 
-Suppose that $\boldsymbol\nu = \{\nu_C : C \in \mathcal C\}$ is a calibrated clique tree over the tree-decomposition $(\mathcal C, \mathcal T)$ representing a distribution $\Pr_{\boldsymbol\nu} \in \bbr{\dg M}^*_0$, say obtained by solving \eqref{prob:cluster-inc}. 
+Suppose that $\boldsymbol\nu = \{\nu_C : C \in \mathcal C\}$ is a calibrated clique tree over the tree decomposition $(\mathcal C, \mathcal T)$ representing a distribution $\Pr_{\boldsymbol\nu} \in \bbr{\dg M}^*_0$, say obtained by solving \eqref{prob:cluster-inc}. 
  % representing
 %
 For $C \in \mathcal C$, let $\Ar_C:= \{ a \in \Ar : C_a = C\}$ be the set of 
@@ -1660,7 +1360,6 @@ polynomial number of variables and constraints and with an objective that is als
 All that remains to achieve polynomial-time inference is to show that a problem of this form can be solved in polynomial time. For this, we turn to interior point methods, which are known \parencite{badenbroek2021algorithm} to converge in polynomial time.
 Specifically, \eqref{prob:cluster+idef} can be transformed via established methods \parencite{agrawal2018rewriting} into a standard form called an \emph{exponential conic program} which itself can be solved in polynomial time by commercial solvers \parencite{mosek}. 
 
-\TODO[TODO: refactor the main theorem. I don't know how to get rid of the ``residual norm'' part.]
 
 \begin{linked}{theorem}{main}
     % For   O( 3 n * ((3n+m+1)^3 ) * log(√n / ϵ) )  =   O( n^4 log(n)  log(1 / ϵ) )
@@ -1741,8 +1440,9 @@ Once we sort the terms into convex terms $f(\mu)$ and concave terms $g(\mu)$, we
 
 As we will see in \cref{sec:expts}, the aproach presented here section is 
 not very fast, but it is guaranteed to make progress, since
+\def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
 \begin{align*}
-    f(\mu_{t+1}) + g(\mu_{t+1}) &\le  f(\mu_{t+1}) + (\mu_{t+1}-\mu_t)^{\sf T} \nabla g(\mu_t) + g(\mu_t)
+    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &\le  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
         % &\text{(concavity of $g$)}
         \\
     &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)
@@ -1763,6 +1463,7 @@ tricky part (rewriting the joint entropy term as a disciplined convex program) i
 and so we defer the details to the appendix.
     
 \section{OTHER APPROACHES TO PDG INFERENCE} \label{sec:other-inference}
+% \section{EXTENSIONS}
 
 \subsection{}
 A stronger result than \cref{prop:markov-property} holds as well.
@@ -1788,8 +1489,8 @@ How do we square this with the \citeauthor{pdg-aaai}'s claim that PDGs are more 
 \subsection{Approximate Inference}
 % \subsubsection{Relaxing the Marginal Polytope}
 \textbf{Relaxing the marginal polytope.}
-Just as it is possible to do belief propogation on cluster graphs that are not trees (e.g., loopy belief propogation)
-so too is it possible to drop the requirement that the cluster that we use is indeed a tree-decomposition.
+Just as it is possible to do belief propagation on cluster graphs that are not trees (e.g., loopy belief propagation)
+so too is it possible to drop the requirement that the cluster that we use is indeed a tree decomposition.
 This program is smaller, and will converge, but it will only be an approximate solution. 
 Like the original PDG itself, it might be inconsistent. 
 
@@ -1843,7 +1544,7 @@ Like the original PDG itself, it might be inconsistent.
     \caption{An illustration of the trade-off between $\Inc$ and $\IDef{}$. Darker collors correspond to larger $\gamma$.}\label{fig:inc-idef}
 \end{figure}
 
-\subsection{Comparison To Belief Propogation}
+\subsection{Comparison To Belief propagation}
 
 Since PDGs generalize other graphical models, one might wonder how our method stacks up against them. 
 We benchmarked against the small networks, and some of the medium-sized ones, from the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository. 
@@ -2221,6 +1922,217 @@ As a consequence,
 	$$
 	as desired. We have now reduced \#SAT to computing $\aar{\dg M}_\gamma$, for $\gamma \in \mathbb R^{>0}$ and an arbitrary PDG $\dg M$, which is therefore \#P-hard.
 \end{lproof}
+
+
+
+\section{INFERENCE VIA INCONSISTENCY MINIMIZATION}
+    \label{sec:inf-via-inc}
+
+We are now equipped to talk more technically about inference in PDGs. 
+% When working with traditional graphical models, the meaning is clear. 
+%k
+Since PDG semantics are already given in terms of a scoring function,
+% the obvious thing to do is to find a distribution that minimizes it. 
+the obvious thing to do is to find a distribution that minimizes it.
+%joe2*: But what does this minimization have to do with the inference
+%problem you defined above?
+%oli2*: if you have a concrete joint distribution, computing marginal probabilities of it is trivial, and conditioning is not much harder. Did my additions help?
+Such a distribution $\mu$ could straightforwardly be used to answer probabilistic queries \eqref{q:inf} and compute inconsistency.  
+% There are several immediate difficulties.
+There are some immediate difficulties with this approach.
+% We immediately run into some obstacles.
+% There are some obstacles to this.
+
+
+\begin{enumerate}[nosep, label=\textbf{D\arabic*.}]
+    \item Even writing down a distribution $\mu$, let alone evaluating its score $\bbr{\dg M}_\gamma (\mu)$, or minimizing it, takes exponential time.
+    
+    \item Generally speaking, optimization is computationally difficult.
+        Even our most powerful optimization techniques only provably find optima in certain special cases.
+    Unfortunately, while standard optimization techniques seem to work in practice
+%joe1: why don't the standard tools apply in our setting?
+%oli1: the next sentence explains it: the standard tools require Lipshitz-ness or
+% self-concordance. How can I write this more clearly, if I don't really want to go into
+% either but still want to mention the names so that people know what doesn't work? 
+%  (actually, the way the optimizer works is by using a self-concordant barrier function,
+%       which is realted, but we can't use self-concordance directly in the obvious way.)
+%
+%      (more-or-less; see \cref{sec:expts}), the standard theoretical
+      (more or less; see \cref{sec:expts}), the standard theoretical
+      tools do not apply in our setting.
+        % and even if it can be 
+%joe2*: What does it even mean for a pdg to be strictly convex?  
+%oli2*: The scoring function is convex, in its argument $\mu$. Is this unclear from the wording? [[M]]_\gamma is the scoring function. 
+%oli2: adding wording to try to abdicate responsibility for motivation
+        % Despite being strictly convex,
+        To be technical: despite being strictly convex,
+        %oli2: removing because I have too many duplicate citations.
+        % \parencite[at least for small $\gamma$,][]{pdg-aaai},
+        and even $C^\infty$ smooth, 
+%joe1: I have no idea what self-concordant means.  Unless you're sure
+%that over 90% of AIStats folks will now, you must define it and
+%explain why it's relevant.  At least I know what the Lipshitz
+%condition is, but it couldn't hurt to explain that too.
+%joe2*: You still need to explain these terms and MOTIVATE why we care
+%about them.
+%oli2: I don't really. I want this to be a passing remark for those who know about self-concordance (which I'd guess is 40% of AISTATS folks) and Lipshitz-ness (I'd guess > 95% of AISTATS), but I really don't wan't to make a big deal of either of these two things. They're not important to me, they're just the standard tools that I don't think work. What do you think I should do?
+        in general $\bbr{\dg M}_\gamma$ seems to be neither Lipshitz nor self-concordant.
+         % convex (in $\mu$, which is exponentially large),
+    \item Even if we coulld easily find optimizers of the function $\bbr{\dg M}_\gamma$ for fixed $\gamma > 0$, it's still not obvious that this would allow us to calculate the unique limiting distribution $\bbr{\dg M}^*$.
+\end{enumerate}
+
+We will ultimately address each of these issues, but before we do so, 
+% let's start with a shift in perspective.
+let's start by trying to do inference as
+suggested in the final section of \textcite{pdg-aaai}, which meshes well with 
+the persepctive taken in \textcite{one-true-loss}. 
+
+%joe2*: As I said, this should already be in the intro
+%oli2*: As I responded below with %oli1, I disagree because it doesn't pan out;
+% it's just an interesting perspective. I think this is the right place for it. 
+The argument there is that one can do modeling as follows:
+    represent all of the relevant information as cpds, 
+    form a PDG out of them, and 
+%joe2*: I'm lost.  What knobs do we have?  This comes out of the blue.
+%oli2: in this case, just $p(Y|X)$, but I was trying to reerence the general approach
+% of my first AISTATS paper, not talk about this in particular. I've done a minor
+% tweak to the wording to try to make this clear.
+    % play with the knobs you have to to minimize the resulting inconsistency.
+    play with whatever knobs are available, so as to minimize the overall inconsistency.
+% Well, we have a PDG $\dg M$, and we also have a candidate joint distribution $\mu$.
+% What if we put them both on the same footing, in a new PDG, and measure its inconsistency?
+%joe1
+%It is not hard to show that the distribution any distribution $\mu$
+%that minimizes this quantity must also satisfy $\mu \in \bbr{\dg
+% It is not hard to show that any distribution 
+% that minimizes this quantity must be in $\bbr{\dg
+  % M}_\gamma^*$. More generally,  
+Well, we have a PDG $\dg M$, and we wanted to know the probablility of $Y$ given $X$. 
+What happens if we extend $\dg M$ with a guess, say $p(Y|X)$, and then
+%oli2: added, to address your concern below
+alter $p$ so as to minimize inconsistency? 
+As hinted in \textcite{pdg-aaai},
+this
+%oli2: modified
+% would indeed perform our inference task,
+would indeed suffice for inference,
+%oli2: also added
+since the optimal value of $p(Y|X)$ would be the cpd we wanted.
+ 
+%joe2*: What does this proposition have to  say about the inference
+%task you defined earlier.  A priori, it doesn't look that closely related.
+%oli2: did my additions above help?
+\begin{linked}{prop}{optimalYgivenX}
+	% \label{prop:optimalYgivenX}
+	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
+    For all variables $X,Y$, and $\gamma > 0$, 
+	$$\displaystyle
+		% \argmin_{p : X \to \Delta Y}
+		\argmin_{p(Y|X)}\,
+        \aar{\dg M + p}_\gamma =
+		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
+	,$$
+% \end{linked}
+% 
+% In the limit of small $\gamma$, since there is only one such distribution,
+% the expression beomes simpler.
+% 
+% \begin{linked}{coro}{smallgammaopt}
+%joe1: What's a "quantiative limit"? 
+%oli1: it's the limit as \gamma -> 0; 
+% I defined it when I defined [[M]]^*, and also it's not necessary
+% to remember the worlds, because the symbols are sufficient to get the meaning.
+and in the quantiative limit, 
+	$\displaystyle
+		\bbr{\dg M}^*(Y | X)
+	$ is the unique minimizer of the function
+$
+    p(Y|X) \mapsto \aar{\dg M + p}
+$
+% which  a conditional probability on $Y$ given $X$ into the PDG $\dg M$. 
+%joe1: I have no idea what you're trying to say here.  What does it
+%mean that it "includes a conditional probability on $Y$ given $X$
+%into the PDG"    
+%oli1: good point--- I'm not just adding ("includig") the new probability, but
+% also measuring its inconsistency.
+% which measures the inconsistency of 
+\end{linked}
+
+%joe1*: The claim that we can use inconsistency to compute the
+%marginal probability of somne (small) set of variables is an
+%important part of the story of why inconsistency is important, and
+%should have come *much* earlier (i.e., in the introduction)
+%
+%oli1: If this was what gave the reason we don't discuss it in the introduction
+Consequently, if we are interested only in querying the marginal probability of some small subset $Y$ of variables conditioned on other ones $X$ (i.e., the usual form of a query to a graphical model), and we had an efficient way to estimate the inconsistency of a guess $p(Y|X)$ with the rest of the model, we would have successfully cleared obstacle \textbf{D1}.
+
+% Since inference in other graphical models is already NP-hard, 
+% and the class of PDGs subsumes capture them, it should be no surprise 
+% that inference in PDGs is NP hard as well.
+%
+%
+% One might imagine that \emph{resolving} the inconsistency is the hard part,
+%     as opposed to noticing it. 
+% Might it easier to simply determine whether or not a PDG is inconsistent?
+
+Since inference in other graphical models is already NP-hard, 
+and PDGs subsume them, it should come as no surprise 
+that inference in PDGs is NP hard as well.
+%
+Still, one might imagine that \emph{resolving} the inconsistency is the hard part,
+    as opposed to noticing it. 
+Might it easier to simply determine whether or not a PDG is inconsistent?
+% If this seems reasonable, you might suspect that this reformulation could increase the difficulty of optimization (\textbf{D2})---that we might lose the several nice properties we do have (strict convexity and smoothness)---but this concern turns out not to be substantiated. 
+%
+%joe2: we don't need to try to get into the reader's head
+%oli2: the problem is that it doesn't (clearly) increase the difficulty of the optimization, so "this could increase" is wrong. I only mean to suggest that one might suspect that. 
+If this were the case, one might imagine that the reformulation
+could increase the difficulty of optimization (\textbf{D2}); 
+%joe2: why do we care if we lose them.  We're trying to do inference.
+%This is copletely unnmotivated.
+%oli2: we're trying to find an optimal joint distribution, which is one
+% first pass at inference. Is it better motivated now?
+% might lose the several nice properties we do have (strict convexity
+might we lose the nice properties we do have (strict convexity
+%joe2
+%and smoothness)---but this concern turns out not to be substantiated.  
+% and smoothness).  This turns not to be the case.
+and smoothness)?  It turns out that we don't.
+
+%joe2*: Again, why do we care about this result?  How does it fit into
+%the story.
+%oli2: smoothness and strict convexity means gradient descent with 
+% an infinitely small step size is guaranteed to find the unique optimum distribution. 
+% It fits into the story because functions with these properties are relatively easy to
+% optimize. At the outset, we know inference is hard. We can ask ourselves: is it the
+% difficulty of optimizing the function, or the difficulty of evaluating it? The answer is
+% the latter.  How can I make this come through?
+\begin{linked}{prop}{smooth-and-strictly-cvx}
+	The map $p \mapsto \aar{\dg M \bundle p}_\gamma$ is smooth and
+		strictly convex 
+        %for $\gamma$%
+	% (concretely: all $\gamma$ less than $\min (\{1\}\cup\{ \beta^{\dg M}_L : L \in \Ed^{\dg M}\})$
+    when $\gamma < \min \{1\} \cup \{\beta_L\}_{ L \in \Ed}$.
+	% .
+\end{linked}
+
+Operationally, though, we still haven't made much progress, since
+we still don't have an easy way to compute $\aar{ ~\cdot~ }_\gamma$. 
+% In \cref{sec:complexity}, we will see why.
+This is because there isn't one. 
+% For now, 
+
+\begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
+    \begin{enumerate}[nosep,label={\rm{(\alph*)}}]
+    \item Deciding if $\dg M$ is consistent is NP-hard.
+    \item Computing $\aar{\dg M}_\gamma$ is \#P-hard, for all $\gamma > 0$.
+    \end{enumerate}
+\end{linked}
+
+% Since inference in other graphical models is already NP-hard, 
+% and the class of PDGs subsumes capture them, it should be no surprise 
+% that inference in PDGs is NP hard as well.
+
 
 
 \section{}

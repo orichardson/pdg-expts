@@ -83,6 +83,38 @@ var_names = iter(itt.chain(
 	("X%d_"%v for v in itt.count()) ))
 verb = args.verbose
 
+def find_cliques_size_k(G, k):
+	""" based on https://stackoverflow.com/a/58782120/13480314 """
+	for clique in nx.find_cliques(G):
+		if len(clique) == k:
+			yield clique
+		elif len(clique) > k:
+			yield from itt.combinations(clique,k)
+
+# def random_cliques_size_k(G,k):
+
+
+
+def generate_k_tree(k, n):
+	G = nx.complete_graph(k)
+	ctree = nx.Graph()
+	ctree.add_node(tuple(G.nodes()))
+
+	while len(G.nodes()) < n:
+		kcq = random.sample( list(find_cliques_size_k(G,k)))
+		
+		newnode = len(G.nodes())
+		newcluster = kcq + (newnode, )
+
+		G.add_node(newnode)
+		ctree.add_node(newcluster)
+
+		G.add_edges_from( (n, newnode) for n in kcq )
+		ctree.add_edges_from((C, newcluster) for C in ctree.nodes() if len(set(C) & set(newcluster)) == k)
+
+	ctree_tree = nx.minimum_spanning_tree(ctree)
+	return G, ctree_tree
+
 try:
 	for i in range(args.num_pdgs):
 		if expt.finish_now:

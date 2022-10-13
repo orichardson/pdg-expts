@@ -13,10 +13,12 @@ import seaborn as sns
 
 # fname = 'tmp-aggregated.json'
 fnames = [
+	('random-pdg-data-aggregated-5.json', 'rand5'),
 	# ('random-pdg-data-aggregated-4.json', 'rand4'),
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
-	('datapts-all.json', 'bns0'),  #BNs
+	# ('datapts-all.json', 'bns0'),  #BNs
+	# ('bn-data-aggregated-2.json', 'bns2')
 	# ('random-expts-1.csv', 'rand1')
 ]
 
