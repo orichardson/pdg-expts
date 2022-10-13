@@ -49,7 +49,7 @@ DataPt = namedtuple('DataPt',
 
 def run_expt_log_datapt_worker( DATA_DIR,
 			input_name, job_number, input_stats, rslt_connection,
-			fn,	args, kwargs, output_processor=None
+			fn,	args, kwargs, output_processor=None, IGNORED=set()
 		) -> DataPt:
 	""" this is the worker method.
 	"""
@@ -88,7 +88,7 @@ def run_expt_log_datapt_worker( DATA_DIR,
 			method=fn.__name__,
 			input_stats = input_stats,
 			input_name = input_name,
-			parameters=(tuple(a for a in args if not isinstance(a, PDG)), kwargs),
+			parameters=(tuple(a for a in args if not isinstance(a, PDG)), {k:v for k,v in kwargs.items() if k not in IGNORED}),
 			gamma=kwargs['gamma'] if 'gamma' in kwargs else 0,
 			# inc=M.Inc(rslt).real,
 			# idef = M.IEef(rslt),
@@ -200,10 +200,12 @@ def mem_track( proc_id_recvr, response_line ):
 # Infrastructure = namedtuple("Infrastructure", ['enqueue'])
 
 class MultiExptInfrastructure: 
-	def __init__(self, datadir='datapts', n_threads=None):
+	def __init__(self, datadir='datapts', n_threads=None, kw_params_to_ignore=set()):
 		self.datadir = datadir 
 		if not os.path.exists(datadir):
 			os.makedirs(datadir)
+
+		self.kwparams2ignore = kw_params_to_ignore
 
 		memtrack_recvr, main_sender = multiproc.Pipe(False)
 		main_recvr, memtrack_sender = multiproc.Pipe(False)
@@ -295,7 +297,8 @@ class MultiExptInfrastructure:
 				args=(self.datadir, input_name, self.jobnum, input_stats), kwargs=dict(
 					rslt_connection = rslt_sender,
 					fn=fn, args=args, kwargs=kwargs,
-					output_processor=output_processor
+					output_processor=output_processor,
+					IGNORE=self.kwparams2ignore
 			))
 		
 			

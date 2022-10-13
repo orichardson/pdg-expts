@@ -65,7 +65,8 @@ from expt_utils import MultiExptInfrastructure
 
 
 global expt
-expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores)
+expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores, 
+	kw_params_to_ignore=['varname_clusters', 'cluster_edges'])
 
 def terminate_signal(signalnum, *args):
 	global expt
