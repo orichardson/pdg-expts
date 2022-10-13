@@ -214,6 +214,7 @@ except (KeyboardInterrupt, InterruptedError) as e:
 
 except Exception as e:
 	print("Uh-oh...", e)
+	raise
 
 finally:
 	with open(args.datadir+"/RESULTS.json", 'w') as f:
