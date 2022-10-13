@@ -208,7 +208,7 @@ except (KeyboardInterrupt, InterruptedError) as e:
 	print("Interrupted! Dumping results ... ")
 
 finally:
-	with open(args.data_dir+"/RESULTS.json", 'w') as f:
+	with open(args.datadir+"/RESULTS.json", 'w') as f:
 		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)
 	
 	print('... finished writing to "RESULTS.json! ')
