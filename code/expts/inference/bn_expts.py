@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
 	expt.done()
 
-	with open("RESULTS.json", 'w') as f:
+	with open(args.data_dir+"RESULTS.json", 'w') as f:
 		json.dump(expt.results, f)
 
 

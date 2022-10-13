@@ -1,7 +1,7 @@
 import argparse
 parser = argparse.ArgumentParser(description="collect experimental data from Bayesian Networks")
 parser.add_argument("--data-dir", dest='datadir', type=str, 
-	default='random-pdg-data',
+	default='random-pdg-tw-data',
 	help="the name of directory to store points in")
 
 parser.add_argument("-N", "--num-pdgs", default=1000, type=int,
@@ -91,7 +91,7 @@ def find_cliques_size_k(G, k):
 		elif len(clique) > k:
 			yield from itt.combinations(clique,k)
 
-def generate_k_tree(k, n):
+def random_k_tree(k, n):
 	if n <= k+1:
 		G = nx.complete_graph(n)
 		ctree = nx.Graph(); ctree.add_node(tuple(G.nodes()))
@@ -133,7 +133,7 @@ try:
 		# 	])
 		# ctree = nx.random_tree(args.num_clusters)
 
-		g, ctree = generate_k_tree(args.num_vars, args.tw)
+		g, ctree = random_k_tree(args.num_vars, random.randint(*args.tw))
 		
 		for v, vn in zip(range(args.num_vars), var_names):
 			pdg += Var.alph(vn, random.randint(*args.num_vals))
@@ -205,7 +205,7 @@ except (KeyboardInterrupt, InterruptedError) as e:
 	print("Interrupted! Dumping results ... ")
 
 finally:
-	with open("RESULTS.json", 'w') as f:
+	with open(args.data_dir+"/RESULTS.json", 'w') as f:
 		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)
 	
 	print('... finished writing to "RESULTS.json! ')
