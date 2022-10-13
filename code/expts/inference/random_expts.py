@@ -158,6 +158,9 @@ try:
 except (KeyboardInterrupt, InterruptedError) as e:
 	print("Interrupted! Dumping results ... ")
 
+except Exception as e:
+	print("Uh-oh...", e)
+
 finally:
 	with open(args.datadir+"/RESULTS.json", 'w') as f:
 		json.dump([r._asdict() for r in expt.results.values() if r is not None ], f)

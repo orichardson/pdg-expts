@@ -135,17 +135,14 @@ try:
 
 		n = random.randint(*args.num_vars)
 		k = random.randint(*args.tw)
-		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
+		m = random.randint(*args.edge_range)
 
 		g, ctree = random_k_tree(n,k)
 
 		for _, vn in zip(range(n), var_names):
 			pdg += Var.alph(vn, random.randint(*args.num_vals))
 
-		successful_edges = 0
-		print(args, 'num_edges' in args, num_edges)
-
-		while len(pdg.edgedata) < num_edges:
+		while len(pdg.edgedata) < m:
 			# c1,c2 = random.choice(list(ctree.edges()))
 			c1 = random.choice(list(ctree.nodes()))
 			c2 = random.choice(list(ctree[c1]))
@@ -206,6 +203,9 @@ try:
 	expt.done()
 except (KeyboardInterrupt, InterruptedError) as e:
 	print("Interrupted! Dumping results ... ")
+
+except Exception as e:
+	print("Uh-oh...", e)
 
 finally:
 	with open(args.datadir+"/RESULTS.json", 'w') as f:
