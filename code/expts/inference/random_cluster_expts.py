@@ -167,7 +167,7 @@ try:
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
 
 		nx.relabel_nodes(ctree, {C:tuple(pdg.varlist[i].name for i in C) for C in ctree.nodes()}, copy=False)
-		print(ctree)
+		print("CTREE NODES", ctree.nodes())
 
 		with open(args.datadir+"/%d.pdg" % i, 'wb') as fh:
 			pickle.dump(pdg, fh)
