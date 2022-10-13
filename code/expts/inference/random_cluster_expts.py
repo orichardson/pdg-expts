@@ -12,7 +12,7 @@ parser.add_argument("-e", "--edge-range", nargs=2, default=[8,15], type=int,
 	help="number of pdg edges to generate (upper & lower).")
 parser.add_argument("-n", "--num-vars", nargs=2, default=[8,30], type=int,
 	help="number of variables per cluster.")
-parser.add_argument("-W", "--tw", default=[1], type=int, nargs=2,
+parser.add_argument("-W", "--tw", default=[1,2], type=int, nargs=2,
 	help="treewidth.")
 parser.add_argument("-v", "--num-vals", nargs=2, type=int,
 	default=[2,2],
@@ -91,7 +91,7 @@ def find_cliques_size_k(G, k):
 		elif len(clique) > k:
 			yield from itt.combinations(clique,k)
 
-def random_k_tree(k, n):
+def random_k_tree(n, k):
 	if n <= k+1:
 		G = nx.complete_graph(n)
 		ctree = nx.Graph(); ctree.add_node(tuple(G.nodes()))
@@ -133,12 +133,15 @@ try:
 		# 	])
 		# ctree = nx.random_tree(args.num_clusters)
 
-		g, ctree = random_k_tree(args.num_vars, random.randint(*args.tw))
-		
-		for v, vn in zip(range(args.num_vars), var_names):
+		n = random.randint(*args.num_vars)
+		k = random.randint(*args.tw)
+		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
+
+		g, ctree = random_k_tree(n,k)
+
+		for _, vn in zip(range(n), var_names):
 			pdg += Var.alph(vn, random.randint(*args.num_vals))
 
-		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
 		successful_edges = 0
 		print(args, 'num_edges' in args, num_edges)
 

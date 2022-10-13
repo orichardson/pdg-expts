@@ -76,7 +76,11 @@ signal.signal(signal.SIGTERM, terminate_signal)
 
 
 
-var_names = [ chr(i + ord('A')) for i in range(26) ] + [ "X%d_"%v for v in range(*args.num_vars)]
+import itertools as itt
+var_names = iter(itt.chain(
+	(chr(i + ord('A')) for i in range(26)) ,
+	("X%d_"%v for v in itt.count()) ))
+
 verb = args.verbose
 
 niters = {
@@ -93,8 +97,9 @@ try:
 			break
 
 		pdg = PDG()
-		for v in range(*args.num_vars):
-			pdg += Var.alph(var_names[v], random.randint(*args.num_vals))
+		n = random.randint(*args.num_vars)
+		for _ in range(n):
+			pdg += Var.alph(next(var_names), random.randint(*args.num_vals))
 
 		num_edges = args.num_edges if args.num_edges else random.randint(*args.edge_range)
 		print(args, 'num_edges' in args, num_edges)
