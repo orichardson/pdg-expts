@@ -121,6 +121,11 @@ def random_k_tree(n, k):
 	return G, ctree_tree
 
 
+def pprocessor(M):
+	def process_pseudomarginals(cpm):
+		assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
+		return (cpm.inc, cpm.idef)
+
 try:
 	for i in range(args.num_pdgs):
 		if expt.finish_now:
@@ -189,15 +194,16 @@ try:
 		# expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
 		ctree_args = dict(varname_clusters=ctree.nodes(), cluster_edges=ctree.edges())
 
-		expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args)
-		expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args)
+		expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args, output_processor=pprocessor(pdg))
+		expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args, output_processor=pprocessor(pdg))
 		#,verbose=verb
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
 		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 								ip.cccp_opt_clusters, pdg, 
-								gamma=gamma, **ctree_args) #, verbose=verb
+								gamma=gamma, **ctree_args, 
+								output_processor=pprocessor(pdg)) #, verbose=verb
 			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
