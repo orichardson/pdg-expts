@@ -125,7 +125,10 @@ def pprocessor(M):
 	def process_pseudomarginals(cpm):
 		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
 		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
-		return (cpm.inc, cpm.idef)
+		# if 'inc' in cpm._asdict():
+		# 	return (cpm.inc, cpm.idef)
+		# else:
+			return M.Inc(cpm.cluster_dist), float('inf')
 	return process_pseudomarginals
 
 try:
