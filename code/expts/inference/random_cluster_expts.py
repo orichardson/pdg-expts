@@ -78,9 +78,13 @@ signal.signal(signal.SIGTERM, terminate_signal)
 
 import itertools as itt
 
-var_names = iter(itt.chain(
-	(chr(i + ord('A')) for i in range(26)) ,
-	("X%d_"%v for v in itt.count()) ))
+def reset():
+	global var_names
+	var_names = iter(itt.chain(
+		(chr(i + ord('A')) for i in range(26)) ,
+		("X%d_"%v for v in itt.count()) ))
+	
+reset()
 verb = args.verbose
 
 def find_cliques_size_k(G, k):
@@ -123,6 +127,8 @@ try:
 			print("Exiting!")
 			break
 
+		reset(); global var_names
+
 		pdg = PDG()
 
 		clusters = []
@@ -160,7 +166,8 @@ try:
 			print(f"{Var.product(src).name:>20} --> {Var.product(tgt).name:<20}")
 			pdg += CPT.make_random( Var.product(src), Var.product(tgt))
 
-		nx.relabel_nodes(ctree, {i:v.name for i,v in enumerate(pdg.varlist)}, copy=False)
+		nx.relabel_nodes(ctree, {C:tuple(pdg.varlist[i].name for i in C) for C in ctree.nodes()}, copy=False)
+		print(ctree)
 
 		with open(args.datadir+"/%d.pdg" % i, 'wb') as fh:
 			pickle.dump(pdg, fh)

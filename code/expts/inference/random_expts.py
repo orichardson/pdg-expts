@@ -77,9 +77,13 @@ signal.signal(signal.SIGTERM, terminate_signal)
 
 
 import itertools as itt
-var_names = iter(itt.chain(
-	(chr(i + ord('A')) for i in range(26)) ,
-	("X%d_"%v for v in itt.count()) ))
+def reset():
+	global var_names
+	var_names = iter(itt.chain(
+		(chr(i + ord('A')) for i in range(26)) ,
+		("X%d_"%v for v in itt.count()) ))
+	
+reset()
 
 verb = args.verbose
 
@@ -95,6 +99,9 @@ try:
 		if expt.finish_now:
 			print("Exiting!")
 			break
+
+		reset(); global var_names
+
 
 		pdg = PDG()
 		n = random.randint(*args.num_vars)
