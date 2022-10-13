@@ -49,7 +49,7 @@ DataPt = namedtuple('DataPt',
 
 def run_expt_log_datapt_worker( DATA_DIR,
 			input_name, job_number, input_stats, rslt_connection,
-			fn,	args, kwargs, output_processor=None, IGNORED=set()
+			fn,	args, kwargs, output_processor=None, IGNORE=set()
 		) -> DataPt:
 	""" this is the worker method.
 	"""
