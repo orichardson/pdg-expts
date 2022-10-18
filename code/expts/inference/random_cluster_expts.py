@@ -126,10 +126,10 @@ def pprocessor(M):
 	def process_pseudomarginals(cpm):
 		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
 		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
-		# if 'inc' in cpm._asdict():
-		# 	return (cpm.inc, cpm.idef)
-		# else:
-			return M.Inc(cpm.cluster_dist), float('inf')
+		if 'inc' in cpm._asdict():
+			return (cpm.inc, cpm.idef)
+		else:
+			return M.Inc(cpm.cluster_dist), float('nan')
 	return process_pseudomarginals
 
 try:
@@ -187,11 +187,11 @@ try:
 			
 		stats = dict(
 			graph_id = i,
-			max_tw = args.tw,
-			n_vars = len(pdg.varlist),
+			max_tw = k,
+			n_vars = n,
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
 			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also	
-			n_edges = len(pdg.Ed)
+			n_edges = m
 		)
 					
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)

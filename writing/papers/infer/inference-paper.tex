@@ -16,15 +16,14 @@
 %\setlength{\pdfpageheight}{11in}
 %\setlength{\pdfpagewidth}{8.5in}
 
-% If you use natbib package, activate the following three lines:
-%\usepackage[round]{natbib}
-%\renewcommand{\bibname}{References}
-%\renewcommand{\bibsection}{\subsubsection*{\bibname}}
+
 
 % If you use BibTeX in apalike style, activate the following line:
-%\bibliographystyle{apalike}
+% \bibliographystyle{apalike}
 \input{inference-preamble.tex}
 \input{pdg-preamble-v2.tex}
+
+\colorlet{mayyybe}{blue!50!red!20!white}
 
 % \author{$\{$Oliver E Richardson, Joseph Y Halpern, Christopher De Sa$\}$}
 
@@ -50,8 +49,9 @@
   %    via Exponential Cones and Otherwise}
   %oli3:
     % \aistatstitle{Inference in Probabilistic Dependency Graphs}
-    \aistatstitle{Inference in Probabilistic Dependency Graphs,
-        via Exponential Conic Programs}
+    \aistatstitle{Inference in Probabilistic Dependency Graphs,\\
+        via Exponential Conic Programming
+        }
 
 %joe1: initials need periods
     %\aistatsauthor{ Oliver E Richardson \And Joseph Y Halpern \And
@@ -122,6 +122,7 @@ inference problem.
 
 \section{INTRODUCTION}
 
+
 % {\color{gray}
 % Suppose that we have a collection of probabilistic beliefs. 
 % How can we tell if they are self-consistent?
@@ -140,7 +141,9 @@ inference problem.
 %inference (what you denote as (Q)) and then move to inconsistency,
 %rather than the other way around, as you've done.  I think that would
 %make the story read better.
-
+% {\color{mayyybe}
+% hi
+% }
 
 % More concretely, we handle
 Probabilistic Dependency Graphs, or PDGs \parencite{pdg-aaai},
@@ -194,7 +197,7 @@ and our approach addresses both.
 
 Since inference in other graphical models is alredy NP-hard, the same must be true of the more general class of PDGs. 
 % The only hope for tractability is the same class of models 
-Indeed, the best we could hope for would be tractability on the restricted
+At a high level, the best we could hope for would be tractability on the restricted
 class of models on which inference has traditionally been tractable---that is, a polynomial algorithm for models whose underlying structure has bounded tree-width. 
 That is precisely what we have. 
 % same class of graphical models 
@@ -206,9 +209,10 @@ Interestingly, the constriction is not trivial.
 % It is not a variant of belief propagation (BP), nor is it
 %
 % Unlike the many variants of exact inference 
-While the many approaches to exact inference in standard graphical models have largely turned out to be different perspectives on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
+While the many approaches to exact inference in standard graphical models have largely turned out to be various perspectives on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
 % our approach has roots in a very different.
-our approach ....
+% our approach is quite different in nature.
+our approach seems by all acounts to be quite different.
 % and . 
 % new iterior point methods. 
 
@@ -217,20 +221,35 @@ Our ability to do PDG inference in polynomial time is based on a line of recent 
 for a class of problems called \emph{exponential conic programs} 
 \parencite{lubin}. 
 Our contribution here is to show that the problem of inference in a PDG can be efficiently converted to an exponential conic program, at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time. 
-Thus, [...] is not only a theoretical result, 
-but we also get efficiency out of the box. 
+% We show that the problem of inference in a PDG can be efficiently converted to an exponential conic program, at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time. 
+The direct appeal to a commercial solver gives us efficiency out of the box, and also allows us to benefit from future improvements in exponential conic optimization. 
+Thus our result is not only a theoretical one, but practical as well.
+
 
 \textbf{Contributions.} 
+We provide the first algorithm to provably do inference in PDGs. 
+Better still, it is fixed-parameter tractable: for models of bounded treewidth,
+    it runs in polynomial time.
+We show how PDG inference can be reduced to conic exponential programming,
+    in a way that can be offloaded to a powerful existing solvers.
+We also provide a python implementation of the conversion in a standard convex optimization framework, thereby completing the software interface between such solvers and the standard library describing PDGs.
+Finally, we evaluate this implementation empirically, and show that it is both more accurate and faster than other optimization baselines.
+% 
+% Moreover, the approach makes use of , giving us efficiency out-of-the box.
 
 \section{PRELIMINARIES AND RELATED WORK}
 
 \textbf{Notation.}
 % This paper concerns the 
 % Unless otherwise specified, all scalar quantites range over the extended reals $\Rext := \mathbb R \cup \{\infty\}$. 
+% For us, a vector is a map from a finite set to the extended reals
+%     $\Rext := \mathbb R \cup \{\infty\}$.
 For us, a vector is a map from a finite set to the extended reals
-    $\Rext := \mathbb R \cup \{\infty\}$. 
-The notation $\mat u := [u_i]_{i \in S}$ defines a vector over the finite set $S$.
-We will sometimes use superscripts as well, especially when indices depend on one another. For example, if $\mathcal X$ is a finite set of finite sets, then
+    $\Rext := \mathbb R \cup \{\infty\}$.
+The \emph{shape} of a vector $\mat u$ is the finite set which is its domain.
+% The notation $\mat u := [u_i]_{i \in S}$ defines a vector over the finite set $S$.
+The notation $\mat u := [u_i]_{i \in S}$ defines a vector of shape $S$.
+We will sometimes use superscripts as well, especially when indices depend on one another. For example, if $\dg S$ is a finite set of finite sets, then
 %joe2: (1) why is this a disjoint union?  You never said that the sets in
 %\X were disjoint.  (2) You don't want to include X \in \X and x
 %\n X in the notation; it's really ugly.  I would slightly prefer
@@ -242,10 +261,10 @@ We will sometimes use superscripts as well, especially when indices depend on on
 %oli2: here's a compromise
 % $[u^X_x]_{x \in X, X \in \X}$ denotes a vector which has an element
 % for each $X \in \X$ and $x \in X$.
-$[u^X_x]^{X \in \mathcal X}_{x \in X}$ denotes a vector which has an element
+$[u^S_s]^{S \in \dg S}_{s \in S}$ denotes a vector which has an element
 %oli2: futher clarifying now that you've stripped the "disjoint union" out...
 % for each $X \in \mathcal X$ and $x \in X$.
-for each pair $(X,x)$, satisfying $x \in X \in \mathcal X$.
+for each pair $(S,s)$, satisfying $s \in S \in \dg S$.
  % for each $(X, x)$ 
 %joe2: now you're really getting into the weeds.  This is a paper
 %about inference, not notation.
@@ -260,9 +279,11 @@ for each pair $(X,x)$, satisfying $x \in X \in \mathcal X$.
 % Supplying just the upper index, $\mat u^{X}$ is the projection of $\mat u$ onto the subspace where the upper index is $X$. 
 % Supplying just the upper index, $\mat u^{X_0} := [u^{X_0}_x]_{x \in {X_0}}$
 % is the projection of $\mat u$ onto the subspace whose upper index is $X_0$. 
-By supplying just the upper index of such a vector, as in $\mat u^{X_0}$,
-we mean $[u^{X_0}_x]_{x \in {X_0}}$, the projection of $\mat u$ onto the subspace whose upper index is $X_0$. 
-Vectors over the same set can be added (+) and partially ordered ($\le$) pointwise as usual; pointwise multiplication is denoted by $\odot$.  
+By supplying just the upper index of such a vector, as in $\mat u^{S_0}$,
+we mean $[u^{S_0}_s]_{s \in {S_0}}$, the projection of $\mat u$ onto the subspace whose upper index is $S_0$. 
+% Vectors over the same set
+Vectors of the same shape 
+ can be added (+) and partially ordered ($\le$) pointwise as usual; pointwise multiplication is denoted by $\odot$.  
 $\mat 1$ denotes an all-ones vector, whose dimension will always be clear in context.
 $\mat u^{\sf T}$ denotes the transpose of $\mat u$, which we use primarily to denote the inner product $\mat u^{\sf T} \mat v$.
 % If $\mat u : A \to \Rext$ is a vetor over $A$, and $\mat v : A \times B \to \Rext$,
@@ -281,13 +302,13 @@ If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}
 
 \textit{Probabilities.}
 We write $\Delta S$ to denote the set of probability distributions over a finite set $S$.
-Every variable $X$ can take on a finite set $\V(X)$ of possible values. 
+Every variable $X$ can take on values from a finite set $\V\mskip-1mu X$ of possible values. 
 % If $S$ is a finite set, we write $\Delta S$ for the set of probability distributions over $S$, i.e., the simplex over its elements. 
 A conditional probability distribution (cpd) $p(Y|X)$ is a map 
 %joe2
 %$p : \V(X) \to \Delta \V(Y)$, so it assigns, to every $x \in \V(X)$, a
-$p : \V(X) \to \Delta \V(Y)$, so it assigns to each $x \in \V(X)$ a
-probability distribution $p(Y|x) \in \Delta Y$, which is shorthand for $p(Y|X\!\!=\!x)$.
+$p : \V\mskip-1mu  X \to \Delta \V Y$, so it assigns to each $x \in \V\mskip-1mu X$ a
+probability distribution $p(Y|x) \in \Delta \V Y$, which is shorthand for $p(Y|X\!\!=\!x)$.
 Given a joint distribution $\mu$ over many variables including both $X$ and $Y$, 
 %joe1: Is this standard notation for a marginal?  \mu)(X) looks like
 %the probability of X to me.
@@ -326,7 +347,8 @@ An ordinary graph may be viewed as the special case in which every hyperedge con
 A directed graph can be seen a directed hypergraph in which every source and target set is a singleton. 
 %joe2
 %As one might hope, we can form hypergraph from a directed hypergraph
-We can form a hypergraph from a directed hypergraph
+% We can form a hypergraph from a directed hypergraph
+In turn, a directed hypergraph can be seen as a hypergraph
 by taking the union of the source and target sets,
 thereby ``forgetting the direction of the arrow''.
 % There is also a natural bijection between directed hypergraphs and directed bipartite graphs. 
@@ -368,12 +390,36 @@ A tree decomposition of a (hyper)graph $G = (V, \Ed)$ is a tree $(\mathcal C, \m
 
 The \emph{width} of a tree decomposition is one less than the size of its largest cluster,
 and the \emph{treewidth} of a (hyper)graph $G$ is the smallest possible width of any tree decomposition of $G$.
-It is NP-hard to determine the tree-width of a graph, but fortunately, if the tree-width is known to be at most some constant, a tree decomposition may be constructed in linear time \parencite{bodlaender1993linear}.
+It is NP-hard to determine the tree-width of a graph, but if the tree-width is known to be bounded above, a tree decomposition may be constructed in linear time \parencite{bodlaender1993linear}.
 Many problems are \parencite{courcelle1990}.
 Inference in graphical models is another such example. 
 
 
 \textbf{Graphical Models and Inference.}
+A \emph{pgm structure} is a (directed) (hyper)graph whose vertices $\X$ are variables, and whose (hyper)edges somehow indicate local influences between variables. 
+A {quantitative} probabilistic graphical model, or just a ``graphical model'', is a pgm structure, together with local quantitative information that in some way corresponds to the local influences described by its structure.
+%
+Semantically,
+a graphical model $\cal M$
+% is a probabilistic model, meaning that it
+represents a joint probability distribution $\Pr_{\cal M}(\X)$ over its variables. 
+% All standard graphical models can 
+% Although this is not true for PDGs, all standard graphical models can be written as a 
+Although this may not be the whole picture, the distribution 
+specified by every standard graphical model can be written as a product
+% 
+$\Pr_{\cal M}(\X) \propto \prod_{E \in \Ed} \phi_{E}(E)$
+of some set of factors
+$\boldsymbol\phi = \{ \phi_E \}_{E \in \Ed}$
+over a hypergraph $(\X, \Ed)$ closely related to the structure of $\cal M$.
+% $
+%     \Pr_{}(\N) \propto \prod_{E \in \Ed} \phi_{E}(E)
+% $ 
+For this reason, a graphical model is often defined to be such a tuple
+$(\N ,\Ed, \boldsymbol\phi)$. 
+
+% One characterization of graphical models, which we will call a 
+% \emph{factorizing graphical model}, is 
 % Fo
 % The trick to doing inference quickly is not to ever represent the the full join
 % In the exact form of belief propagation
@@ -388,14 +434,21 @@ Inference in graphical models is another such example.
 %oli2: what's wrong with "message-passing algorithms?" I wanted to be more precise. 
 % There are some inference algorithms (such as belief propagation) that,
 % Message-passing algorithms, such as belief propagation, 
-Given a probabilistic model $\cal M$, which represents a joint distribution $\Pr_{\cal M}$, the goal of an inference algorithm 
-is to respond to probabilistic queries
-\eqref{q:inf} with $\Pr_{\cal M}(\mat Y \mid \mat X \!=\! \mat x)$. 
+% An inference algorithm for a probabilistic model 
+To do inference in probabilistic model $\cal M$ is to answer probabilistic queries, of the form
+\textit{``what is the distribution of variables $Y$, given that $X\!=\!x$?''}
+%
+% Given a probabilistic model $\cal M$, which represents a joint distribution $\Pr_{\cal M}$, the goal of an inference algorithm 
+Since $\cal M$ represents a joint distribution $\Pr_{\cal M}$, 
+the ``correct'' answer to this question is $\Pr_{\cal M}(Y \mid X\!=\!x)$.
+It may seem strange to say this explicitly; we do so because
+in a PDG there may also other defensible answers.
+
 Many inference algorithms (such as belief propagation), 
 %oli2: not just BNs, but graphical models generally
 % when applied to BNs that are trees, run in linear time and are
 % when applied to graphical models whose underlying structure is a tree,
-when applied to tree-shaped graphical models,
+when applied to tree-like graphical models,
 % are provably correct and 
 run in linear time and are
 provably correct.  
@@ -410,7 +463,7 @@ provably correct.
 % If the same algorithm is run on BNs that are not trees, then it 
 % may not converge, and even if it does, 
 %oli2: a compromise? 
-If the same algorithms are na{\"i}vely applied to graphs with cycles (such as loopy belief propagation), 
+If the same algorithms are na{\"i}vely applied to graphs with cycles (as in loopy belief propagation), 
 then they may not converge, and even if they do, 
 %joe2: what does it man to be inconsistent?
 %oli2: litterally the same thing we mean. It may find a collection of marginals
@@ -419,7 +472,7 @@ then they may not converge, and even if they do,
 %may be incorrect, or even inconsistent \parencite{wainwright2008graphical}.  
 % it may not give the correct answer \parencite{wainwright2008graphical}.  
 may give an answer that is incorrect, or even inconsistent \parencite{wainwright2008graphical}. 
-Nearly all exact inference algorithms for graphical models (variable elimination, clique-tree calibration, message-passing with devision, clique tree optimization), 
+Nearly all exact inference algorithms for graphical models (variable elimination, clique-tree calibration, message-passing with division, clique tree optimization), 
 implicitly or explicitly, effectively construct a tree decomposition of the model, and may be viewed as running on a tree \parencite[\S9-11]{koller2009probabilistic}.
 %oli2: added.
 This is essentially necessary, because under widely believed
@@ -427,17 +480,17 @@ hardness assumptions, the only class of graphical models for which inference is 
 %joe2: you need to give some references and examples of algorithms here
 %oli2: done, although I think it's overkill. See above. 
 
-%joe2*: I just fell off a cliff here.  Are you given a BN and then
-%consitruct a clique-tree which somehow (how?) encodes all answers to
-%all possible queries?  How does it do that?  I'm lost.  You need to
-%SLOW DOWN here.
-%oli2: that's the general idea, yes. 
-% For belief propagation in particular, is possible to save time by distilling the answers to all possible queries via a data-structure called a \emph{clique tree}
 
-For fixed evidence $\mat X \!=\! \mat x$, it is possible, with very little overhead, to distill the answers to all queries about variables $\mat Y$ in a data-structure called a \emph{clique tree}
+For fixed evidence
+% $\mat X \!=\! \mat x$,
+$X \!=\! x$, it is possible, with very 
+% little overhead, to distill the answers to all queries about variables $Y$ in a data-structure called a \emph{clique tree}
+little overhead, to summarize the answers to all queries about variables
+$Y$ using a data-structure called a \emph{clique tree} 
 % clique tree calibration
-\parencite[\S10]{koller2009probabilistic}, which is a tree decomposition $(\cal C, T)$
-of the underlying model structure, together with a family $\bmu = \{\mu(C)\}_{ C \in \mathcal C}$ of probability distributions over every cluster. 
+\parencite[\S10]{koller2009probabilistic}, which consists of 
+a tree decomposition $(\cal C, T)$
+of the underlying model structure $(\cal X, E)$, together with a family $\bmu = \{\mu_C(C)\}_{ C \in \mathcal C}$ of probability distributions over every cluster. 
 A clique tree is said to be \emph{calibrated} if neighboring clusters's beliefs agree on the variables they share,%
     \footnote{i.e., if it is consistent, when viewed as a PDG}
 in which case it determines a joint distribution by
@@ -448,7 +501,7 @@ in which case it determines a joint distribution by
     \label{eq:cliquedist}
 \end{equation}
 which has the property that $\Pr_{\bmu}(C) = \mu_C$ for $C \in \cal C$. 
-To see why this summarizes query information in a simple case, note that if $\mat Y$ is contained in a single cluster $C$, then $\mu_C(\mat Y) = \Pr_{\bmu}(\mat Y) = \Pr_{\cal M}(\mat Y | \mat X \!=\! \mat x)$.
+To see why this summarizes query information in a simple case, note that if $Y$ is contained in a single cluster $C$, then $\mu_C(Y) = \Pr_{\bmu}(Y) = \Pr_{\cal M}(Y | X \!=\! x)$.
 Note also that, in the extreme case where $\mathcal C$ contains only one cluster with all variables, a clique tree is just a joint distribution, and distils inference about probabilistic queries in the sense that finding any marginal distributions amounts to computing a sum. 
 
 \textbf{Probabilistic Dependency Graphs.}
@@ -480,7 +533,7 @@ is just an arbirary collection of cpds and causal assertions,
     weighted by confidence. More precisely:
 
 \begin{defn}
-    a PDG $\dg M = (\N, \Ar, \mathcal P, \balpha, \bbeta )
+    a PDG $\dg M = (\X, \Ar, \mathcal P, \balpha, \bbeta )
      % = (\mathcal P, \balpha, \bbeta)$ 
     $
     % over $\N$ is a set $\Ed$ of ``directed hyper-edges'', 
@@ -490,8 +543,11 @@ is just an arbirary collection of cpds and causal assertions,
 %oli2: no, this is a different presentation. I think it's cleaner in this
 % case because I already had to bring up the hyper-graphs to talk about 
 % tree decompositions intelligently.
-    is a directed hypergraph  $(\N, \Ar)$, whose nodes correspond to variables, and
-    each $a \in \Ar$ is associated with:
+    is a directed hypergraph  $(\X, \Ar)$, whose nodes correspond to variables, and
+    each 
+    % $\ed a{\Src a}{\Tgt a} \in \Ar$
+    $\ed a{\Src {}}{\Tgt {}} \in \Ar$
+    is associated with:
     \begin{itemize}[itemsep=0pt]
         % \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
         % \item variables $\Src L, \Tgt L \in \N$, the source and target of $L$;
@@ -503,10 +559,12 @@ is just an arbirary collection of cpds and causal assertions,
             the modeler's confidence in the cpd $p\ssub L(\Tgt a | \Src a)$, and 
         \item a weight $\alpha_a \in \mathbb R$ indicating 
             the modeler's confidence that the arrow $a$ corresponds to an independent mechanism that determines $\Tgt a$ given $\Src a$. 
-        \qedhere
+        % \qedhere
     %     % \item $\mathcal P = \{ p\ssub L (\mat T_L | \mat S_L) \}_{L \in \Ed}$ is an indexed set of cpds   
     %     \item $\bbeta$ 
     \end{itemize}
+    In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and 
+    % $\mathcal P = \big[ p\ssub a(t|s) \big]{}^{a \in \mathcal A}_{(s,t) \in \V(\Src a,\Tgt a)}$
 \end{defn}
 
 One selling point of PDGs is their modularity: if $\dg M_1$ and $\dg M_2$ are two PDGs, we can take the dusjoint union of their arcs (and associated data) to get a new PDG, denoted $\dg M_1 + \dg M_2$,
@@ -611,7 +669,7 @@ Note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\
 %The PDG semantics are then given by a scoring fuction: 
 % The semantics of a PDG $\dg M$ are then given by a scoring fuction
 The semantics of a PDG $\dg M$ are then given by a family of scoring fuctions
-$\bbr{\dg M}_\gamma: \Delta \V\N \to \Rext$
+$\bbr{\dg M}_\gamma: \Delta \V\X \to \Rext$
 % corresponding to the linear combination
 indexed by a trade-off parameter $\gamma \ge 0$ which controls the importance of 
 $\IDef{}$ relative to $\Inc$:
@@ -639,34 +697,39 @@ $\IDef{}$ relative to $\Inc$:
 % $\gamma$ controls the trade-off
 % between matching quantitative beliefs and qualitative ones. 
 
-The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denotes the set of optimal distributions at a particular $\gamma$.
-Of particular interest is the ``quantitative limit'' as $\gamma \to 0$,
+The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denotes the set of optimal distributions at a particular value $\gamma$.
+% Of particular interest is the ``quantitative limit'' as $\gamma \to 0$,
+% The inference task for PDGs, then is
+One particular case of interest is the limit as $\gamma \to 0$,
 which corresponds to a fully empirical approach: matching quantitative observations is the primary concern, and causal information is used only to break ties. 
-Why this limit in particular?
+% When $\gamma$ is small enough.
+In this limit there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at least if $\bbeta > \mat 0$).
+
+% Why this limit in particular?
 
 %joe2*: We need INTUITION.  why do we care about what happens as
 %\gamma -> 0.  If we can't motivate this well, there's no reason for a
 %reader to be interested in the rest of the paper, so this is critical.
 
-\TODO[ In my opinion is way too much intuition for $\gamma$, but I'll put it all here so it can be pared down. ]
-
-\begin{enumerate}[nosep]
-    \item 
-        This quantitative limit is what is used to generate nearly all of the loss functions in \textcite{one-true-loss}, which are largely empirical in nature.
-    \item 
-        Optimizing inconsistency in this limit guarantees a calibrated model, which is one of the biggest advantages PDGs have over factor graphs
-         \parencite[Example 5]{pdg-aaai}.
-        
-    \item 
-%oli2: ok, I'm sure this is overkill on intuition, so I commented it out. 
-    When $\balpha = \mat 0$, this is the principle of maximum entropy; for other values of $\balpha$ it is a causally sensitive variant which accounts for the fact that cpd constraints themselves carry different amounts of entropy depending on the settings of the variables. 
-    \item 
-    Another reason to focus on the quantitative limit is pragmatic: there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at least if $\bbeta > \mat 0$).
-    In any case, this is the way in which PDGs define a unique joint distribution, and hence may be thought of as a graphial model.
-\end{enumerate}
+% \TODO[ In my opinion is way too much intuition for $\gamma$, but I'll put it all here so it can be pared down. ]
+% 
+% \begin{enumerate}[nosep]
+%     \item 
+%         This quantitative limit is what is used to generate nearly all of the loss functions in \textcite{one-true-loss}, which are largely empirical in nature.
+%     \item 
+%         Optimizing inconsistency in this limit guarantees a calibrated model, which is one of the biggest advantages PDGs have over factor graphs
+%          \parencite[Example 5]{pdg-aaai}.
+% 
+%     \item 
+% %oli2: ok, I'm sure this is overkill on intuition, so I commented it out. 
+%     When $\balpha = \mat 0$, this is the principle of maximum entropy; for other values of $\balpha$ it is a causally sensitive variant which accounts for the fact that cpd constraints themselves carry different amounts of entropy depending on the settings of the variables. 
+%     \item 
+%     Another reason to focus on the quantitative limit is pragmatic: there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at least if $\bbeta > \mat 0$).
+%     In any case, this is the way in which PDGs define a unique joint distribution, and hence may be thought of as a graphial model.
+% \end{enumerate}
 % This distribution uniquely achieves the smallest information deficiency among those distributions maximally compatible with $\dg M$. 
 
-One should be careful to distinguish this joint distribution $\bbr{\dg M}^* \in \Delta\V \N$, which arises in the limit as $\gamma \to 0$, from $\bbr{\dg M}^*_0$, the set of distributions that minimize 
+One should be careful to distinguish this joint distribution $\bbr{\dg M}^* \in \Delta\mskip-2mu \V \mskip-2mu\X$, which arises in the limit as $\gamma \to 0$, from $\bbr{\dg M}^*_0$, the set of distributions that minimize 
 %joe1
 %$\Inc_{\dg M}$ which contains $\bbr{\dg M}^*$, and possibly many others.
 $\Inc_{\dg M}$; the latter set can be shown to contain $\bbr{\dg
@@ -742,7 +805,16 @@ To parallel the notation for scoring functions, when we omit the subscript, we r
 % 
 % Most computer scientists are familiar with linear programming (LP), where the constraints are also linear, and likely also the variants in which the contstraints can quadratic (QP) or that a matrix be positive semidefinite (SDP).
 % Exponential cone constraints are less well-known, in part because provably efficient algorithms for exponential conic programs are relatively recent. 
-\textbf{Exponential Conic Programs.}
+% \textbf{Exponential Conic Programs.}
+\textbf{Interior Point Methods and Convex Optimization.}
+The advent of polynomial time methods for solving linear programs
+\parencite{}.
+In the 1990s, these methods were extende to handle second-order cone programs (SOCPs) and semidefinite programs (SDPs) in which one can add constraints.
+These optimization methods that applied to such ``self-dual'' cones
+    immediately found applications across a wide range of tasks. 
+But some---those involving probabilities and divergences---have historically
+resisted expression in these terms. For such problems, we need another kind of constraint
+that is a little more difficult to handle: an exponential cone constraint. 
 % \emph{Exponential-cone constraints} are another class of constraints,
 % which will be of particular interest to this paper.
 %joe2: Yes, the intjuition is critical
@@ -759,16 +831,18 @@ The exponential cone is the convex set
 %joe2: the layout here looks strange.
 %oli2: maybe this looks better to you?
 \begin{align*}
-    K_{\mskip-1mu\exp} &:=\!\!\!\!\!
+    % K_{\mskip-1mu\exp} &:=\!\!\!\!\!
         \begin{aligned}
+        K_{\mskip-1mu\exp} :=
         \big\{ (x_1, x_2, x_3) &: 
                 x_1 \ge x_2 e^{x_3 / x_2}\!,\, x_2 > 0 \big\} 
             \\[-0.2ex]\quad \mathbin{\cup}\, 
         \big\{ (x_1, 0, x_3&) : x_1 \ge 0,\, x_3 \le 0 \big\} 
             % \cup\\
         % \\\quad \mathbin{\cup}\, 
+        \quad \subset \mathbb R^3.
     \end{aligned}
-    \subset \mathbb R^3.
+    % \subset \mathbb R^3.
 \end{align*}
 It is also sometimes called the relative entropy cone, because
 if $\mat m, \mat p \in \mathbb R^n$ are points on a probability simplex,
@@ -779,11 +853,14 @@ the pointwise contribution to relative entropy in each outcome.
 %
 An \emph{exponential conic program} is an optimization problem of the form
 \[ 
-    \mathop{\text{\sf minimize}}\limits_{x \in \Rext}~~ c^{\sf T} x
-    \quad\text{\sf subject to}~~ Ax = b,~~x \in K_{\exp}^n.
+    \mathop{\text{\sf minimize}}\limits_{x \in \Rext^n}~~ c^{\sf T} x
+    \quad\text{\sf subject to}~~ Ax = b,~~x \in K_{\exp}^n
 \]
+where $c \in \Rext$
 % Recent work in interior point methods has provided a way to solve linear optimization problems with such constraints in polynomial time \parencite{dahl2022primal}.
-Recent work in interior point methods has shown that such problems may be solved in polynomial time \parencite{dahl2022primal}. 
+Historically, convex modeling libraries have handled such problems with a successive approximation scheme, which performs well-enough in practice, but is not guaranteed to run in polynomial time. 
+% Recent work in interior point methods has shown that such problems may be solved in polynomial time \parencite{dahl2022primal}. 
+The successors to these algorithms \parencite{dahl2022primal}, by contrast, recently have been proven to run in polynomial time \parencite{badenbroek2021algorithm}. 
 % provided that $x_1, x_2$ and $x_3$ are affine transformations of the program variables. 
 
 % %joe2*: I'm lost again.  You need to SLOW DOWN; give INUITION and MOTIVATION.
@@ -792,75 +869,142 @@ Disciplined Convex Programming \parencite{dcp-thesis} is a
 % This approach to convex programing allows us to articulate problems compositionally 
 A disciplined convex program can be compiled to a convex optimization problem in standard form \parencite{agrawal2018rewriting}, which can be handled efficiently.
 Of particular relevance for us is the rule for 
-exponential cones: an exponential cone constraint is dcp 
+exponential cones: an exponential %constraint is dcp 
 %joe2: I'm lost.  What are the "program variables".
 % provided that $x_1, x_2$ and $x_3$ are affine transformations of the program variables. 
 %oli2: maybe this will help
-the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine transformations of the variables being optimized. 
+% the
+constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine transformations of the variables being optimized. 
 
 % So long as the arguments to the constraints satisfy certain rules they are said to be dcp; dcp program can be compiled to a convex optimization problem that can be handled efficiently.
 % So long as the constraints satisfy certain rules they are said to be dcp; dcp program can be compiled to a convex optimization problem that can be handled efficiently.
 % The rule for the exponential cone is simple: the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $a$, $b$, and $c$ are affine transformations of the program variables. 
 
+\section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
+
+What does inference mean in a PDG? 
+The question is 
+
+
+% By inference in a PDG, we mean respoding to probabilisty qureies $Q(Y|X)$ for (sets of) variables $X,Y \subset \X$
+\begin{defn}
+    A PDG inference algorithm is a procedure that, given a PDG $\dg M$ over variables $\X$, a non-negative number $\gamma \ge 0$ or ``$\gamma\to 0$'', and a probabilistic query of the form $Q(Y|X\!=\!x)$ for $X,Y \subset \X$ and $x \in \V X$, returns a probability distribution $\mu(Y)$ that is the conditional marginal $\mu(Y|X=x)$ for some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number), 
+    or $\bbr{\dg M}^*(Y|X\!=\!x)$ (if given ``$\gamma\to0$'').
+\end{defn}
+
+
+
+\begin{enumerate}[nosep]
+    \item An inconsistency oracle can be used to do inference in a way that does not scale with the size of the graph
+    \item Computing inconsistency is NP-hard
+    % \item Clique tree calibration can be seen as inconsistency reduction
+    \item Belief propagation can be seen as inconsistency reduction
+    \item MAP queries?
+\end{enumerate}
+
+\textbf{Inconsistency-Based Approach.}
+
+
+    
 
 % \section{REDUCING TO CONVEX PROGRAMS WITH EXPONENTIAL-CONE CONSTRAINTS}
 % \section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
 \section{PDG INFERENCE AS A CONVEX PROGRAM}
-
     \label{sec:reductions}
+    
+
+
+    
+Here is one obvious, but inefficient, way to calculate $\Pr_{\cal M}(Y|X\!=\!x)$ in a 
+probabilistic model $\cal M$. First, compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$. 
+%
+For other graphical models, this is very straight-forward; the entire point of an inference algorithm is to avoid the exponential time and space required to explicitly compute $\Pr_{\cal M}(\X)$.
+For PDGs, though, it's not clear
+% what to do if we grant ourselves this luxury.
+% In this section, we will. 
+we can calculate $\Pr_{\cal M}(\X)$ even if we grant ourselves the luxury of storing a joint distribution, as we do in this section.
+
+\[
+    \mathop{\text{\sf minimize}}\limits_\mu\quad
+        % \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu) 
+        \bbr{\dg M}_\gamma(\mu)
+    \quad \text{\sf subject to}\quad \mu \in \Delta\mskip-2mu\V\mskip-2mu\X
+\]
+
+Is it a convex program?
+More importantly, is it a \emph{disciplined} convex program, 
+    which would mean it can be solved in polynomial time?  
+That depends on $\gamma$.
+
+ 
 %joe1
 %We now present the central finding of our paper:  observation that the
 %oli1: it's the central finding in that it's the lynchpin, but this is not the main result; nobody should care about it by itself. It's more like the key lemma. 
 % We now prove our main result: that the
 We now present the key technical finding of our paper: 
-that the
-%joe1: what do you mean by "the PDG objective"?
-%oli 1: I mean the scoring funciton. Because it's the "optimization objective"
-% Chris has been calling it that and I adopted it. But ``scoring function'' works too.
-% PDG objective $\bbr{\dg M}_\gamma$ can be written 
-the scoring function $\bbr{\dg M}_\gamma$
-%joe1
-%as a linear optimization problem with exponential cone constraints.
-%oli1
-% as a linear optimization problem with exponential-ggcone constraints.
+that the PDG scoring function $\bbr{\dg M}_\gamma$ 
+% \eqref{eqn:scoring-fn}
 can be written as an exponental conic program. 
 %
+This requires different approaches, depending on the value of $\gamma$.
+
+
 %joe2
 %We will proceed as follows:
-We proceed as follows: 
-\begin{enumerate}[itemsep=0pt]
-    \item
-    illustrate how to find the minimizers of $\Inc$ in a simple 
-    setting with only one variable and no conditional distributions; 
+% We proceed as follows: 
+% \begin{enumerate}[itemsep=0pt]
+%     \item
+%     illustrate how to find the minimizers of $\Inc$ in a simple 
+%     setting with only one variable and no conditional distributions; 
+% 
+%     \item
+%     show how the same approach can be generalized to find minimizers 
+%     of $\Inc$ in general PDGs (addressing \textbf{D2}); 
+%     \item \label{item:+idef}
+%     %joe1 I cut this; we 'already defined {\dg M}^*.  In any case, I still
+%     % show how to find $\bbr{\dg M}^*$, the unique distribution specified by $\dg M$ in the quantitative limit.
+%     show how to find $\bbr{\dg M}^*$ (addressing \textbf{D3});
+%     % \item \label{item:cccp}
+%     % employ the convex-concave procedure 
+%     % \parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
+%     % 
+%     \item 
+%     % Finally, show how \cref{item:+idef,item:cccp} can also be achieved 
+%     finally, show how this can all be done
+% %joe2
+% %    with a more efficient compact representation for PDGs that have
+% %oli2: reverted + added some words; I meant what I originally said. 
+%     % with a more efficient compact representation for PDGs that has
+%     more efficiently, for PDGs that happen to have
+%     bounded tree-width (addressing \textbf{D1}).
+% \end{enumerate}
 
-    \item
-    show how the same approach can be generalized to find minimizers 
-    of $\Inc$ in general PDGs (addressing \textbf{D2}); 
-    \item \label{item:+idef}
-    %joe1 I cut this; we 'already defined {\dg M}^*.  In any case, I still
-    % show how to find $\bbr{\dg M}^*$, the unique distribution specified by $\dg M$ in the quantitative limit.
-    show how to find $\bbr{\dg M}^*$ (addressing \textbf{D3});
-    % \item \label{item:cccp}
-    % employ the convex-concave procedure 
-    % \parencite{yuille2003concave}, to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
-    % 
-    \item 
-    % Finally, show how \cref{item:+idef,item:cccp} can also be achieved 
-    finally, show how this can all be done
-%joe2
-%    with a more efficient compact representation for PDGs that have
-%oli2: reverted + added some words; I meant what I originally said. 
-    % with a more efficient compact representation for PDGs that has
-    more efficiently, for PDGs that happen to have
-    bounded tree-width (addressing \textbf{D1}).
-\end{enumerate}
 
-\subsection{Warm-Up}\label{sec:illust}
+\TODO[ SIGN POSTING ]
 
-%joe2
-%To illustrate the idea, consider the special case in which our PDG
+% \begin{enumerate}[itemsep=0pt]
+%     \item 
+% \end{enumerate}
+We proceed as follows.
+In \cref{sec:minimize-inc}, we present a straightforward
+and relatively standard application of the exponential cone to finding minimizers of $\Inc$
+
+\subsection{%
+    Minimizing Incompatibilty 
+    (\texorpdfstring{$\boldsymbol\gamma\boldsymbol=\mat0$}{gamma=0})%
+} \label{sec:minimize-inc}
+
+When $\gamma = 0$, we have $\bbr{\dg M}_0(\mu)= \Inc(\mu)$ which is a weighted sum of conditional relative entropies.
+Unsurprisingly, the exponential---or ``relative entropy''---cone can be used to find such minima in a relatively standard way.  
+We now review the construction of that exponential conic program, 
+    so that we can build upon it in later sections.
+
+% \subsection*{Warm-Up}
+% \paragraph{Warm-Up}
+\textbf{Warm-up.}
+    % \label{sec:illust}
 To illustrate the idea, consider the special case of a PDG that
-contains only one variable $X$, which takes values $\V(X) = \{1, \ldots, n\}$. 
+contains only one variable $X$, which takes values $\V\mskip-2mu X = \{1, \ldots, n\}$. 
 Suppose further that for every edge $j \in \Ar = \{1, \ldots, k\}$, the cpd $p_j(X)$ is an unconditional dsitribution over $X$.
 That is, $\Tgt j = \{ X \}$, and $\Src j = \emptyset$.
 % Such unconditional probabilities may be identified with unit vectors $\mat p\ssub L \in \mathbb R^n$.  Similarly a candidate (``joint'') distribution $\mu(X)$
@@ -888,22 +1032,20 @@ may be represented as a vector $\mat m \in [0,1]^n$.
 Now consider a matrix $\mat U = [u_{i,j}] \in \Rext^{n \times k}$,
 and observe that:
 \begin{align*}
-%joe2: hyou still haven't defined \otimes.  I'd be happy if you could
-%get rid of it altogether.
-    &(- \mat U,~ \mat m \otimes \mat 1,~ \mat P) \in K_{\exp}^{n \times k} \\
+%joe2: hyou still haven't defined \otimes.  I'd be happy if you could  get rid of it altogether.
+    &&(- \mat U,~ \mat m \otimes \mat 1,~ \mat P) &\in K_{\exp}^{n \times k} \\
     % &\iff \forall  i,j \in [n]\!\times\![k].~~ 
-    &\iff \forall  i,j.~~ 
-        (- u_{ij}, m_{i}, p_{ij}) \in K_{\exp} \\
+    &\iff& \forall  i,j.~~ 
+        (- u_{ij}, m_{i}, p_{ij}) &\in K_{\exp} \\
     % &\iff \forall  i,j \in [n]\!\times\![k].~~ 
-    &\iff \forall  i,j.~~ 
-            u_{ij} \ge m_i \log \frac{m_i}{p_{ij}} \\
+    &\iff& \forall  i,j.~~ 
+            u_{ij} &\ge m_i \log (\nicefrac{m_i}{p_{ij}}) \\
     % &\implies \forall j \in [n].~~
-    &\implies \forall j.~~
-        {\textstyle\sum_i} u_{ij}  \ge \kldiv{\mu}{p_j} \\
-    &\implies \sum_{i,j} \beta_j u_{ij}  \ge \beta_j \kldiv{\mu}{p_j} \\
-    &\iff \mat 1^{\sf T} \mat U \bbeta \ge \Inc(\mu)
-    .
-    % &\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
+    &\implies& \forall j.~~
+        {\textstyle\sum_i} u_{ij}  &\ge \kldiv{\mu}{p_j} \\
+    % &\implies& \mat 1^{\sf T} \mat U \bbeta =  \sum_{i,j} \beta_j u_{ij}  &\ge \sum_j \beta_j \kldiv{\mu}{p_j} = \Inc(\mu).
+    &\implies& {\textstyle\sum_{i,j}} \beta_j u_{ij}  &\ge {\textstyle\sum_j} \beta_j \kldiv{\mu}{p_j} \\
+    &\iff& \mat 1^{\sf T} \mat U \bbeta &\ge \Inc(\mu) .
 \end{align*}
 
 %joe2
@@ -920,30 +1062,41 @@ So now, if $(\mat U, \mat m)$ is a solution to the convex program
         (-\mat U,\;\, &\mat m\otimes \mat 1,\; \mat P) \in K_{\exp}^{n \times m},
     % \end{cases},
 \end{align*}
-then (a) the inconsistency $\aar{\dg M} = \mat 1^{\sf T} \mat U \bbeta$ equals the optimal objective value, and 
-(b) $\mu \in \bbr{\dg M}^*_0$ is maximally compatible with $\mu$. 
+then (a) the inconsistency $\aar{\dg M}$ equals the optimal objective value $\mat 1^{\sf T} \mat U \bbeta$, and (b) $\mu \in \bbr{\dg M}^*_0$, which is to say that $\mu$ minimizes $\Inc_{\dg M}$. 
 % This illustrates the general principle, but 
 
-\subsection{Adding More Variables, Conditionals, Marginals}
+% \subsection{Adding More Variables, Conditionals, Marginals}
+% \subsection{Finding a Maximally Compatible Distribution}
 
-Having seen some of the details of the matrix computations, let's now move up a level, and identify finitely supported distributions with their simplex representations. 
+\textbf{The General Case.}
+% We now tackle the general case of
+We now show how the same construction can be used to find
+ a distribution $\mu \in \bbr{\dg M}^*_0$
+for an arbitrary PDG $\dg M = (\X, \Ar, \mathcal P, \balpha, \bbeta)$.
+Having seen some of the details of the matrix computations, let's now move up a level, 
+and identify distributions with their simplex representations as vectors. 
+% In particular, if the source of an arc $a \in \Ar$ can take $m := |\V\Src a|$
+% possible values, and its target can take $n := |\V\Tgt a|$ possible values, then
+In particular, for every hyperarc $a \in \Ar$, we regard the marginal distribution $\mu(\Tgt a, \Src a)$ as a vector over $\V(\Tgt a, \Src a)$;
+similarly, $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$ is a joint distribution over the same variables, and may be regarded as a vector of the same shape. 
+% \in \Rext^{m \times n}
+% and identify finitely supported distributions with their simplex representations. 
 % For example, we will implicitly identify a joint distribution $\mu$ 
 % with the appropriate vector 
-We now tackle the general case of a pdg 
-$\dg M = (\N, \Ar, \mathcal P, \balpha, \bbeta)$.
 %
 % For each $a \in \Ar$, let $N_a := |\V(\Src a, \Tgt a)|$ be the dimension of joint settings of the source and target values of $a$, i.e., the dimension of the cpd $p \ssub a$,
 % let $K := \sum_{a \in \Ar} N_a$ be the total dimension, and
 %joe2: As I said, I really don't like the subscript-superscript
 %notation.  
 Let $\mat u = [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
-be a vector.
+be a vector
 % be a free variable in $\Rext^{K}$.
 % of all of the condtional probabilities in $\dg M$.
 % Let $t = (t^L)_{L \in \Ed} \in \Rext^{K}$.
 % {\color{red} Let $\Pi_{X}$ be the projection map that marginalizes to the variables $X$. }
 %
-Consider the problem
+% Consider the problem
+and consider the optimization problem \eqref{prob:joint-inc}.
 % \begin{align*}
 %     % \min_{\mu, t} &\qquad
 %     \min_{\mat m, \mat u} &\quad
@@ -968,10 +1121,10 @@ Consider the problem
     \mathop{\text{\sf minimize}}\limits_{\mu, \mat u} &\quad
         % \Vert t \Vert_1  
         % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
-        \sum_{a \in \Ed}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+        \sum_{a \in \Ar}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
     \numberthis\label{prob:joint-inc}\\
     \text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\[0.2ex]
-        \forall L \in \Ed.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
+        \forall a \in \Ar.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
     % \\
     % \color{red}\text{previously}&\color{red}
     %     % (-t^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L)) 
@@ -1005,7 +1158,7 @@ Consider the problem
 % \]
 % }
 Note that the marginals $\mu(\Src a, \Tgt a)$ and $\mu(\Src a)$ are
-linear functions of $\mu$'s simplex representation, as required by the 
+affine transformations of $\mu$, as required by the 
 disciplined convex programming conditions for exponential cones. 
 Logic similar to that in \cref{sec:illust} yields: 
 \begin{prop}
@@ -1025,8 +1178,91 @@ Logic similar to that in \cref{sec:illust} yields:
 This is a start, but what we were really after was the unique distribution
 $\bbr{\dg M}^*$ that also minimizes $\IDef{\dg M}$.
 
-\subsection{Incorporating IDef}
-    \label{sec:also-idef}
+\subsection{%
+    Small Positive
+    \texorpdfstring{$\boldsymbol\gamma$}{gamma}%
+} \label{sec:small-gamma}
+
+We start with the easiest case. When $\gamma$ is small enough, 
+the scoring function \eqref{eqn:scoring-fn} is not only convex, 
+but admits a straightforward representation as an exponential conic program.
+To see this, recall that \eqref{eqn:scoring-fn}
+ can be rewritten as \parencite[Proposition 4.6]{pdg-aaai}:
+% \begin{align*}
+\begin{equation}
+    \begin{aligned}
+        \bbr{\dg M}_\gamma(\mu) = 
+        &-\gamma\H(\mu) - 
+            \sum_{a \in \Ar}
+                % \left[
+                \beta_a\, \Ex_\mu 
+                    % \log \frac1{p\ssub a(\Tgt a | \Src a)}
+                    \log {p\ssub a(\Tgt a | \Src a)}
+                % \right]
+                \\[-0.5ex]
+            &~~+ \sum_{a \in \Ar}
+            (\gamma \alpha_a - \beta_a)
+                % \Ex_\mu \log \mu(\Tgt a | \Src a).
+                \H_\mu (\Tgt a | \Src a).
+    \end{aligned}
+    \label{eq:altscore}
+\end{equation}
+% The terms in the first row are strictly convex and linear in $\mu$.
+The first term, $-\H(\mu)$ is strictly convex and has a well-known 
+translation into an exponential cone constraint, and the second one linear in $\mu$. 
+Now, if $\gamma \le \min_{a} \frac{\beta_a}{\alpha_a}$, then every summand of the final term is a negative conditional entropies, which also admit such a translation.
+
+In more detail, consider a vector $\mat u := [ u^{a }_{s,t}]^{a \in \Ar}_{(s,t) \in \V(\Src a, \Tgt a)}$ for the optimization problem
+\begin{align*}
+\mathop{\text{\sf minimize}}\limits_{\mu, \mat u} &\quad
+    % \Vert t \Vert_1  
+    % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
+    \sum_{a \in \Ar}(\beta_a - \alpha_a \gamma) \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+\numberthis\label{prob:joint-small-gamma}\\
+\text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\[0.2ex]
+    \forall L \in \Ed.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
+\end{align*}
+
+\subsection{Larger 
+    \texorpdfstring{$\boldsymbol\gamma$}{gamma}}
+    \label{sec:larger-gamma}
+
+% Now, suppose we're no longer 
+Next, let's consider the case where $\gamma$ is 
+larger, meaning that the structural term $(\IDef{})$, 
+becomes more important.
+Because $\IDef{}$ can express features of a distribution like conditional indepenedence,
+it cannot be convex.%
+    \footnote{one can easily verify that set of distributions that make $X$ and $Y$ independent is not convex.}
+Nevertheless, \eqref{eq:altscore} still gives us a way to 
+
+% The first line is the sum of a linear term and a convex one,
+and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
+Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
+%
+\begin{align*}
+    \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
+        \nabla g(\mu_t)
+\end{align*}
+
+As we will see in \cref{sec:expts}, the aproach presented here section is 
+not very fast, but it is guaranteed to make progress, since
+\def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
+\begin{align*}
+    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
+        % &\text{(concavity of $g$)}
+        \\
+    &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)
+        % &\text{(defn of argmin)}
+    \\
+&= f(\mu_t) + g(\mu_t)
+\end{align*}
+and eventually find an optimum, because the concave terms are bounded.
+
+
+% \subsection{Incorporating IDef}
+\subsection{The Emperical Limit}
+    \label{sec:empirical-limit}
 % To do this second pass, we will need this second property
 % As $\gamma \to 0$, the limit of $\bbr{\dg M}_\gamma$
 So far, we have only found \emph{some} distribution that minimizes $\Inc$; 
@@ -1353,7 +1589,7 @@ and consider the following optimization problem.
 \end{prop}
 
 
-\subsection{A Polynomial Time Algorithm For PDGs of Bounded Tree-Width}
+% \subsection{A Polynomial Time Algorithm For PDGs of Bounded Tree-Width}
 
 \cref{prop:cluster+idef} shows that finding distributions that optimize the PDG scoring function \eqref{eqn:scoring-fn} can be written as a convex optimization problem with a
 polynomial number of variables and constraints and with an objective that is also polynomial-sized.
@@ -1431,7 +1667,7 @@ The PDG scoring function can be written as \parencite[Proposition 4.6]{pdg-aaai}
 \end{align*}
 The first line is the sum of a linear term and a convex one,
 and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
-Once we sort the terms into convex terms $f(\mu)$ and concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
+Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
 %
 \begin{align*}
     \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
@@ -1442,7 +1678,7 @@ As we will see in \cref{sec:expts}, the aproach presented here section is
 not very fast, but it is guaranteed to make progress, since
 \def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
 \begin{align*}
-    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &\le  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
+    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
         % &\text{(concavity of $g$)}
         \\
     &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)

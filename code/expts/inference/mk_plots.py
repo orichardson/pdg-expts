@@ -1,5 +1,8 @@
 
-#%%
+#%%##########################################
+#  IMPORTS AND DATA LOADING
+#############################################
+
 import sys; sys.path.append("../..")
 
 import json
@@ -13,10 +16,17 @@ import seaborn as sns
 
 # fname = 'tmp-aggregated.json'
 fnames = [
-	('random-pdg-data-aggregated-5.json', 'rand5'),
+### RANDOM GRAPHS FIXED TW
+	# ('tw-data-aggregated-1.json', 'tw1')  # issues: max_tw is wrong;
+	# 									# IDef is missing; no optimization baselines.
+	# 	
+### RANDOM GRAPHS JOINT
+	('random-pdg-data-aggregated-6.json', 'rand6'),
+	# ('random-pdg-data-aggregated-5.json', 'rand5'),
 	# ('random-pdg-data-aggregated-4.json', 'rand4'),
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
+### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
 	# ('random-expts-1.csv', 'rand1')
@@ -63,13 +73,13 @@ df0 = pd.concat(dfs, axis='index')
 df0.reset_index(inplace=True)
 df = df0
 
+#%%##########################################
+#  DATA ALTERATIONS AND PREPROCESSING
+#############################################
 
+df.loc[df.method=='factor_product', 'gamma'] = 1.0
 
-#%%
-# from pdg.store import TensorLibrary
-# lib = TensorLibrary()
-MIN = 1E-15
-
+# set up fine method
 df['method_fine'] = df['method'].copy()
 df.loc[df.method=='cvx_opt_joint',
 	'method_fine'] = df[df.method=='cvx_opt_joint']['also_idef'].map(
@@ -77,81 +87,66 @@ df.loc[df.method=='cvx_opt_joint',
 df.loc[df.method=='cccp_opt_joint',
 	'method_fine'] = (df[df.method=='cccp_opt_joint']['gamma'] <= 1).map(
 		{True : 'cccp-VEX', False:'cccp-CAVE'})
-df.loc[df.method=='opt_dist',
-	'method_fine'] = 'torch:'+df[df.method=='opt_dist']['optimizer']
+if 'optimizer' in df.columns:
+	df.loc[df.method=='opt_dist',
+		'method_fine'] = 'torch:'+df[df.method=='opt_dist']['optimizer']
 
-# df.loc[df.method=='cvx_opt_joint', 'graph_id'] = None
-# df['inc_gap'] = df['graph_id']
-
-# df['inc'] = np.max(df['inc'], 0)
+# make sure inc is nonegative (no rounding errors)
 df.inc.clip(lower=0, inplace=True)
+
+# calculate objective
 df['obj'] = df['inc'] + df['gamma'] * df['idef']
 
-# best = { (gid, gamma) : df[(df.graph_id == gid) & (df.gamma == gamma)].obj.min()
-#      for gid,gamma in df[['graph_id', 'gamma']].value_counts().index }
+# calculate memdif
+if 'init_mem' in df.columns:
+	df['mem_diff'] = df.max_mem - df.init_mem
+
+# calculate gap
 best = {}
 for gid,gamma in df[['graph_id', 'gamma']].value_counts().index:
 	samegraph = df[(df.graph_id == gid)]
 	best[(gid,gamma)] = (samegraph.inc + gamma*samegraph.idef).min()
-
 df['gap'] = df.apply(lambda x: x.obj - best[(x.graph_id, x.gamma)], axis=1)
 
-# Make sure these are ok with log plot
-df[['gap','gamma']] += MIN
+# Lower bounds for log plot
+MIN = 1E-15
+df[['gap','gamma']] += MIN 
 
 
-#%%
-# Just plot inc vs idef, colored by gamma. Looks cool.
 
-fig, ax = plt.subplots(1,1)
-ax.set(xscale='log')
-sns.scatterplot(data=df, 
-	# x='inc',
-	x=df.inc + 1E-8,
-	y='idef',hue='gamma',hue_norm=LogNorm(),style='method',
-	alpha=0.5, s=50, linewidth=0,
-	ax=ax)
+#%%##########################################
+#  PLOTTING FUNCTIONS
+#############################################
+# sns.set_theme()
+
+def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
+	if condition:
+		data = data[condition]
+
+	fig, AX = plt.subplots(len(y_attrs), len(x_attrs), figsize=(15,12), squeeze=False)
+
+	for i,xa in enumerate(x_attrs):
+		for j,ya in enumerate(y_attrs):
+			plotter(data=data, x=xa, y=ya, ax=AX[j,i], **kws)
+
+	plt.show()
 
 
-#%%%
-## Same as above (inc vs idef, only looks cool), but with log scale
-#
-fig, ax = plt.subplots(1,1)
-ax.set(xscale='log')
-sns.scatterplot(data=df, 
-	# x='inc',
-	x=df.inc + 1E-20,
-	y='idef',hue='method',style='method',
-	alpha=0.5, s=50, linewidth=0,
-	ax=ax)
-
+###########################################
+#  ONE-OFF PLOTTING CELLS BELOW
+#############################################
 
 #%%
-#
-sns.stripplot(data=df, 
-	x='total_time', y='method', hue='gap',
-	alpha=0.5, linewidth=0,
-	hue_norm=LogNorm()
-	)
+plot_grid(df, 
+	# ['n_params','n_worlds', 'max_tw', 'n_vars'],	
+	['n_params','n_worlds', 'representation', 'iters', 'n_vars'],	
+	# ['mem_diff', 'total_time',  'inc'], 
+	['gap', 'mem_diff', 'total_time', 'obj', 'inc'], 
+	sns.kdeplot)
+# plot_grid(df, ['n_params'],	
+	# ['inc'], sns.lineplot)
 
-
-
-
-#%%  
-blu_org = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
-
-ax = sns.scatterplot(data=df, 
-	x='inc', y='idef',hue='method',style='method',
-	hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
-	alpha=0.2, # cmap=blu_org,
-	s=50,linewidth=0)
-
-idef_range = np.linspace(df['idef'].min(), df['idef'].max(), 100)
-pareto_opt = [df[df['idef'] <= idf]['inc'].min() for idf in idef_range]
-
-sns.lineplot(y=idef_range, x=pareto_opt, orient='y', ax=ax)
-
-
+# sns.scatterplot(data=df, x='n_params', y='inc')
 
 #%%
 
@@ -238,10 +233,14 @@ sns.stripplot(data=dfsmall,
 
 
 #%%
+df1 = df
+# fig, AX = plt.subplots(3, 2, figsize=(15,12))
+
+# sns.pairplot(data=df['n_worlds', 'total_time', 'mem_diff'])
 
 #%% ####
-df1 = df[df.n_worlds <= 4000]
-# df1 = df
+# df1 = df[df.n_worlds <= 4000]
+df1 = df
 fig, AX = plt.subplots(2, 2, figsize=(15,12))
 AX[0,0].set(yscale='log')
 sns.lineplot(data=df1,
@@ -275,7 +274,59 @@ sns.kdeplot(data=df[df.method=='cccp_opt_joint'],
 
 
 #%%
-sns.set_theme()
+
+#%%
+# Just plot inc vs idef, colored by gamma. Looks cool.
+
+fig, ax = plt.subplots(1,1)
+ax.set(xscale='log')
+sns.scatterplot(data=df, 
+	# x='inc',
+	x=df.inc + 1E-8,
+	y='idef',hue='gamma',hue_norm=LogNorm(),style='method',
+	alpha=0.5, s=50, linewidth=0,
+	ax=ax)
+
+
+#%%%
+## Same as above (inc vs idef, only looks cool), but with log scale
+fig, ax = plt.subplots(1,1)
+ax.set(xscale='log')
+sns.scatterplot(data=df, 
+	# x='inc',
+	x=df.inc + 1E-20,
+	y='idef',hue='method_fine',style='method_fine',
+	alpha=0.5, s=50, linewidth=0,
+	ax=ax)
+
+
+
+#%%
+#
+sns.stripplot(data=df, 
+	x='total_time', y='method', hue='gap',
+	alpha=0.5, linewidth=0,
+	hue_norm=LogNorm()
+	)
+
+
+
+
+#%%  
+blu_org = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
+
+ax = sns.scatterplot(data=df, 
+	x='inc', y='idef',hue='method',style='method',
+	hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
+	alpha=0.2, # cmap=blu_org,
+	s=50,linewidth=0)
+
+idef_range = np.linspace(df['idef'].min(), df['idef'].max(), 100)
+pareto_opt = [df[df['idef'] <= idf]['inc'].min() for idf in idef_range]
+
+sns.lineplot(y=idef_range, x=pareto_opt, orient='y', ax=ax)
+
+
 sns.pairplot(data=df[['inc', 'idef', 'total_time', 'gamma', 'method']], hue='method',
 	plot_kws=dict(alpha=0.5))
 
@@ -300,5 +351,4 @@ sns.jointplot(data=df, x='n_worlds', y=np.log(df.gap), kind='hex')
 # sns.set_style("ticks")
 sns.violinplot(data=df, x='method', y='total_time')
 # sns.despine(offset=10, trim=True);
-
 
