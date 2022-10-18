@@ -51,3 +51,69 @@ This allows us to use powerful interior-point methods
 that can solve such problems in polynomial time \parencite{dahl2022primal}. 
 
 %%%%%%%%%%%==================================================%%%%%%%%%%%%
+% OLD CCCP SECTION
+
+
+%joe2*: Why do we care about this?  How does it relate to what you
+%called the inference problem on p. 3 (which does *not* involve
+%minimizing inconsistency).
+%oli2: is this now clearer now that I've connected the two a little better?
+\section{INFERENCE WHEN
+    \texorpdfstring{$\boldsymbol\gamma \boldsymbol> \mat 0$}{gamma > 0},
+    VIA THE CONVEX-CONCAVE PROCEDURE }
+
+We have now given an algorithm that provably finds the distribution $\bbr{\dg M}^*$ in polynomial time. 
+What about optimal distributions for fixed $\gamma > 0$.
+
+
+
+To do this, we re-use our work in \cref{sec:reductions} employ the convex-concave procedure 
+\parencite{yuille2003concave} to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
+
+The PDG scoring function can be written as \parencite[Proposition 4.6]{pdg-aaai}
+\begin{align*}
+    \bbr{\dg M}_\gamma(\mu) = 
+        -\gamma\H(\mu) + 
+            \sum_{L \in \Ed}
+                % \left[
+                \beta\ssub L\, \Ex_\mu 
+                    \log \frac1{p\ssub L(\Tgt L | \Src L)}
+                % \right]
+                \\
+            + \sum_{L \in \Ed}
+            (\gamma \alpha \ssub L - \beta\ssub L)
+                \Ex_\mu \log \mu(\Tgt L | \Src L)
+\end{align*}
+The first line is the sum of a linear term and a convex one,
+and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
+Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
+%
+\begin{align*}
+    \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
+        \nabla g(\mu_t)
+\end{align*}
+
+As we will see in \cref{sec:expts}, the aproach presented here section is 
+not very fast, but it is guaranteed to make progress, since
+\def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
+\begin{align*}
+    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
+        % &\text{(concavity of $g$)}
+        \\
+    &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)
+        % &\text{(defn of argmin)}
+        \\
+    &= f(\mu_t) + g(\mu_t)
+\end{align*}
+and eventually find an optimum, because the concave terms are bounded.
+%
+% The slightly trickier part is combining this with the clique tree representation of \cref{sec:clique-tree-expcone}.
+% \TODO[ TODO: Show the fancier spanning aborescence trick ]
+%
+% To combine this tech this with the clique tree representation of 
+The only remaining difficulty is to do the convex optimization over
+calibrated clique-trees. Fortunately, we already dealt with the 
+tricky part (rewriting the joint entropy term as a disciplined convex program) in 
+\cref{sec:clique-tree-expcone},
+and so we defer the details to the appendix.
+    

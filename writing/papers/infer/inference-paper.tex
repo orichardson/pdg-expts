@@ -353,7 +353,7 @@ by taking the union of the source and target sets,
 thereby ``forgetting the direction of the arrow''.
 % There is also a natural bijection between directed hypergraphs and directed bipartite graphs. 
 
-% Given a hyper-graph $(\N, \Ed)$,
+% Given a hyper-graph $(\X, \Ed)$,
 Many problems that are intractable for general graphs
 are tractable when restricted to trees.
 some graphs are closer to trees than others. 
@@ -413,10 +413,10 @@ of some set of factors
 $\boldsymbol\phi = \{ \phi_E \}_{E \in \Ed}$
 over a hypergraph $(\X, \Ed)$ closely related to the structure of $\cal M$.
 % $
-%     \Pr_{}(\N) \propto \prod_{E \in \Ed} \phi_{E}(E)
+%     \Pr_{}(\X) \propto \prod_{E \in \Ed} \phi_{E}(E)
 % $ 
 For this reason, a graphical model is often defined to be such a tuple
-$(\N ,\Ed, \boldsymbol\phi)$. 
+$(\X ,\Ed, \boldsymbol\phi)$. 
 
 % One characterization of graphical models, which we will call a 
 % \emph{factorizing graphical model}, is 
@@ -536,7 +536,7 @@ is just an arbirary collection of cpds and causal assertions,
     a PDG $\dg M = (\X, \Ar, \mathcal P, \balpha, \bbeta )
      % = (\mathcal P, \balpha, \bbeta)$ 
     $
-    % over $\N$ is a set $\Ed$ of ``directed hyper-edges'', 
+    % over $\X$ is a set $\Ed$ of ``directed hyper-edges'', 
     % each $L \in \Ed$ of which is associated with:
 %joe2: we didn't talk about hypergraphs in the AAAI paper.  Do you
 %talk about them in the AIStats paper?
@@ -549,9 +549,9 @@ is just an arbirary collection of cpds and causal assertions,
     $\ed a{\Src {}}{\Tgt {}} \in \Ar$
     is associated with:
     \begin{itemize}[itemsep=0pt]
-        % \item (subsets of) variables $\Src L, \Tgt L \subset \N$, indicating the respective source and target variables of the edge;
-        % \item variables $\Src L, \Tgt L \in \N$, the source and target of $L$;
-        % \item subsets $\Src L, \Tgt L \subset \N$, which are source and target variables of the edge $L$. For example,   
+        % \item (subsets of) variables $\Src L, \Tgt L \subset \X$, indicating the respective source and target variables of the edge;
+        % \item variables $\Src L, \Tgt L \in \X$, the source and target of $L$;
+        % \item subsets $\Src L, \Tgt L \subset \X$, which are source and target variables of the edge $L$. For example,   
         %     $$\Src L = \{A, B\} \ed L{}{} \{C\} = \Tgt L$$
         %  intuitively represents a joint dependence of $C$ on the variables $A$ and $B$;
         \item a cpd $p\ssub a (\Tgt a | \Src a)$ on the target variables given the source variables,
@@ -581,7 +581,7 @@ which represents the combined information of both $\dg M_1$ and $\dg M_2$.
 %to slow down and explain things.
 % \TODO[intuition]
 
-The semantics of a PDG are given by two scoring functions over joint distributions $\mu(\N)$ over all variables.
+The semantics of a PDG are given by two scoring functions over joint distributions $\mu(\X)$ over all variables.
 The \emph{incompatibility} of $\mu$ with a PDG $\dg M$, which
 measures the discrepency between $\mu$ and the cpds of $\dg M$,
 is given by the weighted sum of relative entropies:
@@ -741,7 +741,7 @@ $\Inc_{\dg M}$; the latter set can be shown to contain $\bbr{\dg
 %must MOTIVATE). 
 The $\gamma$-inconsistency of a PDG $\dg M$ is the smallest possible score of any distribution:
 \begin{align*}
-    \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\N}\, \bbr{\dg M}_\gamma(\mu).
+    \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\X}\, \bbr{\dg M}_\gamma(\mu).
 \end{align*}
 To parallel the notation for scoring functions, when we omit the subscript, we refer to the limit as $\gamma\to 0$, which, unlike before, obeys $\aar{\dg M} = \aar{\dg M}_0$. 
 
@@ -888,8 +888,14 @@ The question is
 
 % By inference in a PDG, we mean respoding to probabilisty qureies $Q(Y|X)$ for (sets of) variables $X,Y \subset \X$
 \begin{defn}
-    A PDG inference algorithm is a procedure that, given a PDG $\dg M$ over variables $\X$, a non-negative number $\gamma \ge 0$ or ``$\gamma\to 0$'', and a probabilistic query of the form $Q(Y|X\!=\!x)$ for $X,Y \subset \X$ and $x \in \V X$, returns a probability distribution $\mu(Y)$ that is the conditional marginal $\mu(Y|X=x)$ for some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number), 
-    or $\bbr{\dg M}^*(Y|X\!=\!x)$ (if given ``$\gamma\to0$'').
+    A PDG inference algorithm is a procedure that, given a PDG $\dg M$ over variables $\X$,
+     % a non-negative number $\gamma \ge 0$ or $0^+$,
+     % either a non-negative number $\gamma \ge 0$ or $\gamma = $``$0^+$'',
+     a value for $\gamma \in \mathbb R_{\ge 0} \cup \{0^+\}$, 
+     and a probabilistic query of the form $Q(Y|X\!=\!x)$ 
+     % for $X,Y \subset \X$ and $x \in \V X$, 
+     returns a probability distribution $\mu(Y)$ that is the conditional marginal $\mu(Y|X=x)$ for some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number), 
+    or $\bbr{\dg M}^*(Y|X\!=\!x)$ (if $\gamma = 0^+$).
 \end{defn}
 
 
@@ -995,9 +1001,9 @@ and relatively standard application of the exponential cone to finding minimizer
 } \label{sec:minimize-inc}
 
 When $\gamma = 0$, we have $\bbr{\dg M}_0(\mu)= \Inc(\mu)$ which is a weighted sum of conditional relative entropies.
-Unsurprisingly, the exponential---or ``relative entropy''---cone can be used to find such minima in a relatively standard way.  
+Unsurprisingly, the exponential (relative entropy) cone can be used to find such minima in a standard way.
 We now review the construction of that exponential conic program, 
-    so that we can build upon it in later sections.
+    so that we can build upon it.
 
 % \subsection*{Warm-Up}
 % \paragraph{Warm-Up}
@@ -1123,7 +1129,7 @@ and consider the optimization problem \eqref{prob:joint-inc}.
         % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
         \sum_{a \in \Ar}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
     \numberthis\label{prob:joint-inc}\\
-    \text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\[0.2ex]
+    \text{\sf subject to:}&\quad \mu \in \Delta\V\X, \\[0.2ex]
         \forall a \in \Ar.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
     % \\
     % \color{red}\text{previously}&\color{red}
@@ -1212,16 +1218,47 @@ The first term, $-\H(\mu)$ is strictly convex and has a well-known
 translation into an exponential cone constraint, and the second one linear in $\mu$. 
 Now, if $\gamma \le \min_{a} \frac{\beta_a}{\alpha_a}$, then every summand of the final term is a negative conditional entropies, which also admit such a translation.
 
-In more detail, consider a vector $\mat u := [ u^{a }_{s,t}]^{a \in \Ar}_{(s,t) \in \V(\Src a, \Tgt a)}$ for the optimization problem
+In more detail, let 
+$\V\!\Ar :%
+    = \sqcup_{a \in A} \V(\Src a, \Tgt a) 
+    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \}$, 
+be the set all choices of an arc together with values of the variables that it touches.
+Now, divide $\V\!\Ar$ into two disjoint subsets:
+$\V\!\Ar^+ := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) > 0\}$ and
+$\V\!\Ar^0 := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) = 0\}$.
+Next, define upper bound vectors 
+% $\mat u := [ u^{a }_{s,t}]^{a \in \Ar}_{(s,t) \in \V(\Src a\!, \Tgt a)}$ and $\mat v := [v_w]_{w \in \V\!\X}$,
+$\mat u := [ u_{a,s,t}]_{(a,s,t) \in \V\!\Ar}$ and $\mat v := [v_w]_{w \in \V\!\X}$,
+and consider the optimization problem
+%
 \begin{align*}
-\mathop{\text{\sf minimize}}\limits_{\mu, \mat u} &\quad
+\mathop{\text{\sf minimize}}\limits_{\mu, \mat u, \mat v} & ~~
     % \Vert t \Vert_1  
     % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
-    \sum_{a \in \Ar}(\beta_a - \alpha_a \gamma) \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
-\numberthis\label{prob:joint-small-gamma}\\
-\text{\sf subject to:}&\quad \mu \in \Delta\V\N, \\[0.2ex]
-    \forall L \in \Ed.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
+    % \sum_{a \in \Ar} (\beta_a - \alpha_a \gamma) \, \sum_{\mathrlap{\!\!\!\!\! s,t \in \V(\Src a\!, \Tgt a)}} u^a_{s,t} ~\quad +~  \sum_{\mathclap{w \in \V\!\X}} v_w
+    \sum_{\mathrlap{\!\!\!(a,s,t) \in \V\!\Ar}} (\beta_a \!- \alpha_a \gamma) u_{a,s,t} + \sum_{\mathclap{w \in \V\!\X}} v_w  
+    \numberthis\label{prob:joint-small-gamma}
+    \\
+    &\qquad
+    - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}} \mu(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
+\\
+\text{\sf subject to:}&\quad \mu \in \Delta\V\X, 
+    \\[0.2ex]
+    \forall a \in \Ar.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}, \\
+    \forall (a,s,t) &\in \V\!\Ar^0.~ 
+    % \forall a \in \Ar. &~ \forall (s,t) \in \V(\Src a, \Tgt a)
+    % \text{ s.t. } p\ssub a(t|s) \!=\! 0.~
+    \mu(\Src a{=}s, \Tgt a{=}t) = 0, \\
+    & (-\mat v,  \mu,  \mat 1) \in K_{\exp}.
 \end{align*}
+
+
+\begin{prop}\label{prop:joint-small-gamma}
+    If $(\mu, \mat u, \mat v)$ is a solution to \eqref{prob:joint-small-gamma}, 
+    and $\beta_a \ge \alpha_a \gamma$ for all $a \in \Ar$, then
+    $\mu$ is the unique element of $\bbr{\dg M}^*_\gamma$,
+    and $\aar{\dg M}_\gamma$ equals the objective of \eqref{prob:joint-small-gamma} evaluated at $(\mu, \mat u, \mat v)$. 
+\end{prop}
 
 \subsection{Larger 
     \texorpdfstring{$\boldsymbol\gamma$}{gamma}}
@@ -1234,11 +1271,10 @@ becomes more important.
 Because $\IDef{}$ can express features of a distribution like conditional indepenedence,
 it cannot be convex.%
     \footnote{one can easily verify that set of distributions that make $X$ and $Y$ independent is not convex.}
-Nevertheless, \eqref{eq:altscore} still gives us a way to 
-
+Nevertheless, \eqref{eq:altscore} still gives us a way to proceed because it is a decomposition into a sum of a convex and a concave function, meaning that we can apply the convex-concave procedure, or CCCP \parencite{yuille2003concave}. 
 % The first line is the sum of a linear term and a convex one,
-and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
-Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
+In more detail: and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
+Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver as in \cref{sec:small-gamma} to compute
 %
 \begin{align*}
     \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
@@ -1257,15 +1293,17 @@ not very fast, but it is guaranteed to make progress, since
     \\
 &= f(\mu_t) + g(\mu_t)
 \end{align*}
-and eventually find an optimum, because the concave terms are bounded.
+and eventually find an optimum, because the concave terms, because they are conditional entropies of a finitely supported distribution, are bounded.
 
 
 % \subsection{Incorporating IDef}
 \subsection{The Emperical Limit}
     \label{sec:empirical-limit}
+    
 % To do this second pass, we will need this second property
 % As $\gamma \to 0$, the limit of $\bbr{\dg M}_\gamma$
-So far, we have only found \emph{some} distribution that minimizes $\Inc$; 
+So far, we have found a
+In \cref{sec:minimize-inc}, we only found \emph{some} distribution that minimizes $\Inc$; 
 we really wanted to find the unique distribution $\bbr{\dg M}^*$.
 It turns out that a solution to \eqref{prob:joint-inc} can be used to construct a second optimization problem of a similar size, that also optimizes $\IDef{}$ subject to these constraints, finally addressing \textbf{D3}. 
 % To justify our approach, we will to prove two more results.
@@ -1311,7 +1349,7 @@ then
             % + K(\dg M)
         % \Ex_\mu 
         % \left[
-        \sum_{\mathclap{ w \in \V(\N)} }
+        \sum_{\mathclap{ w \in \V(\X)} }
             % \log \frac{\mu}{\prod_{L \in \Ed} \nu(\Tgt L | \Src L)}
             \mu(\mskip-1mu w \mskip-1mu)
             \log  \bigg(
@@ -1341,13 +1379,13 @@ respectively.
 
 Having already computed a solution to \eqref{prob:joint-inc},
 the denominator of the expression in \cref{prop:idef-frozen}
-(apart from its dependence on joint values $w \in \V\N$ of all variables)
+(apart from its dependence on joint values $w \in \V\X$ of all variables)
 %joe2
 %is a constant in our optimiziation problem; let's call it
 is a constant in the optimiziation problem; call it
 \begin{equation}
     % \psi(w) := \prod_{L \in \Ed} \nu(\Tgt Lw | \Src Lw)^{\alpha\ssub L}.
-    \boldsymbol\psi := \bigg[~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub L} \bigg]_{w \in \V\N}\quad.
+    \boldsymbol\psi := \bigg[~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub L} \bigg]_{w \in \V\X}\quad.
     \label{eq:cm-product}
 \end{equation}
 % These constants can $\boldsymbol\psi$ be the vector representation of
@@ -1359,11 +1397,12 @@ If $\nu \in \bbr{\dg M}_0^*$,
 and $(\mu, \mat u)$ is a solution to the convex problem 
 \begin{align*}
     \mathop{\text{\sf minimize}}\limits_{\mu, \mat u} & \quad
-        \sum_{w \in \V \N} u_w
+        % \sum_{w \in \V \X} u_w
+        \mat 1^{\sf T} \mat u 
         % |\,\mat u\,| 
         \numberthis\label{eqn:joint+idef}\\
     \text{\sf subject to} &\quad 
-        (-\mat u,  \mu, \boldsymbol\psi) \in K_{\exp},~~ \mu \in \Delta\V\N, \\
+        (-\mat u,  \mu, \boldsymbol\psi) \in K_{\exp},~~ \mu \in \Delta\V\X, \\
             &\forall a \in \Ar.~~\mu(\Src a, \Tgt a) \nu(\Src a) = \mu(\Src a) \nu(\Src a, \Tgt a),
 \end{align*}
 then $\bbr{\dg M}^* = \mu$ 
@@ -1400,26 +1439,26 @@ We now show how to optimize over clique-trees $\bmu$, instead of a full joint di
 	%  	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
 	% 		% \subset
 	% 		~\models~
-	% 	% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
-	% 	\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \mat X
+	% 	% \mathrm I( \X_1 ; \X_2 \mid \mathbf X)
+	% 	\X_1 \mathbin{\bot\!\!\!\bot} \X_2 \mid \mat X
 	% \]
 	% That is: in every optimizing distribution, for any value of $\gamma$, the variables of $\dg M_1$ and the variables of $\dg M_2$ are conditionally independent given their shared variables $\mat X$.
 	% Suppose $\dg M_1$ and $\dg M_2$ are value-compatible PDGs,
-	% with respective sets of nodes $\mat X_1 := \N^{\dg M_1}$ and
-	% $\mat X_2 := \N^{\dg M_2}$.
+	% with respective sets of nodes $\mat X_1 := \X^{\dg M_1}$ and
+	% $\mat X_2 := \X^{\dg M_2}$.
 %joe2
 %  Suppose $\dg M_1$ and $\dg M_2$ are PDGs
     Suppose that $\dg M_1$ and $\dg M_2$ are PDGs
-    over the sets of variables $\N_1$ and $\N_2$, respectively.
+    over the sets of variables $\X_1$ and $\X_2$, respectively.
 	 % and let $\mathbf X$ denote the variables they have in common.
 	Then for all $\gamma > 0$, we have that
 	\[
 	 	\bbr{\dg M_1 \bundle \dg M_2}^*_\gamma
 			% \subset
 			~\models~
-		% \mathrm I( \N_1 ; \N_2 \mid \mathbf X)
-		\N_1 \mathbin{\bot\!\!\!\bot} \N_2 \mid \N_1 \cap \N_2
-		% \N^{\dg M_1} \mathbin{\bot\!\!\!\bot} \N^{\dg M_2} \mid \mat X
+		% \mathrm I( \X_1 ; \X_2 \mid \mathbf X)
+		\X_1 \mathbin{\bot\!\!\!\bot} \X_2 \mid \X_1 \cap \X_2
+		% \X^{\dg M_1} \mathbin{\bot\!\!\!\bot} \X^{\dg M_2} \mid \mat X
 		% \mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2.
 	\]
 	That is: in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$,
@@ -1438,19 +1477,19 @@ Suppose that we are given a tree decomposition $(\mathcal C, \mathcal T)$
 of $\dg M$'s underlying hypergraph $\Ar$. 
 Since $(\cal C, T)$ is a tree decomposition of $\Ar$, we are guaranteed
 that the source and target of every arc $a$ lie entirely within at least one cluster.
-Fix a mapping from arcs to clusters, and let $C_a \in \cal C$ be the cluster that corresponds to the edge $a$.
+Fix a choice of such a cluster $C\!_a \in \cal C$ for each arc $a \in \Ar$.
 
 
 We now optimize over possible
 % cluster marginals
 clique trees
-$\bmu = \{\mu_C \in \Delta\V(C) \}_{C \in \mathcal C}$,
+$\bmu = \{\mu_C \in \Delta\V(C) \}_{C \in \mathcal C}$ over $(\cal C, T)$,
 %joe2*: I'm lost.  Whose simplex representation are you referring to
 %when you say "its simplex representation"?
 %oli2: oops, I meant something a little more complex. Thanks for pointing it out.
 % which we identify with its simplex representation
 % as a vector of demension $\sum_{C \in \mathcal C}|\V(C)|$.
-which we identify with the vector
+which we identify with vectors
 $[\mu_C(c)]^{C \in \mathcal C}_{c \in C}$.
 As before, consider
 % let $K := \sum_{L \in \Ed} |\V(\Src L, \Tgt L)|$ and
@@ -1461,7 +1500,7 @@ $\mat u := [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
 % $\Rext^K$.
 %
 % Consider the problem
-in the convex problem
+in the convex problem \eqref{prob:cluster-inc}.
 %
 \begin{align*}
     \mathop{\text{\sf minimize}}\limits_{\bmu, \mat u} &\quad
@@ -1470,15 +1509,21 @@ in the convex problem
     \text{\sf subject to:}&\quad
         \forall C \in \mathcal C.~\mu_C \in \Delta\V(C), \\[-0.2ex]
         % exponential constraints
-        \forall a \in \Ar.~ \big(&\!- \! \mat u^L\!,\, \mu_{C_a}\!(\Src a,\mskip-2mu \Tgt L), \mu_{C_a}\!(\Src a) p\ssub L(\Tgt a | \Src a)\big) \in K_{\exp} \\
+        \forall a \in \Ar.~ \big(&\!- \! \mat u^L\!,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt L), \mu_{C\!_a}\!(\Src a) p\ssub L(\Tgt a | \Src a)\big) \in K_{\exp} \\
         % marginal constraints
         \forall (C,D) &\in \mathcal T.~~ \mu_{C}(C \cap D) = \mu_{D}(C \cap D).
 \end{align*}
 
-Because it is a relative entropy optimization over calibrated clique trees, 
-\eqref{prob:cluster-inc} is essentially an analogue of
-CTree-Optimize-KL from \textcite[pg. 384]{koller2009probabilistic},
-for PDGs in the quantitative limit. 
+% Because it is a relative entropy optimization over calibrated clique trees, 
+% \eqref{prob:cluster-inc} is essentially an analogue of
+% CTree-Optimize-KL from \textcite[pg. 384]{koller2009probabilistic},
+% for PDGs in the empirical limit. 
+Problem \eqref{prob:cluster-inc} is very similar to \eqref{prob:joint-inc}, except
+that it also includes local marginal constraints along the edges of the clique tree,
+so that we are optimizing over \emph{calibrated} clique trees. In many ways, it
+is analogous to 
+CTree-Optimize-KL from \textcite[pg. 384]{koller2009probabilistic}.
+% optimization over calibrated clique trees essentially 
 
 \begin{prop} \label{prop:cluster-idef}
     If $(\bmu, \mat u)$ is a solution to \eqref{prob:cluster-inc}, then 
@@ -1489,8 +1534,10 @@ for PDGs in the quantitative limit.
 % that the source and target of every edge $L$ lie entirely within at least one cluster.
 % Fix a mapping of edges to clusters, and let $C_L \in \cal C$ be the cluster that corresponds to the edge $L$.
 
+For $\gamma > 0$, or for $\gamma = 0^+$, we also have to deal with the term $-\H(\mu)$, which cannot be described as a function of the marginals of any individual cluster. 
 
-\subsection{Incorporating IDef, Again}
+\textbf{Dealing with the Joint Entropy.}
+% \subsection{Incorporating IDef, Again}
 % \textbf{Incorporating IDef, in the quantitative limit.}
 %
 % One nice feature of $\Inc$, which was integral to 
@@ -1567,7 +1614,7 @@ and consider the following optimization problem.
 %
 \begin{align*}
 \mathop{\text{\sf minimize}}\limits_{\bmu, \mat u} & \quad
-    % \sum_{w \in \V\N} u_w
+    % \sum_{w \in \V\X} u_w
     \mat 1^{\sf T} \mat u
     % |\,\mat u\,| 
     \numberthis\label{prob:cluster+idef}\\
@@ -1635,69 +1682,6 @@ proposed in \textcite{dahl2022primal} works in polynomial time.
     \caption{ }
 \end{table}
 
-%joe2*: Why do we care about this?  How does it relate to what you
-%called the inference problem on p. 3 (which does *not* involve
-%minimizing inconsistency).
-%oli2: is this now clearer now that I've connected the two a little better?
-\section{INFERENCE WHEN
-    \texorpdfstring{$\boldsymbol\gamma \boldsymbol> \mat 0$}{gamma > 0},
-    VIA THE CONVEX-CONCAVE PROCEDURE }
-
-We have now given an algorithm that provably finds the distribution $\bbr{\dg M}^*$ in polynomial time. 
-What about optimal distributions for fixed $\gamma > 0$.
-
-
-
-To do this, we re-use our work in \cref{sec:reductions} employ the convex-concave procedure 
-\parencite{yuille2003concave} to find some minimizer $\mu^* \in \bbr{\dg M}^*_\gamma$ (although it may not be unique), for fixed $\gamma > 0$.
-
-The PDG scoring function can be written as \parencite[Proposition 4.6]{pdg-aaai}
-\begin{align*}
-    \bbr{\dg M}_\gamma(\mu) = 
-        -\gamma\H(\mu) + 
-            \sum_{L \in \Ed}
-                % \left[
-                \beta\ssub L\, \Ex_\mu 
-                    \log \frac1{p\ssub L(\Tgt L | \Src L)}
-                % \right]
-                \\
-            + \sum_{L \in \Ed}
-            (\gamma \alpha \ssub L - \beta\ssub L)
-                \Ex_\mu \log \mu(\Tgt L | \Src L)
-\end{align*}
-The first line is the sum of a linear term and a convex one,
-and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha\ssub L - \beta\ssub L$. 
-Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(\mu)$, we can choose an initial guess $\mu_0$, and iteratively use the convex solver to compute
-%
-\begin{align*}
-    \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
-        \nabla g(\mu_t)
-\end{align*}
-
-As we will see in \cref{sec:expts}, the aproach presented here section is 
-not very fast, but it is guaranteed to make progress, since
-\def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
-\begin{align*}
-    f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
-        % &\text{(concavity of $g$)}
-        \\
-    &\le  f(\mu_t) + (\mu_t - \mu_{t})^{\sf T}\nabla g(\mu_t)  + g(\mu_t)
-        % &\text{(defn of argmin)}
-        \\
-    &= f(\mu_t) + g(\mu_t)
-\end{align*}
-and eventually find an optimum, because the concave terms are bounded.
-%
-% The slightly trickier part is combining this with the clique tree representation of \cref{sec:clique-tree-expcone}.
-% \TODO[ TODO: Show the fancier spanning aborescence trick ]
-%
-% To combine this tech this with the clique tree representation of 
-The only remaining difficulty is to do the convex optimization over
-calibrated clique-trees. Fortunately, we already dealt with the 
-tricky part (rewriting the joint entropy term as a disciplined convex program) in 
-\cref{sec:clique-tree-expcone},
-and so we defer the details to the appendix.
-    
 \section{OTHER APPROACHES TO PDG INFERENCE} \label{sec:other-inference}
 % \section{EXTENSIONS}
 
@@ -1705,8 +1689,8 @@ and so we defer the details to the appendix.
 A stronger result than \cref{prop:markov-property} holds as well.
 \begin{prop}\label{prop:same-set-dists}
     % For all $\gamma > 0$ and in the limit as $\gamma \to 0$, 
-    Let $\Ed$ be a set of (hyper)edges over $\N$. 
-    For every PDG $\dg M$ over $\N$ with edges $\Ed$, every $\gamma > 0$, and every optimum $\mu^* \in \bbr{\dg M}_\gamma^*$ of $\dg M$'s scoring function at $\gamma$, 
+    Let $\Ed$ be a set of (hyper)edges over $\X$. 
+    For every PDG $\dg M$ over $\X$ with edges $\Ed$, every $\gamma > 0$, and every optimum $\mu^* \in \bbr{\dg M}_\gamma^*$ of $\dg M$'s scoring function at $\gamma$, 
     there is a factor graph $\Phi$ with factors along $\Ed$ such that $\Pr_\Phi = \mu^*$. 
 \end{prop}
 
@@ -2005,7 +1989,7 @@ As a consequence,
 \begin{lproof}
 	Choose $\mu \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$.
 	% Choose $\mu \in \mu^*_\gamma (\dg M_1 \bundle \dg M_2)$.
-	Let $\mu' := \mu(\N_1) \mu(\N_2)$
+	Let $\mu' := \mu(\X_1) \mu(\X_2)$
 	
 	\TODO[Finish Transcribing Proof]
 \end{lproof}
@@ -2260,7 +2244,7 @@ since the optimal value of $p(Y|X)$ would be the cpd we wanted.
 %oli2: did my additions above help?
 \begin{linked}{prop}{optimalYgivenX}
 	% \label{prop:optimalYgivenX}
-	% For all $\dg M$, $X,Y\in\N^{\dg M}$, and $\gamma > 0$, we have that
+	% For all $\dg M$, $X,Y\in\X^{\dg M}$, and $\gamma > 0$, we have that
     For all variables $X,Y$, and $\gamma > 0$, 
 	$$\displaystyle
 		% \argmin_{p : X \to \Delta Y}
