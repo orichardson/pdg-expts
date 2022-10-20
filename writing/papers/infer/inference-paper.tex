@@ -809,7 +809,8 @@ To parallel the notation for scoring functions, when we omit the subscript, we r
 \textbf{Interior Point Methods and Convex Optimization.}
 The advent of polynomial time methods for solving linear programs
 \parencite{}.
-In the 1990s, these methods were extende to handle second-order cone programs (SOCPs) and semidefinite programs (SDPs) in which one can add constraints.
+In the 1990s, these methods were extende to handle second-order cone programs (SOCPs) and semidefinite programs (SDPs) in which one can add more expressive constraints,
+    involving the euclidean norm of a vector, or that a matrix need be positive semidefinite.
 These optimization methods that applied to such ``self-dual'' cones
     immediately found applications across a wide range of tasks. 
 But some---those involving probabilities and divergences---have historically
@@ -880,23 +881,110 @@ constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine trans
 % So long as the constraints satisfy certain rules they are said to be dcp; dcp program can be compiled to a convex optimization problem that can be handled efficiently.
 % The rule for the exponential cone is simple: the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $a$, $b$, and $c$ are affine transformations of the program variables. 
 
-\section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
+% \section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
+\section{INFERENCE IN A PDG, AND COMPUTING INCONSISTENY}
+% \section{PDG INFERENCE, AND COMPUTING INCONSISTENCY}
 
 What does inference mean in a PDG? 
-The question is 
+How ought we to respond to a probabilistic query $Q(Y|X{=}x)$?
+The answer is not so obvious as it is for other graphical models,
+for several different reasons.
 
+\textbf{1.}
+PDGs describe inconsistent beleifs, 
+so why should we expect to get consistent answers out of them? 
+If the inconsistency were sorted out, then arguably there is no need for a PDG; one may use a distribution instead. 
+
+To illustrate one aspect of this, consider a BN in which $X$ is the set of parents of $Y$.
+% In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the table. 
+Such a BN has a row of a table that corresponds precisely to $p(Y|X{=}x)$, which is the answer we are looking for, and it would be reasonable to short-circuit an inference procedure upon finding it. 
+But in a PDG, that cpd $p(Y | X)$ may not even be the only conditional probability on $Y$ given $X$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
+
+\textbf{Conditioning.}
+% Here's a property of PDGs that is not shared by other graphical models:
+Unlike graphical models,
+% PDGs make a distinction between 
+there is a distinction between constraining so that $X{=}x$,
+and returning the conditional distribution.
+
+\begin{example}
+	Consider a PDG $\dg M$ containing $p(Y)$ with confidence
+    $\beta_p = r$, and $q(X|Y)$ with confidence $\beta_q = s$. 
+	% Now condition on $Y=y$ by adding that event to the PDG, to get 
+    Now, add the event $X{=}x$ to $\dg M$, to obtain 
+    % a new PDG:
+    a new PDG, $\dg M^{+x}$. 
+	% \[
+	% 	\dg M^{+y} := 
+	% 	\begin{tikzpicture}[center base]
+	% 		\node[dpad0] (X) at (0,0) {$X$};
+	% 		\node[dpad0] (Y) at (1.2,0) {$Y$};
+    %         %
+	% 		\draw[arr2,->] (X) to
+	% 			node[above, pos=0.4,inner sep=2pt]{$q$}
+	% 			node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(s)}$}
+	% 			(Y);
+	% 		\draw[arr2, <-] (X) to
+	% 			node[above, pos=0.6,inner sep=2pt]{$p$}
+	% 			node[below, pos=0.6, inner sep=2pt]
+	% 				{${\color{gray}\scriptstyle(r)}$}
+	% 			+(-1.0, 0);
+	% 		\draw[arr2, <<-, red] (Y) to
+	% 			node[above, inner sep=2pt, pos=0.7]
+	% 				{$y$}
+	% 			+(0.9,0);
+	% 	\end{tikzpicture}.
+	% \]
+	Now, $\bbr{\dg M}^* = p(Y)q(X|Y)$ doesn't depend on $r$ or $s$, since we can simultaneously satisfy $p$ and $q$---and after conditioning on $X{=}x$, we get a distribution $\bbr{\dg M}^* | X{=}x$ proportional to $p(Y) q(x|Y)$. 
+	But some calculations reveal that $\bbr{\dg M^{+x}}^*$, 
+    while also supported only on worlds where $X{=}x$, is proportional to
+	$p(Y) q(x|Y)^{s/r}$.
+    % , with an additional exponent $r/s$ that was not present before.  
+	%
+	So if $r = s$,
+    % so that the data of $\dg M$ effectively picks out a probability distribution with uniform confidence,
+    this amounts to conditioning as usual, but otherwise,
+    it doesn't.
+    % there is distortion.
+    % we don't.
+    % Intuitively, the cpd with lower confidence ends 
+    Intuitively, both the distribution of $Y$ and the conditional distribution of $X$ given $Y$ can be bent to satisfy $X{=}x$, and in $\bbr{\dg M^{+x}}^*$ the cpd with lower confidence will be bent further than the one of higher confidence.
+    If $r \gg s$ for example,
+    % then the resulting distribution will just be 
+    then $\bbr{\dg M^{+x}}^* \approx
+    % p(X)\delta_{y}(Y)$.
+    p(Y) \delta_x(X)$.
+    And perhaps that is even a better answer than conditioning, if indeed we are far more confident in $p$ than in $q$. 
+\end{example}
+
+% So even though a PDG 
+So, adding an event to a PDG is a different form of conditioning, 
+which is sensitive to confidence.  This has big implications for responding to conditional probability queries, because it means there can be a big difference between restricting to worlds where $Y{=}y$, and conditioning on $Y{=}y$. 
+% \end{enumerate}
+% As a consequence, 
+
+% By analogy to other graphical models,
+To put the question on the same footing as other graphical models, we make the following definition.
 
 % By inference in a PDG, we mean respoding to probabilisty qureies $Q(Y|X)$ for (sets of) variables $X,Y \subset \X$
 \begin{defn}
-    A PDG inference algorithm is a procedure that, given a PDG $\dg M$ over variables $\X$,
-     % a non-negative number $\gamma \ge 0$ or $0^+$,
-     % either a non-negative number $\gamma \ge 0$ or $\gamma = $``$0^+$'',
-     a value for $\gamma \in \mathbb R_{\ge 0} \cup \{0^+\}$, 
-     and a probabilistic query of the form $Q(Y|X\!=\!x)$ 
-     % for $X,Y \subset \X$ and $x \in \V X$, 
-     returns a probability distribution $\mu(Y)$ that is the conditional marginal $\mu(Y|X=x)$ for some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number), 
-    or $\bbr{\dg M}^*(Y|X\!=\!x)$ (if $\gamma = 0^+$).
+    A PDG inference algorithm is a procedure 
+    that takes as in put (1) a PDG $\dg M$ over variables $\X$,
+    % a non-negative number $\gamma \ge 0$ or $0^+$,
+    % either a non-negative number $\gamma \ge 0$ or $\gamma = $``$0^+$'',
+    (2) a value for $\gamma \in \mathbb R_{\ge 0} \cup \{0^+\}$, 
+    and (3) a probabilistic query of the form $Q(Y|X{=}x)$, 
+    % for $X,Y \subset \X$ and $x \in \V X$, 
+    % returns a probability distribution $\mu(Y)$ that is the conditional marginal
+    and then returns either a distribution $\mu(Y|X{=}x)$
+    which is the conditional marginal
+    of some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number), 
+    or $\bbr{\dg M}^*(Y|X{=}x)$ (if $\gamma = 0^+$).
 \end{defn}
+
+
+
+To get an algorithm that 
 
 
 
@@ -904,8 +992,8 @@ The question is
     \item An inconsistency oracle can be used to do inference in a way that does not scale with the size of the graph
     \item Computing inconsistency is NP-hard
     % \item Clique tree calibration can be seen as inconsistency reduction
-    \item Belief propagation can be seen as inconsistency reduction
-    \item MAP queries?
+    \item Clique tree calibration can be seen as inconsistency reduction
+    % \item MAP queries?
 \end{enumerate}
 
 \textbf{Inconsistency-Based Approach.}
@@ -1331,52 +1419,57 @@ First, a characterization of the set $\bbr{\dg M}^*_0$ of distributions that are
 % \end{prop}
 
 \begin{prop}\label{prop:marginonly}
+    
     For a PDG $\dg M$ with arcs $\Ar$,
     the distributions $\mu$ minimizing $\Inc$ all have the same conditional
         marginals along $\Ar$.
     That is, for all $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$
     and all $a \in \Ar$, 
     we have
-    $\mu_1(\Tgt a | \Src a) = \mu_2(\Tgt a | \Src a)$. 
+    $\mu_1(\Tgt a | \Src a) = \mu_2(\Tgt a | \Src a)$.%
+    \footnote{
+        Technically, to account for the possibility that 
+        $\mu_1(\Src a {=} s)$ or $\mu_2(\Src a {=} s)$ is zero for some $s \in \V(\Src a)$, 
+        % we require that 
+        % $\mu(X,Y)\nu(X) = \mu(X) \nu(X,Y)$, rather than  $\mu(Y|X) = \nu(Y|X)$.
+        % this means 
+        the condition is:
+        $\mu_1(\Tgt a, \Src a)\mu_2(\Src a) = \mu_2(\Tgt a, \Src a) \mu_1(\Src a)$.%
+    }
 \end{prop}
 
-As a result, having already found one minimizer of $\Inc_{\dg M}$ via \eqref{prob:joint-inc}, it suffices to constrain distributions that have the same conditional marginals along the edges, and now optimize $\IDef{}$.%
-    \footnote{
-        Technically, to deal with the possibility that variables we
-        are conditioning on have probability zero,  
-        we require that $\mu(X,Y)\nu(X) = \mu(X) \nu(X,Y)$, rather than 
-        $\mu(Y|X) = \nu(Y|X)$.
-    }
-
-We now run into a second issue: IDef is not convex in $\mu$. 
-Fortunately, when we constrain to distributions
-that minimize $\Inc$, 
-% in $\bbr{\dg M}^*_0$,
-it is.
+As a result, once we find one minimizer $\nu$ of $\Inc_{\dg M}$
+(e.g., via \eqref{prob:joint-inc}), 
+it then suffices to constrain distributions that have the same conditional marginals along the edges, and now optimize $\IDef{}$.
+We now run into a second issue: $\IDef{}$ is not convex. 
+Fortunately, when we constrain to distributions that minimize $\Inc$, it is.
 Moreover, this function can also be represented with exponential cones.
 
 \begin{prop}\label{prop:idef-frozen}
 If $\mu \in \bbr{\dg M}_0^*$, 
 then
 \vspace{-1ex}
-\[
-    \IDef{\dg M}(\mu) = 
+\begin{equation}
+    % \IDef{\dg M}(\mu) = 
+    \underset{{\dg M}}{\IDef{}}(\mu) \!=\! 
         % \kldiv[\bigg]{\mu}{ \prod_{L \in \Ed} \nu(\Tgt L | \Src L) }
             % + K(\dg M)
         % \Ex_\mu 
         % \left[
-        \sum_{\mathclap{ w \in \V(\X)} }
+        % \sum_{\mathclap{ w \in \V(\X)} }
+        \sum_{\mathclap{ w \in \V\!\X } }
             % \log \frac{\mu}{\prod_{L \in \Ed} \nu(\Tgt L | \Src L)}
             \mu(\mskip-1mu w \mskip-1mu)
-            \log  \bigg(
-                \faktor{\mu(\mskip-1mu w\mskip-1mu )\,}{\,\prod_{a \in \Ar} \nu(\Tgt aw | \Src aw)^
+            \log  \bigg(\!
+                \faktor{\mu(\mskip-1mu w\mskip-1mu )\,}{\,\prod_{\mathclap{a \in \Ar}} \nu(\Tgt aw | \Src aw)^
                 % {\alpha_a}
                 {\alpha\ssub a}
-                }
-            \bigg)
+                }\!
+            \bigg)\mskip-2mu
         % \right]
         ,
-\]
+        \label{eq:idef-alt-constr}
+\end{equation}
 %
 where $\{ \nu(\Tgt a | \Src a ) \}_{a \in \Ar}$ are the
 conditional marginals along the arcs $\Ar$ 
@@ -1387,7 +1480,8 @@ shared by all distributions in $\bbr{\dg M}^*_0$\
 %and $\Src a w, \Tgt a w$ are the respective values of the variables
 %$\Src a$ and $\Tgt a$ in the world $w$, which is a joint setting of
 %setting of all variables. 
-and $\Src a w, \Tgt a w$ are the values of the variables
+while $\Src a w$ and $\Tgt a w$ are the
+values of variables
 $\Src a$ and $\Tgt a$
 % in the world $w$ (a joint setting of all variables),
 % in the joint setting $w$ of all variables,
@@ -1397,20 +1491,33 @@ respectively.
 % and $K(\dg M)$ does not depend on $\mu$. 
 \end{prop}
 
-Having already computed a solution to \eqref{prob:joint-inc},
-the denominator of the expression in \cref{prop:idef-frozen}
-(apart from its dependence on joint values $w \in \V\X$ of all variables)
+% Having already computed a solution to \eqref{prob:joint-inc},
+% the denominator of the expression in \cref{prop:idef-frozen}
+If we already have a solution $\nu$ to \eqref{prob:joint-inc},
+then the denomintor of \eqref{eq:idef-alt-constr}
+(apart from its dependence on joint values $w$ of $\V\!\X$)
 %joe2
 %is a constant in our optimiziation problem; let's call it
-is a constant in the optimiziation problem; call it
-\begin{equation}
+% is a constant in the optimiziation problem; call it
+is a constant in the search for $\mu$; for reference, let
+% \begin{equation}
+$
     % \psi(w) := \prod_{L \in \Ed} \nu(\Tgt Lw | \Src Lw)^{\alpha\ssub L}.
-    \boldsymbol\psi := \bigg[~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a} \bigg]_{w \in \V\X}\quad.
-    \label{eq:cm-product}
-\end{equation}
-% These constants can $\boldsymbol\psi$ be the vector representation of
-
-We now have our first reliable way of computing the optimal distribution $\bbr{\dg M}^*$ in the quantitative limit.
+    \boldsymbol\psi := 
+        % \bigg[
+        [
+        ~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a} 
+        ]
+        % \bigg]%
+        _{w \in \V\!\X}
+$
+be the corresponding vector.
+% and note that by \cref{prop:idef-frozen}, 
+% .
+% We now have our first reliable way of computing the optimal distribution $\bbr{\dg M}^*$ in the quantitative limit
+% This gives rise to the first algorithm
+Translating \eqref{eq:idef-alt-constr} to an exponential conic program,
+we get an algorithm that can reliably find the distribution $\bbr{\dg M}^*$.
 \begin{prop}
 % A solution to % \eqref{eqn:joint+idef}
 If $\nu \in \bbr{\dg M}_0^*$, 
@@ -1422,7 +1529,7 @@ and $(\mu, \mat u)$ is a solution to the convex problem
         % |\,\mat u\,| 
         \numberthis\label{eqn:joint+idef}\\
     \text{\sf subject to} &\quad 
-        (-\mat u,  \mu, \boldsymbol\psi) \in K_{\exp},~~ \mu \in \Delta\V\X, \\
+        (-\mat u,  \mu, \boldsymbol\psi) \in K_{\exp},~~ \mu \in \Delta\V\!\X, \\
             &\forall a \in \Ar.~~\mu(\Src a, \Tgt a) \nu(\Src a) = \mu(\Src a) \nu(\Src a, \Tgt a),
 \end{align*}
 then $\bbr{\dg M}^* = \mu$ 
@@ -1450,7 +1557,11 @@ and $\mat 1^{\sf T} \mat u = \IDef{\dg M}(\mu)$.
 % \subsection{A Less Expensive Representation for PDGs with Small Tree-Width}
     \label{sec:clique-tree-expcone}
 
-We now show how to optimize over clique-trees $\bmu$, instead of a full joint distribution $\mu$. What makes this possible is the fact that PDGs have similar independence properties to other graphical models. 
+% We now show how to optimize over clique-trees $\bmu$, instead of a full joint distribution $\mu$.
+We will now show how the joint distribution $\mu$ in our optimization may be replaced
+with a clique tree over the PDG's structure. What makes this possible is the fact that
+% at a high level, 
+PDGs share a key independence with other graphical models.
 
 \begin{linked}[Markov Property for PDGs]{prop}{markov-property}
 	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
@@ -1477,11 +1588,12 @@ We now show how to optimize over clique-trees $\bmu$, instead of a full joint di
 			% \subset
 			~\models~
 		% \mathrm I( \X_1 ; \X_2 \mid \mathbf X)
-		\X_1 \mathbin{\bot\!\!\!\bot} \X_2 \mid \X_1 \cap \X_2
+		\X_1 \mathbin{\bot\!\!\!\bot} \X_2 \mid \X_1 \cap \X_2.
 		% \X^{\dg M_1} \mathbin{\bot\!\!\!\bot} \X^{\dg M_2} \mid \mat X
 		% \mat X_1 \mathbin{\bot\!\!\!\bot} \mat X_2 \mid \mat X_1 \cap \mat X_2.
 	\]
-	That is: in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$,
+	% That is: in every optimal distribution $\mu^* \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$,
+	That is: in every distribution $\mu \in \bbr{\dg M_1 \bundle \dg M_2}^*_\gamma$,
      % for some $\gamma>0$, 
     the variables of $\dg M_1$ and of $\dg M_2$ are conditionally independent given the variables they have in common.
 \end{linked}
@@ -1844,13 +1956,13 @@ Our analysis shows that inference in PDGs with bounded tree-width can be done .
 
 
 \TODO[ the below is a transplant without context; fix it ]
-% Some queries are more difficult than others. 
-Although we the question the same way, we also want to point out that there are other reasonable ways to answer that question once we move to PDGs.
-Suppose we were looking at a BN in which it just so happens that $\mat X$ contains only a single variable and $\mat Y$ are the parents of $\mat X$.
-In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the conditional probability table. 
-But in a PDG, that cpd $p(\mat Y \,|\,\mat X)$, even if it is the only one
-attached to an edge from $X$ to $Y$, may not be the same as $\bbr{\dg M}^*(Y|X)$.
-As a consequence, 
+% % Some queries are more difficult than others. 
+% Although we the question the same way, we also want to point out that there are other reasonable ways to answer that question once we move to PDGs.
+% Suppose we were looking at a BN in which it just so happens that $\mat X$ contains only a single variable and $\mat Y$ are the parents of $\mat X$.
+% In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the conditional probability table. 
+% But in a PDG, that cpd $p(\mat Y \,|\,\mat X)$, even if it is the only one
+% attached to an edge from $X$ to $Y$, may not be the same as $\bbr{\dg M}^*(Y|X)$.
+% As a consequence, 
 
 
 
