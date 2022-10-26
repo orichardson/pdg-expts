@@ -357,8 +357,10 @@ thereby ``forgetting the direction of the arrow''.
 
 % Given a hyper-graph $(\X, \Ed)$,
 Many problems that are intractable for general graphs
-are tractable when restricted to trees.
-some graphs are closer to trees than others.
+are tractable for trees, and
+% By merging adjacent nodes, every graph may be converted to to a tree, but
+% some are closer than others
+some graphs are closer to being trees than others.
 %
 A tree decomposition of a (hyper)graph $G = (V, \Ed)$ is a tree $(\mathcal C, \mathcal T)$ whose vertices $C \in \mathcal C$, called
 %joe2
@@ -393,8 +395,9 @@ A tree decomposition of a (hyper)graph $G = (V, \Ed)$ is a tree $(\mathcal C, \m
 The \emph{width} of a tree decomposition is one less than the size of its largest cluster,
 and the \emph{treewidth} of a (hyper)graph $G$ is the smallest possible width of any tree decomposition of $G$.
 It is NP-hard to determine the tree-width of a graph, but if the tree-width is known to be bounded above, a tree decomposition may be constructed in linear time \parencite{bodlaender1993linear}.
-Many problems are \parencite{courcelle1990}.
-Inference in graphical models is another such example.
+% Most graph problems can be solved in linear \parencite{courcelle1990} time in the case of bounded treewidth. 
+In fact, under bounded tree-width, very many problems may be solved in linear time \parencite{courcelle1990}, including inference in standard graphical models. 
+% Inference in graphical models is one such problem.
 
 
 \textbf{Graphical Models and Inference.}
@@ -569,6 +572,7 @@ is just an arbirary collection of cpds and causal assertions,
     \end{itemize}
     In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and
     % $\mathcal P = \big[ p\ssub a(t|s) \big]{}^{a \in \mathcal A}_{(s,t) \in \V(\Src a,\Tgt a)}$
+    $\mathcal P$ is the set of cpds indexed by $\Ar$. 
 \end{defn}
 
 One selling point of PDGs is their modularity: if $\dg M_1$ and $\dg M_2$ are two PDGs, we can take the dusjoint union of their arcs (and associated data) to get a new PDG, denoted $\dg M_1 + \dg M_2$,
@@ -654,8 +658,8 @@ which
     % Seen from another angle, it
 %oli2
 % models causal structure,
-measures discrepency between $\mu$ and the causal structure described by $\dg M$,
-    and plays a significant role in allowing pdgs to capture (conditional) independencies.
+measures the extent to which $\mu$ reflects the causal structure described by $\dg M$,
+    and plays a significant role in allowing PDGs to capture (conditional) independencies.
 Note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$.
 %joe2*: the weights are a bit of a red herring.  once we have a clear
 %intuition for IDef (and I think I now see how the intuition should
@@ -673,7 +677,7 @@ Note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\
 %The PDG semantics are then given by a scoring fuction:
 % The semantics of a PDG $\dg M$ are then given by a scoring fuction
 The semantics of a PDG $\dg M$ are then given by a family of scoring fuctions
-$\bbr{\dg M}_\gamma: \Delta \V\X \to \Rext$
+$\bbr{\dg M}_\gamma: \Delta \V\!\X \to \Rext$
 % corresponding to the linear combination
 indexed by a trade-off parameter $\gamma \ge 0$ which controls the importance of
 $\IDef{}$ relative to $\Inc$:
@@ -704,7 +708,7 @@ $\IDef{}$ relative to $\Inc$:
 The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denotes the set of optimal distributions at a particular value $\gamma$.
 % Of particular interest is the ``quantitative limit'' as $\gamma \to 0$,
 % The inference task for PDGs, then is
-One particular case of interest is the limit as $\gamma \to 0$,
+One case of particular interest is the limit as $\gamma \to 0$,
 which corresponds to a fully empirical approach: matching quantitative observations is the primary concern, and causal information is used only to break ties.
 % When $\gamma$ is small enough.
 In this limit there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at least if $\bbeta > \mat 0$).
@@ -861,7 +865,7 @@ An \emph{exponential conic program} is an optimization problem of the form
     \mathop{\text{\sf minimize}}\limits_{x \in \Rext^n}~~ c^{\sf T} x
     \quad\text{\sf subject to}~~ Ax = b,~~x \in K_{\exp}^n
 \]
-where $c \in \Rext$
+where $c \in \Rext^n$ is some cost vector, and $b \in \Rext^m$, $A \in \Rext^{m \times n}$ describe linear constraints.
 % Recent work in interior point methods has provided a way to solve linear optimization problems with such constraints in polynomial time \parencite{dahl2022primal}.
 Historically, convex modeling libraries have handled such problems with a successive approximation scheme, which performs well-enough in practice, but is not guaranteed to run in polynomial time.
 % Recent work in interior point methods has shown that such problems may be solved in polynomial time \parencite{dahl2022primal}.
@@ -901,13 +905,18 @@ so why should we expect to get consistent answers by querying them?
 % If the inconsistency were sorted out, then arguably there is no need for a PDG; one may use a probability distribution, or a compressed representation of one (such as a different graphical model) instead. 
 % Were we able to sort out the inconsistency, 
 % there is a case to be made that
-To illustrate one aspect of this, 
-consider a BN in which $X$ is the set of parents of $Y$.
+Even for BNs, we often use algorithms that give inconsistent answers to queries, and BNs very clearly represent a single distribution. 
+% 
+% To illustrate one aspect of this, 
+% A BN may already contain answers to the querie
+% Consider a BN in which $X$ is the set of parents of $Y$.
 % In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the table. 
-Such a BN has a row of a table that represents $\Pr(Y|X{=}x)$, which is the answer we are looking for. 
+% Such a BN has a row of a table that represents $\Pr(Y|X{=}x)$, which is the answer we are looking for. 
+In a BN, we might get lucky and find a row of a cpd that represents $\Pr(Y|X{=}x)$, which would be the answer we're looking for. 
 % and it would be reasonable to short-circuit an inference procedure upon finding it. 
 % But in a PDG, that same  $p(Y | X)$ may not even be the only conditional probability on $Y$ given $X$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
-But in a PDG, that very same row  $p(Y | X{=}x)$ of the same table may not even be the only conditional probability on $Y$ given $X$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
+% But in a PDG, that very same row  $p(Y | X{=}x)$ of the same table may not even be the only  let alone the same as $\bbr{\dg M}^*(Y|X)$.
+But in a PDG, that same row  $p(Y | X{=}x)$ might not even be the only probability of $Y$ given $X{=}x$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
 
 \textbf{2.}
 % \textbf{Conditioning.}
@@ -918,9 +927,11 @@ But in a PDG, that very same row  $p(Y | X{=}x)$ of the same table may not even 
 % there is a 
 % PDGs draw a distinction between constraining so that $X{=}x$,
 % and  distribution.
-In sharp contrast to other graphical models, 
-PDGs draw a distinction between computing the distribution of $Y$ under the 
-constraint $X{=}x$, and computing the distribution of $Y$ given $X{=}x$, conditioned in the usual way. 
+In sharp contrast to other graphical models \parencite[pg 26]{koller2009probabilistic}, 
+the PDG formalism draws a distinction between
+% computing the distribution of $Y$ under the constraint $X{=}x$,
+the posterior distribution of $Y$ after learning that $X{=}x$,
+and computing the distribution of $Y$ given $X{=}x$, conditioned in the usual way. 
 
 \begin{example}
 	Consider a PDG $\dg M$ containing $p(Y)$ with confidence
@@ -972,7 +983,7 @@ constraint $X{=}x$, and computing the distribution of $Y$ given $X{=}x$, conditi
     And perhaps that is even a better answer than conditioning, if indeed we are far more confident in $p$ than in $q$.
 \end{example}
 
-So, adding an event to a PDG is a different form of conditioning, 
+So, adding an event to a PDG is a different kind of conditioning, 
 which is sensitive to confidence.  This has big implications for responding to conditional probability queries, because it means there can be a big difference between restricting to worlds where $Y{=}y$, as is typically done, and conditioning on $Y{=}y$. 
 Because both notions are defensible, 
 we start by providing an algorithm that solves the marginal inference task. 
@@ -1014,7 +1025,8 @@ $Q(Y|X{=}x)$ in both ways.
 % in at least two ways:
 % one can run
 % $\mathit{MInfer}$
-On the one hand, we can query the marginal distribution of $Y$ in $\dg M + (X={x})$.
+On one hand, we can query the marginal distribution of $Y$ in $\dg M + (X{=}x)$
+to get this new kind of conditioning;
 % $\bbr{\dg M + X{=}x}_\gamma^*(Y) =
 % $\mathit{InferMarg}_\gamma(Y | \dg M + (X{=}x) )$.
 % That is, first adding the event $X{=}x$ to the PDG.
@@ -1024,25 +1036,26 @@ On the one hand, we can query the marginal distribution of $Y$ in $\dg M + (X={x
 % First, if $X$ is a small set of variables, then we can compute both the marginal $\mu(X,Y)$ and the marginal $\mu(X)$ and compute $\mu(Y|X{=}x)$ directly.
 % Alternatively,
 % Furthermore,
-On the other hand, 
+% On the other hand, 
 % it will $\mu^*(Y|X{=}x)$
-we will see later that
-the traditional conditional probability $\mu^*(Y|X{=}x)$ 
-can be computed with some post-processing. 
+on the other, 
+each method we present can be augmented with a standard post-procesing step 
+to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
+% can be computed with some post-processing. 
 % to a conditional probability query amounts to a standard postprocessing step,
 % which does not significantly impact the complexity of the algorithm.
 
 
-
-\TODO[TODO:]
-
-{\color{red}\tt
-\begin{enumerate}[nosep]
-    % \item An inconsistency oracle can be used to do inference in a way that does not scale with the size of the graph
-    % \item Computing inconsistency is NP-hard
-    \item Clique tree calibration can be seen as inconsistency reduction
-    % \item MAP queries?
-\end{enumerate}}
+% 
+% \TODO[TODO:]
+% 
+% {\color{red}\tt
+% \begin{enumerate}[nosep]
+%     % \item An inconsistency oracle can be used to do inference in a way that does not scale with the size of the graph
+%     % \item Computing inconsistency is NP-hard
+%     \item Clique tree calibration can be seen as inconsistency reduction
+%     % \item MAP queries?
+% \end{enumerate}}
 
 
 % \textbf{The close relationship between inference and inconsistency.}
@@ -1060,8 +1073,8 @@ approach to probabilistic modeling with PDGs: represent each piece of relevant i
 % This approach
 In concluding,
 \textcite{pdg-aaai} suggest that such an approach
-might work for inference; we prove that
-it indeed gives the right answer.
+could yield an inference algorithm as well.
+We prove that indeed this gives the right answer.
 % and indeed, it works.
 % this would indeed suffice for inference,
 % since the optimal value of $h(Y|X)$ would be the cpd we wanted.
@@ -1088,8 +1101,11 @@ $.
 % meaning that
 \end{linked}
 % Even more encouraging, this optimization 
-Furthermore, this optimization problem is solved by gradient flow, since:
-% gradient descent with sufficiently small step size, since:
+Furthermore, this optimization problem is solved by 
+% gradient flow,
+% (gradient descent with infinitesimal steps)
+gradient descent with infinitesimal steps,
+since:
 \begin{linked}{prop}{}
     the function $h \mapsto \aar{\dg M + h}_\gamma$ 
     % is $C^\infty$ smooth 
@@ -1124,7 +1140,9 @@ it seems likely that one could do inference in a way that scales with the size o
 % One might imagine that \emph{minimizing} inconsistency is the hard part, as opposed to merely noticing it---%
 % but it's just as difficult.
 % And, it turns out that minimizing inconsistency 
-It turns out that even just computing inconsistency is \#P-hard.
+% It turns out that even just computing inconsistency is \#P-hard.
+One problem is that we still can't provably find the optimal distribution with larger discrete steps. 
+There's also another, bigger problem: simply identifying inconsistency is just as hard as resolving it. 
 
 \begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
     \begin{enumerate}[nosep,label={\rm{(\alph*)}}]
@@ -1135,9 +1153,11 @@ It turns out that even just computing inconsistency is \#P-hard.
 
 % So, the inconsistency-minimization approach is a non-starter.
 % But
-
-We seem to have ended up back where we were before.
-    
+% We seem to have ended up back where we were before.
+We seem to be going in circles.
+An inference algorithm tells you $\mu^*(\Tgt a | \Src a)$ for $a \in \Ar$, which allows us to calculate the inconsistency $\aar{\dg M}_\gamma = \bbr{\dg M}_\gamma(\mu^*)$ via \eqref{eqn:scoring-fn};
+conversely, an inconsistency oracle seems to be roughly enough to do inference. 
+We now show how both problems can be solved exactly with exponential conic programming. 
 
 % \section{REDUCING TO CONVEX PROGRAMS WITH EXPONENTIAL-CONE CONSTRAINTS}
 % \section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
@@ -1146,16 +1166,24 @@ We seem to have ended up back where we were before.
 
 
 
-
-Here is one obvious, but inefficient, way to calculate $\Pr_{\cal M}(Y|X\!=\!x)$ in a
-probabilistic model $\cal M$. First, compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$.
+Here is one obvious, but inefficient, way to calculate $\Pr_{\cal M}(Y|X{=}x)$ in a
+probabilistic model $\cal M$.
+First compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$.
 %
-For other graphical models, this is very straight-forward; the entire point of an inference algorithm is to avoid the exponential time and space required to explicitly compute $\Pr_{\cal M}(\X)$.
+% For other graphical models,
+For a factor graph or BN, both steps are very straightforward;
+the problem is the exponential time and space required to explicitly represent $\Pr_{\cal M}(\X)$.
+In some sense, the purpose of an inference algorithm for a standard graphical model is to avoid this cost.
 For PDGs, though, it's not clear
 % what to do if we grant ourselves this luxury.
 % In this section, we will.
 we can calculate $\Pr_{\cal M}(\X)$ even if we grant ourselves the luxury of storing a joint distribution, as we do in this section.
+% It's not too hard to cast
+% With this luxury, 
 
+With the luxury of a simplex representation of a joint distribution $\mu$,
+inference is already an optimization problem:
+ % PDG semantics \eqref{eqn:scoring-fn} 
 \[
     \mathop{\text{\sf minimize}}\limits_\mu\quad
         % \Inc_{\dg M}(\mu) + \gamma \IDef{\dg M}(\mu)
@@ -1176,7 +1204,7 @@ That depends on $\gamma$.
 We now present the key technical finding of our paper:
 that the PDG scoring function $\bbr{\dg M}_\gamma$
 % \eqref{eqn:scoring-fn}
-can be written as an exponental conic program.
+can be written as an exponental conic program, or sequence thereof.
 %
 This requires different approaches, depending on the value of $\gamma$.
 
@@ -1212,14 +1240,14 @@ This requires different approaches, depending on the value of $\gamma$.
 % \end{enumerate}
 
 
-\TODO[ SIGN POSTING ]
-
 % \begin{enumerate}[itemsep=0pt]
 %     \item
 % \end{enumerate}
 We proceed as follows.
 In \cref{sec:minimize-inc}, we present a straightforward
-and relatively standard application of the exponential cone to finding minimizers of $\Inc$
+and relatively standard application of the exponential cone to finding minimizers of $\Inc$.
+Then in \cref{sec:small-gamma} we give a more complex but still straightforward translation of $\bbr{\dg M}_\gamma$ to a convex program when $\gamma$ is small. 
+In \cref{sec:larger-gamma}, we show how this may be iterated to solve the non-convex problem when $\gamma$ becomes larger, and in \cref{sec:empirical-limit} we show how  the unique distribution $\bbr{\dg M}^*$ may be found with two exponential conic programs in sequence.
 
 \subsection{%
     Minimizing Incompatibilty
