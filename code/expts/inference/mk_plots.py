@@ -17,11 +17,11 @@ import seaborn as sns
 # fname = 'tmp-aggregated.json'
 fnames = [
 ### RANDOM GRAPHS FIXED TW
-	# ('tw-data-aggregated-1.json', 'tw1')  # issues: max_tw is wrong;
+	('tw-data-aggregated-1.json', 'tw1')  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
 	# 	
 ### RANDOM GRAPHS JOINT
-	('random-pdg-data-aggregated-6.json', 'rand6'),
+	# ('random-pdg-data-aggregated-6.json', 'rand6'),
 	# ('random-pdg-data-aggregated-5.json', 'rand5'),
 	# ('random-pdg-data-aggregated-4.json', 'rand4'),
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
@@ -137,16 +137,18 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 #############################################
 
 #%%
-plot_grid(df, 
-	# ['n_params','n_worlds', 'max_tw', 'n_vars'],	
-	['n_params','n_worlds', 'representation', 'iters', 'n_vars'],	
-	# ['mem_diff', 'total_time',  'inc'], 
-	['gap', 'mem_diff', 'total_time', 'obj', 'inc'], 
-	sns.kdeplot)
-# plot_grid(df, ['n_params'],	
-	# ['inc'], sns.lineplot)
+# ax = plt.
+sns.scatterplot(data=df, x=df.iters, y=np.log(df.gap), hue='method_fine')
 
-# sns.scatterplot(data=df, x='n_params', y='inc')
+
+#%%
+# plot_grid(df, 
+# 	# ['n_params','n_worlds', 'max_tw', 'n_vars'],	
+# 	['n_params','n_worlds', 'representation', 'iters', 'n_vars'],	
+# 	# ['mem_diff', 'total_time',  'inc'], 
+# 	['gap', 'mem_diff', 'total_time', 'obj', 'inc'], 
+# 	sns.lineplot,
+# 	hue='method_fine')
 
 #%%
 
