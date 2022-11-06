@@ -175,7 +175,8 @@ probabilistic queries.
 % respond to probabilistic queries.
 This paper presents the first such algorithm.
 
-Beyond its central role in the development of PDG semantics, this measure of inconsistency has proved broadly to be a natural quantity to minimize.
+% Beyond its central role in the development of PDG semantics, this measure of inconsistency has proved broadly to be a natural quantity to minimize.
+Beyond its central role in the development of PDG semantics, this measure of inconsistency has proved to be a natural quantity to minimize.
 As shown by \textcite{one-true-loss},
  % a wide breadth of
 many
@@ -200,7 +201,7 @@ and our approach addresses both.
 Since inference in other graphical models is alredy NP-hard, the same must be true of the more general class of PDGs.
 % The only hope for tractability is the same class of models
 At a high level, the best we could hope for would be tractability on the restricted
-class of models on which inference has traditionally been tractable---that is, a polynomial algorithm for models whose underlying structure has bounded tree-width.
+class of models on which inference has traditionally been tractable---that is, a polynomial algorithm for models whose underlying structure has bounded treewidth.
 That is precisely what we have.
 % same class of graphical models
 % a polynomial-time algorithm in the case of bounded tree-width.
@@ -213,16 +214,19 @@ Interestingly, the constriction is not trivial.
 % Unlike the many variants of exact inference
 While the many approaches to exact inference in standard graphical models have largely turned out to be various perspectives on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
 % our approach has roots in a very different.
-% our approach is quite different in nature.
-our approach seems by all acounts to be quite different.
+our approach is quite different in nature.
+% our approach seems by all acounts to be quite different.
+% our approach looks by all acounts to be quite different.
 % and .
 % new iterior point methods.
 
 Our ability to do PDG inference in polynomial time is based on a line of recent work in convex programming that establishes polynomial-time convergence
 \parencite{badenbroek2021algorithm,dahl2022primal}
-for a class of problems called \emph{exponential conic programs}
+for a class of optimization problems called \emph{exponential conic programs}
 \parencite{lubin}.
-Our contribution here is to show that the problem of inference in a PDG can be efficiently converted to an exponential conic program, at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time.
+Our contribution here is to show that the problem of inference in a PDG 
+of bounded treewidth
+can be efficiently converted to a (series of) exponential conic program(s), at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time.
 % We show that the problem of inference in a PDG can be efficiently converted to an exponential conic program, at which point it can be solved with a commercial solver \parencite{mosek} in polynomial time.
 The direct appeal to a commercial solver gives us efficiency out of the box, and also allows us to benefit from future improvements in exponential conic optimization.
 Thus our result is not only a theoretical one, but practical as well.
@@ -632,10 +636,28 @@ Using a standard interpretation of the relative entropy $\kldiv{\mu}{p} := \Ex_{
 % treating the edges in ${\dg M}$ as describing independent mechanisms
 % that determine the target given the source.  This is captured by the
 % \emph{information deficiency}, given by
-The second way in which we evalute a distribution $\mu$ is
-treating the edges in ${\dg M}$ as describing independent mechanisms
-that determine the target given the source.
+% The second way in which we evalute a distribution $\mu$ is
+% treating the edges in ${\dg M}$ as describing independent mechanisms
+% that determine the target given the source.
+%
+%joe3*: this is *not* captured by the information deficiency.  IDef is
+%a function of \mu, so at best it's capturing some relationship 
+%between \mu and the PDG.   You need to describe what that
+%relationship is.  Although IDef can be negative (which is part of why I have
+%0 intuition for it), I think what I wrote is far more accurate that
+%what you wrote
+%oli3*: updated
+% The second way in which we score a distribution $\mu$,
+There is also a second aspect of how well a distribution $\mu$ fits $\dg M$:   
+% called its \emph{information deficiency}
+the extent to which $\mu$ 
+% reflects the causal structure of $\dg M$.
+% treats the edges in ${\dg M}$ as describing independent mechanisms that determine the target given the source.
+% Z independent causal mechanism that determines $\Tgt a$ given $\Src a$.
+% treats the arcs of $\dg M$ as describing independent causal mechanisms that determine the target given the source. 
+fails to treat each arc $a \in \Ar$ as describing $\alpha_a$ independent causal mechanisms that determine $\Tgt a$ given $\Src a$. 
 This is captured by the \emph{information deficiency}, given by
+% This is captured by the \emph{information deficiency}, given by
 % \begin{align*}
 $
     % \IDef{\dg M}(\mu) := - \H(\mu) + \sum_{L \in \Ed} \alpha\ssub L\, \H_\mu(\Tgt L | \Src L),
@@ -658,9 +680,10 @@ which
     % Seen from another angle, it
 %oli2
 % models causal structure,
-measures the extent to which $\mu$ reflects the causal structure described by $\dg M$,
-    and plays a significant role in allowing PDGs to capture (conditional) independencies.
-Note that $\IDef{}$ does not depend on the cpds (``quantitative beliefs'') of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$.
+plays a significant role in allowing PDGs to capture (conditional) independencies.
+Note that $\IDef{}$ does not depend on the cpds
+ % (``quantitative beliefs'')
+of $\dg M$, nor even the possible values of the variables---it is defined purely in terms of the topology of the graph and the weights $\balpha$.
 %joe2*: the weights are a bit of a red herring.  once we have a clear
 %intuition for IDef (and I think I now see how the intuition should
 %go)  then we're just multiplying by the confidence, because the
@@ -1916,7 +1939,8 @@ Note that the denominator $\mu_C(\Pash_C)$ is an affine transformation of $\mu_C
 The upshot is that we have written the joint entropy in a way that
 splits as a sum of terms over the clusters, each of which can be captured as a dcp exponential cone constraint.
 
-Let's put this together with all of the other terms.
+% Let's put this together with all of the other terms.
+We use this to get a treewidth-based analogue of \cref{sec:small-gamma,sec:larger-gamma,sec:empirical-limit}.
 Suppose that $\boldsymbol\nu = \{\nu_C : C \in \mathcal C\}$ is a calibrated clique tree over the tree decomposition $(\mathcal C, \mathcal T)$ representing a distribution $\Pr_{\boldsymbol\nu} \in \bbr{\dg M}^*_0$, say obtained by solving \eqref{prob:cluster-inc}.
  % representing
 %
@@ -1971,6 +1995,11 @@ and finds a point $\epsilon$-close in residual norm to the optimal distribution
 $\bbr{\dg M}^*$, where $n$ is the total number of parameters in a clique tree.
 \end{linked}
 
+% Finally, we can do clique tree calibration as usual
+This gives yields a polynomial-time algorithm for marginal inference. If we are looking to answer a conditional probability query, $Q(Y|X{=}x)$,
+we can simply constrain the clique tree to satisfy $\mu_C(X{=}x)=1$ for all $C \in \cal C$ with $X \cap C \ne \emptyset$, and recalibrate the clique tree with standard methods like belief propogation \parencite{koller2009probabilistic}, to get a clique tree representing the conditional distribution $\bbr{\dg M}*(Y|X{=}x)$.
+Putting this all together, we get:
+
 \begin{coro}
     PDG inference can be solved to machine precision in $O( N^4 V^4 \log(N V) \exp(V T) )$ time, where $T$ is the tree-width of the graph, and $N$ is the total number of variables, $V$ is the number of values per variable, and $T$ is the tree-width of the PDG's underlying hypergraph.
 \end{coro}
@@ -1987,20 +2016,20 @@ The proof rests almost entirely on the analysis of \textcite{badenbroek2021algor
 which certifies that the optimization algorithm
 proposed in \textcite{dahl2022primal} works in polynomial time.
 
-\begin{table}
-    % Let $m$ denote the
-    \centering
-    \begin{tabular}{ccc}
-        \toprule
-        & BP &  ExpCone \\\cmidrule(lr){2-3}
-        Time & $O(m t)$ & $O( m^4 \log m )$ \\
-        Memory  & $O(m + )$ {\color{red}??} & $O( m^2 )${\color{red}????}\\    \bottomrule
-    \end{tabular}
-
-    \TODO[fill this in properly]
-
-    \caption{ }
-\end{table}
+% \begin{table}
+%     % Let $m$ denote the
+%     \centering
+%     \begin{tabular}{ccc}
+%         \toprule
+%         & BP &  ExpCone \\\cmidrule(lr){2-3}
+%         Time & $O(m t)$ & $O( m^4 \log m )$ \\
+%         Memory  & $O(m + )$ {\color{red}??} & $O( m^2 )${\color{red}????}\\    \bottomrule
+%     \end{tabular}
+% 
+%     % \TODO[fill this in properly]
+% 
+%     \caption{ }
+% \end{table}
 
 \section{OTHER APPROACHES TO PDG INFERENCE} \label{sec:other-inference}
 % \section{EXTENSIONS}
