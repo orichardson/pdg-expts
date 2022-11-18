@@ -1080,93 +1080,6 @@ to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
 %     % \item MAP queries?
 % \end{enumerate}}
 
-
-% \textbf{The close relationship between inference and inconsistency.}
-
-
-
-% \textbf{Inconsistency-Based Approach.}
-\textbf{Inference By Inconsistency Minimization.}
-% Let's start by trying to do inference by inconsistency minimization.
-% suggested in the final section of \textcite{pdg-aaai},
-% which meshes well with the persepctive taken in \textcite{one-true-loss}.
-% \textcite{one-true-loss} suggests a generic learning-flavored
-\textcite{one-true-loss} proposes a general 
-approach to probabilistic modeling with PDGs: represent each piece of relevant information (including any data, priors, and also a current hypothesis model $h(Y|X)$) as a cpd with the appropriate confidence, and then ``train'' $h$ by minimizing the overall inconsistency of the PDG (say, by gradient descent).
-% This approach
-In concluding,
-\textcite{pdg-aaai} suggest that such an approach
-could yield an inference algorithm as well.
-We prove that indeed this gives the right answer.
-% and indeed, it works.
-% this would indeed suffice for inference,
-% since the optimal value of $h(Y|X)$ would be the cpd we wanted.
-% It turns out that the
-% This
-
-\begin{linked}{prop}{optimalYgivenX}
-% For all variables $X,Y$, and $\gamma > 0$,
-For all $\gamma > 0$ and $X, Y \subseteq \X^{\dg M}$,
-	$$\displaystyle
-		% \argmin_{p : X \to \Delta Y}
-		\argmin_{h(Y|X)}\,
-        \aar{\dg M + h}_\gamma =
-		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
-	,$$
-% and in the empirical limit,
-and 
-	$\displaystyle
-		\bbr{\dg M}^*(Y | X)
-	$ is the unique minimizer of the function
-$
-    h(Y|X) \mapsto \aar{\dg M + h}
-$.
-% meaning that
-\end{linked}
-% Even more encouraging, this optimization 
-Furthermore, this optimization problem is solved by 
-% gradient flow,
-% (gradient descent with infinitesimal steps)
-gradient descent with infinitesimal steps,
-since:
-\begin{linked}{prop}{}
-    the function $h \mapsto \aar{\dg M + h}_\gamma$ 
-    % is $C^\infty$ smooth 
-    is infinitely differentiable
-    and strictly convex for small $\gamma$.
-\end{linked}
-%
-% Consequently, if we are interested in 
-% querying the marginal probability of some small subset $Y$ of variables conditioned on other ones $X$ (i.e., the usual form of a query to a graphical model),
-% Consequently, if we 
-% had an efficient way to calculate the inconsistency of a PDG, 
-% together with the rest of the model, 
-%
-% This suggests that PDG inference 
-% Since inference in other graphical models is already NP-hard,
-% and the class of PDGs subsumes capture them, it should be no surprise
-% that inference in PDGs is NP hard as well.
-%
-So, given an oracle that computes the inconsistency of a PDG,
-% it seems we could do inference in a way that does not scale with the rest of the model.
-it seems likely that one could do inference in a way that scales with the size of the queried variables, but not with the model.
-% One might imagine that \emph{resolving} the inconsistency is the hard part,
-%     as opposed to noticing it.
-% Might it easier to simply determine whether or not a PDG is inconsistent?
-%
-% One might imagine that \emph{minimizing} inconsistency is the hard part, as opposed to merely noticing it---%
-% Might it easier to simply determine whether or not a PDG is inconsistent?
-% It is not.
-% It turns out that calculat
-% but it turns out that simply calculating the degree of
-% but this is not the case.
-% One might imagine that \emph{minimizing} inconsistency is the hard part, as opposed to merely noticing it---%
-% but it's just as difficult.
-% And, it turns out that minimizing inconsistency 
-% It turns out that even just computing inconsistency is \#P-hard.
-One problem is that we still can't provably find the optimal distribution with larger discrete steps. 
-There's also another, bigger problem: simply identifying inconsistency is just as hard as resolving it. 
-
 \begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
     \begin{enumerate}[nosep,label={\rm{(\alph*)}}]
     \item Deciding if $\dg M$ is consistent is NP-hard.
@@ -1174,13 +1087,10 @@ There's also another, bigger problem: simply identifying inconsistency is just a
     \end{enumerate}
 \end{linked}
 
-% So, the inconsistency-minimization approach is a non-starter.
-% But
-% We seem to have ended up back where we were before.
-We seem to be going in circles.
-An inference algorithm tells you $\mu^*(\Tgt a | \Src a)$ for $a \in \Ar$, which allows us to calculate the inconsistency $\aar{\dg M}_\gamma = \bbr{\dg M}_\gamma(\mu^*)$ via \eqref{eqn:scoring-fn};
-conversely, an inconsistency oracle seems to be roughly enough to do inference. 
-We now show how both problems can be solved exactly with exponential conic programming. 
+% We seem to be going in circles.
+% An inference algorithm tells you $\mu^*(\Tgt a | \Src a)$ for $a \in \Ar$, which allows us to calculate the inconsistency $\aar{\dg M}_\gamma = \bbr{\dg M}_\gamma(\mu^*)$ via \eqref{eqn:scoring-fn};
+% conversely, an inconsistency oracle seems to be roughly enough to do inference. 
+% We now show how both problems can be solved exactly with exponential conic programming. 
 
 % \section{REDUCING TO CONVEX PROGRAMS WITH EXPONENTIAL-CONE CONSTRAINTS}
 % \section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
@@ -2033,6 +1943,87 @@ proposed in \textcite{dahl2022primal} works in polynomial time.
 
 \section{OTHER APPROACHES TO PDG INFERENCE} \label{sec:other-inference}
 % \section{EXTENSIONS}
+
+\subsection{Inference By Inconsistency Minimization}
+% Let's start by trying to do inference by inconsistency minimization.
+% suggested in the final section of \textcite{pdg-aaai},
+% which meshes well with the persepctive taken in \textcite{one-true-loss}.
+% \textcite{one-true-loss} suggests a generic learning-flavored
+\textcite{one-true-loss} proposes a general 
+approach to probabilistic modeling with PDGs: represent each piece of relevant information (including any data, priors, and also a current hypothesis model $h(Y|X)$) as a cpd with the appropriate confidence, and then ``train'' $h$ by minimizing the overall inconsistency of the PDG (say, by gradient descent).
+% This approach
+In concluding,
+\textcite{pdg-aaai} suggest that such an approach
+could yield an inference algorithm as well.
+We prove that indeed this gives the right answer.
+% and indeed, it works.
+% this would indeed suffice for inference,
+% since the optimal value of $h(Y|X)$ would be the cpd we wanted.
+% It turns out that the
+% This
+
+\begin{linked}{prop}{optimalYgivenX}
+% For all variables $X,Y$, and $\gamma > 0$,
+For all $\gamma > 0$ and $X, Y \subseteq \X^{\dg M}$,
+	$$\displaystyle
+		% \argmin_{p : X \to \Delta Y}
+		\argmin_{h(Y|X)}\,
+        \aar{\dg M + h}_\gamma =
+		\Big\{ \mu(Y | X) :  \mu \in \bbr{\dg M}_\gamma^* \Big\}
+	,$$
+% and in the empirical limit,
+and 
+	$\displaystyle
+		\bbr{\dg M}^*(Y | X)
+	$ is the unique minimizer of the function
+$
+    h(Y|X) \mapsto \aar{\dg M + h}
+$.
+% meaning that
+\end{linked}
+% Even more encouraging, this optimization 
+Furthermore, this optimization problem is solved by 
+% gradient flow,
+% (gradient descent with infinitesimal steps)
+gradient descent with infinitesimal steps,
+since:
+\begin{linked}{prop}{}
+    the function $h \mapsto \aar{\dg M + h}_\gamma$ 
+    % is $C^\infty$ smooth 
+    is infinitely differentiable
+    and strictly convex for small $\gamma$.
+\end{linked}
+%
+% Consequently, if we are interested in 
+% querying the marginal probability of some small subset $Y$ of variables conditioned on other ones $X$ (i.e., the usual form of a query to a graphical model),
+% Consequently, if we 
+% had an efficient way to calculate the inconsistency of a PDG, 
+% together with the rest of the model, 
+%
+% This suggests that PDG inference 
+% Since inference in other graphical models is already NP-hard,
+% and the class of PDGs subsumes capture them, it should be no surprise
+% that inference in PDGs is NP hard as well.
+%
+So, given an oracle that computes the inconsistency of a PDG,
+% it seems we could do inference in a way that does not scale with the rest of the model.
+it seems likely that one could do inference in a way that scales with the size of the queried variables, but not with the model.
+% One might imagine that \emph{resolving} the inconsistency is the hard part,
+%     as opposed to noticing it.
+% Might it easier to simply determine whether or not a PDG is inconsistent?
+%
+% One might imagine that \emph{minimizing} inconsistency is the hard part, as opposed to merely noticing it---%
+% Might it easier to simply determine whether or not a PDG is inconsistent?
+% It is not.
+% It turns out that calculat
+% but it turns out that simply calculating the degree of
+% but this is not the case.
+% One might imagine that \emph{minimizing} inconsistency is the hard part, as opposed to merely noticing it---%
+% but it's just as difficult.
+% And, it turns out that minimizing inconsistency 
+% It turns out that even just computing inconsistency is \#P-hard.
+One problem is that we still can't provably find the optimal distribution with larger discrete steps. 
+There's also another, bigger problem: simply identifying inconsistency is just as hard as resolving it. 
 
 \subsection{}
 A stronger result than \cref{prop:markov-property} holds as well.
