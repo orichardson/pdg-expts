@@ -176,10 +176,18 @@ PDGs have not had an inference algorithm%
 % This paper presents the first such algorithm.
 This paper presents the first one.
 
-Even the question of what an 
+% Even the question of what an 
+%% So what is an inference algorithm for a PDG? 
+An inference algorithm is a way of answering probabilistic queries.
+For general parameter settings, a PDG may not indicate just one distribution.
+In these cases, inference amounts to describing properties of a given distribution that are true of 
+
 
 {\color{gray}
-    Beyond its central role in the development of PDG semantics, this measure of inconsistency has proved to be a natural quantity to minimize.
+    % Joes' wording: "of independent interest"
+    Apart its central role in the development of PDG semantics, 
+        % this measure of inconsistency has proved to be a natural quantity to minimize.
+        minimizing this measure of inconsistency is of independent interest.
     As shown by \textcite{one-true-loss},
     many loss functions and statistical divergences
         % used in practice
@@ -914,161 +922,6 @@ constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine trans
 % So long as the constraints satisfy certain rules they are said to be dcp; dcp program can be compiled to a convex optimization problem that can be handled efficiently.
 % The rule for the exponential cone is simple: the constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $a$, $b$, and $c$ are affine transformations of the program variables.
 
-% \section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
-\section{INFERENCE IN A PDG, AND COMPUTING INCONSISTENY}
-% \section{PDG INFERENCE, AND COMPUTING INCONSISTENCY}
-
-What does inference mean in a PDG?
-How ought we to respond to a probabilistic query $Q(Y|X{=}x)$?
-The answer is not so obvious as it is for other graphical models,
-for several different reasons.
-
-\textbf{1.}
-% First, 
-PDGs describe inconsistent beleifs,
-so why should we expect to get consistent answers by querying them? 
-% If the inconsistency were sorted out, then arguably there is no need for a PDG; one may use a probability distribution, or a compressed representation of one (such as a different graphical model) instead. 
-% Were we able to sort out the inconsistency, 
-% there is a case to be made that
-Even for BNs, we often use algorithms that give inconsistent answers to queries, and BNs very clearly represent a single distribution. 
-% 
-% To illustrate one aspect of this, 
-% A BN may already contain answers to the querie
-% Consider a BN in which $X$ is the set of parents of $Y$.
-% In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the table. 
-% Such a BN has a row of a table that represents $\Pr(Y|X{=}x)$, which is the answer we are looking for. 
-In a BN, we might get lucky and find a row of a cpd that represents $\Pr(Y|X{=}x)$, which would be the answer we're looking for. 
-% and it would be reasonable to short-circuit an inference procedure upon finding it. 
-% But in a PDG, that same  $p(Y | X)$ may not even be the only conditional probability on $Y$ given $X$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
-% But in a PDG, that very same row  $p(Y | X{=}x)$ of the same table may not even be the only  let alone the same as $\bbr{\dg M}^*(Y|X)$.
-But in a PDG, that same row  $p(Y | X{=}x)$ might not even be the only probability of $Y$ given $X{=}x$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
-
-\textbf{2.}
-% \textbf{Conditioning.}
-% Secondly,
-% Here's a property of PDGs that is not shared by other graphical models:
-% Unlike other graphical models,
-% Unlike for other graphical models,
-% there is a 
-% PDGs draw a distinction between constraining so that $X{=}x$,
-% and  distribution.
-In sharp contrast to other graphical models \parencite[pg 26]{koller2009probabilistic}, 
-the PDG formalism draws a distinction between
-% computing the distribution of $Y$ under the constraint $X{=}x$,
-the posterior distribution of $Y$ after learning that $X{=}x$,
-and computing the distribution of $Y$ given $X{=}x$, conditioned in the usual way. 
-
-\begin{example}
-	Consider a PDG $\dg M$ containing $p(Y)$ with confidence
-    $\beta_p = r$, and $q(X|Y)$ with confidence $\beta_q = s$.
-	% Now condition on $Y=y$ by adding that event to the PDG, to get
-    Now, add the event $X{=}x$ to $\dg M$, to obtain
-    % a new PDG:
-    a new PDG, $\dg M^{+x}$.
-	% \[
-	% 	\dg M^{+y} :=
-	% 	\begin{tikzpicture}[center base]
-	% 		\node[dpad0] (X) at (0,0) {$X$};
-	% 		\node[dpad0] (Y) at (1.2,0) {$Y$};
-    %         %
-	% 		\draw[arr2,->] (X) to
-	% 			node[above, pos=0.4,inner sep=2pt]{$q$}
-	% 			node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(s)}$}
-	% 			(Y);
-	% 		\draw[arr2, <-] (X) to
-	% 			node[above, pos=0.6,inner sep=2pt]{$p$}
-	% 			node[below, pos=0.6, inner sep=2pt]
-	% 				{${\color{gray}\scriptstyle(r)}$}
-	% 			+(-1.0, 0);
-	% 		\draw[arr2, <<-, red] (Y) to
-	% 			node[above, inner sep=2pt, pos=0.7]
-	% 				{$y$}
-	% 			+(0.9,0);
-	% 	\end{tikzpicture}.
-	% \]
-	Now, $\bbr{\dg M}^* = p(Y)q(X|Y)$ doesn't depend on $r$ or $s$, since we can simultaneously satisfy $p$ and $q$---and after conditioning on $X{=}x$, we get a distribution $\bbr{\dg M}^* | X{=}x$ proportional to $p(Y) q(x|Y)$.
-	But some calculations reveal that $\bbr{\dg M^{+x}}^*$,
-    while also supported only on worlds where $X{=}x$, is proportional to
-	$p(Y) q(x|Y)^{s/r}$.
-    % , with an additional exponent $r/s$ that was not present before.
-	%
-	So if $r = s$,
-    % so that the data of $\dg M$ effectively picks out a probability distribution with uniform confidence,
-    this amounts to conditioning as usual, but otherwise,
-    it doesn't.
-    % there is distortion.
-    % we don't.
-    % Intuitively, the cpd with lower confidence ends
-    Intuitively, both the distribution of $Y$ and the conditional distribution of $X$ given $Y$ can be bent to satisfy $X{=}x$, and in $\bbr{\dg M^{+x}}^*$ the cpd with lower confidence will be bent further than the one of higher confidence.
-    If $r \gg s$ for example,
-    % then the resulting distribution will just be
-    then $\bbr{\dg M^{+x}}^* \approx
-    % p(X)\delta_{y}(Y)$.
-    p(Y) \delta_x(X)$.
-    And perhaps that is even a better answer than conditioning, if indeed we are far more confident in $p$ than in $q$.
-\end{example}
-
-So, adding an event to a PDG is a different kind of conditioning, 
-which is sensitive to confidence.  This has big implications for responding to conditional probability queries, because it means there can be a big difference between restricting to worlds where $Y{=}y$, as is typically done, and conditioning on $Y{=}y$. 
-Because both notions are defensible, 
-we start by providing an algorithm that solves the marginal inference task. 
-% So as not to privelidge either notion over the other,
-% we define PDG inference to be the marginal task.
-% Both notions are defensible, but to put them on the same footing.
-
-
-% By inference in a PDG, we mean respoding to probabilisty qureies $Q(Y|X)$ for (sets of) variables $X,Y \subset \X$
-\begin{defn}
-    A \emph{marginal PDG inference algorithm} is a procedure
-    that takes as input
-    % (1)
-    a PDG $\dg M$ over variables $\X$,
-    % a non-negative number $\gamma \ge 0$ or $0^+$,
-    % either a non-negative number $\gamma \ge 0$ or $\gamma = $``$0^+$'',
-    % (2)
-    a value for $\gamma \in \mathbb R_{\ge 0} \cup \{0^+\}$,
-    and
-    % (3)
-    % a probabilistic query of the form $Q(Y|X{=}x)$,
-    a set of variables $Y \subset \X$,
-    % for $X,Y \subset \X$ and $x \in \V X$,
-    % returns a probability distribution $\mu(Y)$ that is the conditional marginal
-    % and then returns either a distribution $\mu(Y|X{=}x)$
-    and then returns either a distribution $\mu(Y)$
-    which is the
-    % conditional
-    marginal
-    of some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number),
-    % or $\bbr{\dg M}^*(Y|X{=}x)$ (if $\gamma = 0^+$).
-    or $\bbr{\dg M}^*(Y)$ (if $\gamma = 0^+$).
-\end{defn}
-
-We can use such marginal inference algorithm
-to respond to \emph{conditional} probabilistic queries
-% about of $Y$ given $X{=}x$
-$Q(Y|X{=}x)$ in both ways. 
-% in at least two ways:
-% one can run
-% $\mathit{MInfer}$
-On one hand, we can query the marginal distribution of $Y$ in $\dg M + (X{=}x)$
-to get this new kind of conditioning;
-% $\bbr{\dg M + X{=}x}_\gamma^*(Y) =
-% $\mathit{InferMarg}_\gamma(Y | \dg M + (X{=}x) )$.
-% That is, first adding the event $X{=}x$ to the PDG.
-%
-% This procedure can also be used to answer the question in the same way as for other graphical models with minimal overhead.
-% Another way
-% First, if $X$ is a small set of variables, then we can compute both the marginal $\mu(X,Y)$ and the marginal $\mu(X)$ and compute $\mu(Y|X{=}x)$ directly.
-% Alternatively,
-% Furthermore,
-% On the other hand, 
-% it will $\mu^*(Y|X{=}x)$
-on the other, 
-each method we present can be augmented with a standard post-procesing step 
-to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
-% can be computed with some post-processing. 
-% to a conditional probability query amounts to a standard postprocessing step,
-% which does not significantly impact the complexity of the algorithm.
 
 
 % 
@@ -2696,6 +2549,162 @@ This is because there isn't one.
 % that inference in PDGs is NP hard as well.
 
 
+
+% \section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
+\section{WHAT IS INFERENCE? SUBTLETIES FOR PDGS}
+% \section{PDG INFERENCE, AND COMPUTING INCONSISTENCY}
+
+What does inference mean in a PDG?
+How ought we to respond to a probabilistic query $Q(Y|X{=}x)$?
+The answer is not so obvious as it is for other graphical models,
+for several different reasons.
+
+\textbf{1.}
+% First, 
+PDGs describe inconsistent beleifs,
+so why should we expect to get consistent answers by querying them? 
+% If the inconsistency were sorted out, then arguably there is no need for a PDG; one may use a probability distribution, or a compressed representation of one (such as a different graphical model) instead. 
+% Were we able to sort out the inconsistency, 
+% there is a case to be made that
+Even for BNs, we often use algorithms that give inconsistent answers to queries, and BNs very clearly represent a single distribution. 
+% 
+% To illustrate one aspect of this, 
+% A BN may already contain answers to the querie
+% Consider a BN in which $X$ is the set of parents of $Y$.
+% In this case, our representation already contains the probabilities we are looking for, and we would be happy returning that row of the table. 
+% Such a BN has a row of a table that represents $\Pr(Y|X{=}x)$, which is the answer we are looking for. 
+In a BN, we might get lucky and find a row of a cpd that represents $\Pr(Y|X{=}x)$, which would be the answer we're looking for. 
+% and it would be reasonable to short-circuit an inference procedure upon finding it. 
+% But in a PDG, that same  $p(Y | X)$ may not even be the only conditional probability on $Y$ given $X$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
+% But in a PDG, that very same row  $p(Y | X{=}x)$ of the same table may not even be the only  let alone the same as $\bbr{\dg M}^*(Y|X)$.
+But in a PDG, that same row  $p(Y | X{=}x)$ might not even be the only probability of $Y$ given $X{=}x$, let alone the same as $\bbr{\dg M}^*(Y|X)$.
+
+\textbf{2.}
+% \textbf{Conditioning.}
+% Secondly,
+% Here's a property of PDGs that is not shared by other graphical models:
+% Unlike other graphical models,
+% Unlike for other graphical models,
+% there is a 
+% PDGs draw a distinction between constraining so that $X{=}x$,
+% and  distribution.
+In sharp contrast to other graphical models \parencite[pg 26]{koller2009probabilistic}, 
+the PDG formalism draws a distinction between
+% computing the distribution of $Y$ under the constraint $X{=}x$,
+the posterior distribution of $Y$ after learning that $X{=}x$,
+and computing the distribution of $Y$ given $X{=}x$, conditioned in the usual way. 
+
+\begin{example}
+	Consider a PDG $\dg M$ containing $p(Y)$ with confidence
+    $\beta_p = r$, and $q(X|Y)$ with confidence $\beta_q = s$.
+	% Now condition on $Y=y$ by adding that event to the PDG, to get
+    Now, add the event $X{=}x$ to $\dg M$, to obtain
+    % a new PDG:
+    a new PDG, $\dg M^{+x}$.
+	% \[
+	% 	\dg M^{+y} :=
+	% 	\begin{tikzpicture}[center base]
+	% 		\node[dpad0] (X) at (0,0) {$X$};
+	% 		\node[dpad0] (Y) at (1.2,0) {$Y$};
+    %         %
+	% 		\draw[arr2,->] (X) to
+	% 			node[above, pos=0.4,inner sep=2pt]{$q$}
+	% 			node[below, pos=0.4, inner sep=2pt]{${\color{gray}\scriptstyle(s)}$}
+	% 			(Y);
+	% 		\draw[arr2, <-] (X) to
+	% 			node[above, pos=0.6,inner sep=2pt]{$p$}
+	% 			node[below, pos=0.6, inner sep=2pt]
+	% 				{${\color{gray}\scriptstyle(r)}$}
+	% 			+(-1.0, 0);
+	% 		\draw[arr2, <<-, red] (Y) to
+	% 			node[above, inner sep=2pt, pos=0.7]
+	% 				{$y$}
+	% 			+(0.9,0);
+	% 	\end{tikzpicture}.
+	% \]
+	Now, $\bbr{\dg M}^* = p(Y)q(X|Y)$ doesn't depend on $r$ or $s$, since we can simultaneously satisfy $p$ and $q$---and after conditioning on $X{=}x$, we get a distribution $\bbr{\dg M}^* | X{=}x$ proportional to $p(Y) q(x|Y)$.
+	But some calculations reveal that $\bbr{\dg M^{+x}}^*$,
+    while also supported only on worlds where $X{=}x$, is proportional to
+	$p(Y) q(x|Y)^{s/r}$.
+    % , with an additional exponent $r/s$ that was not present before.
+	%
+	So if $r = s$,
+    % so that the data of $\dg M$ effectively picks out a probability distribution with uniform confidence,
+    this amounts to conditioning as usual, but otherwise,
+    it doesn't.
+    % there is distortion.
+    % we don't.
+    % Intuitively, the cpd with lower confidence ends
+    Intuitively, both the distribution of $Y$ and the conditional distribution of $X$ given $Y$ can be bent to satisfy $X{=}x$, and in $\bbr{\dg M^{+x}}^*$ the cpd with lower confidence will be bent further than the one of higher confidence.
+    If $r \gg s$ for example,
+    % then the resulting distribution will just be
+    then $\bbr{\dg M^{+x}}^* \approx
+    % p(X)\delta_{y}(Y)$.
+    p(Y) \delta_x(X)$.
+    And perhaps that is even a better answer than conditioning, if indeed we are far more confident in $p$ than in $q$.
+\end{example}
+
+So, adding an event to a PDG is a different kind of conditioning, 
+which is sensitive to confidence.  This has big implications for responding to conditional probability queries, because it means there can be a big difference between restricting to worlds where $Y{=}y$, as is typically done, and conditioning on $Y{=}y$. 
+Because both notions are defensible, 
+we start with the uncontroversial, simpler version: solving the marginal inference task. 
+% So as not to privelidge either notion over the other,
+% we define PDG inference to be the marginal task.
+% Both notions are defensible, but to put them on the same footing.
+
+
+% By inference in a PDG, we mean respoding to probabilisty qureies $Q(Y|X)$ for (sets of) variables $X,Y \subset \X$
+\begin{defn}
+    A \emph{marginal PDG inference algorithm} is a procedure
+    that takes as input
+    % (1)
+    a PDG $\dg M$ over variables $\X$,
+    % a non-negative number $\gamma \ge 0$ or $0^+$,
+    % either a non-negative number $\gamma \ge 0$ or $\gamma = $``$0^+$'',
+    % (2)
+    a value for $\gamma \in \mathbb R_{\ge 0} \cup \{0^+\}$,
+    and
+    % (3)
+    % a probabilistic query of the form $Q(Y|X{=}x)$,
+    a set of variables $Y \subset \X$,
+    % for $X,Y \subset \X$ and $x \in \V X$,
+    % returns a probability distribution $\mu(Y)$ that is the conditional marginal
+    % and then returns either a distribution $\mu(Y|X{=}x)$
+    and then returns either a distribution $\mu(Y)$
+    which is the
+    % conditional
+    marginal
+    of some $\mu \in \bbr{\dg M}^*_\gamma$  (if $\gamma$ is a number),
+    % or $\bbr{\dg M}^*(Y|X{=}x)$ (if $\gamma = 0^+$).
+    or $\bbr{\dg M}^*(Y)$ (if $\gamma = 0^+$).
+\end{defn}
+
+We can use such marginal inference algorithm
+to respond to \emph{conditional} probabilistic queries
+% about of $Y$ given $X{=}x$
+$Q(Y|X{=}x)$ in both ways. 
+% in at least two ways:
+% one can run
+% $\mathit{MInfer}$
+On one hand, we can query the marginal distribution of $Y$ in $\dg M + (X{=}x)$
+to get this new kind of conditioning;
+% $\bbr{\dg M + X{=}x}_\gamma^*(Y) =
+% $\mathit{InferMarg}_\gamma(Y | \dg M + (X{=}x) )$.
+% That is, first adding the event $X{=}x$ to the PDG.
+%
+% This procedure can also be used to answer the question in the same way as for other graphical models with minimal overhead.
+% Another way
+% First, if $X$ is a small set of variables, then we can compute both the marginal $\mu(X,Y)$ and the marginal $\mu(X)$ and compute $\mu(Y|X{=}x)$ directly.
+% Alternatively,
+% Furthermore,
+% On the other hand, 
+% it will $\mu^*(Y|X{=}x)$
+on the other, 
+each method we present can be augmented with a standard post-procesing step 
+to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
+% can be computed with some post-processing. 
+% to a conditional probability query amounts to a standard postprocessing step,
+% which does not significantly impact the complexity of the algorithm.
 
 \section{}
 \begin{conj}
