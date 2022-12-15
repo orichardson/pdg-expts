@@ -302,7 +302,7 @@ For us, a vector is a map from a finite set to the extended reals
 The \emph{shape} of a vector $\mat u$ is the finite set which is its domain.
 % The notation $\mat u := [u_i]_{i \in S}$ defines a vector over the finite set $S$.
 The notation $\mat u := [u_i]_{i \in S}$ defines a vector of shape $S$.
-{\color{gray}
+{\color{gray!30!white}
 We will sometimes use superscripts as well, especially when indices depend on one another. For example, if $\dg S$ is a finite set of finite sets, then
 %joe2: (1) why is this a disjoint union?  You never said that the sets in
 %\X were disjoint.  (2) You don't want to include X \in \X and x
@@ -344,7 +344,7 @@ $\mat u^{\sf T}$ denotes the transpose of $\mat u$, which we use primarily to de
 % If $\mat u : A \to \Rext$ is a vetor over $A$, and $\mat v : A \times B \to \Rext$,
 % then $\mat u \otimes \mat 1 : A \times \Gamma \to \Rext$, by
 % $(\mat u \otimes \mat 1)(a,\gamma) := \mat u(\gamma)$
-If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}$ is a vector over $B$, then $\mat u \mathbin{\otimes} \mat v := [ u_a \cdot v_b ]_{a \in A, b \in B}$ is a vector over $A \times B$.
+{\color{gray!30!white} If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}$ is a vector over $B$, then $\mat u \mathbin{\otimes} \mat v := [ u_a \cdot v_b ]_{a \in A, b \in B}$ is a vector over $A \times B$. }
 
 % {\color{red}\tt
 % TODO: unexplained notation / concepts
@@ -887,6 +887,9 @@ To parallel the notation for scoring functions, when we omit the subscript, we r
 % Exponential cone constraints are less well-known, in part because provably efficient algorithms for exponential conic programs are relatively recent.
 % \textbf{Exponential Conic Programs.}
 \textbf{Interior Point Methods and Convex Optimization.}
+
+\TODO[TODO: Fix up this historical perspective. Chris might be in a better position to write.]
+
 The advent of polynomial time methods for solving linear programs
 \parencite{}.
 In the 1990s, these methods were extende to handle second-order cone programs (SOCPs) and semidefinite programs (SDPs) in which one can add more expressive constraints,
@@ -926,12 +929,13 @@ The exponential cone is the convex set
     % \subset \mathbb R^3.
 \end{align*}
 It is also sometimes called the relative entropy cone, because
-if $\mat m, \mat p \in \mathbb R^n$ are points on a probability simplex,
+if $\mat m, \mat p \in \Delta^{n-1} \subset \mathbb R^n$ are points on a probability simplex,
 then $(-\mat u, \mat m, \mat p) \in K_{\exp}^n$ if and only if
 $\mat u$ is an upper bound on $\mat m \log \frac{\mat m}{\mat p}$,
 % which is very close to the expression for relative entropy.
-the pointwise contribution to relative entropy in each outcome.
+the pointwise contribution to relative entropy at each outcome.
 %
+
 An \emph{exponential conic program} is an optimization problem of the form
 \[
     \mathop{\text{\sf minimize}}\limits_{x \in \Rext^n}~~ c^{\sf T} x
@@ -987,12 +991,13 @@ constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine trans
 
 
 
-Here is one obvious, but inefficient, way to calculate $\Pr_{\cal M}(Y|X{=}x)$ in a
-probabilistic model $\cal M$.
-First compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$.
+Here is one obvious, if inefficient, way to calculate $\Pr_{\cal M}(Y|X{=}x)$ in a
+probabilistic model $\cal M$. First compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$.
 %
 % For other graphical models,
-For a factor graph or BN, both steps are very straightforward;
+For a factor graph
+or BN, both steps are straightforward; 
+    % \footnote{in the case of a factor graph, we also have to renormalize the distribution, which requires exponential time either way, although it is masked.  }
 the problem is the exponential time and space required to explicitly represent $\Pr_{\cal M}(\X)$.
 In some sense, the purpose of an inference algorithm for a standard graphical model is to avoid this cost.
 For PDGs, though, it's not clear
@@ -1001,9 +1006,10 @@ For PDGs, though, it's not clear
 we can calculate $\Pr_{\cal M}(\X)$ even if we grant ourselves the luxury of storing a joint distribution, as we do in this section.
 % It's not too hard to cast
 % With this luxury, 
-
-With the luxury of a simplex representation of a joint distribution $\mu$,
-inference is already an optimization problem:
+%
+So indulging, PDG inference is already an optimization problem by definition:
+% With the luxury of a simplex representation of a joint distribution $\mu$,
+% inference is already an optimization problem:
  % PDG semantics \eqref{eqn:scoring-fn} 
 \[
     \mathop{\text{\sf minimize}}\limits_\mu\quad
@@ -1012,23 +1018,30 @@ inference is already an optimization problem:
     \quad \text{\sf subject to}\quad \mu \in \Delta\mskip-2mu\V\mskip-2mu\X
 \]
 
-Is it a convex program?
-More importantly, is it a \emph{disciplined} convex program,
-    which would mean it can be solved in polynomial time?
-That depends on $\gamma$.
-
-
+For small enough fixed $\gamma$, we even know that is a convex one. 
+But is it a \emph{disciplined} convex program? Can it be solved in polynomial time, relative to the dimension of $\mu$? 
+% Is it a convex program?
+% More importantly, is it a \emph{disciplined} convex program,
+%     which would mean it can be solved in polynomial time?
+% That depends on $\gamma$.
+%
+%
 %joe1
 %We now present the central finding of our paper:  observation that the
 %oli1: it's the central finding in that it's the lynchpin, but this is not the main result; nobody should care about it by itself. It's more like the key lemma.
 % We now prove our main result: that the
-We now present the key technical finding of our paper:
-that the PDG scoring function $\bbr{\dg M}_\gamma$
+% We now present the key technical finding of our paper: that the
+% PDG scoring function $\bbr{\dg M}_\gamma$
 % \eqref{eqn:scoring-fn}
-can be written as an exponental conic program, or sequence thereof.
-%
-This requires different approaches, depending on the value of $\gamma$.
-
+% can be written as an exponental conic program, or sequence thereof.
+% This requires different approaches, depending on the value of $\gamma$.
+With exponential cones, the answer is yes, as we show in \Cref{sec:small-gamma}. 
+Perhaps more importantly, 
+% the \obslimit\ 
+$\bbr{\dg M}^*$ can be computed via a sequence of two exponential conic programs (\Cref{sec:empirical-limit}). 
+When $\gamma$ is large, we still have a way to find \emph{some} local optimizer via the concave-convex procedure, which we implement and discuss at length in \cref{sec:larger-gamma}---although we conclude that the ability to find such a minimizer is not a satisfactory notion of inference in this regime.
+% To begin, we start with a 
+To ease into the more technical constructions, we start by addressing the special case of $\gamma = 0$. 
 
 %joe2
 %We will proceed as follows:
@@ -1060,15 +1073,11 @@ This requires different approaches, depending on the value of $\gamma$.
 %     bounded tree-width (addressing \textbf{D1}).
 % \end{enumerate}
 
-
-% \begin{enumerate}[itemsep=0pt]
-%     \item
-% \end{enumerate}
-We proceed as follows.
-In \cref{sec:minimize-inc}, we present a straightforward
-and relatively standard application of the exponential cone to finding minimizers of $\Inc$.
-Then in \cref{sec:small-gamma} we give a more complex but still straightforward translation of $\bbr{\dg M}_\gamma$ to a convex program when $\gamma$ is small. 
-In \cref{sec:larger-gamma}, we show how this may be iterated to solve the non-convex problem when $\gamma$ becomes larger, and in \cref{sec:empirical-limit} we show how  the unique distribution $\bbr{\dg M}^*$ may be found with two exponential conic programs in sequence.
+% We proceed as follows.
+% In \cref{sec:minimize-inc}, we present a straightforward
+% and relatively standard application of the exponential cone to finding minimizers of $\Inc$.
+% Then in \cref{sec:small-gamma} we give  translation of $\bbr{\dg M}_\gamma$ to a convex program when $\gamma$ is small. 
+% In \cref{sec:larger-gamma}, we show how this may be iterated to solve the non-convex problem when $\gamma$ becomes larger, and in \cref{sec:empirical-limit} we show how  the unique distribution $\bbr{\dg M}^*$ may be found with two exponential conic programs in sequence.
 
 \subsection{%
     Minimizing Incompatibilty
@@ -1076,13 +1085,15 @@ In \cref{sec:larger-gamma}, we show how this may be iterated to solve the non-co
 } \label{sec:minimize-inc}
 
 When $\gamma = 0$, we have $\bbr{\dg M}_0(\mu)= \Inc(\mu)$ which is a weighted sum of conditional relative entropies.
-Unsurprisingly, the exponential (relative entropy) cone can be used to find such minima in a standard way.
+Unsurprisingly, the exponential (``relative entropy'') cone can be used to find such minima in a standard way.
 We now review the construction of that exponential conic program,
     so that we can build upon it.
 
 % \subsection*{Warm-Up}
 % \paragraph{Warm-Up}
 \textbf{Warm-up.}
+\begingroup 
+% \def\||m{\overset{\scriptscriptstyle|}{\underset{\scriptscriptstyle|}{\mat m}}}
     % \label{sec:illust}
 To illustrate the idea, consider the special case of a PDG that
 contains only one variable $X$, which takes values $\V\mskip-2mu X = \{1, \ldots, n\}$.
@@ -1110,11 +1121,16 @@ may be represented as a vector $\mat m \in [0,1]^n$.
 %             \mat t \succeq {\mat m} \log \frac{\mat m}{\mat p}
 %         \\&\implies \sum_{L \in \Ed}\sum_{i=1}^n t_i  \ge \kldiv{\mat m}{\mat p}
 % \end{align*}
-Now consider a matrix $\mat U = [u_{i,j}] \in \Rext^{n \times k}$,
-and observe that:
+% Let $\mat M := \mat m \otimes \mat 1 = [\mat m,\,...\,, \mat m] \in [0,1]^{n \times k}$, 
+Now consider a matrix $\mat U = [u_{i,j}] \in \Rext^{n \times k}$
+as a collection of upper bounds on , and observe that:
 \begin{align*}
 %joe2: hyou still haven't defined \otimes.  I'd be happy if you could  get rid of it altogether.
-    &&(- \mat U,~ \mat m \otimes \mat 1,~ \mat P) &\in K_{\exp}^{n \times k} \\
+    &&(- \mat U,~ 
+        % \mat m \otimes \mat 1
+        [\mat m,\,...\,, \mat m]
+        % \mat M
+        ,~ \mat P) &\in K_{\exp}^{n \times k} \\
     % &\iff \forall  i,j \in [n]\!\times\![k].~~
     &\iff& \forall  i,j.~~
         (- u_{ij}, m_{i}, p_{ij}) &\in K_{\exp} \\
@@ -1127,6 +1143,7 @@ and observe that:
     % &\implies& \mat 1^{\sf T} \mat U \bbeta =  \sum_{i,j} \beta_j u_{ij}  &\ge \sum_j \beta_j \kldiv{\mu}{p_j} = \Inc(\mu).
     &\implies& {\textstyle\sum_{i,j}} \beta_j u_{ij}  &\ge {\textstyle\sum_j} \beta_j \kldiv{\mu}{p_j} \\
     &\iff& \mat 1^{\sf T} \mat U \bbeta &\ge \Inc(\mu) .
+        \numberthis\label{eqn:warmup-logic}
 \end{align*}
 
 %joe2
@@ -1140,14 +1157,21 @@ So now, if $(\mat U, \mat m)$ is a solution to the convex program
     \quad\text{\sf subject to}\quad &
         \mat 1^{\sf T} \mat m  = 1, \\[-2ex]
     % \begin{cases}
-        (-\mat U,\;\, &\mat m\otimes \mat 1,\; \mat P) \in K_{\exp}^{n \times m},
+        (-\mat U,\;&
+            % \mat m\otimes \mat 1
+            % \mat M
+            [\mat m,\,...\,, \mat m]
+            ,\; \mat P
+        ) 
+            \in K_{\exp}^{n \times k},
     % \end{cases},
-\end{align*}
+\end{align*} 
 then (a) the inconsistency $\aar{\dg M}$ equals the optimal objective value $\mat 1^{\sf T} \mat U \bbeta$, and (b) $\mu \in \bbr{\dg M}^*_0$, which is to say that $\mu$ minimizes $\Inc_{\dg M}$.
 % This illustrates the general principle, but
 
 % \subsection{Adding More Variables, Conditionals, Marginals}
 % \subsection{Finding a Maximally Compatible Distribution}
+\endgroup
 
 \textbf{The General Case.}
 % We now tackle the general case of
@@ -1165,28 +1189,33 @@ similarly, $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$ is a joint distribution over t
 % and identify finitely supported distributions with their simplex representations.
 % For example, we will implicitly identify a joint distribution $\mu$
 % with the appropriate vector
-As above, introduce an optimization variable $\mat u$ which packages together
-    upper bounds for all arcs and values of the variables involved. 
+As before, we now introduce an optimization variable $\mat u$ which packages together
+    all of the relevant pointwise upper bounds.
 To that end, let 
-$\V\!\Ar :%
+$
+\V\!\Ar :%
     = \sqcup_{a \in A} \V(\Src a, \Tgt a)
-    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \}$,
-
-.
-
+    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \},
+$
+denote the set of all choices of an arc together with a value for its source and target varible. 
+Now consider a $\V\!\Ar$-shaped vector
+% $\mat u = [u_{i}]_{i \in \V\!\Ar}$
+$\mat u = [u_{a,s,t}]_{(a,s,t) \in \V\!\Ar}$
+in the optimization problem
+%
 % For each $a \in \Ar$, let $N_a := |\V(\Src a, \Tgt a)|$ be the dimension of joint settings of the source and target values of $a$, i.e., the dimension of the cpd $p \ssub a$,
 % let $K := \sum_{a \in \Ar} N_a$ be the total dimension, and
 %joe2: As I said, I really don't like the subscript-superscript
 %notation.
-Let $\mat u = [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
-be a vector
+% Let $\mat u = [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
+% be a vector
 % be a free variable in $\Rext^{K}$.
 % of all of the condtional probabilities in $\dg M$.
 % Let $t = (t^L)_{L \in \Ed} \in \Rext^{K}$.
 % {\color{red} Let $\Pi_{X}$ be the projection map that marginalizes to the variables $X$. }
 %
 % Consider the problem
-and consider the optimization problem \eqref{prob:joint-inc}.
+% and consider the optimization problem \eqref{prob:joint-inc}.
 % \begin{align*}
 %     % \min_{\mu, t} &\qquad
 %     \min_{\mat m, \mat u} &\quad
@@ -1211,10 +1240,11 @@ and consider the optimization problem \eqref{prob:joint-inc}.
     \mathop{\text{\sf minimize}}\limits_{\mu, \mat u} &\quad
         % \Vert t \Vert_1
         % \sum_{L}\beta_L\, | \mat u\ssub {\mskip 1muL}\mskip 1mu |
-        \sum_{a \in \Ar}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+        % \sum_{a \in \Ar}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+        \sum_{\mathrlap{a,s,t \in \V\!\Ar}} \beta_a \, u_{a,s,t}
     \numberthis\label{prob:joint-inc}\\
     \text{\sf subject to:}&\quad \mu \in \Delta\V\X, \\[0.2ex]
-        \forall a \in \Ar.~&\big(-\mat u^a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
+        \forall a \in \Ar.~&\big(-\mat u_a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
     % \\
     % \color{red}\text{previously}&\color{red}
     %     % (-t^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L))
@@ -1227,7 +1257,8 @@ and consider the optimization problem \eqref{prob:joint-inc}.
     %         % \mu \ge 0, ~~ | \mu | = 1.
     %         \mat m \ge 0, ~~ | \mat m | = 1.
 \end{align*}
-
+where $\mat u_a = [u_{a,s,t}]_{(s,t) \in \V(\Src a, \Tgt a)}$ consists of those components of $u$ affiliated with the arc $a$.
+%
 % This convex program has $K+1$ constraints
 % \TODO[ I've rewritten this a couple times, and it's always pretty ugly.
 %     One higher level question: should we convert this to a different form?
@@ -1250,7 +1281,9 @@ and consider the optimization problem \eqref{prob:joint-inc}.
 Note that the marginals $\mu(\Src a, \Tgt a)$ and $\mu(\Src a)$ are
 affine transformations of $\mu$, as required by the
 disciplined convex programming conditions for exponential cones.
-Logic similar to that in \cref{sec:illust} yields:
+% Logic similar to that in \cref{sec:illust} yields:
+A straightforward generalization of the logic in \eqref{eqn:warmup-logic} yields:
+
 \begin{prop}
     % If $(\mu, t)$ are a solution to \eqref{prob:joint-inc}, then
     % $\mu \in \bbr{\dg M}_0^*$,
@@ -1262,12 +1295,14 @@ Logic similar to that in \cref{sec:illust} yields:
     $\mu \in \bbr{\dg M}_0^*$,
     and
     $%\displaystyle
-        \sum_{a}\beta_a \sum_{(s,t) \in \V(\Src a, \Tgt a)} u^a_{s,t} = \aar{\dg M}$.
+        % \sum_{a}\beta_a \sum_{(s,t) \in \V(\Src a, \Tgt a)} u^a_{s,t} = \aar{\dg M}$.
+        \sum_{(a,s,t) \in \V\!\Ar} \beta_a u_{a,s,t} = \aar{\dg M}$.
 \end{prop}
 
 % This is a start, but what we were really after was the unique distribution $\bbr{\dg M}^*$ that also minimizes $\IDef{\dg M}$.
-This is a start, but among the minimizers of $\Inc$, we are particularly interested in the unique distribution $\bbr{\dg M}^*$, which the PDG represents in the empirical limit.
-Furthermore, we still need to find optimizers $\bbr{\dg M}^*_\gamma$ for $\gamma > 0$.
+So, we have found a distribution that minimizes $\Inc$. 
+This is a start, but among the minimizers of $\Inc$, we are particularly interested in the special distribution $\bbr{\dg M}^*$.
+Separately, we are still interested in the optimizers $\bbr{\dg M}^*_\gamma$ for $\gamma > 0$.
 We address the second problem first.
 
 \subsection{%
