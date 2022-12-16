@@ -23,7 +23,9 @@
 \input{inference-preamble.tex}
 \input{pdg-preamble-v2.tex}
 
-\newcommand\obslimit{observational image}
+\newcommand\discard[1]{}
+\newcommand\obslimit{observational surrogate}
+\newcommand\ObsLimit{Observational Surrogate}
 % depiction / manifestiation / materialization / portrayal / image / expression / delegate / aspect / facet / form / representative / intermediary / surrogate / proxy
 
 \colorlet{mayyybe}{blue!50!red!20!white}
@@ -186,13 +188,17 @@ This paper presents the first such algorithm.
 % For general parameter settings, a PDG may not indicate just one distribution.
 What does it mean to answer probabilistic queries \emph{correctly} for a PDG?
 % The situation is more subtle for PDGs than for other graphical models,
-The situation is more subtle that it is for other graphical models, because a PDG may represent more than just one probability distribution. 
+The situation is more subtle that it is for other graphical models, because a PDG may
+% represent more than just one probability distribution. 
+not just represent one probability distribution.
 % It is true that PDGs 
 % As \authorcite{pdg-aaai} point out,
-Under very mild assumptions, a PDG singles out a particular distribution which we call its ``observational aspect'';
-answering queries with respect to this distribution is our primary goal.
-Still, the observational aspect is just a special endpoint of a continuous family of  distributions that the PDG represents.  
-Under more substantial assumptions, we show how to do inference with respect to these other distributions as well.
+Nevertheless, under very mild assumptions a PDG does single out a particular distribution which we call its ``\obslimit''.
+Our primary goal is to answer probabilistic queries with respect to this distribution.
+Still, the \obslimit\ is just a special endpoint of a continuous family of  distributions that the PDG represents.  
+Under stricter assumptions, 
+ % we show how to do inference with respect to these other distributions as well.
+ the same techniques enable inference with respect to some of these other distributions as well.
 % In achieving it, we will also show how to answer queries
 % but in achiving it, we also demonstrate how 
 % to answer them with respect to other distributions that the PDG represents.
@@ -224,13 +230,14 @@ Interestingly, the constriction is not trivial.
 % It is not a variant of belief propagation (BP), nor is it
 %
 % Unlike the many variants of exact inference
-While the many approaches to exact inference in standard graphical models have largely turned out to be various perspectives on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
-% our approach has roots in a very different.
-our approach is quite different in nature.
+While the many approaches to exact inference in standard graphical models have largely turned out to be distinct perspectives 
+on the same mathematics \parencite[\S9-11]{koller2009probabilistic},
+% our approach has roots in a very different [...] .
+% our approach is quite different in nature.
+% our approach is quite distinct in nature.
 % our approach seems by all acounts to be quite different.
 % our approach looks by all acounts to be quite different.
-% and .
-% new iterior point methods.
+our approach appears to be quite different in nature.
 
 Our ability to do PDG inference in polynomial time is based on a line of recent work in convex programming that establishes polynomial-time convergence
 \parencite{badenbroek2021algorithm,dahl2022primal}
@@ -281,11 +288,11 @@ Beyond their role as a graphical model, PDGs
 
 \textbf{Contributions.}
 We provide the first algorithm to provably do inference in PDGs.
-Better still, it is fixed-parameter tractable: for models of bounded treewidth,
+Better yet, it is fixed-parameter tractable: for PDGs of bounded treewidth,
     it runs in polynomial time.
 We show how PDG inference can be reduced to conic exponential programming,
     in a way that can be offloaded to a powerful existing solvers.
-We also provide a python implementation of the conversion in a standard convex optimization framework, thereby completing the software interface between such solvers and the standard library describing PDGs.
+We also provide a python implementation of the conversion in a standard convex optimization framework, thereby completing a software interface between such solvers and the standard PDG python library.
 Finally, we evaluate this implementation empirically, and show that it is both more accurate and faster than other optimization baselines.
 %
 % Moreover, the approach makes use of , giving us efficiency out-of-the box.
@@ -302,39 +309,39 @@ For us, a vector is a map from a finite set to the extended reals
 The \emph{shape} of a vector $\mat u$ is the finite set which is its domain.
 % The notation $\mat u := [u_i]_{i \in S}$ defines a vector over the finite set $S$.
 The notation $\mat u := [u_i]_{i \in S}$ defines a vector of shape $S$.
-{\color{gray!30!white}
-We will sometimes use superscripts as well, especially when indices depend on one another. For example, if $\dg S$ is a finite set of finite sets, then
-%joe2: (1) why is this a disjoint union?  You never said that the sets in
-%\X were disjoint.  (2) You don't want to include X \in \X and x
-%\n X in the notation; it's really ugly.  I would slightly prefer
-%u_{x,X}$.  (3) Technically, if it's a vector, you have to specify the
-%order of the elements, and the notation doesn't do that.
-%oli2: (1) This is one construction of the disjoint union. It doesn't matter if the sets
-% X \in \X are disjoint; even if x is a member of X1 and X2, the indices (X1, x) and (X2,x) will be different.  (2) I agree that it's a little bit ugly, but I think leaving it out is far more confusing.  (3) Not necessarily.  Just because the standard basis (e_1, ... e_n) has an order doesn't mean we have to provide an order if we use a different basis. Sure, we need an order to write down a concrete vector without reference to the basis elements, but we won't need to do that.
-% $\mat u := [u^X_x]^{X \in \mathcal X}_{x \in X}$ defines a vector whose indicies range over the disjiont union $\sqcup \mathcal X$.
-%oli2: here's a compromise
-% $[u^X_x]_{x \in X, X \in \X}$ denotes a vector which has an element
-% for each $X \in \X$ and $x \in X$.
-$[u^S_s]^{S \in \dg S}_{s \in S}$ denotes a vector which has an element
-%oli2: futher clarifying now that you've stripped the "disjoint union" out...
-% for each $X \in \mathcal X$ and $x \in X$.
-for each pair $(S,s)$, satisfying $s \in S \in \dg S$.
- % for each $(X, x)$
-%joe2: now you're really getting into the weeds.  This is a paper
-%about inference, not notation.
-%oli2: ok, although I think it's clearer to spell it out.
-%It is equivalent to $\mat u := [u_{(x,X)}]_{x \in X, X \in \mathcal X}$, but more compact.
-%joe2: I don't know what "the subspace where the upper index is $X$"
-%means.  If you really need this notation, you need to explain it
-%better.  But this is really the wrong place for it.
-%oli2: if you can point out a better place for it later, that's ok.
-% But I think this notation will be a distraction once we get into the actual
-% story we want to tell.
-% Supplying just the upper index, $\mat u^{X}$ is the projection of $\mat u$ onto the subspace where the upper index is $X$.
-% Supplying just the upper index, $\mat u^{X_0} := [u^{X_0}_x]_{x \in {X_0}}$
-% is the projection of $\mat u$ onto the subspace whose upper index is $X_0$.
-By supplying just the upper index of such a vector, as in $\mat u^{S_0}$,
-we mean $[u^{S_0}_s]_{s \in {S_0}}$, the projection of $\mat u$ onto the subspace whose upper index is $S_0$.
+\discard{\color{gray!30!white}
+    We will sometimes use superscripts as well, especially when indices depend on one another. For example, if $\dg S$ is a finite set of finite sets, then
+    %joe2: (1) why is this a disjoint union?  You never said that the sets in
+    %\X were disjoint.  (2) You don't want to include X \in \X and x
+    %\n X in the notation; it's really ugly.  I would slightly prefer
+    %u_{x,X}$.  (3) Technically, if it's a vector, you have to specify the
+    %order of the elements, and the notation doesn't do that.
+    %oli2: (1) This is one construction of the disjoint union. It doesn't matter if the sets
+    % X \in \X are disjoint; even if x is a member of X1 and X2, the indices (X1, x) and (X2,x) will be different.  (2) I agree that it's a little bit ugly, but I think leaving it out is far more confusing.  (3) Not necessarily.  Just because the standard basis (e_1, ... e_n) has an order doesn't mean we have to provide an order if we use a different basis. Sure, we need an order to write down a concrete vector without reference to the basis elements, but we won't need to do that.
+    % $\mat u := [u^X_x]^{X \in \mathcal X}_{x \in X}$ defines a vector whose indicies range over the disjiont union $\sqcup \mathcal X$.
+    %oli2: here's a compromise
+    % $[u^X_x]_{x \in X, X \in \X}$ denotes a vector which has an element
+    % for each $X \in \X$ and $x \in X$.
+    $[u^S_s]^{S \in \dg S}_{s \in S}$ denotes a vector which has an element
+    %oli2: futher clarifying now that you've stripped the "disjoint union" out...
+    % for each $X \in \mathcal X$ and $x \in X$.
+    for each pair $(S,s)$, satisfying $s \in S \in \dg S$.
+     % for each $(X, x)$
+    %joe2: now you're really getting into the weeds.  This is a paper
+    %about inference, not notation.
+    %oli2: ok, although I think it's clearer to spell it out.
+    %It is equivalent to $\mat u := [u_{(x,X)}]_{x \in X, X \in \mathcal X}$, but more compact.
+    %joe2: I don't know what "the subspace where the upper index is $X$"
+    %means.  If you really need this notation, you need to explain it
+    %better.  But this is really the wrong place for it.
+    %oli2: if you can point out a better place for it later, that's ok.
+    % But I think this notation will be a distraction once we get into the actual
+    % story we want to tell.
+    % Supplying just the upper index, $\mat u^{X}$ is the projection of $\mat u$ onto the subspace where the upper index is $X$.
+    % Supplying just the upper index, $\mat u^{X_0} := [u^{X_0}_x]_{x \in {X_0}}$
+    % is the projection of $\mat u$ onto the subspace whose upper index is $X_0$.
+    By supplying just the upper index of such a vector, as in $\mat u^{S_0}$,
+    we mean $[u^{S_0}_s]_{s \in {S_0}}$, the projection of $\mat u$ onto the subspace whose upper index is $S_0$.
 }
 % Vectors over the same set
 Vectors of the same shape
@@ -344,7 +351,7 @@ $\mat u^{\sf T}$ denotes the transpose of $\mat u$, which we use primarily to de
 % If $\mat u : A \to \Rext$ is a vetor over $A$, and $\mat v : A \times B \to \Rext$,
 % then $\mat u \otimes \mat 1 : A \times \Gamma \to \Rext$, by
 % $(\mat u \otimes \mat 1)(a,\gamma) := \mat u(\gamma)$
-{\color{gray!30!white} If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}$ is a vector over $B$, then $\mat u \mathbin{\otimes} \mat v := [ u_a \cdot v_b ]_{a \in A, b \in B}$ is a vector over $A \times B$. }
+\discard{\color{gray!30!white} If $\mat u = [u_a]_{a \in A}$ is a vector over $A$ and $\mat v = [v_b]_{b \in B}$ is a vector over $B$, then $\mat u \mathbin{\otimes} \mat v := [ u_a \cdot v_b ]_{a \in A, b \in B}$ is a vector over $A \times B$. }
 
 % {\color{red}\tt
 % TODO: unexplained notation / concepts
@@ -357,12 +364,19 @@ $\mat u^{\sf T}$ denotes the transpose of $\mat u$, which we use primarily to de
 
 \textit{Probabilities.}
 We write $\Delta S$ to denote the set of probability distributions over a finite set $S$.
-Every variable $X$ can take on values from a finite set $\V\mskip-1mu X$ of possible values.
-% If $S$ is a finite set, we write $\Delta S$ for the set of probability distributions over $S$, i.e., the simplex over its elements.
+% Every variable $X$ can take on values from a finite set $\V\mskip-1mu X$ of possible values.
+Every variable $X$ can take on values from a finite set $\V\mskip-1.5mu X$ of possible values.
+% Sets (and tuples) of variables $\mat X = \{X_1, \ldots X_n\}$ are also variables, 
+% and take values in the usual way%
+%     \footnote{
+%         % $\V\mat X = \Pi_{X \in \mat X} \V(X)$; 
+%         $\V(X_1, \ldots, X_n) = \V\mskip-1.5mu X_1 \times \ldots \times \V\mskip-1.5mu X_n$}
+Tuples of variables are also variables in the usual way, with
+$\V(X_1, \ldots, X_n) = \V\mskip-1.5mu X_1 \times \ldots \times \V\mskip-1.5mu X_n$.
 A conditional probability distribution (cpd) $p(Y|X)$ is a map
 %joe2
 %$p : \V(X) \to \Delta \V(Y)$, so it assigns, to every $x \in \V(X)$, a
-$p : \V\mskip-1mu  X \to \Delta \V Y$, so it assigns to each $x \in \V\mskip-1mu X$ a
+$p : \V\mskip-1.5mu  X \to \Delta \V Y$, so it assigns to each $x \in \V\mskip-1.5mu X$ a
 probability distribution $p(Y|x) \in \Delta \V Y$, which is shorthand for $p(Y|X\!\!=\!x)$.
 Given a joint distribution $\mu$ over many variables including both $X$ and $Y$,
 %joe1: Is this standard notation for a marginal?  \mu)(X) looks like
@@ -395,7 +409,7 @@ An ordinary graph may be viewed as the special case in which every hyperedge con
 % There is a natural bijection between hyper-graphs and bipartite graphs.
 
 \begin{defn}
-    A \emph{directed hypergraph} $G = (N, \mathcal A)$ is a set $N$ of nodes, and a collection $\mathcal A$ of \emph{hyperarcs}; each $a \in \mathcal A$
+    A \emph{directed hypergraph} $G = (N, \mathcal A)$ is a set $N$ of nodes, and a collection $\mathcal A$ of \emph{(hyper)arcs}; each $a \in \mathcal A$
     is associated with a set $\Src a \subset N$ of source nodes, and a set $\Tgt a \subset N$ target nodes.
 \end{defn}
 % A directed graph is just a directed hypergraph where the source and target sets of every hyperarc are singletons.
@@ -662,7 +676,10 @@ is given by the weighted sum of relative entropies:
 % $\Inc$ measures $\mu$'s
 % $\Inc$ is the ``quantitative'' term because it measures $\mu$'s
 % discrepency with the quantitative data in the cpds.
-Using a standard interpretation of the relative entropy $\kldiv{\mu}{p} := \Ex_{\mu}[\log \frac\mu p]$, we may view $\Inc_{\dg M}$ as measuring total overhead of using codes optimized for the cpds of $\dg M$ (weighted by the confidence we have in them), supposing that the world is in fact distributed according to $\mu$.
+% Relative entropy $\kldiv{\mu}{p} := \Ex_{\mu}[\log \frac\mu p]$ measures a ``distance'' of sorts between one distribution and another. 
+% Using a standard interpretation of the relative entropy $\kldiv{\mu}{p} := \Ex_{\mu}[\log \frac\mu p]$,
+A standard interpretation of the relative entropy $\kldiv{\mu}{p} := \Ex_{\mu}[\log \frac\mu p]$ reveals that
+$\Inc_{\dg M}$ measures the excess cost of using codes optimized for the cpds of $\dg M$ (weighted by the confidence we have in them), when in fact outcomes are distributed according to $\mu$.
 %joe1
 %Meanwhile, there is also a ``qualitative'' term, called the
 % There is also a ``qualitative'' term, called the
@@ -697,14 +714,19 @@ Using a standard interpretation of the relative entropy $\kldiv{\mu}{p} := \Ex_{
 %what you wrote
 %oli3*: updated
 % The second way in which we score a distribution $\mu$,
-There is also a second aspect of how well a distribution $\mu$ fits $\dg M$:   
+% There is also a second aspect of how well a distribution $\mu$ fits $\dg M$:   
+There is a second kind of discrepency between $\mu$ and $\dg M$, of a more structural flavor: 
 % called its \emph{information deficiency}
-the extent to which $\mu$ 
+the extent to which $\mu$ fails to model
 % reflects the causal structure of $\dg M$.
 % treats the edges in ${\dg M}$ as describing independent mechanisms that determine the target given the source.
 % Z independent causal mechanism that determines $\Tgt a$ given $\Src a$.
 % treats the arcs of $\dg M$ as describing independent causal mechanisms that determine the target given the source. 
-fails to treat each arc $a \in \Ar$ as describing $\alpha_a$ independent causal mechanisms that determine $\Tgt a$ given $\Src a$. 
+% a situation in which each arc $a \in \Ar$ 
+% $\alpha_a$
+a situation in which each unit of $\alpha$ corresponds to an independent causal mechanism
+that determines its target variables given its source variables.
+% independent causal mechanisms that determine $\Tgt a$ given $\Src a$. 
 This is captured by the \emph{information deficiency}, given by
 % This is captured by the \emph{information deficiency}, given by
 % \begin{align*}
@@ -781,16 +803,18 @@ The notation $\bbr{\dg M}^*_\gamma := \argmin_\mu \bbr{\dg M}_\gamma(\mu)$ denot
 % Of particular interest is the ``quantitative limit'' as $\gamma \to 0$,
 % The inference task for PDGs, then is
 One case of particular interest is the limit as $\gamma \to 0$,
-which corresponds to a fully empirical approach: matching quantitative observations is the primary concern, and causal information is used only to break ties.
+% which corresponds to a fully empirical approach: matching quantitative observations is the primary concern, and causal information is used only to break ties.
+in which observational data dominates, and structural information is used only to break ties.
 % When $\gamma$ is small enough.
-In this limit there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at least if $\bbeta > \mat 0$).
-
+So long as $\bbeta > \mat 0$,
+there is a unique optimal distribution $\bbr{\dg M}^*$ in the limit, which we call the \emph{\obslimit\ of $\dg M$}. 
+%
 % Why this limit in particular?
-
+%
 %joe2*: We need INTUITION.  why do we care about what happens as
 %\gamma -> 0.  If we can't motivate this well, there's no reason for a
 %reader to be interested in the rest of the paper, so this is critical.
-
+%
 % \TODO[ In my opinion is way too much intuition for $\gamma$, but I'll put it all here so it can be pared down. ]
 %
 % \begin{enumerate}[nosep]
@@ -808,8 +832,10 @@ In this limit there is a unique optimal joint distribution, $\bbr{\dg M}^*$ (at 
 %     In any case, this is the way in which PDGs define a unique joint distribution, and hence may be thought of as a graphial model.
 % \end{enumerate}
 % This distribution uniquely achieves the smallest information deficiency among those distributions maximally compatible with $\dg M$.
-
-One should be careful to distinguish this joint distribution $\bbr{\dg M}^* \in \Delta\mskip-2mu \V \mskip-2mu\X$, which arises in the limit as $\gamma \to 0$, from $\bbr{\dg M}^*_0$, the set of distributions that minimize
+%
+One should be careful to distinguish $\bbr{\dg M}^* \in \Delta\mskip-2mu \V \mskip-2mu\X$, 
+% which arises in the limit as $\gamma \to 0$,
+from $\bbr{\dg M}^*_0 \subseteq \Delta\mskip-2mu \V \mskip-2mu\X$, the set of distributions that minimize
 %joe1
 %$\Inc_{\dg M}$ which contains $\bbr{\dg M}^*$, and possibly many others.
 $\Inc_{\dg M}$; the latter set can be shown to contain $\bbr{\dg
@@ -823,7 +849,13 @@ The $\gamma$-inconsistency of a PDG $\dg M$ is the smallest possible score of an
 \begin{align*}
     \aar{\dg M}_\gamma := \inf_{\mu \in \Delta\!\V\!\X}\, \bbr{\dg M}_\gamma(\mu).
 \end{align*}
-To parallel the notation for scoring functions, when we omit the subscript, we refer to the limit as $\gamma\to 0$, which, unlike before, obeys $\aar{\dg M} = \aar{\dg M}_0$.
+To parallel the notation for scoring functions, 
+when $\gamma$ is omitted or we write ``the inconsistency of $\dg M$'',
+% when we omit the subscript, 
+% When $\gamma$ is not given 
+we are referring to the limit as $\gamma\to 0$, which, unlike before, obeys $\aar{\dg M} = \aar{\dg M}_0$.
+As previously mentioned, when $\dg M$ models a common learning scenario, 
+the inconsistency $\aar{\dg M}$ is typically the standard loss function used in that setting \parencite{one-true-loss}.
 
 
 % \textbf{Exponential Conic Programs.}
@@ -924,7 +956,7 @@ The exponential cone is the convex set
         \big\{ (x_1, 0, x_3&) : x_1 \ge 0,\, x_3 \le 0 \big\}
             % \cup\\
         % \\\quad \mathbin{\cup}\,
-        \quad \subset \mathbb R^3.
+        \qquad \subset \mathbb R^3.
     \end{aligned}
     % \subset \mathbb R^3.
 \end{align*}
@@ -992,22 +1024,25 @@ constraint $(x,y,z) \in K_{\exp}$ is dcp, iff $x$, $y$, and $z$ are affine trans
 
 
 Here is one obvious, if inefficient, way to calculate $\Pr_{\cal M}(Y|X{=}x)$ in a
-probabilistic model $\cal M$. First compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and condition on $X\!=\!x$.
+probabilistic model $\cal M$. First compute an explicit representation of the joint distribution $\Pr_{\cal M}(\X)$ over all variables; then marginalize to $\Pr_{\cal M}(X,Y)$, and finally condition on $X\!=\!x$.
 %
 % For other graphical models,
 For a factor graph
 or BN, both steps are straightforward; 
     % \footnote{in the case of a factor graph, we also have to renormalize the distribution, which requires exponential time either way, although it is masked.  }
-the problem is the exponential time and space required to explicitly represent $\Pr_{\cal M}(\X)$.
-In some sense, the purpose of an inference algorithm for a standard graphical model is to avoid this cost.
-For PDGs, though, it's not clear
+the problem is the exponential time and space required to represent $\Pr_{\cal M}(\X)$ explicitly.
+So in a sense, the main point of an inference algorithm is to avoid doing so.
+For PDGs, though, it's not even obvious that
 % what to do if we grant ourselves this luxury.
 % In this section, we will.
-we can calculate $\Pr_{\cal M}(\X)$ even if we grant ourselves the luxury of storing a joint distribution, as we do in this section.
+we can calculate $\Pr_{\cal M}(\X)$ if we grant ourselves
+ % the luxury of storing a joint distribution, as we do in this section.
+the luxury of working with joint distributions, as we do in this section.
 % It's not too hard to cast
 % With this luxury, 
 %
-So indulging, PDG inference is already an optimization problem by definition:
+With this indulgence, 
+PDG inference is already an optimization problem by definition:
 % With the luxury of a simplex representation of a joint distribution $\mu$,
 % inference is already an optimization problem:
  % PDG semantics \eqref{eqn:scoring-fn} 
@@ -1039,9 +1074,12 @@ With exponential cones, the answer is yes, as we show in \Cref{sec:small-gamma}.
 Perhaps more importantly, 
 % the \obslimit\ 
 $\bbr{\dg M}^*$ can be computed via a sequence of two exponential conic programs (\Cref{sec:empirical-limit}). 
-When $\gamma$ is large, we still have a way to find \emph{some} local optimizer via the concave-convex procedure, which we implement and discuss at length in \cref{sec:larger-gamma}---although we conclude that the ability to find such a minimizer is not a satisfactory notion of inference in this regime.
+When $\gamma$ is large, we still have a way to find \emph{some} local optimizer via the concave-convex procedure, which we implement and discuss at length in \cref{sec:larger-gamma}---although ultimately we conclude that our ability to find one such minimizer of many falls short of what we would like from an inference algorithm in this domain.
 % To begin, we start with a 
-To ease into the more technical constructions, we start by addressing the special case of $\gamma = 0$. 
+% To ease into the more technical constructions, we start by
+% minimizing just one of the terms 
+% addressing the special case of $\gamma = 0$. 
+To give the flavor of how these constructions proceed, and ease into the more complicated ones, we begin simply by finding minimizers of $\Inc$, the simpler of the two scoring functions.
 
 %joe2
 %We will proceed as follows:
@@ -1183,22 +1221,37 @@ and identify distributions with their simplex representations as vectors.
 % In particular, if the source of an arc $a \in \Ar$ can take $m := |\V\Src a|$
 % possible values, and its target can take $n := |\V\Tgt a|$ possible values, then
 
-In particular, for every hyperarc $a \in \Ar$, we regard the marginal distribution $\mu(\Tgt a, \Src a)$ as a vector over $\V(\Tgt a, \Src a)$;
-similarly, $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$ is a joint distribution over the same variables, and may be regarded as a vector of the same shape.
+% To that end, 
+To simplify notation, 
+for each arc $a \in \Ar$, let
+$\V a := \V(\Src a, \Tgt a)$ 
+denote all joint settings of $a$'s source and target variables, and 
+write
+% $
+% \V\!\Ar :%
+%     = \sqcup_{a \in A} \V(\Src a, \Tgt a)
+%     = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \},
+% $
+$
+\V\!\Ar :%
+    = \sqcup_{a \in A} \V a
+    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \},
+$
+for the set of all choices of an arc together with values of its source and target. 
+%
+% In particular, for every hyperarc $a \in \Ar$, we regard the marginal distribution $\mu(\Tgt a, \Src a)$ as a vector over $\V a$;
+% $\V(\Tgt a, \Src a)$;
+% similarly, $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$ is a joint distribution over the same variables, 
+% and may be regarded as a vector of the same shape.
+% and may be regarded as a $\V a$-shaped vector as well.
+Then, for each $a \in \Ar$ we can regard $\mu(\Tgt a, \Src a)$ and $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$, both distributions over $\{\Src a,\Tgt a\}$, as vectors of shape $\V a$.
 % \in \Rext^{m \times n}
 % and identify finitely supported distributions with their simplex representations.
 % For example, we will implicitly identify a joint distribution $\mu$
 % with the appropriate vector
 As before, we now introduce an optimization variable $\mat u$ which packages together
     all of the relevant pointwise upper bounds.
-To that end, let 
-$
-\V\!\Ar :%
-    = \sqcup_{a \in A} \V(\Src a, \Tgt a)
-    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \},
-$
-denote the set of all choices of an arc together with a value for its source and target varible. 
-Now consider a $\V\!\Ar$-shaped vector
+To that end, consider a $\V\!\Ar$-shaped vector
 % $\mat u = [u_{i}]_{i \in \V\!\Ar}$
 $\mat u = [u_{a,s,t}]_{(a,s,t) \in \V\!\Ar}$
 in the optimization problem
@@ -1244,7 +1297,10 @@ in the optimization problem
         \sum_{\mathrlap{a,s,t \in \V\!\Ar}} \beta_a \, u_{a,s,t}
     \numberthis\label{prob:joint-inc}\\
     \text{\sf subject to:}&\quad \mu \in \Delta\V\X, \\[0.2ex]
-        \forall a \in \Ar.~&\big(-\mat u_a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}.
+        \forall a \in \Ar.~&\big(-\mat u_a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}%
+        % ^{\V(\Src a\! \Tgt a\!)}
+        ^{\V a}
+        .
     % \\
     % \color{red}\text{previously}&\color{red}
     %     % (-t^L, \mu(\Src L, \Tgt L), \mu(\Src L) p\ssub L(\Tgt L | \Src L))
@@ -1257,7 +1313,7 @@ in the optimization problem
     %         % \mu \ge 0, ~~ | \mu | = 1.
     %         \mat m \ge 0, ~~ | \mat m | = 1.
 \end{align*}
-where $\mat u_a = [u_{a,s,t}]_{(s,t) \in \V(\Src a, \Tgt a)}$ consists of those components of $u$ affiliated with the arc $a$.
+where $\mat u_a = [u_{a,s,t}]_{(s,t) \in \V a}$ consists of those components of $u$ affiliated with the arc $a$.
 %
 % This convex program has $K+1$ constraints
 % \TODO[ I've rewritten this a couple times, and it's always pretty ugly.
@@ -1294,13 +1350,15 @@ A straightforward generalization of the logic in \eqref{eqn:warmup-logic} yields
     If $(\mu, \mat u)$ is a solution to \eqref{prob:joint-inc}, then
     $\mu \in \bbr{\dg M}_0^*$,
     and
+    % the attained objective value
     $%\displaystyle
         % \sum_{a}\beta_a \sum_{(s,t) \in \V(\Src a, \Tgt a)} u^a_{s,t} = \aar{\dg M}$.
         \sum_{(a,s,t) \in \V\!\Ar} \beta_a u_{a,s,t} = \aar{\dg M}$.
+    % equals $\aar{\dg M}$, the inconsistency of $\dg M$.
 \end{prop}
 
 % This is a start, but what we were really after was the unique distribution $\bbr{\dg M}^*$ that also minimizes $\IDef{\dg M}$.
-So, we have found a distribution that minimizes $\Inc$. 
+So a solution to this exponential conic program calculates the inconsistency of $\dg M$, and finds a distribution that minimizes $\Inc$. 
 This is a start, but among the minimizers of $\Inc$, we are particularly interested in the special distribution $\bbr{\dg M}^*$.
 Separately, we are still interested in the optimizers $\bbr{\dg M}^*_\gamma$ for $\gamma > 0$.
 We address the second problem first.
@@ -1350,7 +1408,7 @@ instead encode directly with linear constraints.
 % be the set all choices of an arc together with values of the variables that it touches.
 % Now,
 To do this formally,
-we will need to divide $\V\!\Ar$ into two disjoint subsets:
+we will need to divide $\V\!\Ar$ into two parts:
 $\V\!\Ar^+ := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) > 0\}$ and
 $\V\!\Ar^0 := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) = 0\}$.
 Armed with this notation, we can give the optimization problem formally.
@@ -1390,14 +1448,14 @@ Problem \eqref{prob:joint-small-gamma} may be complex, but it falls out of \eqre
 \end{prop}
 
 % \subsection{Incorporating IDef}
-\subsection{The Observational Depiction}
+\subsection{The \ObsLimit}
     \label{sec:empirical-limit}
 
 % To do this second pass, we will need this second property
 % As $\gamma \to 0$, the limit of $\bbr{\dg M}_\gamma$
 % So far, we have found a
 In \cref{sec:minimize-inc}, we
-saw that it is possible to find \emph{some} distribution that minimizes $\Inc$,
+already saw a way of finding \emph{some} distribution that minimizes $\Inc_{\dg M}$,
 but of those, we are particularly interested in the distribution $\bbr{\dg M}^*$.
 It turns out that a solution to \eqref{prob:joint-inc} can be used to construct a second optimization problem of a similar size, that also optimizes $\IDef{}$ subject to these constraints.
 % To justify our approach, we will to prove two more results.
@@ -1427,13 +1485,11 @@ First, a characterization of the set $\bbr{\dg M}^*_0$ of distributions that are
     That is, for all $\mu_1, \mu_2 \in \bbr{\dg M}_0^*$
     and all $a \in \Ar$,
     we have
+    % $\mu_1(\Tgt a, \Src a)\mu_2(\Src a) = \mu_2(\Tgt a, \Src a) \mu_1(\Src a)$.%
     $\mu_1(\Tgt a | \Src a) = \mu_2(\Tgt a | \Src a)$.%
     \footnote{
         Technically, to account for the possibility that
         $\mu_1(\Src a {=} s)$ or $\mu_2(\Src a {=} s)$ is zero for some $s \in \V(\Src a)$,
-        % we require that
-        % $\mu(X,Y)\nu(X) = \mu(X) \nu(X,Y)$, rather than  $\mu(Y|X) = \nu(Y|X)$.
-        % this means
         the condition is:
         $\mu_1(\Tgt a, \Src a)\mu_2(\Src a) = \mu_2(\Tgt a, \Src a) \mu_1(\Src a)$.%
     }
@@ -1494,25 +1550,43 @@ respectively.
 
 % Having already computed a solution to \eqref{prob:joint-inc},
 % the denominator of the expression in \cref{prop:idef-frozen}
-If we already have a solution $\nu$ to \eqref{prob:joint-inc},
-then the denomintor of \eqref{eq:idef-alt-constr}
-(apart from its dependence on joint values $w$ of $\V\!\X$)
+If we already know a distribution $\nu \in \bbr{\dg M}_0^*$, 
+perhaps by solving \eqref{prob:joint-inc}, then 
+the denominator of \eqref{eq:idef-alt-constr} does not depend on $\mu$ and so is a constant vector in our search for $\mu$ that minimize $\IDef{}$. 
+For reference, let's call it
+\begin{equation}
+% $
+    % \psi(w) := \prod_{L \in \Ed} \nu(\Tgt Lw | \Src Lw)^{\alpha\ssub L}.
+    \boldsymbol\psi :=
+        \Big[
+        % [
+        ~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a}
+        % ]
+        \Big]%
+        _{w \in \V\!\X}.
+        \label{eq:cm-product}
+% $
+\end{equation}
+%
+% If we already have a solution $\nu$ to \eqref{prob:joint-inc},
+% then the denomintor of \eqref{eq:idef-alt-constr}
+% (apart from its dependence on joint values $w$ of $\V\!\X$)
 %joe2
 %is a constant in our optimiziation problem; let's call it
 % is a constant in the optimiziation problem; call it
-is a constant in the search for $\mu$; for reference, let
-% \begin{equation}
-$
-    % \psi(w) := \prod_{L \in \Ed} \nu(\Tgt Lw | \Src Lw)^{\alpha\ssub L}.
-    \boldsymbol\psi :=
-        % \bigg[
-        [
-        ~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a}
-        ]
-        % \bigg]%
-        _{w \in \V\!\X}
-$
-be the corresponding vector.
+% is a constant in the search for $\mu$; for reference, let
+% % \begin{equation}
+% $
+%     % \psi(w) := \prod_{L \in \Ed} \nu(\Tgt Lw | \Src Lw)^{\alpha\ssub L}.
+%     \boldsymbol\psi :=
+%         % \bigg[
+%         [
+%         ~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a}
+%         ]
+%         % \bigg]%
+%         _{w \in \V\!\X}
+% $
+% be the corresponding vector.
 % and note that by \cref{prop:idef-frozen},
 % .
 % We now have our first reliable way of computing the optimal distribution $\bbr{\dg M}^*$ in the quantitative limit
@@ -1560,9 +1634,9 @@ and $\mat 1^{\sf T} \mat u = \IDef{\dg M}(\mu)$.
 
 % We now show how to optimize over clique-trees $\bmu$, instead of a full joint distribution $\mu$.
 We will now show how the joint distribution $\mu$ in our optimization may be replaced
-with a clique tree over the PDG's structure. What makes this possible is the fact that
+with a clique tree over the PDG's structure. What makes this possible is that
 % at a high level,
-PDGs share a key independence with other graphical models.
+PDGs, like other graphical models, have a key independence property.
 
 \begin{linked}[Markov Property for PDGs]{prop}{markov-property}
 	% Suppose $\dg M_1$ and $\dg M_2$ are compatible PDGs, and let $\mathbf X$ denote the variables they have in common.
@@ -1603,52 +1677,61 @@ PDGs share a key independence with other graphical models.
 %search for optimizers of \eqref{eqn:scoring-fn} we only have to
 %consider distributions $\mu$ that come from cluster trees.
 One significant consequence of \cref{prop:markov-property} is that, in the
-search for optimizers of \eqref{eqn:scoring-fn}, we have to
-consider only distributions $\mu$ that have these independencies,
-and every such distribution is representable as
-a clique tree
+search for optimizers of \eqref{eqn:scoring-fn}, we 
+need only
+consider distributions $\mu$ that satisfy those independencies,
+and every such distribution is representable as a clique tree
 $\bmu = \{\mu_C \in \Delta\V(C) \}_{C \in \mathcal C}$
-over the tree decomposition $(\cal C, T)$ of
-of $\dg M$'s underlying hypergraph $\Ar$.
+over the tree decomposition $(\cal C, T)$ 
+of $\dg M$'s underlying hypergraph.
 
-Operationally, we need to know the conditional marginals of $\bmu$ along each edge in order to compute $\Inc$.
-Since $(\cal C, T)$ is a tree decomposition of $\Ar$, we are guaranteed
-that the source and target of every arc $a$ lie entirely within at least one cluster.
-Fix a choice of such a cluster $C\!_a \in \cal C$ for each arc $a \in \Ar$.
+\begin{prop}
+    Let $\dg M$ be a PDG with arcs $\Ar$, and
+    $(\cal C, T)$ be a tree decomposition of $\Ar$.
+    For every $\gamma > 0$, if
+    $\mu \in \bbr{\dg M}^*_\gamma$, then there exists a clique tree
+    $\bmu$ over $(\cal C, T)$ such that $\Pr_{\bmu} = \mu$. 
+\end{prop}
+
 We now optimize over possible
 % cluster marginals
 clique trees
 $\bmu$ over $(\cal C, T)$,
-%joe2*: I'm lost.  Whose simplex representation are you referring to
-%when you say "its simplex representation"?
-%oli2: oops, I meant something a little more complex. Thanks for pointing it out.
-% which we identify with its simplex representation
-% as a vector of demension $\sum_{C \in \mathcal C}|\V(C)|$.
 which we identify with vectors
-$[\mu_C(c)]^{C \in \mathcal C}_{c \in C}$.
-As before, consider
+% $[\mu_C(c)]^{C \in \mathcal C}_{c \in C}$.
+% $[\mu_C(c)]_{c \in C \in \mathcal C}$.
+% $[\mu_C(c)]_{(C,c) \in \sqcup \mathcal C}$.
+$[\mu_C(c)]_{C \in \mathcal C, c \in C}$.
+Operationally, we need to know the conditional marginals of $\bmu$ along each edge in order to calculate $\Inc_{\dg M}(\Pr_{\bmu})$.
+Since $(\cal C, T)$ is a tree decomposition of $\Ar$, we are guaranteed
+that the source and target of every arc $a$ lie entirely within at least one cluster.
+Fix a choice of such a cluster $C\!_a \in \cal C$ for each arc $a \in \Ar$.
+Like before, let
 % let $K := \sum_{L \in \Ed} |\V(\Src L, \Tgt L)|$ and
-$\mat u := [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
+% $\mat u := [u^a_{s,t}]^{a \in \Ar,}_{ (s,t) \in \V(\Src a, \Tgt a)}$
+$\mat u := [u_{a,s,t}]_{ (a,s,t) \in \V\!\Ar}$,
  % in $\Rext^{K}$.
 %
 % Let $\mat U = [u^C_{\mat x}]^{C \in \mathcal C,}_{\mat x \in \V(C)}$ be a free vector in
 % $\Rext^K$.
 %
 % Consider the problem
-in the convex problem \eqref{prob:cluster-inc}.
+and now consider the convex problem
 %
 \begin{align*}
     \mathop{\text{\sf minimize}}\limits_{\bmu, \mat u} &\quad
-        \sum_{a \in \Ed}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+        % \sum_{a \in \Ar}\beta_a \, \sum_{\mathrlap{s,t \in \V(\Src a, \Tgt a)}} u^a_{s,t}
+        \sum_{\mathrlap{(a,s,t) \in \V\!\Ar}}\beta_a \,  u_{a,s,t}
     \numberthis\label{prob:cluster-inc}\\
     \text{\sf subject to:}&\quad
         \forall C \in \mathcal C.~\mu_C \in \Delta\V(C), \\[-0.2ex]
         % exponential constraints
-        \forall a \in \Ar.~ \big(&\!- \! \mat u^L\!,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt L), \mu_{C\!_a}\!(\Src a) p\ssub L(\Tgt a | \Src a)\big) \in K_{\exp} \\
+        \forall a \in \Ar.~ 
+            \big(&\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt L), \mu_{C\!_a}\!(\Src a) p\ssub L(\Tgt a | \Src a)\big) \in K_{\exp} \\
         % marginal constraints
-        \forall (C,D) &\in \mathcal T.~~ \mu_{C}(C \cap D) = \mu_{D}(C \cap D).
+        \forall (C,D) &\in \mathcal T.~~ \mu_{C}(C \cap D) = \mu_{D}(C \cap D),
 \end{align*}
-
+where once again $\mat u_a$ is the restriction of $\mat u$ to components associated with $a$. 
 % Because it is a relative entropy optimization over calibrated clique trees,
 % \eqref{prob:cluster-inc} is essentially an analogue of
 % CTree-Optimize-KL from \textcite[pg. 384]{koller2009probabilistic},
@@ -1668,8 +1751,11 @@ CTree-Optimize-KL from \textcite[pg. 384]{koller2009probabilistic}.
 % Since $(\cal C, T)$ is a tree decomposition of $\Ed$, we are guaranteed
 % that the source and target of every edge $L$ lie entirely within at least one cluster.
 % Fix a mapping of edges to clusters, and let $C_L \in \cal C$ be the cluster that corresponds to the edge $L$.
-
-For $\gamma > 0$, or for $\gamma = 0^+$, we also have to deal with the term $-\H(\mu)$, which cannot be described as a function of the marginals of any individual cluster.
+%
+% For $\gamma > 0$, or for $\gamma = 0^+$, we also have to deal with the term $-\H(\mu)$, which cannot be described as a function of the marginals of any individual cluster.
+We have now found a minimizer of $\Inc$ that does not require storing a full joint distribution.
+% To go any further, we will need to 
+The template 
 
 \textbf{Incorporating IDef.}
 % \subsection{Incorporating IDef, Again}
@@ -1691,7 +1777,8 @@ It is not so clear that $\IDef{}$ can be dealt with in the same way, because it 
 % Now, there is still hope because teh
 % Because $\Pr_{\bmu}$ has the Markov property with respect to the tree decomposition $\mathcal T$,
 % This alone is not so big a deal.
-We should point out an important reason to restrict to clique trees, generally speaking:
+% We should point out an important reason to restrict to clique trees, generally speaking:
+At this point we should point out an important information-theoretic reason to restrict our focus to trees:
 % Because $\Pr_{\bmu}$ has the Markov property with respect to the tree decomposition $\mathcal T$,
 % Because the clusters form a tree with respect to which $\bmu$ has the Markov property,
 it allows the joint entropy to be expressed
@@ -1700,9 +1787,11 @@ in terms of the cluster marginals \parencite{wainwright2008graphical},
 by
 \begin{equation}\label{eq:bethe-entropy}
     % \H_{\text{bethe}}(\mu)
-    \H(\mu)
-        = \sum_{C \in \mathcal C} \H_\mu(C)
-        - \sum_{(C,D) \in \mathcal T} \H_{\bmu}(C \cap D).
+    % \H(\mu)
+    \H(\Pr\nolimits_{\bmu})
+        % = \sum_{C \in \mathcal C} \H_\mu(C)
+        = \sum_{C \in \mathcal C} \H(\mu_C(C))
+        - \sum_{\mathclap{(C,D) \in \mathcal T}} \H_{\bmu}(C \cap D).
 \end{equation}
 % is exactly $\H(\bmu)$.
 % However, this is not yet in a form we can use
@@ -1712,7 +1801,7 @@ by
 % In other words,
 % In particular,
 % it may not be obvious that the negation of \eqref{eq:bethe-entropy} can be
-However,
+Even so,
 it still is not clear that the negation of \eqref{eq:bethe-entropy} can be
 % captured with exponential cone constraints in which every argument is affine.
 captured with dcp exponential cone constraints.
@@ -1725,13 +1814,14 @@ We now describe how this can be done.
 \def\Par{\mathrm{Par}}
 % \def\Pash{\mathrm{Parsh}}
 % \def\Pash{\mathrm{P}^{\mathrm{arShare}}}
-\def\Pash{\mathit{P\!S}}
+% \def\Pash{\mathit{P\!S}}
+\def\Pash{\mathit{V\mskip-4muC\mskip-3muP}}
 
 Choose a root node $C_0$ of the tree decomposition $\mathcal T$, and orient each edge of $\mathcal T$ so that it points away from $C_0$.
 Now each cluster $C \in \cal C$, except for $C_0$, has a parent cluster $\Par_C$;
 define $\Par_{C_0} := \emptyset$ to be an empty cluster, since $C_0$ has no parent.
 Finally, for each $C \in \mathcal C$, let $\Pash_C := C \cap \Par_C$ denote the
-the set of variables that the cluster $C$ has in common with its parent cluster.
+the set of $\mathbf v$ariables that $\mathbf c$luster $C$ has in common with its $\mathbf p$arent cluster.
 % Now, we can compute the Bethe Entropy,
 Because $\cal T$ is a tree, we can decompose the entropy of $\Pr_{\bmu}$ as
 %
@@ -1740,10 +1830,11 @@ Because $\cal T$ is a tree, we can decompose the entropy of $\Pr_{\bmu}$ as
         \H(\mu_{C_0}) +
         % \sum_{(C, D) \in \mathcal T}
         \sum_{(C \to D) \in \mathcal T}
-        \H_{\Pr_{\bmu}}(D \mid C)\\
+        \H_{\Pr_{\bmu}}(D \mid C)\\[-1ex]
     &= \sum_{C \in \cal C}
-        \sum_{c \in \V(C)} \mu_C(c) \log \frac
-            {\mu_C(c)}{\mu_C( \Pash_C(c) )}
+        \sum_{c \in \V(C)} \mu_C(C{=}c) \log \frac
+            {\mu_C(C{=}c)}{\mu_C(\Pash_C{=}
+            \Pash_C(c) )}
 \end{align*}
 %
 % This means that
@@ -1752,9 +1843,9 @@ The upshot is that we have written the joint entropy in a way that
 splits as a sum of terms over the clusters, each of which can be captured as a dcp exponential cone constraint.
 
 % Let's put this together with all of the other terms.
-We use this to get a treewidth-based analogue of \cref{sec:small-gamma,%
+We can use this to get analogues of the constructions in \cref{sec:small-gamma,%
 % sec:larger-gamma,%
-sec:empirical-limit}.
+sec:empirical-limit} that operates on clique-trees.
 Suppose that $\boldsymbol\nu = \{\nu_C : C \in \mathcal C\}$ is a calibrated clique tree over the tree decomposition $(\mathcal C, \mathcal T)$ representing a distribution $\Pr_{\boldsymbol\nu} \in \bbr{\dg M}^*_0$, say obtained by solving \eqref{prob:cluster-inc}.
  % representing
 %
@@ -1767,7 +1858,9 @@ $$
 \boldsymbol\psi_C  := \bigg[ \prod_{a \in \Ar_C} \nu_C (\Tgt a w | \Src a w)^{\alpha\ssub L} \bigg]_{w \in \V(C)}
 $$
 be the analogue of \eqref{eq:cm-product} local to the cluster $C$.
-Once again, let $\mat u := [ u^C_c ]^{C \in \mathcal C}_{c \in \V(C)}$,
+Once again, let
+% $\mat u := [ u^C_c ]^{C \in \mathcal C}_{c \in \V(C)}$,
+$\mat u := [ u_{(C,c)} ]_{C \in \mathcal C,\,c \in \V(C)}$,
 and consider the following optimization problem.
 %
 \begin{align*}
@@ -1791,14 +1884,14 @@ and consider the following optimization problem.
     If $(\bmu, \mat u)$ is a solution to \eqref{prob:cluster+idef},
     then $\bmu$ is a calibrated cluster tree representing
     % the unique  joint distribution
-    % the observational aspect
+    % the \obslimit\
     $\bbr{\dg M}^*$, and $\mat 1^{\sf T} \mat u = \aar{\dg M}$.
 \end{prop}
 
 
 % \subsection{A Polynomial Time Algorithm For PDGs of Bounded Tree-Width}
 
-\cref{prop:cluster+idef} shows that finding distributions that optimize the PDG scoring function \eqref{eqn:scoring-fn} can be written as a convex optimization problem with a
+\cref{prop:cluster+idef} shows that finding a compact representation of that optimize the PDG scoring function \eqref{eqn:scoring-fn} can be written as a convex optimization problem with a
 polynomial number of variables and constraints and with an objective that is also polynomial-sized.
 All that remains to achieve polynomial-time inference is to show that a problem of this form can be solved in polynomial time. For this, we turn to interior point methods, which are known \parencite{badenbroek2021algorithm} to converge in polynomial time.
 Specifically, \eqref{prob:cluster+idef} can be transformed via established methods \parencite{agrawal2018rewriting} into a standard form called an \emph{exponential conic program} which itself can be solved in polynomial time by commercial solvers \parencite{mosek}.
@@ -1828,9 +1921,7 @@ Putting this all together, we get:
 %     arises for other graphical models.
 %     \hskip-1.1em ]
 
-The proof rests almost entirely on the analysis of \textcite{badenbroek2021algorithm},
-which certifies that the optimization algorithm
-proposed in \textcite{dahl2022primal} works in polynomial time.
+
 
 
 \begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
@@ -1839,6 +1930,7 @@ proposed in \textcite{dahl2022primal} works in polynomial time.
     \item Computing $\aar{\dg M}_\gamma$ is \#P-hard, for all $\gamma > 0$.
     \end{enumerate}
 \end{linked}
+
 
 % \begin{table}
 %     % Let $m$ denote the
@@ -1854,7 +1946,80 @@ proposed in \textcite{dahl2022primal} works in polynomial time.
 % 
 %     \caption{ }
 % \end{table}
+% \section{IMPLEMENTATION} \label{sec:implementation}
+% \section{EMPIRICAL EVALUATION} \label{sec:expts}
+\section{EXPERIMENTS} \label{sec:expts}
 
+\begin{figure}
+    \includegraphics[width=\linewidth]{figs/resources-fine}
+    \caption{
+        The amount of resources: computation time (top) and maximum memory usage (bottom) for the various optimization methods (by color), as the size of the PDG increases, as measured by \texttt{n\_worlds} (right) and \texttt{n\_params} (left).
+     }\label{fig:resources}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\linewidth]{figs/gamma-vs-gap-bettergap}
+    \caption{
+        A graph of the gap (the difference between the attained objective value, and the best objective value obtained across all methods for that value of $\gamma$),
+        as $\gamma$ varies. As before, colors indicate method.
+        The size of the circle illustrates the relative number of worlds.
+    }\label{fig:gamma-v-gap}
+\end{figure}
+
+
+\begin{figure}
+    \includegraphics[width=\linewidth]{figs/2}
+    \caption{
+        A fine-grained variant of \cref{fig:gamma-v-gap}, which splits each method into sub-groups.
+        The ExpCone methods \texttt{cvx\_opt\_joint} are split into two variants, depending on whether or not it also computed the second step described in \cref{sec:also-idef} to account for $\IDef{}$.
+        The CCCP variants are \texttt{cccp\_opt\_joint} split into regimes where the entire problem is convex, and the entire problem is concave. The optimization approaches \texttt{opt\_dist} are split into three different optimizers: LBFGS, Adam, and accelerated Gradient Descent.
+    }\label{fig:gamma-v-gap-fine}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width=\linewidth]{figs/1}
+    \caption{
+        A fine-grained variant of the right half of \cref{fig:resources},
+        with gap information on the left.
+    }\label{fig:gap-resource-fine}
+\end{figure}
+
+
+\begin{figure}
+    \includegraphics[width=\linewidth]{figs/inc-idef2}
+    \caption{An illustration of the trade-off between $\Inc$ and $\IDef{}$. Darker collors correspond to larger $\gamma$.}\label{fig:inc-idef}
+\end{figure}
+
+\subsection{Comparison To Belief propagation}
+
+Since PDGs generalize other graphical models, one might wonder how our method stacks up against them.
+We benchmarked against the small networks, and some of the medium-sized ones, from the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository.
+
+
+
+\subsection{Evaluations On Random PDGSs}
+We start by focusing on empirical properties of the optimization over joint distributions.
+
+We generated several hundred PDGs with various properties: 9 or 10 variables, each of which can take 2-3 values. Each PDG contains 7-15 hyperedges, with 1-2 target nodes and 0-3 source nodes. The cpds are chosen by taking uniformly random numbers from [0,1] and normalizing appropriately, and every $\beta$ is set to 1.
+For each PDG $\dg M$, we measure its complexity by:
+\begin{itemize}[nosep]
+    \item \texttt{n\_edges}, the number of edges in $\dg M$,
+    \item \texttt{n\_params}, the total number of parameters across all the cpds of $\dg M$, and
+    \item \texttt{n\_worlds}, the size of the joint distributions on the variables of $\dg M$.
+\end{itemize}
+
+\textbf{Capacity.}
+The black-box py-torch based approaches clearly have an edge in that they can handle larger models; see the cut-offs on the right sides of \cref{fig:resources,fig:gap-resource-fine}.
+
+\textbf{Resource Costs.}
+Look at \cref{fig:resources}.
+Note that the exponential cone methods without the CCCP (blue and green) are actually faster than LBFGS, which was the best-performing torch optimizer.
+However, they use \emph{significantly} more memory, and cannot handle more than 8000 worlds.
+
+
+\textbf{Accuracy.}
+In addition to being faster, the exponential cone techniques are also more preicse.
+Note that the CCCP is typically more precise than the black-box optimizers when the problem is fully convex $\gamma \le 1$, and mirrors the performance of the exp-cone algorithms for the quantitative limit on the left, in blue.  For combinations of larger $\gamma$ and more worlds however, the 20 iteration maximum we imposed is not nearly enough to get convergence, and the black-box optimizers are both faster and attain better objective values.
 \section{OTHER APPROACHES TO PDG INFERENCE} \label{sec:other-inference}
 % \section{EXTENSIONS}
 
@@ -1975,79 +2140,7 @@ Like the original PDG itself, it might be inconsistent.
 
 
 
-% \section{IMPLEMENTATION} \label{sec:implementation}
-\section{EMPIRICAL EVALUATION} \label{sec:expts}
 
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/resources-fine}
-    \caption{
-        The amount of resources: computation time (top) and maximum memory usage (bottom) for the various optimization methods (by color), as the size of the PDG increases, as measured by \texttt{n\_worlds} (right) and \texttt{n\_params} (left).
-     }\label{fig:resources}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/gamma-vs-gap-bettergap}
-    \caption{
-        A graph of the gap (the difference between the attained objective value, and the best objective value obtained across all methods for that value of $\gamma$),
-        as $\gamma$ varies. As before, colors indicate method.
-        The size of the circle illustrates the relative number of worlds.
-    }\label{fig:gamma-v-gap}
-\end{figure}
-
-
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/2}
-    \caption{
-        A fine-grained variant of \cref{fig:gamma-v-gap}, which splits each method into sub-groups.
-        The ExpCone methods \texttt{cvx\_opt\_joint} are split into two variants, depending on whether or not it also computed the second step described in \cref{sec:also-idef} to account for $\IDef{}$.
-        The CCCP variants are \texttt{cccp\_opt\_joint} split into regimes where the entire problem is convex, and the entire problem is concave. The optimization approaches \texttt{opt\_dist} are split into three different optimizers: LBFGS, Adam, and accelerated Gradient Descent.
-    }\label{fig:gamma-v-gap-fine}
-\end{figure}
-
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/1}
-    \caption{
-        A fine-grained variant of the right half of \cref{fig:resources},
-        with gap information on the left.
-    }\label{fig:gap-resource-fine}
-\end{figure}
-
-
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/inc-idef2}
-    \caption{An illustration of the trade-off between $\Inc$ and $\IDef{}$. Darker collors correspond to larger $\gamma$.}\label{fig:inc-idef}
-\end{figure}
-
-\subsection{Comparison To Belief propagation}
-
-Since PDGs generalize other graphical models, one might wonder how our method stacks up against them.
-We benchmarked against the small networks, and some of the medium-sized ones, from the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository.
-
-
-
-\subsection{Evaluations On Random PDGSs}
-We start by focusing on empirical properties of the optimization over joint distributions.
-
-We generated several hundred PDGs with various properties: 9 or 10 variables, each of which can take 2-3 values. Each PDG contains 7-15 hyperedges, with 1-2 target nodes and 0-3 source nodes. The cpds are chosen by taking uniformly random numbers from [0,1] and normalizing appropriately, and every $\beta$ is set to 1.
-For each PDG $\dg M$, we measure its complexity by:
-\begin{itemize}[nosep]
-    \item \texttt{n\_edges}, the number of edges in $\dg M$,
-    \item \texttt{n\_params}, the total number of parameters across all the cpds of $\dg M$, and
-    \item \texttt{n\_worlds}, the size of the joint distributions on the variables of $\dg M$.
-\end{itemize}
-
-\textbf{Capacity.}
-The black-box py-torch based approaches clearly have an edge in that they can handle larger models; see the cut-offs on the right sides of \cref{fig:resources,fig:gap-resource-fine}.
-
-\textbf{Resource Costs.}
-Look at \cref{fig:resources}.
-Note that the exponential cone methods without the CCCP (blue and green) are actually faster than LBFGS, which was the best-performing torch optimizer.
-However, they use \emph{significantly} more memory, and cannot handle more than 8000 worlds.
-
-
-\textbf{Accuracy.}
-In addition to being faster, the exponential cone techniques are also more preicse.
-Note that the CCCP is typically more precise than the black-box optimizers when the problem is fully convex $\gamma \le 1$, and mirrors the performance of the exp-cone algorithms for the quantitative limit on the left, in blue.  For combinations of larger $\gamma$ and more worlds however, the 20 iteration maximum we imposed is not nearly enough to get convergence, and the black-box optimizers are both faster and attain better objective values.
 
 \section{DISCUSSION}
 
@@ -2055,7 +2148,7 @@ Note that the CCCP is typically more precise than the black-box optimizers when 
 Our analysis shows that inference in PDGs with bounded tree-width can be done .
 
 
-\TODO[ the below is a transplant without context; fix it ]
+% \TODO[ the below is a transplant without context; fix it ]
 % % Some queries are more difficult than others.
 % Although we the question the same way, we also want to point out that there are other reasonable ways to answer that question once we move to PDGs.
 % Suppose we were looking at a BN in which it just so happens that $\mat X$ contains only a single variable and $\mat Y$ are the parents of $\mat X$.
@@ -2767,8 +2860,8 @@ to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
 
 
 
-\subsection{Larger
-    \texorpdfstring{$\boldsymbol\gamma$}{gamma} and the CCCP}
+\section{LARGER
+    \texorpdfstring{$\boldsymbol\gamma$}{GAMMA} AND THE CONVEX-CONCAVE PROCEDURE}
     \label{sec:larger-gamma}
 
 % Now, suppose we're no longer
@@ -2788,7 +2881,7 @@ Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(
         \nabla g(\mu_t)
 \end{align*}
 
-As we will see in \cref{sec:expts}, the aproach presented here section is
+As we will see, the aproach presented here section is
 not very fast, but it is guaranteed to make progress, since
 \def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
 \begin{align*}
@@ -2802,6 +2895,7 @@ not very fast, but it is guaranteed to make progress, since
 \end{align*}
 and eventually find an optimum, because the concave terms are bounded (since they are conditional entropies of a finitely supported distribution).
 
+\subsection{Experiments}
 
 
 \section{}
