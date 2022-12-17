@@ -1987,13 +1987,39 @@ and consider the following optimization problem.
     % and $\mat 1^{\sf T} \mat u = \aar{\dg M}$.
 \end{prop}
 
+At this point, there are standard algorithms that use
+calibrated clique trees, such as those produced by 
+% The clique trees produced by 
+% At this point, the clique trees produced by 
+\eqref{prob:cluster-small-gamma} or \eqref{prob:cluster+idef},
+% are in the same form as 
+% are now essentially in standard form
+to answer probabilistic queries in polynomial time \parencite[\S 10.3.3]{koller2009probabilistic}.
+% In order to answer a \empph{conditional} probability query, $Q(Y|X{=}x)$,
+% in order
+Concretely: marginal probabilities essentially be read off of the tree directly, 
+and for queries conditioned on evidence $X{=}x$, it suffices 
+% to add a factor 
+% to set $\mu_C(X=x') = 0$
+to set $\mu_C(c) = 0$ for every $C{=}c$ that conflicts with $X{=}x$
+and recalibrate the clique tree (e.g., with belief propogation).
+%
+% To answer a conditional probability query about $Y$ given evidence $X{=}x$, it suffices to constrain the clique tree to satisfy $\mu_C(X{=}x)=1$ for all $C \in \cal C$ with $X \cap C \ne \emptyset$, and recalibrate the clique tree (e.g., with belief propogation) , resulting in a new clique tree representing $\bbr{\dg M}^*|X{=}x$ in time linear in the number of clique-tree parameters.
+% like belief propogation
+
 
 % \subsection{A Polynomial Time Algorithm For PDGs of Bounded Tree-Width}
-
-% \cref{prop:cluster+idef} shows that finding a compact representation of that optimize the PDG scoring function \eqref{eqn:scoring-fn} 
-Together, \cref{prop:cluster+idef,prop:cluster-small-gamma} show that each form of PDG inference we consider
 %
-can be written as a convex optimization problem with a
+% \cref{prop:cluster+idef} shows that finding a compact representation of that optimize the PDG scoring function \eqref{eqn:scoring-fn} 
+% Together,  show that each form of PDG inference we consider
+% We have now shown
+% Therefore, it 
+It therefore
+follows from \cref{prop:cluster+idef,prop:cluster-small-gamma} 
+that PDG inference
+(for small $\gamma$, and $\gamma \to 0$)
+%
+can be reduced to a (pair of) convex optimization problem(s) with a
 polynomial number of variables and constraints and with an objective that is also polynomial-sized.
 All that remains to achieve polynomial-time inference is to show that a problem of this form can be solved in polynomial time. For this, we turn to interior point methods, which are known \parencite{badenbroek2021algorithm} to converge in polynomial time.
 Specifically, \eqref{prob:cluster-small-gamma} and \eqref{prob:cluster+idef} can be transformed via established methods \parencite{agrawal2018rewriting} into
@@ -2001,26 +2027,38 @@ a standard form
 % a standard form called an \emph{exponential conic program} which itself
 that
 can be solved in polynomial time by commercial solvers \parencite{mosek,escoc}.
+% The result of pulling 
+Threading the details of our constructions 
+through the analysis of 
+\textcite{dahl2022primal}
+results in our main theorem. 
 
-
-\begin{linked}{lemma}{main}
-    % For   O( 3 n * ((3n+m+1)^3 ) * log(√n / ϵ) )  =   O( n^4 log(n)  log(1 / ϵ) )
-There is an algorithm that takes $O(n^4 \log n  \log \nf1\epsilon )$ time,
-and finds a point $\epsilon$-close in residual norm to the optimal distribution
-$\bbr{\dg M}^*$, where $n$ is the total number of parameters in a clique tree.
-\end{linked}
+% \begin{linked}{lemma}{main}
+%     % For   O( 3 n * ((3n+m+1)^3 ) * log(√n / ϵ) )  =   O( n^4 log(n)  log(1 / ϵ) )
+% There is an algorithm that takes $O(n^4 \log n  \log \nf1\epsilon )$ time,
+% and finds a point $\epsilon$-close in residual norm to the optimal distribution
+% $\bbr{\dg M}^*$, where $n$ is the total number of parameters in a clique tree.
+% \end{linked}
 
 % Finally, we can do clique tree calibration as usual
-This gives yields a polynomial-time algorithm for marginal inference. If we are looking to answer a conditional probability query, $Q(Y|X{=}x)$,
-we can simply constrain the clique tree to satisfy $\mu_C(X{=}x)=1$ for all $C \in \cal C$ with $X \cap C \ne \emptyset$, and recalibrate the clique tree with standard methods like belief propogation \parencite{koller2009probabilistic}, to get a clique tree representing the conditional distribution $\bbr{\dg M}^*(Y|X{=}x)$.
-Putting this all together, we get:
+% This gives yields a polynomial-time algorithm for marginal inference. If we are looking to answer a conditional probability query, $Q(Y|X{=}x)$,
+% we can simply constrain the clique tree to satisfy $\mu_C(X{=}x)=1$ for all $C \in \cal C$ with $X \cap C \ne \emptyset$, and recalibrate the clique tree with standard methods
+% % like belief propogation
+% \parencite{koller2009probabilistic}, to get a clique tree representing the conditional distribution $\bbr{\dg M}^*|X{=}x$.
+% Putting this all together, we get:
 
 \begin{theorem}
     PDG inference can be solved to machine precision in $O( N^4 V^4 \log(N V) \exp(V T) )$ time, where $T$ is the tree-width of the PDG, and $N$ is the total number of variables, $V$ is the number of values per variable, and $T$ is the tree-width of the PDG's underlying hypergraph.
 \end{theorem}
 
-
-
+% The proof rests almost entirely on the analysis of
+% \textcite{badenbroek2021algorithm}
+% % Badenbroek and Dahl (2021),
+%  which certifies that the
+% optimization algorithm detailed in
+% % Dahl and Andersen (2022)
+% \textcite{dahl2022primal}
+% works in polynomial time.
 
 
 \begin{linked}{prop}{consistent-NP-hard}\label{sharp-p-hard}
