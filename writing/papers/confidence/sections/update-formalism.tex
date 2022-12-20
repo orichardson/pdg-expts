@@ -1,0 +1,202 @@
+% The setup is as follows.
+Suppose you you have some belief state $\theta \in \Theta$. 
+% $\Theta$ might be \textellipsis
+% \begin{itemize}[nosep]
+%     \item $\Delta W$, the set of probability distributions over measurable space $W$ of outcomes;
+%     \item the set of parameters to some parametric family of distributions;
+%     \item the set of belief functions over a common space of outcomes;
+%     \item the set of all possible PDGs;
+%     \item a set of worlds an agent considers possible;
+%     \item 
+% \end{itemize}
+It might be 
+a probability distribution,
+a parameter setting to some parameteric family of probabilities,
+a set of probabilities, a Dempster-Shafer belief function, or 
+weights for a neural network. 
+Now, suppose you recieve some input information $\phi \in \Phi$, such as an event, or a sample from a dataset, which you may use to update your belief state. 
+%
+% Before we add confidence into the mix, let's first see how this setup works without it, so that we can more clearly see what is missing.
+Before we get to confidence, let's first see how far we can get without it.
+% The first assumption we make is that the updating process can be captured in functional form. 
+% The first thing we need to assume is that the updating process can be captured in functional form. 
+The first assumption we need to make to study this mathematically is that the process can be captured in functional form. 
+% The primary assumption that we have to make is:
+\begin{CFaxioms}
+	\item[\textbf{F}] 
+		% The updating process can be described as a function 
+		There exists a function
+		% $F : \Theta \times \Phi \to \Theta$,
+		$F : \Phi \to ( \Theta \to \Theta)$,
+		which, given the old belief state $\theta$ and new information $\phi$, produces the belief state $F_\phi(\theta)$ that corresponds to the result of observing $\phi$ in state $\theta$.
+		% which produces a new belief state, as a function of the old belief state and the new information.
+\end{CFaxioms}
+
+% In some ways this seems very reasonable: 
+Given such a function $F$ and a statement $\phi$, we call $F_\phi : \Theta \to \Theta$ an \emph{update}. 
+% At this point, since we have no way of articulating how confident we are in the new information, the only reasonable thing to 
+At face value, \textbf{F} seems very reasonable: what more could your next belief state depend on, aside from your previous one and the new information? 
+Nevertheless, we will soon argue that the resulting belief state $\theta'$ should also depend on something else: one's confidence in the statement.
+ % after which we will weaken \textbf{F} appropriately.
+
+In any case, since the purpose of $F$ is to \emph{fully} incorporate the new information into our beliefs
+(and without a notion of confidence, we can't very well specify how much to incorporate), then
+% it should be the case that a second update with the same information should not affect the belief state.
+% a second update with the same information should not affect the belief state.
+two successive updates with the same information ought to have the same effect as a single one.
+Intuitively, this is because if we have just \emph{fully} updated our beliefs to be consistent with the information $\phi$, then a second observation of $\phi$ will require no further alterations of our belief state.
+In this case, we call $F$ an \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$}, and insist that
+\begin{CFaxioms}
+	\item[\textbf{UR}] For all $\phi \in \Phi$, the update $F_\phi$ is
+	% require that it be idempotent.
+	idempotent.
+    % (i.e., $F_\phi \circ F_\phi = F_\phi$).
+\end{CFaxioms}
+
+% In curried form, $F : \Phi \to (\Theta \to \Theta)$. 
+
+% We now proceed with the formal details.
+% \textbf{Update Rules.}
+% Consider a space $\Theta$
+% of possible belief states,
+% and a set $\Phi$ of statements.
+% % and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
+% % An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+% An \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$},
+% is a function of the form
+% \[
+%     % F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+%     F :  \Phi \to \Big( \Theta \to \Theta \Big)
+% \]
+% % which describes how to update beliefs about $X$, with the new information, at a certain level of trust.
+% which describes how to (fully) update beliefs $\Theta$ with new information $\Phi$.
+% and for $F$ to be an update rule, we require that , meaning that updating any belief with $\phi$ twice in a row is equivalent to single update.
+% Having said that, one reading of this paper is a relaxation of this requirement.
+% Here are some examples.
+Once $\Theta$, $\Phi$, and any implicit structure in them is specified, there is often a natural choice of update rule. 
+To illustrate, we now consider three different rules for different choices of $\Phi$.
+In each case, the possible belief states $\Theta := \Delta W$ be the set of all probability distributions over a finie set $W = \{w_1, \ldots, w_n\}$ of ``possible worlds''. 
+
+\begin{enumerate}
+	\item %\textbf{Conditioning.}
+	\textbf{Conditioning.}
+	First, consider the case where observations are events, i.e., $\Phi := 2^W$. 
+	% One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,
+	% Here, the appropriate update seems to be condition:
+	Here, the appropriate rule seems to be conditioning:
+	\[
+	\begin{aligned}
+		(-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W &\to (\Delta W \to \Delta W) \\
+		% (-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W \times \Delta W &\to \Delta W \\
+		% (-) \,\Big|\, (\;\cdot\;) : \Delta X \times 2^X \to \Delta X.
+		% (\mu \in \Delta X, A \subset X) &\mapsto \mu | A .
+		% (A \subset W) &\mapsto (  ~~\mu~~ \mapsto \mu \mid A ),
+		A  &\mapsto (  ~\mu~~ \mapsto \mu \mid A ~),
+		% (A, \mu) ~&\mapsto~  \mu \mid A\, ,
+	\end{aligned}
+	% \qquad
+	% \qquad
+	% \begin{tikzpicture}[center base]
+	%     \node[dpad0] (W) {$W$};
+	%     \node[dpad0, right=0.5 of W] (Aq) {$A?$};
+	%     \draw[arr2, <-] (W) to node[above]{$\mu$} ++(-1, 0);
+	%     \draw[arr2, ->>] (W) to node[above,pos=0.3]{} (Aq);
+	%     \draw[arr2, <<-] (Aq) to node[above,pos=0.7]{$A!$} ++(1.2,0);
+	% \end{tikzpicture}
+	\]
+	% where $(\mu \mid A)(x) = \frac{\mu(\{x\})}{\mu(A)}$
+	% in which learning $A$ maps
+	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A) \{w\} = \ifrac{\mu\{w\}}{\mu(A)}$.
+	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+	where the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+	% and may be defined arbitrarily otherwise.
+	and otherwise is just equal to $\mu$.
+	Observe:
+	\begin{itemize}[nosep]
+		\item Provided $\mu(A) > 0$, then $(\mu\mid A) \mid A = \mu \mid A$, so conditioning is an update rule.
+		\item If $\mu(A \cap B) > 0$, then $(\mu \mid A) \mid B = \mu \mid (A \cap B) = (\mu \mid B) \mid A$, so the order that information is recieved does not matter, so long as that information is consistent with one's beliefs.
+	\end{itemize}
+	% However, it is not the only $\Delta W$-updating rule for $2^W$.
+	 % $\Phi$.
+
+	\item
+	\textbf{Imaging.}
+	A second example of an update rule is the ``imaging'' approach of David Lewis
+	\parencite{lewis1976probabilities}.
+	% , albeit in very different notation.
+	% Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
+	Suppose that, for some set $\Phi$, that we already have a $W$-update rule
+	$f : \Phi \to (W \to W)$, which we interpret as assigning, to each statement $\phi \in \Phi$ and $w \in W$, a unique world $f_\phi w \in W$ which is the world ``most similar to $w$, in which $\phi$ is true'' \parencite{gardenfors1979imaging}.
+	In this case, idempotence of $f_\phi$ amounts to the (very reasonable) requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
+	From $f$, we can construct a $\Delta W$-update rule by
+	\[
+    	\begin{aligned}
+    		F_\phi(\mu) &:=
+    			f^{\sharp}(\mu) 
+    			% &= A \mapsto \mu( f^{-1}_\phi( A ))\\
+    			= A \mapsto \mu(\{w : f(w) \in A\})
+    	\end{aligned}
+		% \qquad
+		% \qquad
+		% \begin{tikzpicture}[center base]
+		% 	\node[dpad0] (W) {$W$};
+		% 	\node[dpad0, right=1 of W] (W') {$W$};
+		% 	\node[dpad0, below right=0.2 and 0.2 of W] (Phi) {$\Phi$};
+		% 	\mergearr{W}{Phi}{W'}
+		% 	\node[above=1pt of center-WPhiW']{$f$};
+		% 	\draw[arr2, <-] (W) to node[above]{$\mu$} ++(-1, 0);
+		% 	\draw[arr2, <<-] (Phi) to node[below]{$\phi$} ++(-1.3, 0);
+		% 	\draw[arr2, <-, dashed, gray] (W') to node[above]{$F_\phi(\mu)$} ++(2, 0);
+		% \end{tikzpicture}
+	\]
+	which intuitively moves the probability mass on each world $w$ to the $f_\phi w$, the closest world to $w$ in which $\phi$ is true.
+	% is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$''
+	And, since $f$ is idempotent, $F$ will be as well.
+
+
+	\commentout{
+	\item More generally, consider a measurable space $\mathcal W = (W, \mathcal A)$, where $W$ is a set and $\mathcal A$ is a $\sigma$-algebra over $W$, and let $\mathcal F \subset \mathcal A$ be closed under supersets in $\mathcal A$.
+	% Now, let $\Theta$ be the set of conditional probabili$
+
+	\TODO[Properly Use Conditional Probability Measure, to define on all events]
+
+	Conditioning a probability distribution $\mu \in \Delta\X$ on an event $A \in \mathcal A$ also makes sense in this more general measure-theoretic setting, at least so long as $\mu(A) > 0$, and is given by
+	% the Lebesgue integral
+	% \[
+	$$
+		% (\mu \mid A) (B) = \frac{1}{\mu(A)} \int \mathbf 1_{B}(x)  \mathrm d\mu(x)
+		(\mu \mid A) (B) = \frac{\mu(B \cap A)}{\mu(A)}
+	$$
+	}
+
+
+	\item \textbf{Jeffrey's Rule.}
+	% Once more, suppose that $W$ is a finite set and $\Theta := \Delta W$.
+	Next, consider a more general form of observation, in which observations themselves are probabilities. 
+	% Formally, suppose $\Phi$ consists of pairs $(X,\pi)$,
+	% Formally, suppose $\Phi$ consists of marginal distributions $\pi(X)$
+	Formally, suppose $\Phi$ consists of distributions $\pi(X)$,
+	% written $\pi(X)$,
+	where $X : W \to S$ is a random variable,
+	% (i.e., some function of $W$),
+	and $\pi \in \Delta S$ is a distribution over the possible values that $X$ can take.
+	Jeffrey's rule, given by
+	\begin{align*}
+		% \mathrm{Jeffrey}_{(X,\pi)}
+		% \mathrm{Jeffrey}_{\pi(X)}
+		\mathrm{J}_{\pi(X)}
+		(\mu) &:= \sum_{x \in S} \pi(X{=}x) \;  \mu \big|
+            X{=}x
+            % \{ w : X(w) = x \}
+			\\
+			&= A \mapsto \sum_{x \in S} \pi(X{=}x)\, \mu( A \mid X \!= x)
+	\end{align*}
+
+	When $\pi(X) = \delta_x$ is a point mass $X=x$, then Jeffrey's Rule simply conditions on the event $X = x$.
+	 % but for other choices of $\pi(X)$,
+	For this reason, Jeffrey's Rule is sometimes often thought of as a generalization of conditioning that admits for less that complete certainty (i.e., ``low-confidence'' updates), but as we will see, it instead is perhaps better thought of as a high-confidence update on a more expresive class of observations.
+	
+	Note that if $\mu' := J_{\pi(X)}\mu$ is the result of applying Jeffrey's rule to $\pi(X)$ and $\mu$, 
+	% then $\pi$ will be fully incorporated (that is, $\mu'(X) = \pi(X)$), 
+	then $\mu'(X) = \pi(X)$, so $\pi(X)$ has been fully incorporated into $\mu'$, and the old beliefs $\mu(X)$ about $X$ have been completely destroyed by the update.
+\end{enumerate}
