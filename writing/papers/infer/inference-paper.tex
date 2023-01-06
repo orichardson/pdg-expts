@@ -1301,7 +1301,7 @@ of $n$ exponential cones.
 
 An \emph{exponential conic program} is an optimization problem of the form
 \begin{equation}
-    \mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^n}~~ \mat c^{\sf T} \mat x
+    \mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^{3n}}~~ \mat c^{\sf T} \mat x
 %joe4*: you haven't defined K_{\exp}^n.  You've defined only one
 %exonential cone in R^3.
 %oli4: Oops, this stuck out because of a bug.  K_{\exp}^n is just n independent copies of it (a 3n-dimensional cone). I think this should be clearer now that I've fixed the dimensions of the variables. 
@@ -2757,9 +2757,9 @@ results in our main theorem.
 % \parencite{koller2009probabilistic}, to get a clique tree representing the conditional distribution $\bbr{\dg M}^*|X{=}x$.
 % Putting this all together, we get:
 
-\begin{theorem}
+\begin{linked}{theorem}{main}
     PDG inference can be solved to machine precision in $O( N^4 V^4 \log(N V) \exp(V T) )$ time, where $T$ is the tree-width of the PDG, and $N$ is the total number of variables, $V$ is the number of values per variable, and $T$ is the tree-width of the PDG's underlying hypergraph.
-\end{theorem}
+\end{linked}
 
 % The proof rests almost entirely on the analysis of
 % \textcite{badenbroek2021algorithm}
@@ -2994,14 +2994,252 @@ There are still a number of open questions.
 \appendix
 \section{Proofs}
 
+\begin{lemma}
+    For $\mat c \in \Rext^{3n}$, $\mat b \in \Rext^m$, and $\mat A \in \Rext^{m \times 3n}$,
+    the exponential conic program
+    % \eqref{eq:exp-conic-program}
+    \[
+        \mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^{3n}}~~ \mat c^{\sf T} \mat x
+        \quad\text{\sf subject to}~~ \mat A \mat x = \mat b,~~\mat x \in K_{\exp}^n
+        \tag{\ref{eq:exp-conic-program}}
+    \]
+    can be solved to machine precision in $O(n (m+n)^{2.332} \log(m+n))$ time. 
+\end{lemma}
+\begin{lproof}
+    For this, we step through the algorithm and analysis of
+     \textcite{badenbroek2021algorithm}, threading details through for the specific case
+    where the conic constraint is $K_{\exp}^n$.
+    
+    % First, we'll need quite a few definitions.
+    First, some of their definitions.
+    A \emph{logarithmically homogeneous self-concordant barrier} with parameter $\nu$ ($\nu$-LHSCB) for a cone $K$ is a thrice differentiable strictly convex function $F: \mathrm{int}\, K \to \mathbb R$ satisfying
+    $F(tx) = F(x) - \nu \log t$
+    for all $t > 0$ and $x \in \mathrm{int}\, K$. 
+    
+    % Consider a point $\mat x = (\mat x_1, \mat x_2, \mat x_3) \in K_{\exp}^n$, 
+        % where $\mat x_1, \mat x_2, \mat x_3 \in \mathbb R^{n}$. 
+    % Consider a point $\mat x = 
+    % (x^1_1, \ldots, x_n^1, x^2_1, \ldots, x^2_n, x^3_1, \ldots, x^3_n) 
+    % (x_1^1, x_2^1, x_3^1, \ldots, x_1^n, x_2^n, x_3^n) 
+    % \in K_{\exp}^n$.
+        % where $\mat x_1, \mat x_2, \mat x_3 \in \mathbb R^{n}$. 
+    
+    We now take a break from their presentation to fill in some background facts about exponential cones.
+    The \emph{dual} the exponential cone is
+    % https://www.seas.ucla.edu/~vandenbe/236C/lectures/conic.pdf, slide 25. 
+    \begin{align*}
+        K_{\exp}^* &:= \{ (s_1, s_2, s_3) \in \mathbb R^3 : 
+            x_1 s_1 + x_2 s_2 + x_3 s_3 \ge 0 \, \forall (x_1, x_2, x_3) \in K_{\exp} \}\\
+            &= \{
+                (s_1, s_2, s_3) : - s_1 \log (- s_1 / s_3) + s_1 - s_2 \le 0, s_1 \le 0, s_3 \ge 0
+            \}.
+    \end{align*}
+    Consider points $x = (x_1, x_2, x_3) \in K_{\exp}$. 
+    The function 
+    \begin{equation}
+        F_{\exp}(x) := - \log \Big(x_2 \log\frac{x_1}{x_2} - x_3\Big) - \log x_1 x_2
+        % F(\mat x) := \sum_{i=1}^{n}
+            % - \log \Big(x_2^i \log\frac{x_1^i}{x_2^i} - x_3^i\Big) - \log x_1^i x_2^i
+        % F(\mat x) := - \log \Big(\mat x_2 \odot \log\frac{\mat x_1}{\mat x_2} - \mat x_3\Big) - \log (\mat x_1 \odot \mat x_2)
+    \end{equation}
+    % is a $3n$-LHSB for $K_{\exp}^n$, since
+    is a $3$-LHSCB for $K_{\exp}$, since
+    \begin{align*}
+        F_{\exp}(t x) &= 
+            -\log \Big( t x_2 \log \frac{t x_1}{t x_2} - t x_3\Big) - \log(t^2 x_1 x_2) \\
+            % \sum_{i=1}^{n} - \log \Big( t x_2^i \log \frac{t x_1^i}{t x_2^i} - t x_3^i\Big) - \log(t^2 x_1^i x_2^i) \\ 
+        % &= - \log \Big(t \big(\log \frac{x_1}{x_2} - x_3\big)\Big) - \log(x_1 x_2) - 2 \log t \\
+        &= - \log \Big(t \big(\log \frac{x_1}{x_2} - x_3\big)\Big) - \log(x_1 x_2) - 2 \log t \\
+        &= F_{\exp}(x) - 3 \log t
+    \end{align*}
+    Taking $n$ copies of a cone, and summning a $\nu$-LHSCB across each of the $n$ coordinates, results in a $3\nu$-LHSCB. In our case, this means that for $\mat x = (x^1, x^2, \ldots, x^n) \in K_{\exp}^n$ the function 
+    $ F(\mat x) = \sum_{i=1}^n F_{\exp}(x^i) $
+    is a $3n$-LHSCB for $K_{\exp}^n$, since
+    $F(t \mat x) 
+    = \sum_{i=1}^n F_{\exp}(t x^i)
+    = \sum_{i=1}^n (F_{\exp}(x^i) - 3 \log t)
+    = F(\mat x) - 3n \log t$. 
+    $F$ can be evaluated in $O(n)$ time, and
+    its gradient $F'(\mat x)$ and Hessian $F''(\mat x) \in \mathbb R^{3n \times 3n}$ at $\mat x$ can be expressed analytically.
+    % $9n^2$ entries.
+    Note that the latter has $(3n)^2$ entries. 
+    Furthermore, the convex conjugate of $F$, given by 
+    \begin{align*}
+        F_*(s) &:=  
+        % \sup_{x \in \mathrm{int}\, K_{\exp}^n} \{ - s^{\sf T} x- F(x) \}
+        \sup\{ - s^{\sf T} x- F(x) : x \in \mathrm{int}\, K_{\exp}^n \}
+            \\
+        &=
+    \end{align*}
+    also has a known analytic form.
+    
+    \textcite{badenbroek2021algorithm} then define what they call \emph{shadow iterates}
+    \[
+        \tilde x := -F'_*(s)
+        \qquad \text{and} \qquad
+        \tilde s := - F'(x).
+    \]
+    which can be computed in in $O(n)$ time. 
+    
+    % The development requires a
+    The primary object of study is a
+    linear operator, called the \emph{homogenous self-dual} model,
+    \[
+        G(y,x,\tau,s,\kappa)
+            := \begin{bmatrix}
+                0          &  A  &  -b \\
+                -A^{\sf T} &  0  &  c \\
+                b^{\sf T}  & -c^{\sf T} & 0
+        \end{bmatrix}
+        \begin{bmatrix}
+            y \\ x \\ \tau
+        \end{bmatrix}
+        -
+        \begin{bmatrix}
+            0 \\ s \\k
+        \end{bmatrix}
+    \]
+    which is an $(3n+m+1)$-dimensional square matrix. 
+    
+    According to the MOSEK documentation [4]\parencite{MOSEKDOC},
+        for the exponential cone,
+    the algorithm initializes a guess
+    \begin{align*}
+        z_0 := (y_0, x_0, \tau_0, s_0, \kappa_0)
+            \qquad
+                \text{where}\quad
+                x_0 &= s_0 = (1.291, 0.805, -0.828)^n \in 
+                    (K_{\exp} \,\cap\, K_{\exp}^*)^n, \\
+            \qquad
+                y_0 &= \mat 0  \in \mathbb R^m,
+            \quad
+                \tau_0 = \kappa_0 = 1
+    \end{align*}.
+    
+    \def\daff#1{\Delta {#1}^{\text{aff}}}
+    \def\dcen#1{\Delta {#1}^{\text{cen}}}
+    
+    At each iteration, 
+    we  will need to compute a scaling matrix
+    \begin{equation}
+        W :=
+            \mu F''(x) + \frac{s s^{\sf T}}{\nu \mu}
+            - \frac{\mu \tilde s \tilde s^{\sf T}}{\nu}
+            + \frac{(s- \mu\tilde s)(s-\mu\tilde s)^{\sf T}}
+                    {(s-\mu\tilde s)^{\sf T} (x - \mu \tilde x) }
+            - \frac{\mu [ F''(x) \tilde x - \tilde \mu \tilde s]
+                [ F''(x) \tilde x - \tilde \mu \tilde s]^{\sf T}}
+                % { \Vert \tilde x \Vert^2_x - \nu \tilde \mu^2}
+                { \tilde x^{\sf T} F''(x) \tilde x - \nu \tilde \mu^2}
+        \label{eq:scalemat}
+    \end{equation}
+    Doing so requires $O(n^2)$ steps (although it may be parallelized). 
+    The first four terms clearly require $O(n^2)$ steps, since each one is an outer product resulting in a $3n \times 3n$ matrix. 
+    The last term computes a matrix-vector product (which requires $O(n^2)$ steps), and computes an outer product with the resulting vector, which takes $O(n^2)$ steps as well. 
+    
+    The next step involves finding a solution $\daff z = (\cdots)$
+    to the system of equations
+    \begin{subequations} \label{eqns:sys1}
+    \begin{align}
+        G(\daff z) &= -G(z) \\
+        \tau \daff\kappa + \daff\tau &= - \tau \kappa \\
+        W \daff x + \daff s &= -s
+    \end{align}
+    \end{subequations}
+    
+    This is a system of $(3n + m + 1) + 1 + (3n)$ equations and $3n + m + 1$ unknowns,
+    which can be solved naively with Gaussian elimination in $O((n+m)^3)$ iterations,
+    or with slightly better asymptotic complexity of
+    $O((n+m)^{2.332})$.
+    It may be possible to exploit the sparsity of $G$ to do slightly better. 
+    
+    The second half of the search direction is a solution $\dcen z$ to 
+    \begin{subequations}\label{eqns:sys2}
+    \begin{align}
+        G(\dcen z) &= G(z) \\
+        \tau \dcen \kappa + \kappa \dcen \tau &= \mu^e \\
+        W \dcen x + \dcen s &= \mu^e \tilde s
+    \end{align}
+    \end{subequations}
+    which again can be done in $O((n+m)^3)$ steps with Gaussian elimination, or
+    with a fancier solver in $O((n+m)^2.332)$ steps. 
+    
+    The two updates are then applied to the current guess $z$ to obtain
+    \[
+        z_+ := z + \alpha (\daff z + \gamma \dcen z)
+    \]
+    
+    Finally, a correction step $\Delta z_+^{\text{cor}}$
+        is found by solving the system of equations
+    \begin{subequations}\label{eqns:sys3}
+    \begin{align}
+        G(\Delta z^{\text{cor}}) &= 0 \\
+        \tau_+ \Delta \kappa^{\text{cor}}  + \kappa_+ \Delta \tau^{\text{cor}} &= 0 \\
+        W_+ \Delta {x_+}^{\text{cor}} + \dcen s &= \mu^e \tilde s
+    \end{align}
+    \end{subequations}
+    where
+    % \[
+    %     W_+ :=
+    %         \mu_+ F''(x_) + \frac{s s^{\sf T}}{\nu \mu}
+    %         - \frac{\mu \tilde s \tilde s^{\sf T}}{\nu}
+    %         + \frac{(s- \mu\tilde s)(s-\mu\tilde s)^{\sf T}}
+    %                 {(s-\mu\tilde s)^{\sf T} (x - \mu \tilde x) }
+    %         - \frac{\mu [ F''(x) \tilde x - \tilde \mu \tilde s]
+    %             [ F''(x) \tilde x - \tilde \mu \tilde s]^{\sf T}}
+    %             % { \Vert \tilde x \Vert^2_x - \nu \tilde \mu^2}
+    %             { \tilde x^{\sf T} F''(x) \tilde x - \nu \tilde \mu^2}
+    % \]
+    $W_+$ is defined the same way as $W$, except that it uses the components of $z_+$ instead of $z$. 
+    
+    The full algorithm, then, is given as below:
+
+    \begin{algorithmic}[1]
+        % \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$ as in \eqref{bbeq:init};
+        \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$;
+        \While{}
+            \State Compute scaling matrix $W$ as in \eqref{eq:scalemat};
+            \State Find the solution $\daff z$ to (\ref{eqns:sys1}a-c),
+                and the solution $\dcen z$ to (\ref{eqns:sys2}a-c);
+            \State $z_+ \gets z + \alpha (\daff z + \gamma \dcen z)$;
+            \State Compute the saling matrix $W_+$;
+            \State Find the solution $\Delta z^{\text{cor}}_+$ to (\ref{eqns:sys3}a-c);
+            \State $z \gets z_+ + \Delta z_+^{\text{cor}}$;
+        \EndWhile
+    \end{algorithmic}
+    
+    and each iteration of it takes $O((n+m)^{2.332})$ time. 
+    Their main result \parencite[Theorem 3]{badenbroek2021algorithm}, states that for every $\epsilon \in (0,1)$,
+    the algorithm results in a solution $z$ satisfying
+    \[
+        % \mu^e = 
+        \frac{x^{\sf T} s + \tau \kappa}{3n + 1}
+        \le \epsilon
+        \qquad \text{and}\qquad
+        \Vert G(z) \Vert \le \epsilon 
+            % \Vert G(z_0) \Vert 
+            \sqrt{3n + 1}
+    \]
+    in $O(3n \log (1/\epsilon))$ iterations, 
+    for a total cost of 
+    $O(n (m+n)^3 \log (1/\epsilon) )$ time with Gaussian elimination, or
+    $O(n (m+n)^{2.332} \log (1/\epsilon) )$ time using the linear solver with best
+         known asymptotatic complexity as of 2022.
+         
+    Finally,
+     % to be within $\epsilon'$ of every component, 
+    it suffices to set $\epsilon := 1/(m+n)$.
+\end{lproof}
+
 \recall{theorem:main}
 \begin{lproof}\label{proof:main}
-    We apply the analysis of \textcite{badenbroek2021algorithm}.
-    The primal conic problem
-    \[
-        \inf_{x} \{\langle c, x\rangle : Ax = b, x \in K \tag{D}
-    \]
-
+    
+    Problem \eqref{prob:cluster-inc}
+    has $\V\!\Ar + $ constraints.
+    
+    When translated via the DCP framework to 
+    an exponential conic program of the form \eqref{eq:exp-conic-program}, 
+    
 \end{lproof}
 
 \subsection{}
