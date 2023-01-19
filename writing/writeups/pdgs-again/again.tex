@@ -138,6 +138,8 @@
         
     \relax %%% %SETS %%%%
         \newcommand{\BaseMeas}{\mathbf{BasedMeas}}
+        
+    \relax %%% category theory macros %%%
 
     \relax %%%%%%%%% GENERAL MACROS %%%%%%%%
         \let\Horig\H
@@ -375,6 +377,7 @@
     	\newcommand{\dfootnotemark}{
     		\footnotemark[999]
     	}
+        \newcommand\fadeout[1]{{\color{gray!50}\small#1}}
 
 % \twocolumn
 \setlength{\columnsep}{2em}
@@ -429,10 +432,10 @@
         and whose edges $E \subset L \times R$ are only between $L$ and $R$. 
     \end{defn}
     
-    \begin{defn}
-        A directed bipartite graph $G = (L, R, E)$ is a bipartite graph $(L, R, E)$ whose
-        edges $E \subset (L \times R) \cup (R \times L)$ are directed. 
-    \end{defn}
+    
+    \fadeout{ \begin{defn}
+        A directed bipartite graph $G = (L, R, E)$ is a bipartite graph $(L, R, E)$ whose edges $E \subset (L \times R) \cup (R \times L)$ are directed. 
+        \end{defn} }
     
     
     \begin{defn}
@@ -441,33 +444,44 @@
         subsets of vertices. 
     \end{defn}
     
-    \begin{defn}
-        The \emph{dual} of the hypergraph $G = (V, \mathcal E)$ is
-        \[
-            G^* = (\mathcal E, \{\{e \in \mathcal E : v \in e\} : v \in V\})
-        \]
-    \end{defn}
     
     
-    There is a natural correspondence between hypergraphs and bipartite graphs:
+    \begin{prop} 
+    There is a natural isomorphism between hypergraphs and bipartite graphs:
+    % \def\bitgr{\mathit{BG}}
+    \def\bigr{\mathit{bipart}}
+    % \def\bitgr{\mathit{HG}}
+    \def\hygr{\mathit{hyper}}
     \begin{align*}
-        \mathit{BG}(V, \mathcal E) &:=  (V, \mathcal E, \{(v, E) \in V \times \mathcal E : v \in E \} ) \\
+        \bigr(V, \mathcal E) &:=  (V, \mathcal E, \{(v, E) \in V \times \mathcal E : v \in E \} ) \\
         % (L, \{\{x \in L : \} \}) &\maspfrom (L, R, E)
-        \mathit{HG}(L, R, E) &:= (L, \{\{v \in L : (v,r) \in E\} : r \in R\})
-    \end{align*}
-    
-    \begin{prop}
+        \hygr(L, R, E) &:= (L, \{\{v \in L : (v,r) \in E\} : r \in R\}),
+    \end{align*}    
         \[
-            \mathit{BG} \circ \mathit{HG} = \mathrm{id}_{BG}
+            \bigr \circ \hygr = \mathrm{id}_{BG}
             \quad\text{and}\quad
-            \mathit{HG} \circ \mathit{BG} = \mathrm{id}_{HG}
+            \hygr \circ \bigr = \mathrm{id}_{HG}.
         \]
     \end{prop}
     
     \begin{defn}
-        A \emph{directed} hypergraph $(V, \mathcal A)$ is a set $V$ of vertices,
-        and a collection $\Ar$  of 
+        A \emph{directed} hypergraph $(N, \mathcal A)$ is a set $N$ of nodes,
+        and a collection $\Ar$ of hyperarcs, each of which has a set $S_a \subset N$ of
+        source variables and a target $T_a \subset N$ of target variables.        
     \end{defn}
+    
+    Equivalently, a directed hypergraph $(N, \mathcal A)$ is a regular directed graph 
+    $(2^N, \Ar)$ whose set of vertices is a powerset. 
+    
+    \medskip
+    \hrule
+    \begin{defn}
+    The \emph{dual} of the hypergraph $G = (V, \mathcal E)$ is
+    \(
+        G^* = (\mathcal E, \{\{e \in \mathcal E : v \in e\} : v \in V\})
+    \).
+    \end{defn}
+
     
     
     \subsection{Categories}
@@ -501,7 +515,8 @@
         Consider a measure $\lambda$ on a mesurable space $\mathcal X = (X, \mathcal F)$.
         \begin{enumerate}
             \item If $\lambda(X) = 1$, then $\lambda$ is a \emph{probability} measure. \\
-            \item If $\lambda(U) > 0$ for every non-empty set $U \in \mathcal F$, then $\lambda$ is \emph{strictly positive}.
+            \item If $\mathcal T$ is a topology on $X$, and 
+                $\lambda(U) > 0$ for every non-empty open set $U \in \mathcal F \cap \mathcal T$, then $\lambda$ is \emph{strictly positive} (wrt $\cal T$).
             \item The measure $\lambda$ is called \emph{$\sigma$-finite} if $X$ can be
             covered with a countable set of sets with finite measures --- that is, if
             there exist countable sequence $(A_1, A_2, \ldots ) \subset \mathcal F$ the
@@ -583,7 +598,7 @@
 
     \section{PDGs}
     \begin{defn}
-        A \emph{dependency graph} (DG), is a directed hypergraph
+        A \emph{dependency structure} is a directed hypergraph
         % $\mathcal G = (\N, (\Ar, \src, \tgt)),$
         % $\mathcal G = (\N, \Ar, \src, \tgt)$
         $\mathcal G = (\X, \Ar)$
@@ -595,9 +610,8 @@
     
     
     \begin{defn}
-        A \emph{weighted PDG structure} $(\N, \Ar, \balpha)$ is a PDG structure $(\N, \Ar)$ together with a $\sigma$-algebra $\mathcal F_{\!\Ar}$ on the space of agents, and a (signed) measure $\alpha(\mathcal A)$.
+        A \emph{weighted dependency graph structure} $(\N, \Ar, \balpha, \mathcal F_{\!\Ar})$ is a depencency structure $(\N, \Ar)$ together with a $\sigma$-algebra $\mathcal F_{\!\Ar}$ on $\Ar$, and a (signed) measure $\alpha$ on $\Ar$.
         %, and a measure $\alpha(\mathcal A)$, called the \emph{degree of control}.
-        
     \end{defn}
     
     A  (weighted) \emph{PDG hyper-structure} is a PDG structure, is the same thing except $\src$ and $\tgt$ can take sets of variables from $\N$.

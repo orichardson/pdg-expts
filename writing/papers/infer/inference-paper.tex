@@ -2,6 +2,15 @@
 
 \usepackage{aistats2023}
 
+
+%%% flags
+\newif\ifbiblatex
+    %oli5*: here's the bibliography fix; Joe: you'll want to use the second line.
+    \biblatextrue % use the more modern & extensible biblatex+biber for bibliography.
+    % \biblatexfalse % use BibTeX instead. 
+
+% \newif\ifvoli
+
 % If your paper is accepted, change the options for the package
 % aistats2023 as follows:
 %
@@ -19,7 +28,6 @@
 
 
 % If you use BibTeX in apalike style, activate the following line:
-% \bibliographystyle{apalike}
 \input{inference-preamble.tex}
 \input{pdg-preamble-v2.tex}
 \usepackage[normalem]{ulem}
@@ -29,11 +37,16 @@
 \newcommand\obslimit{observational facet} %(distribution)
 \newcommand\ObsLimit{Observational Facet} %(distribution)
 % depiction / manifestiation / materialization / portrayal / image / expression / delegate / aspect / facet / form / representative / intermediary / surrogate / proxy
-\newcommand\maybegamma{\gamma}
 
 \colorlet{mayyybe}{blue!50!red!20!white}
 \colorlet{rewrite}{purple!80!black}
+%\colorlet{red}{black}\let\voli\relax\let\vjoe\discard
 
+\colorlet{olicolor}{blue!50!red!70!black}
+\colorlet{joecolor}{green!50!blue!70!black}
+
+\newcommand\vjoe[1]{{\color{joecolor}\textbf{$\boldsymbol\{$Joe: }#1 \textbf{$\boldsymbol\}$}}} 
+\newcommand\voli[1]{{\color{olicolor}\textbf{$\boldsymbol\{$Oli: }#1 \textbf{$\boldsymbol\}$}}}
 
 % \author{$\{$Oliver E Richardson, Joseph Y Halpern, Christopher De Sa$\}$}
 
@@ -69,7 +82,8 @@
 % and currently nobody uses PDGs, so it might expand the audience. Do you see a way of 
 % expanding the title in a less clunky way, to include that?  Also, can you help
 % me understand why "via" is the wrong word?
-Inference for Probabilistic Dependency Graphs, ... 
+Inference for Probabilistic Dependency Graphs,  \\
+    \voli{ via(?) Exponential Conic Programming}
         }
 
 %joe1: initials need periods
@@ -241,8 +255,15 @@ and Factor Graphs (FGs).
 % to define the dgree of inconsistent of a PDG to essentially be that of the
 % probability measure that is least inconsistent with it.
 % A PDG can contain inconsistent beliefs, and there is a natural way measuring its degree of inconsistency.
-They can also capture inconsistent beliefs (for instance, two different distributions over the same variable), and moreover there is a natural way of measuring the degree of this inconsistency. 
-%
+% \voli{They can also capture inconsistent beliefs, and moreover provide a natural measurement of the degree of this inconsistency. }
+% \vjoe{
+% They can also capture inconsistent beliefs; moreover, we can measure how inconsistent a probability distribution is with a PDG. This allows us to define the degree of inconsistenty of a PDG to essentially be that of the probability measure that is least inconsistent with it.}
+%oli5*: adopting Joe's version, but it requires some tweaks, for two reasons:
+% Small problem: one of these things is "incompatibility" not inconsistency, and the sentence structure doesn't work so well if you call the concepts different things. 
+% Bigger problem: the ability to measure the incompatibility of a distribution with a PDG is independent of the ability to represent inconsistent beliefs.  Factor graphs, consistent PDGs, and even probability distributions themselves, all have measurements of how incompatible they are with probability distributions. 
+%% Fortunately, by moving the punctuation in the clever way, we can fix this.
+They can also contain inconsistent beliefs, such as two different probabilities over the same variable. Moreover, there is a natural way to measure the degree of this inconsistency: starting with a measure of how incompatible a joint distribution is with a PDG, the inconsistency of the PDG is the smallest incompatibility with any joint distribution. 
+
 %joe4:this isclunky
 %But, also unlike the models they generalize,
 %PDGs have not had an inference algorithm%
@@ -255,15 +276,14 @@ there has been no practical way to do probabilistic inference using
 PDGs---that is,
 to answer questions of the form
     ``what is the probability of $Y$ given $X$?''.
-%oli5: de-emphasizing the algorithm.
-% This paper presents the first such algorithm.
-This paper presents the first one.
+This paper presents the first such {\color{red}algorithm}.
+% This paper presents the first one.
 
 
 %joe5: adding material from my email
 %oli5*: I already added this material later in the document, where I think it belongs. In my view this is too much detail and doesn't make much sense here: we haven't explained what a PDG is, for instance, so a lot of this can't be understood properly until reading section 2 or the previous papers.
 %oli5: at a higher level, I'm also not happy with the picture laid out in this paragraph 
-{\color{red!50!black}\textbf{[Joe's version]}
+\vjoe{
 %joe5*: The issue isn't correctness but how we define inferfence.
 %oli5: I don't see why you're making a distinction. Defining inference means defining what it means to answer probabilistic queries correctly. 
 %joe5*: I rewrote this pareagraph completely.  We need to tell the "right"
@@ -309,7 +329,7 @@ distribution that is consistent with both types of information, then
 the choice of $\gamma$ matters.  Thus, we talk about
 $\gamma$-inference or $*$-inference.}
 
-{\color{blue!50!black}\textbf{[Oli's version]}
+\expandafter\discard\voli{
 %oli5:
 % What does it mean to answer probabilistic queries \emph{correctly} for a PDG?
 Before discussing our algorithm, we must discuss what it even means
@@ -337,16 +357,17 @@ not just represent one probability distribution.
 %oli5:
 % From an extreme empirical viewpoint,
 % From an extreme empirical viewpoint,
-At one extreme, which might well be called the ``emperical view'', 
+At one extreme,
+% At one extreme, which might well be called the ``emperical view'', 
 %joe5: I don't know what makes this "empirical"; I think it's a
 %mistake to focus on this, becuase we don't have good motivation for it.
 %oli5: I disagree: this is the very definition of what means to be an empiricist: you value observational data above all else. 
-a PDG does single out a particular distribution which we call its ``\obslimit''.
+a PDG does single out a particular distribution which we call its ``\obslimit'';
 %oli4: changing away from "primary"
 % Our primary goal
 %joe5: I now disagree
 %oli5: you disagreee with it being "one of our main goals"??? 
-One of our main goals 
+one of our main goals 
 is to answer probabilistic queries with respect to this distribution.
 %
 %joe4*: isn't it actually a limit, rather than an "endpoint".  I don't
@@ -364,21 +385,26 @@ is to answer probabilistic queries with respect to this distribution.
 %oli4: the point of this paragraph is to address the question 'what is inference for a PDG?' at a high level, and illustrate the subtlety.  We cannot simply leave the paragraph at "Our primary goal is to answer queries w.r.t. this dist" because the observational representative, while special in some important ways, may not be the only one we care about. And it's not the only one our paper addresses.
 %joe5: I agree with your comment above.  I completely removed the
 %emphasis on what your calling \obslimit, and rewrote the story.
-Still, the \obslimit\ is just a special endpoint
-of a continuous family of distributions that a PDG represents.
+However, 
+this distribution is just 
+% the \obslimit\ is just 
+% a special endpoint
+one end 
+of a continuous family of distributions that a PDG represents,
+%oli5: adding
+depending on the relative importance one lends to 
+    causal information as opposed to empirical observation.
 % which might be of interest.
-%oli4 >moved> %joe4: I left in my rewrite so you can see it.
-\discard{%
-%oli4: I was trying to hide some irrelevant complexity in my version of this sentence with careful word chose. This rewrite is a little clearer, but also technically not quite right because, the semantics are a continuous parameterized family of _sets_ of distributions, in general. It happens that the set is a singleton for small parameter values and in the limit. Also, I don't think it's necessary to emphasize that this is a limit yet.
-    Still, the  \obslimit\ is just the limit of a parameterized family of
-    distributions all of can  be viewed as, in a sense, representing the PDG. }
-Under stricter assumptions,
-the same techniques enable inference with respect to some of these other distributions as well.
-For the PDG that corresponds to a BN, these distributions are identical and coincide with the one represented by the BN.}
-
-
-{\color{green!50!black}\textbf{[Oli's compromise]}
-
+% Under stricter assumptions,
+Our techniques enable inference with respect to 
+    many of these other distributions as well.
+% For the PDG that corresponds to a BN, all of these distributions are identical, and coincide with the one that the BN represents.
+%oli5: rewording this bit and expanding
+We remark that all of these distributions are identical
+when there is no conflict between structure and observation;
+for the PDG corresponding to a BN, for instance, each one
+% and coincide with the one that the BN represents.
+coincides with the distribution represented by the BN.
 }
 
 % to answer them in
@@ -410,9 +436,12 @@ underlying structure has \emph{bounded treewidth} (see
 \Cref{sec:tw} for formal definitions).
 %joe5
 %That is precisely what we have.
-That is indeed what we have.  More precisely, we show that for PDGs of
-bounded treewidth, $*$-inference and $\gamma$-inference for a wide
-range of $\gamma$ sufficiently close to 0 can be done in polynomial time.
+That is indeed what we have.  
+\vjoe{More precisely, we show that for PDGs of
+bounded treewidth,
+$*$-inference
+and $\gamma$-inference for a wide
+range of $\gamma$ sufficiently close to 0 can be done in polynomial time.}
 % same class of graphical models
 % a polynomial-time algorithm in the case of bounded tree-width.
 % This is precisely what we prsent here.
@@ -455,7 +484,7 @@ is based on a line of recent work in convex programming that establishes
 %oli5: 
  polynomial-time convergence
 for a class of optimization problems called \emph{exponential conic programs}
-\parencite{badenbroek2021algorithm,dahl2022primal,lubin}.
+\parencite{badenbroek2021algorithm,skajaa2015homogeneous,nesterov1996infeasible}.
 Our contribution is to show that the problem of inference in a PDG
 of bounded treewidth
 can be efficiently converted to a (sequence of) exponential conic program(s), at which point it can be solved with a commercial solver
@@ -475,16 +504,44 @@ to benefit from the speed and reliability of such highly optimized solvers, and 
 %Thus our result is not only a theoretical one, but practical as well.
 Thus, our result is not only a theoretical one, but practical as well.
 
-% {\color{gray}
-    % Joes' wording: "of independent interest"
-    % Apart its central role in the development of PDG semantics,
-        % this measure of inconsistency has proved to be a natural quantity to minimize.
-    % minimizing this measure of inconsistency is of independent interest.
-% Beyond their role as a graphical model, PDGs
-%joe4:
-% Beyond their role as a probabilsitic model, PDGs are also separately of interest because of their inconsistency measure.
-%oli4: it's not used in PDGs; at best, its an aspect of the PDG formalism.  Your rewrite also doesn't do justice to how the inconsistency measure (note:not incompatibility, or the scoring function, but its minimum value) looks at first to be totally unrelated to probabilistic modeling. How is this as a compromise?
-% The inconsistency measure used in PDGs is also of independent interest.
+
+
+% \vjoe{
+% Our techniques give us even more.
+% As shown by Richardson \parencite*{one-true-loss},
+% many loss functions and statistical divergences
+% can be viewed as measuring the minimum value of the loss function 
+% of a PDG that models the context appropriately.
+% This makes calculating this minimum loss of interest.
+% Our techniques show how this can be done.}
+
+%oli5: I think this 
+% Our techniques give us even more.
+% Beyond its role as a probabilsitic model,
+Beyond their roles as probabilistic models,
+    PDGs are also 
+As shown by Richardson \parencite*{one-true-loss},
+    many loss functions and statistical divergences
+%joe5: which loss function?  There are two
+can be viewed as measuring the minimum value of the loss function 
+of a PDG that models the context appropriately.
+    % So, the ability to calculate and minimize inconsistency seems eminantly useful.
+%joe5: I don't undestand the next sentence.  Again, we can't talk
+%about the inconsistency of a PDG, only about the inconsistency of a
+%distribution relatieve to a PDG.  I cut the sentence.  I don't think
+%it's necessary.
+% It follows that the training process in machine learning can
+% largely be conceptualized as inconsistency minimization.
+% be conceptualized as minimizing the inconsistency of a PDG.
+This makes calculating this minimum loss of interest.
+%joe5: this just doesn't read well.
+%    Earlier work does not say.
+%joe5
+%This problem turns out to be closely related to that of
+%    inference in PDGs, and our approach addresses both.
+Our techniques show how this can be done.}
+
+\expandafter\discard\voli{
 %joe5: You haven't said what a PDG's degree of inconsistency is
 %oli5: I did, but you assumed I had said something else. I've changed it back and this  should now make sense
 %joe5:
@@ -514,7 +571,10 @@ As shown by \textcite{one-true-loss},
 %joe5: I cut the sentence.  I don't think it's necessary.
 %oli5: You may not, but this paragraph is important to me. I've already pushed this story into the margins for you, and I want to tell this story.  
 It follows that the training process in machine learning can
-    be conceptualized as minimizing the inconsistency of a PDG.
+    be conceptualized as
+    %oli6:
+    % minimizing the inconsistency of a PDG.
+    adjusting parameters of cpds so as to minimize the inconsistency of a PDG.
     % The ability to calculate and minimize inconsistency seems eminantly useful.
     % But how {does} one calculate this degree of inconsistency, in general?
     % The ability to calculate and minimize this inconsistency seems eminantly useful.
@@ -536,7 +596,7 @@ It follows that the training process in machine learning can
 % Our techniques show how this can be done.
 This problem turns out to be closely related to that of
     inference in PDGs, and our approach addresses both.
-% }
+}
 % These two practical shortcomings
 % which have made PDGs a purely theoretical construct
 % are related, and we provide an algorithm
@@ -598,7 +658,10 @@ Finally, we evaluate this implementation empirically, and show that it is both m
 %  the notation $\mat u := [u_i]_{i \in S}$.  We say $S$ characterizes
 %  \emph{structure} of vector $\mat u$.  Vectors with the same structure
 %
-For us, a vector is a map from some finite set $S$, called its \emph{shape}, to the extended reals $\Rext := \mathbb R \cup \{\infty\}$.
+For us, a vector is a map from some finite set $S$, called its 
+% {\color{red}\emph{shape},}
+\emph{shape},
+to the extended reals $\Rext := \mathbb R \cup \{\infty\}$.
 % The \emph{shape} of a vector $\mat u$ is the finite set which is its domain.
 % The notation $\mat u := [u_i]_{i \in S}$ defines a vector over the finite set $S$.
 % The notation $\mat u := [u_i]_{i \in S}$ defines a vector of shape $S$.
@@ -676,7 +739,11 @@ Every variable $X$ can take on values from a finite set $\V\mskip-1.5mu X$ of po
 %don't want to go there.
 %oli5: I still don't see the problem --- this just means the set of variables \X is closed under unions. 
 %oli5: in any case, this fix won't quite address the problem, 
-Sets of variables $\mat X$ are variables themselves, with
+{\color{red}
+%oli5: maybe this softens the problem
+We can regard
+sets of variables $\mat X$ are variables themselves,}
+with
 % We can use analogous notation for sets of variables, writing
 $\V \mat X = \Pi_{X \in \mat X} \V X$.
 A conditional probability distribution (cpd) $p(Y|X)$ is a map
@@ -815,11 +882,19 @@ together with local quantitative information corresponding to the local influenc
 Semantically,
 a graphical model $\cal M$
 % is a probabilistic model, meaning that it
-represents a joint probability distribution $\Pr_{\!\cal M}(\X) \in \Delta \V\!\X$ over its variables.
+%joe5*: I still really don't like this notation.  I got rid of it frm
+%here.  Also, note that a PDG is a graphical model and does *not*
+%represent a single distribution.  I added the word "typically" to
+%cover that
+typically
+represents a joint probability distribution $\Pr_{\!\cal M}
+% (\X)
+ \in \Delta \V\!\X$ over its variables.
 % All standard graphical models can
 % Although this is not true for PDGs, all standard graphical models can be written as a
 % Although this may not be the whole picture, the distribution
 % specified by every standard graphical model can be written as a product
+\discard{
 Although there is often more to the story,
 % than this,
 % typically 
@@ -839,7 +914,11 @@ over a hypergraph $(\X, \Ed)$ closely related to the structure of $\cal M$.
 % $(\X ,\Ed, \boldsymbol\phi)$
 % to be the definition of a graphical model.
 % For this reason, some authors define a graphical model to be a tuple $(\X ,\Ed, \boldsymbol\phi)$.
-For this reason, some authors use the term ``graphical model'' to refer to a tuple $(\X ,\Ed, \boldsymbol\phi)$.
+For this reason, some authors use the term ``graphical model'' to refer to a tuple $(\X ,\Ed, \boldsymbol\phi)$,
+%oli5: added
+i.e., a factor graph.
+% PDGs do not, in general, represesent distributions this way.
+PDGs, however, do not represent probabilities this way.}
 
 % One characterization of graphical models, which we will call a
 % \emph{factorizing graphical model}, is
@@ -863,11 +942,14 @@ To do inference in probabilistic model $\cal M$ is to answer probabilistic queri
 \textit{``what is the distribution of variables $Y$, given that $X\!=\!x$?''}
 %
 % Given a probabilistic model $\cal M$, which represents a joint distribution $\Pr_{\cal M}$, the goal of an inference algorithm
-Since $\cal M$ represents a joint distribution $\Pr_{\cal M}$,
-the ``correct'' answer to this question is $\Pr_{\cal M}(Y \mid X\!=\!x)$.
-It may seem strange to say this explicitly; we do so because
-in a PDG there may also other defensible answers.
-
+%joe5:  It's not that there other defensible answers.  It's that there
+%more than one way to get the distribution that represents the PDG
+%Since $\cal M$ represents a joint distribution $\Pr_{\cal M}$,
+%the ``correct'' answer to this question is $\Pr_{\cal M}(Y \mid X\!=\!x)$.
+%It may seem strange to say this explicitly; we do so because
+%in a PDG there may also other defensible answers.
+If $\cal M$ represents the joint distribution $\Pr_{\cal M}$, then the
+appropriate answer to this question is $\Pr_{\cal M}(Y \mid X\!=\!x)$.
 
 Many inference algorithms (such as belief propagation),
 %oli2: not just BNs, but graphical models generally
@@ -896,7 +978,7 @@ then they may not converge, and even if they do,
 %may be incorrect, or even inconsistent \parencite{wainwright2008graphical}.
 % it may not give the correct answer \parencite{wainwright2008graphical}.
 may give an answer that is incorrect, or even inconsistent \parencite{wainwright2008graphical}.
-Nearly all exact inference algorithms for graphical models (variable elimination, clique-tree calibration, message-passing with division, clique tree optimization),
+Nearly all exact inference algorithms for graphical models (including variable elimination, clique-tree calibration, message-passing with division, clique tree optimization),
 implicitly or explicitly, effectively construct a tree decomposition of the model, and may be viewed as running on a tree \parencite[\S9-11]{koller2009probabilistic}.
 %oli2: added.
 This is essentially necessary, because under widely believed
@@ -957,8 +1039,13 @@ the reader is encouraged to consult for more details and intuition.
 %oli1
 % A probabilistic dependency graph (pdg)
 At a high level, a PDG
- % is just a collection of cpds, weighted by two kinds of confidence. More precisely:
-is just an arbirary collection of cpds and causal assertions,
+% is just a collection of cpds, weighted by two kinds of confidence. More precisely:
+%joe5
+%is just an arbirary collection of cpds and causal assertions,
+%oli5:
+% can be viewed as
+is
+a collection of cpds and causal assertions,
     weighted by confidence. More precisely:
 
 \begin{defn}
@@ -971,30 +1058,59 @@ is just an arbirary collection of cpds and causal assertions,
 % vectors until right before we need to as a convex program. Otherwise, therere are a lot
 % of technical ambiguities we need to be careful of --- like, what is \mu(X) p(Y|X)? 
 % Because of that, I'm reverting to my original notation.
-    A PDG $\dg M = (\X, \Ar, \mathcal P, \balpha, \bbeta )
+%joe5*: I'm sorry;  I don't get it.  You write \mathcal P, and never
+  %explain what it is.  You write p_a, which is your notation for
+  %a component of a vector p, but never explain what p is, and how it
+  %differs from \mathcal P.  (If it does, then I'm completely
+  %mystified as to how.)  
+%oli5: The notation for a vector is if I first were to define
+% {\bf p} = [p_a]_{a \in \Ar} --- but instead I just defined components p_a for 
+% a \in \Ar, without making a vector out of them. Surely it's OK to use subscripts for
+% something else?  In fact, using \mathcal P over {\bf p} is precisely to distinguish
+% this from being a vector. 
+%joe5*: I don't understand your concerns above,
+  %and I'm quite sure that the reader will find what you wrote far
+  %more confusing that what I wrote.   Unless you can explain to the
+  %reader (as well as to me, of course) why you insist on violating
+  %your own notational conventions, you should change it back.  (I'll
+  %probably want you to change it back after you've explained it as
+  %well; this is simply far too confusing.)   Here is yet another
+  %example of when our sense of what a reader will find confusing
+  %diverge, and where I find your viewpoint highly idiosyncractic.
+  % \voli{
+    A PDG $\dg M = (\X, \Ar,
+        % \begin{matrix}
+        %     \voli{\mathcal P} \\
+        %     \vjoe{{\bf p}}
+        % \end{matrix},
+        \mathbb P, 
+        \balpha, \bbeta )
      % = (\mathcal P, \balpha, \bbeta)$
     $
-    % over $\X$ is a set $\Ed$ of ``directed hyper-edges'',
-    % each $L \in \Ed$ of which is associated with:
-%joe2: we didn't talk about hypergraphs in the AAAI paper.  Do you
-%talk about them in the AIStats paper?
-%oli2: no, this is a different presentation. I think it's cleaner in this
-% case because I already had to bring up the hyper-graphs to talk about
-% tree decompositions intelligently.
     is a directed hypergraph  $(\X, \Ar)$, whose nodes correspond to variables,
-%joe4:
-% ${\bf p} = [p]_{a \in \Ar}$,
 %oli4: Here's the first place we start to get into the problems I alluded to earlier. 
 % The notation you introduced on the previous line doesn't quite work. p_a is not a number, but rather a conditional probability distribution (or, if you prefer, a vector). 
+%joe5: Why is that a problem?  Who said that a vector had to be a
+    %vector of numbers?  Actually, looking back at it, you did.  But
+    %there's nothing in the mathematical theory of vector spaces that
+    %requires this.  I woudl drop this requirement.
+%oli5: that's not true, the mathematical theory of vector spaces requires that
+% scalars be members of a fixed field.  At any rate, I find it acceptable to present
+% the cpds as a vector of shape \V\Ar (not of shape \Ar), although it's then further away
+% from the more general case when variables no longer range over finite sets. 
 %oli4: we haven't said what alpha or beta are yet, so this isn't the right place to give their vector notation. I'm moving the following two lines to where they were before. 
 % $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$,
 % $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$
     % and each hyperarc
+    \vjoe{ ${\bf p} = [p]_{a \in \Ar}$,
+    $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$,
+    $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$,}
     and each arc
     % $\ed a{\Src a}{\Tgt a} \in \Ar$
-    $a \in \Ar$
     % $\ed a{\Src {}}{\Tgt {}} \in \Ar$
-    is associated with:
+    % and each hyperarc
+    $a \in \Ar$ is associated with:
+    
     \begin{itemize}[itemsep=0pt]
         % \item (subsets of) variables $\Src L, \Tgt L \subset \X$, indicating the respective source and target variables of the edge;
         % \item variables $\Src L, \Tgt L \in \X$, the source and target of $L$;
@@ -1006,7 +1122,8 @@ is just an arbirary collection of cpds and causal assertions,
             the modeler's confidence in the cpd $p\ssub a(\Tgt a | \Src a)$,
             %oli4: probably not appropriate here, but I wanted to add it to tie it to the
             % below. 
-            (as measured by the number of independent observations that support $p\ssub a$), 
+            \discard{
+            (as measured by the number of independent observations that support $p\ssub a$), }
             and
         \item 
     %oli4: wasn't quite an honest depiction; playing with two fixes. See the oli4* below
@@ -1018,8 +1135,10 @@ is just an arbirary collection of cpds and causal assertions,
     a weight $\alpha_a \in \mathbb R$ indicating
     representing
     the modeler's confidence in the functional dependence of $\Tgt a$ on $\Src a$ due to $a$
+    \discard{
     (as measured by the expected number of independent causal mechanisms corresponding to $a$,
     that determine $\Tgt a$ given $\Src a$).%
+    }
     %oli4*:
     %ALTERNATE VERSION, for \alpha in [0,1]. This is what we had before, with the range
     % in [0,1]. Larger values can be simuated by multiple edges. The issue is that this opens up a big can of worms. First, we have to talk about how this isn't too restrictive for factor graphs which require \alpha=\beta.  More importantly this definition doesn't play nicely with the sufficient existence conditions we're pushing. For instance, if we simulate \alpha=2 by adding a second edge edge with \beta=0 and \alpha=1, we no longer have \bbeta > 0. For this reason, it's more expressive and less twisting to do the former, even though this makes more sense for the exposition, and we should do that in the journal version.
@@ -1029,30 +1148,15 @@ is just an arbirary collection of cpds and causal assertions,
     %     % \item $\mathcal P = \{ p\ssub L (\mat T_L | \mat S_L) \}_{L \in \Ed}$ is an indexed set of cpds
     %     \item $\bbeta$
     \end{itemize}
-    In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and
+%joe5: This is misplaced.  It should go in the beginning, where I put
+%it.   You first desxcribe what the objects are, then explain them.
+    \voli{In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and
     % $\mathcal P = \big[ p\ssub a(t|s) \big]{}^{a \in \mathcal A}_{(s,t) \in \V(\Src a,\Tgt a)}$
-    $\mathcal P$ is the set of cpds indexed by $\Ar$.
+    $\mathcal P$ is the set of cpds indexed by $\Ar$.}
 \end{defn}
 
-%joe4: do we use the + anywhwere?  If not, we should cut this
-%paragraph.  It's not relevant to the story of this paper.
-%oli4: we used to, and still do in the appendix; this notation is helpful in articulating
-% some of the fundamental connections between inference and computing inconsistency.
-% I'll move it there, but leave it commented out here just in case.
-\discard{
-One selling point of PDGs is their modularity:
- if $\dg M_1$ and $\dg M_2$ are two PDGs, we can take the dusjoint union of their arcs (and associated data) to get a new PDG, denoted $\dg M_1 + \dg M_2$,
-which represents the combined information of both $\dg M_1$ and $\dg M_2$.
-}
 
-% For the purposes of adding data to PDGs in this way, we implicitly convert cpds to singleton PDGs that have default weight $\beta = 1$.
-
-%joe1: You need to add a few sentences of intuition here, giving an
-%examples of low and high incompatibility, and explaning that D acts
-%as a measure of distance.  Have pity on the poor reader!  Don't be afraid
-%to slow down and explain things.
-% \TODO[intuition]
-%oli4: adapting Joe's paragraph from the email:
+\voli{
 Like other graphical models,
 PDGs encode two types of information: ``structural'' information 
 % captured by the structure of the graph, 
@@ -1061,14 +1165,32 @@ as well as ``observational'' information,
 through the conditional probability distributions
 $\mathcal P$ and weights $\bbeta$. 
 Corresponding to these two types of information, 
-% we have two loss functions, which associate with a measure
-% $\mu$ how far $\mu$ is from capturing each of these two types of
-% information.  Our family of notions of inference is parameterized by the
-% relative weight of these loss functions.
 PDG semantics are based on two scoring functions 
 which quantify the discrepancy between 
 a joint distribution $\mu(\X)$ over all variables,
 and each of the two types of information.
+}
+%
+\vjoe{%joe5
+As we mentioned in the introduction,
+PDGs encode two types of information: ``structural'' information 
+% captured by the structure of the graph, 
+%joe5: the weights do not encodde the information, but our confidence in it.
+%oli5: I disagree; the confidences do encode structural information. In an extreme
+% case, you can include every possible hyper edge, and determine the structure with
+% the confidences.
+%
+%through the graphical structure $\Ar$ and weights $\balpha$,
+%as well as ``observational'' information, 
+through the graphical structure $\Ar$, and
+``observational'' information, 
+through the conditional probability distributions.
+The weight vectors $\alpha$ and $\beta$ encode our confidence in these
+two types of information.
+The semantics of PDGs are based on two scoring functions
+that quantify the discrepancy between 
+a joint distribution $\mu$ over (the possible values of) the variables
+in $\X$, and each of the two types of information. }
 
 %oli4: pulling this into your previous paragraph; going to start differently now.
 % The semantics of a PDG are given by two scoring functions over joint distributions $\mu(\X)$ over all variables.
@@ -1079,6 +1201,16 @@ The \emph{observational incompatibility} of $\mu$ with $\dg M$, which
 can be viewed as measuring the ``distance''  between $\mu$ and the cpds of $\dg M$,
 % measures the discrepency between $\mu$ and the cpds of $\dg M$,
 %oli4: I think your version is clunkier than mine. It's not a distance, so you need quotes, while "discrepancy" is accurate. The words "can be viewed as" also are an unnecessary hedge in my opinion. Why use the precise word nonstandardly with quotes? It measures the discrepancy (even if there are other ways to measure it). 
+%joe5: While I can live with "discrepancy", I suspect most people will
+% think of this as measuring how far \mu is from matching the PDG.
+% "How far" means that we have a distance. 
+%oli5: while there's a very long and very standard tradition of using the word "distance" to mean a symmetric measure, the underlying intuition of "how far" doesn't need to be. If you live at the bottom of a hill and work at the top, then it feels "farther" toget to work, than to get home. Even  "distance" doesn't need to be: on average, you're closer to Russia if you live in Japan, than you are to Japan if you live in Russia. 
+%joe5: The fact that your actual loss function isn't a metric is to me a problem with your loss function, not with the intuition that we're describig a distance. 
+%oli5: I don't think it's a problem at atll, and I'm happy to embrace a geometric picture of distance; I just don't want to use the word "distance" that has additional mathematical connotations which don't apply here. 
+%joe5: I would have thought that "discrepancy" should also be a metric.
+% In any case, in what sense is "discrepancy" accurate?
+%oli5: I guess I only meant that it doesn't have a standard definition that 
+% includes symmetry.  The term "discrepancy" is much looser than "distance".
 is given by the weighted sum of relative entropies:
 \begin{align*}
     \OInc_{\dg M}(\mu) :=
@@ -1113,7 +1245,6 @@ $\OInc_{\dg M}$ measures the excess cost of using codes optimized for the cpds o
 %oli2*: I dislike that you got rid of the ``quantitative''
 % and ``qualitative'' descriptors, because I want to refer to the quantitative limit!
 
-
 The second scoring function measures
 structural discrepancy between $\mu$ and $\dg M$:
 %joe4: I *really* don't like this.  I don't know what it means for \mu
@@ -1126,8 +1257,13 @@ the extent to which
 %oli4: your replacement (above) very squishy. What does it mean for $\mu$ to enforce that a hyperarc represents something?  It sounds like giberish to me. 
 %oli4: trying to rewrite again
 % $\mu$ cannot arise from
-$\mu$ is ruled out by
-a causal picture consisting of independent mechanisms for each unit of $\alpha$.
+%joe5: For those of us who think of \alpha as a measure of confidence,
+%and a number in [0,1], it makes absolutely no sense to talk about
+%units of alpha
+%oli5: sure it does! half a unit of \alpha means the edge is present with 50% probability. If you have \alpha is either 0 or 1 like in a causal model, then this is exactly right, and "half of a unit" does exactly what you might expect. 
+\voli{$\mu$ is ruled out by
+a causal picture consisting of independent mechanisms for each 
+    {\color{red}unit of $\alpha$}.
 % reflects the causal structure of $\dg M$.
 % treats the edges in ${\dg M}$ as describing independent mechanisms that determine the target given the source.
 % a situation in which each unit of $\alpha$ corresponds to an independent causal mechanism that determines its target variables given its source variables.
@@ -1138,9 +1274,18 @@ a causal picture consisting of independent mechanisms for each unit of $\alpha$.
 %measures the observational incompatibility and Idef measures the
 %causal incompatibility, or something like that.
 %oli4*: I actually agree, and your proposal makes a lot of sense to me. However, perhaps we would be better off reserving "causal incompatibility" for the variant IDef' which cannot be negative and (if my conjecture is right) is more closely related to our notion of qualitative independence. I've left this alone for now.
+%joe5*: I still really object to "deficiency".  Please change it to incompatibility.  I'm extremely uncomfortable with it being negative.  I have no intuition for that, and you've never given me any.
 % This is captured by the \emph{information deficiency}, given by
 % This is captured by the \emph{causal incompatibility}, and given by
-This is captured by the \emph{causal deficiency} (of $\mu$ relative to $\dg M$), and given by
+This is captured by the \emph{causal deficiency} }
+\vjoe{
+$\mu$ is compatible with 
+a causal picture consisting of independent mechanisms (one for each
+hyperedge).  
+This is captured by the \emph{causal incompatibility}
+\footnote{\vjoe{I still really object to ``deficiency''.  I'm extremely uncomfortable with it being {\color{red}negative}.  I have no intuition for that, and you've never given me any.}}
+}
+(of $\mu$ relative to $\dg M$), and given by
 % This is captured by the \emph{information deficiency}, given by
 % \begin{align*}
 $
@@ -1182,11 +1327,13 @@ the weighted hypergraph structure $(\Ar,\balpha)$.
 % The semantics of a PDG $\dg M$ are then given by a family of scoring fuctions
 % We can combine the two into a family of scoring functions
 When the observational and structural information conflict, then the distribution(s)
- which best represent a PDG will depend on the relative importance of observation and structure (see \Cref{sec:example-gamma}).
+that best represent a PDG will depend on the relative importance of observation and structure (see \Cref{sec:example-gamma}).
 % corresponding to the linear combination
 This is captured by a trade-off 
 % (``temperature'') 
-parameter $\gamma \ge 0$, which 
+parameter 
+{\color{red} $\gamma \ge 0$, }
+which 
 can be used to define the scoring function
 $\bbr{\dg M}_\gamma: \Delta \V\!\X \to \Rext$, as follows:
 
@@ -1198,7 +1345,7 @@ $\bbr{\dg M}_\gamma: \Delta \V\!\X \to \Rext$, as follows:
         %     {\mu(\Tgt L| \Src L)^{\beta\ssub L - \gamma \alpha \ssub L}}
         %     {p\ssub L(\Tgt L | \Src L)^{\beta \ssub L}}
         % \right] - \gamma \H(\mu)
-        =& \Ex_{\mu}\left[
+        =& \Ex\nolimits_{\mu}\left[
             \,
             % \gamma \log \mu(\X) +
             \sum_{a \in \Ar} \log \frac
@@ -1244,7 +1391,8 @@ the set of optimal distributions at a particular value $\gamma$.
 % As for assuming $\bbeta > 0$, I'm hesitent because there's not a good place to clear
 % the air later on. Also I find the absolute continuty condition \beta >> \alpha 
 % is a nice parallel with the \beta > \gamma \alpha condition above. 
-% For now, I've swapped the footnote and the text.
+%joe5: you might find it a nice parallel, but the poor reader, who
+%doesn't have your deep understanding, will be mystified.
 %
 One natural conception of inference in PDGs is then parameterized by $\gamma$:
 % $\gamma$-inference for $\dg M$ means responding to probabilistic queries in a way that is sound with respect to every $\mu \in \bbr{\dg M}^*_\gamma$.
@@ -1319,7 +1467,10 @@ the set $\lim_{\gamma\to 0}\bbr{\dg M}_\gamma^*$ contains precisely one
 %call this the *-semantics.  No need for a highfalutin name, which
 %gives it ubnreasobnably high status.
 %oli5*: it's a 'facet' (maybe 'aspect' is better?) of the PDG.  In my view, it *is* a special distribution, much more so than it looks just from its definition as a certain limit. I agree with you that it's not the only distribution we should care about, but it's more than special enough to have its own name. '*-semantics' doesn't  quite do it justice; it's not at all descriptive, and we may as well just write [[M]]* at that point.  You were the one pushing for "observational" as a descriptor, and I have come to agree with that. We just need to agree on a head noun.  
-distribution, which we call the \emph{\obslimit\ of $\dg M$}, and denote $\bbr{\dg M}^*$.
+distribution, 
+\voli{which we call the 
+    \emph{\obslimit/representative/surrogate of $\dg M$},}
+and denote $\bbr{\dg M}^*$.
 Intuitively, this distribution
 reflects an extreme empirical
 %oli4: swapping the second for the first again, because of our new words
@@ -1347,13 +1498,12 @@ but may also contain other distributions.
 %joe5: No need to introduce yet another bit of new terminlogy 
 % (which woudl conflict with \gamme-inference in any case).
 %oli5: on the contrary, your notion of *-inference is new terminology, while \epsilon-inference does not conflict at all with \gamma-inference; as I wrote before, it's \gamma-inference for an infinitessimal \epsilon. 
-One of our goals is to answer queries with respect to $\bbr{\dg M}^*$, 
-which we call $*$-inference. 
 %
 % %oli4: adding a bit on inference to tie it all together:
-% One of our main objective is to answering queries with respect to $\bbr{\dg M}^*$, which we call \emph{$\epsilon$-inference}, 
+\voli{
+One of our main goals is to answer probabilistic queries with respect to $\bbr{\dg M}^*$, which we call \emph{$\epsilon$-inference}, 
 % %oli4: this might be a bit much, but also could be helpful:
-% since it coincides with $\gamma$-inference for $\gamma$ equal to an infinitessimal number $\epsilon$.
+since it coincides with $\gamma$-inference for $\gamma$ equal to an infinitessimal number $\epsilon$.}
 
 
 %joe4*: I cut this paragraph frmo here.  This notation should be
@@ -1480,7 +1630,7 @@ The \emph{exponential cone} is the convex set
         \big\{ (x_1, 0, x_3&) : x_1 \ge 0,\, x_3 \le 0 \big\}
             % \cup\\
         % \\\quad \mathbin{\cup}\,
-        \qquad \subset \mathbb \Rext^3.
+        \qquad \subset \mathbb \Rext^3,
     \end{aligned}
     % \subset \mathbb R^3.
 \end{align*}
@@ -1489,27 +1639,39 @@ The \emph{exponential cone} is the convex set
 %oli4: I agree that it fits well there, but I think it's also important to say something like this here; we've just introduced the exponential cone and I'm giving you the intuition you keep asking for! 
 % Also, its a very standard construction and putting it later on makes it seem less like
 % preliminaries and more like a smalll lemma of ours.  For now, I'm keeping it in both places, but making it gray here. 
-{\color{gray!50!white} It is also sometimes called the relative entropy cone, because if $\mat m, \mat p \in \Delta^{n-1} \subset \mathbb R^n$ are points on a probability simplex, then $(-\mat u, \mat m, \mat p) \in K_{\exp}^n$ if and only if $\mat u$ is an upper bound on $\mat m \log (\nicefrac{\mat m}{\mat p})$, the pointwise contribution to relative entropy at each outcome.}
+\discard{\voli{It is also sometimes called the ``relative entropy'' cone, because if $\mat m, \mat p \in \Delta^{n-1} \subset \mathbb R^n$ are points on a probability simplex, then $(-\mat u, \mat m, \mat p) \in K_{\exp}^n$ if and only if $\mat u$ is an upper bound on $\mat m \log (\nicefrac{\mat m}{\mat p})$, the pointwise contribution to relative entropy at each outcome.}}
 %
 %oli4: being a little more explicit.
 % As one might expect, 
+and
 $K_{\exp}^n \subset \smash{\Rext}\vphantom{R}^{3n}$ denotes the cartesian product
 of $n$ exponential cones. 
-
+%oli5: adding, to modify definition properly
+Suppose that $K :=  K_{\exp}^k \times \Rext_{\ge 0}^{k'}
+\subset \Rext^n$ is a product of $k$ exponential cones and $k' = n - 3k$ non-negative orthants.
 An \emph{exponential conic program} is an optimization problem of the form
 \begin{equation}
-    \mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^{3n}}~~ \mat c^{\sf T} \mat x
+    % \mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^{3n}}~~ \mat c^{\sf T} \mat x
+    \mathop{\text{\sf minimize}}
+        % \limits_{\mat x \in \Rext^{3n}}
+        \limits_{\mat x \in \Rext^{n}}
+        ~~ \mat c^{\sf T} \mat x
 %joe4*: you haven't defined K_{\exp}^n.  You've defined only one
 %exonential cone in R^3.
 %oli4: Oops, this stuck out because of a bug.  K_{\exp}^n is just n independent copies of it (a 3n-dimensional cone). I think this should be clearer now that I've fixed the dimensions of the variables. 
-    \quad\text{\sf subject to}~~ \mat A \mat x = \mat b,~~\mat x \in K_{\exp}^n,
+    \quad\text{\sf subject to}~~ A \mat x = \mat b,~~\mat x \in 
+    %oli5: changing definition to align with proofs:
+        % K_{\exp}^n,
+        K
         \label{eq:exp-conic-program}
 \end{equation}
-where $\mat c \in \Rext^{3n}$ is some vector,
+% where $\mat c \in \Rext^{3n}$ is some vector,
+%oli5: changing the definition to be cohesive with the proofs.
+where $\mat c \in \Rext^{n}$ is cost some vector,
 %oli4: added the following line for accessibility for those who are unfamiliar with
 % the standard terms in optimization. 
- the function $\mat x \mapsto \mat c^{\sf T} \mat x$ is called the \emph{objective},
-and $\mat b \in \Rext^m$, $\mat A \in \Rext^{m \times 3n}$ encode linear constraints.
+the function $\mat x \mapsto \mat c^{\sf T} \mat x$ is called the \emph{objective},
+and $\mat b \in \Rext^m$, $\mat A \in \Rext^{m \times n}$ encode linear constraints.
 % Recent work in interior point methods has provided a way to solve optimization problems with such constraints in polynomial time \parencite{dahl2022primal}.
 %joe4: Irrelevant; we're not trying to write a history
 %Historically, convex modeling libraries have handled such problems
@@ -1530,7 +1692,7 @@ and $\mat b \in \Rext^m$, $\mat A \in \Rext^{m \times 3n}$ encode linear constra
 %oli4: adding some oomph to make up for the lost history
 % Recently, techniques have been developed to solve such programs in polynomial time \parencite{badenbroek2021algorithm,dahl2022primal}.
 % Techniques have only recently
-Only recently have techniques
+{\color{red} Only recently} have techniques
  been developed to solve such programs in polynomial time \parencite{badenbroek2021algorithm,dahl2022primal}.
 
 %joe4*: Why do we care about disciplined convex programming.  You have
@@ -1668,7 +1830,7 @@ it is even convex.%
     %oli5: when it's not convex we still have something to say, and even an
     % implementation and evaluation of the method; I want to put
     % a forward reference to the appendix where we discuss that. 
-    When $\bbeta < \gamma \balpha$,
+    \voli{When $\bbeta < \gamma \balpha$,
     so that the problem may be concave,
     we still have a way to find \emph{some} local optimizer via the concave-convex procedure, which we implement and discuss at length in \cref{sec:larger-gamma}.
 %joe5*: It might be insufficient for inference in polynomial time, but
@@ -1677,7 +1839,7 @@ it is even convex.%
 %oli5: I'm not sure I understand what you're saying.  I was saying it's insufficient for inference as we defined it, because we defined inference as answering queries in a way that is sound with respect to ALL distributions, but this only gives you one. I wasn't talking about insufficient for polynomial time, although that is also true. 
     However, this alone is insufficient for inference as we have defined it,
     %oli5: adding:
-    since it only finds one of many local optima. 
+    since it only finds one of many local optima. }
     }
 %joe4*: why do we care whether it is a disciplined conves program?
 %oli4: hopefully this is already cleared up, but I'll reword this to clarify further
@@ -1753,9 +1915,9 @@ When $\gamma = 0$, $\bbr{\dg M}_\gamma(\mu)= \OInc(\mu)$, which is a
 weighted sum of conditional relative entropies.
 %joe4*: Rather than saying "Unsurpringsly", here is where to explain
 %the tie-in between the exponetial cone and relative entropy.
-%Unsurprisingly, the exponential (``relative entropy'') cone can be
-%used to find such minima in a standard way.
-%oli4*: I'm not very happy with this here.  This is suddenly way too technical, and it's background material, not anything of ours. 
+\discard{\voli{
+    Unsurprisingly, exponential (``relative entropy'') cone constraints 
+    can find such minima in a standard way.}}
 There is a straightforward connection between the exponential cone and
 relative entropy:
 if $\mat m, \mat p \in \Delta^{n-1} \subset \mathbb R^n$ are points on
@@ -1769,12 +1931,12 @@ the pointwise contribution to relative entropy at each outcome.
 %oli4: I think the unsurprising nature is a little bit lost now because the 
 % fact that Inc is a weighted sum of relative entropies is now out of lexical scope.
 Thus, perhaps unsurprisingly, we can use an exponential conic program
-to compute $\OInc(\mu)$.
+to compute $\OInc(\mu)$. 
 %joe4
 %We now review the construction of that exponential conic program,
 %oli4:
 % I want to signal that this is essentially a well-known construction.  
-We give the construction here,
+We review that construction here,
 so that we can build upon it.
 
 % \subsection*{Warm-Up}
@@ -1900,7 +2062,7 @@ write
 $
 \V\!\Ar :%
     = \sqcup_{a \in A} \V a
-    = \{ (a, s, t) : a \in \Ar, s \in \V \Src a, t \in \V\Tgt a \}
+    = \{ (a, s, t) : a \in \Ar,\, s \in \V \Src a,\, t \in \V\Tgt a \}
 $
 for the set of all choices of an arc together with values of its source and target.
 %
@@ -2170,7 +2332,7 @@ in the following optimization problem:
     \numberthis\label{prob:joint-small-gamma}
     \\[-0.2ex]
     &\qquad
-    - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}} \mu(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
+    - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}} \beta_a \, \mu(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
 \\[0.2ex]
 \text{\sf subject to:}&\quad \mu \in \Delta\V\!\X,
     \\[-0.4ex]
@@ -2825,9 +2987,9 @@ the problem becomes:
     \sum_{\mathrlap{\!\!\!(a,s,t) \in \V\!\Ar}} (\beta_a \!- \alpha_a \gamma) u_{a,s,t}
     + \gamma \sum_{C \in \mathdcal C} \sum_{{c \in \V C}} v_{C,c}
     \\[-0.2ex]
-    &\quad
+    &\!
     - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}}
-        \mu_{C\!_a}\!(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
+        \beta_a\, \mu_{C\!_a}\!(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
         \numberthis\label{prob:cluster-small-gamma}
 \\[0.2ex]
 \text{\sf subject to:}&\quad
@@ -2995,7 +3157,7 @@ Specifically, \eqref{prob:cluster-small-gamma} and \eqref{prob:cluster+idef} can
 a standard form
 % a standard form called an \emph{exponential conic program} which itself
 that
-can be solved in polynomial time by commercial solvers \parencite{mosek,escoc}.
+can be solved in polynomial time by commercial solvers \parencite{mosek,ECOS}.
 % The result of pulling
 Threading the details of our constructions
 through the analysis of
@@ -3019,7 +3181,21 @@ results in our main theorem.
 \begin{linked}{theorem}{main}
     %joe5*: what does "machine precision" mean here?
     %oli5: The entire approach is paramterized by an approximation accuracy \epsilon. The point of saying "machine precision" is just to say that we can fix \epsilon equal to a very small constant, say 1E-50, and then claim that we've computed the answer up to the the precision at which a computer represents numbers.
-    PDG inference can be solved to machine precision in $O( N^4 V^4 \log(N V) \exp(V T) )$ time, where $T$ is the tree-width of the PDG, and $N$ is the total number of variables, $V$ is the number of values per variable, and $T$ is the tree-width of the PDG's underlying hypergraph.
+    % PDG inference can be solved to machine precision in 
+    Inference in a PDG can be done to machine precision in
+    % $O( N^4 V^4 \log(N V) \exp(V T) )$ time, 
+    \[ O\Big(  (N\!+\!A)^4 V^{4T} (\log (N\!+\!A) + T \log V ) \Big)
+    \]
+    operations, where     
+    \begin{itemize}[nosep,
+            % [label=$\blacktriangleright$
+            ]
+        \item $N$ is the total number of variables,
+        \item $V$ is the number of values per variable,
+        \item $A$ is the number of hyperarcs, and
+        \item $T$ is the tree-width of the PDG's structure.
+    \end{itemize}
+    
 \end{linked}
 
 % The proof rests almost entirely on the analysis of
@@ -3032,10 +3208,7 @@ results in our main theorem.
 % works in polynomial time.
 
 \TODO[
-\hspace{-3em} REVIEW: I put \cref{prop:consistent-NP-hard} here because that's what
-    I was advised to do and its old home is now banished to the appendix,
-    but it feels slightly misplaced. One reason I feel this way: the result has nothing to do with tree width; a proper lower bound in this section ought to say we can't do better with bounded tree width, right?
-    Anyway, here's my attempt at making it fit, which I like but might be better elsewhere: ]
+\hspace{-3em} REVIEW: the result \cref{prop:consistent-NP-hard} has nothing to do with tree width; a proper lower bound in this section ought to say we can't do better with bounded tree width, right? So is this the right place for it? ]
 
 
 % One might imagine that
@@ -3255,46 +3428,78 @@ There are still a number of open questions.
 % To preserve the anonymity, please include acknowledgments \emph{only} in the camera-ready papers.
 
 \subsubsection*{References}
-\printbibliography
+    \ifbiblatex \printbibliography
+\else
+    \bibliographystyle{apalike}
+    \bibliography{refs}\fi
 
 
 \clearpage
 \onecolumn
 \appendix
 \section{Proofs}
+%oli5*: next seven pages are new. 
 
-\begin{lemma}
-    For $\mat c \in \Rext^{3n}$, $\mat b \in \Rext^m$, and $\mat A \in \Rext^{m \times 3n}$,
-    the exponential conic program
+\begin{lemma} \label{lem:mainlemma}
+    Fix integers $n_{\sf o}, n_{\sf e} \in \mathbb N$, and let $n:= 3n_{\sf e} + n_{\sf o}$.
+    Suppose that $K = \mathbb R_{\ge 0}^{n_{\sf o}} \times K^{n_{\sf e}}_{\exp} \subset \mathbb R^n$ is a product cone, consisting of $n_{\sf o}$ copies of the non-negative orthant, and $n_{\sf e}$ copies of the exponential cone. 
+    
+    Then, for
+    % $\mat c \in \Rext^{n}$, $\mat b \in \Rext^m$, and $\mat A \in \Rext^{m \times n}$,
+    $c \in \Rext^{n}$, $ b \in \Rext^m$, and $A \in \Rext^{m \times n}$,
+    if the exponential conic program
     % \eqref{eq:exp-conic-program}
     \begin{align*}
-        &\mathop{\text{\sf minimize}}\limits_{\mat x \in \Rext^{3n}}~~ \mat c^{\sf T} \mat x
-        \quad\text{\sf subject to}~~ \mat A \mat x = \mat b,~~\mat x \in K_{\exp}^n
+        &
+        \mathop{\text{\sf minimize}}\limits_{
+            % x \in K}~~ c^{\sf T} x
+            \mat x \in K}~~ \mat c^{\sf T} \mat x
+        \quad\text{\sf subject to}~~ A \mat x = \mat b,
+        % ~~ x \in K,
         \tag{\ref{eq:exp-conic-program}}
-        % \\
-        % \text{and its dual}\qquad&
-        % \mathop{\text{\sf maximize}} 
-        %     \limits_{\mathclap{\mat s \in \Rext^{3n}\!,\; \mat y \in \Rext^{m}}}
-        %         ~~ \mat b^{\sf T} \mat y
-        % \quad\text{\sf subject to}~~ \mat A^{\sf T} \mat y  +  \mat s = \mat c,~~\mat s \in (K^*_{\exp})^n
+        % \qquad 
+        % \text{and its dual}\qquad
     \end{align*}
-    can be 
+    % admits an optimal solution $x^*$ in the interior of $K$, 
+    is strictly feasible (i.e., if there exists $\mat x \in \mathrm{int}\, K$  such that $A \mat x = \mat b$ )
+    as is its dual problem
+    % and $A^{\sf T} \mat y + \mat s = \mat c$)
+    % then both it and its dual
+    \[
+        \mathop{\text{\sf maximize}} 
+            % \limits_{\mathclap{ s \in \Rext^{3n}\!,\; \mat y \in \Rext^{m}}}
+            \limits_{
+            % s \in K_*,\, y \in \Rext^m} ~~ b^{\sf T} y
+            \mat s \in K^*,\, \mat y \in \Rext^m} ~~ \mat b^{\sf T} \mat y
+        % \quad\text{\sf subject to}~~  A^{\sf T} y  +  s = c,
+        \quad\text{\sf subject to}~~  A^{\sf T} \mat y  +  \mat s = \mat c,
+            % ~~\mat s \in (K^*_{\exp})^n
+    \]
+    (i.e, if there exists $\mat s \in \mathrm{int}\,K_*$ such that $A^{\sf T} \mat y + \mat s = \mat c$), 
+    then both
+    can be simultaneously
     solved to machine precision
-    in $O(n (m+n)^{2.332}
+    in $O(n (m+n)^{\omega} \log(n)
     % \log(\nicefrac1\epsilon)
-    )$ time.     
+    )$ time,
+    where $\omega$ is the smallest exponent such that a linear system of $k$ variables and equations can be solved in $O(k^\omega)$ time. 
+    
+    Furthermore, MOSEK solves it in $O(n (m+n)^3 \log n)$ time. 
     % \TODO[What does ``$\epsilon$-close'' mean here? Can we get machine precision?]
 \end{lemma}
 \begin{lproof}
-    For this, we step through the algorithm and analysis of
-     \textcite{badenbroek2021algorithm}, threading details through for the specific case
-    where the conic constraint is $K_{\exp}^n$.
+    For this, we begin by appealing to the algorithm and analysis of
+    \textcite{badenbroek2021algorithm}, threading details through for this specific choice of cone $K$. 
+    To finish the proof, however, we will also need to supplement that analysis with some other well-established results of \textcite{nesterov1996infeasible} that the authors were no doubt familiar with, but did not bother referencing.
+    % where the conic constraint is $K_{\exp}^n$.
     
     % First, we'll need quite a few definitions.
-    First, some of their definitions.
+    % First, some definitions.
+    First, we'll need some background material from convex optimization.
     A \emph{logarithmically homogeneous self-concordant barrier} with parameter $\nu$ ($\nu$-LHSCB) for a cone $K$ is a thrice differentiable strictly convex function $F: \mathrm{int}\, K \to \mathbb R$ satisfying
     $F(tx) = F(x) - \nu \log t$
     for all $t > 0$ and $x \in \mathrm{int}\, K$. 
+    In some sense, the point of such a barrier function is to augment the optimization objective so that we remain within the cone during the optimization process. 
     
     % Consider a point $\mat x = (\mat x_1, \mat x_2, \mat x_3) \in K_{\exp}^n$, 
         % where $\mat x_1, \mat x_2, \mat x_3 \in \mathbb R^{n}$. 
@@ -3304,15 +3509,20 @@ There are still a number of open questions.
     % \in K_{\exp}^n$.
         % where $\mat x_1, \mat x_2, \mat x_3 \in \mathbb R^{n}$. 
     
-    We now take a break from their presentation to fill in some background facts about exponential cones.
+    % We now take a break from their presentation to 
+    For the positive orthant cone $\mathbb R_{\ge 0}$, the function 
+        $x \mapsto - \log x$ is a 1-LHSCB. 
+    We now fill in some background facts about exponential cones.
     The \emph{dual} the exponential cone is
     % https://www.seas.ucla.edu/~vandenbe/236C/lectures/conic.pdf, slide 25. 
     \begin{align*}
-        K_{\exp}^* &:= \{ (s_1, s_2, s_3) \in \mathbb R^3 : 
-            x_1 s_1 + x_2 s_2 + x_3 s_3 \ge 0 \, \forall (x_1, x_2, x_3) \in K_{\exp} \}\\
-            &= \{
-                (s_1, s_2, s_3) : - s_1 \log (- s_1 / s_3) + s_1 - s_2 \le 0, s_1 \le 0, s_3 \ge 0
-            \}.
+        K_{\exp}^* &:= \big\{ (s_1, s_2, s_3) \in \mathbb R^3 \;:\;
+            \forall (x_1, x_2, x_3) \in K_{\exp}.~~
+            x_1 s_1 + x_2 s_2 + x_3 s_3 \ge 0   \big\}\\
+            &= \big\{
+                (s_1, s_2, s_3) \;:\; - s_1 \log (- s_1 / s_3) + s_1 - s_2 \le 0, 
+                    \, s_1 \le 0,\,  s_3 \ge 0
+            \big\}.
     \end{align*}
     Consider points $x = (x_1, x_2, x_3) \in K_{\exp}$. 
     The function 
@@ -3332,41 +3542,54 @@ There are still a number of open questions.
         &= - \log \Big(t \big(\log \frac{x_1}{x_2} - x_3\big)\Big) - \log(x_1 x_2) - 2 \log t \\
         &= F_{\exp}(x) - 3 \log t
     \end{align*}
-    Taking $n$ copies of a cone, and summning a $\nu$-LHSCB across each of the $n$ coordinates, results in a $3\nu$-LHSCB. In our case, this means that for $\mat x = (x^1, x^2, \ldots, x^n) \in K_{\exp}^n$ the function 
-    $ F(\mat x) = \sum_{i=1}^n F_{\exp}(x^i) $
-    is a $3n$-LHSCB for $K_{\exp}^n$, since
-    $F(t \mat x) 
-    = \sum_{i=1}^n F_{\exp}(t x^i)
-    = \sum_{i=1}^n (F_{\exp}(x^i) - 3 \log t)
-    = F(\mat x) - 3n \log t$. 
-    $F$ can be evaluated in $O(n)$ time, and
-    its gradient $F'(\mat x)$ and Hessian $F''(\mat x) \in \mathbb R^{3n \times 3n}$ at $\mat x$ can be expressed analytically.
+    % Taking $k$ copies of a cone, each of which has a $\nu$-LHSCB, allows for a $(k\nu)$-LHSCB by summation.
+    Such barrier functions can be combined to act on product cones by summation. 
+    Concretely, suppose that for each $i \in \{1, \ldots, k\}$,
+    we have a $\nu_i$-LHSCB $F_i: \mathrm{int}\, K_i \to \Rext$.
+    Then, for $x = (x_i)_{i=1}^k \in \prod_i K_i$, the function
+    $F(x) := \sum_{i=1}^k F_i(x_i)$ is a $(\sum_i \nu_i)$-LHSCB for $\prod_i K_i$,
+    since
+    \[
+        F(tx) = \sum_{i=1}^k F_i(t x_i)
+            = \sum_{i=1}^k ( F(x_i) - \nu_i \log t)
+            = F(x) - \sum_{i=1}^k \nu_i.
+    \]
+    %
+    In this way, our product cone $K = \mathbb R_{\ge 0}^{n_{\sf o}} \times K^{n_{\sf e}}_{\exp}$ admits a LHSCB $F$ with parameter $\nu = n_{\sf o} + 3 n_{\sf e} = n$. 
+    Furthermore can be evaluated in $O(n)$ time, as can each component of
+    its gradient $F'(x)$ and Hessian $F''(x) \in \mathbb R^{n \times n}$ at $x$, all of which can be expressed analytically.
     % $9n^2$ entries.
-    Note that the latter has $(3n)^2$ entries. 
-    Furthermore, the convex conjugate of $F$, given by 
+    % Note that the latter has $(3n)^2$ entries. 
+    In addition, the convex conjugate of $F$, given by 
     \begin{align*}
         F_*(s) &:=  
         % \sup_{x \in \mathrm{int}\, K_{\exp}^n} \{ - s^{\sf T} x- F(x) \}
         \sup\{ - s^{\sf T} x- F(x) : x \in \mathrm{int}\, K_{\exp}^n \}
             \\
-        &= ???
+        &= \color{red} \texttt{??? TODO}
     \end{align*}
     also has a known analytic form.
     
-    \textcite{badenbroek2021algorithm} then define what they call \emph{shadow iterates}
-    \[
-        \tilde x := -F'_*(s)
-        \qquad \text{and} \qquad
-        \tilde s := - F'(x).
-    \]
-    which can be computed in in $O(n)$ time. 
     
-    % The development requires a
-    The primary object of study is a
-    linear operator, called the \emph{homogenous self-dual} model,
+    % Infeasible-start primal-dual interior point methods \parencite{nesterov1996infeasible}
+    % Interior point methods 
+    Generally speaking, 
+    the idea behind primal-dual interior point methods \parencite{nesterov1994book} such as the one behind MOSEK, is 
+    to maintain both a point $x \in K$ and a dual point $s \in K_*$ (as well as $y \in \mathbb R^m$)
+    and iteratively update them, as we slowly relax the barrier and approach a point on the boundary of the cone. 
+    The quantity $\mu(z) := \nf{\langle s, x \rangle}{\nu} \ge 0$, called the complementarity gap, is a measure of how close the process is to converging. 
+    
+    Because the initial points may not satisfy the constraints, instead 
+    the standard algorithms work with ``extended points'' $\bar x = (x, \tau)$ and $\bar s = (s, \kappa)$, for which the analogous complementarity gap is 
+    $\mu^{\sf e}(\bar x, \bar s) := (\langle x, s\rangle + \kappa\tau)/(\nu+1)$.
+    Altogether, the data at each iteration may be summarized as a point $z = (y, x, \tau, s, \kappa) \in \mathbb R \times (K \times \mathbb R_{\ge 0}) \times (K_* \times \mathbb R_{\ge 0})$.
+        % The development requires a
+    The primary object of interest is then something called the \emph{homogenous self-dual} model.
+    Originally due to \textcite{nesterov1996infeasible} and also used by others \parencite{skajaa2015homogeneous},
+    it can be defined as a linear operator:
     \begin{align*}
         G
-            &: \Rext^{m + 6n + 2} \to \Rext^{3n + m + 1} \\
+            &: \Rext^{m + 2n + 2} \to \Rext^{n + m + 1} \\
         G(y,x,\tau,s,\kappa) 
             &:= \begin{bmatrix}
                 0          &  A  &  -b \\
@@ -3379,31 +3602,54 @@ There are still a number of open questions.
         -
         \begin{bmatrix}
             0 \\ s \\k
-        \end{bmatrix}
+        \end{bmatrix}.
     \end{align*}
+    The reason for our interest is that if $z$ is such that $G(z) = 0$ and $\tau > 0$, then $(\nf x\tau)$ is a solution to the primal problem, and $\nf{(y,s)}{\tau}$ is a solution to the dual problem \parencite[Lemma 1]{skajaa2015homogeneous}, while if $G(z) = 0$ and $\kappa > 0$, then at least one of the two problems is infeasible. 
+    
     % which is an $(3n+m+1)$-dimensional square matrix. 
     % which is a linear operator $G$
-    
-    According to the MOSEK documentation [4]\parencite{MOSEKDOC},
+    We now are in a better position to describe the algorithm.    
+    According to the MOSEK documentation \parencite{dahl2022primal,MOSEKDOC},
         for the exponential cone,
-    the algorithm initializes a guess
+            begins with an initial point
+        \[
+            \mat v := (1.291, 0.805, -0.828) \in (K_{\exp} \,\cap\, K_{\exp}^*)
+        \]
+    
+        for this particular cone $K$, 
+    % the algorithm initializes a guess
+    the algorithm begins at the initial point
     \begin{align*}
         z_0 := (y_0, x_0, \tau_0, s_0, \kappa_0)
-            \qquad
-                \text{where}\quad
-                x_0 &= s_0 = (1.291, 0.805, -0.828)^n \in 
-                    (K_{\exp} \,\cap\, K_{\exp}^*)^n, \\
+        \qquad
+                    \text{where}\quad
+                % x_0 &= s_0 = (1.291, 0.805, -0.828)^n \in 
+                %     (K_{\exp} \,\cap\, K_{\exp}^*)^n, \\
+                x_0 &= s_0 = (\overbrace{\vphantom| 1, \ldots, 1}^{n_{\sf o} \text{ copies}},~
+                    \overbrace{\vphantom|
+                        \mat v, \ldots, \mat v}^{n_{\sf e}\text{ copies}})
+                \in (\mathbb R_{\ge 0})^{n_{\sf o}} \times (K_{\exp} \,\cap\, K_{\exp}^*)^{n_{\sf e}}, \\
             \qquad
                 y_0 &= \mat 0  \in \mathbb R^m,
             \quad
-                \tau_0 = \kappa_0 = 1
-    \end{align*}.
+                \tau_0 = \kappa_0 = 1.
+    \end{align*}
     
     \def\daff#1{\Delta {#1}^{\text{aff}}}
     \def\dcen#1{\Delta {#1}^{\text{cen}}}
     
-    At each iteration, 
-    we  will need to compute a scaling matrix
+    At each iteration, the first step is to predict a direction for which 
+    \textcite{badenbroek2021algorithm}
+    compute a scaling matrix $W$.
+    To describe it, we first need to define \emph{shadow iterates}
+    \[
+        \tilde x := -F'_*(s)
+        \qquad \text{and} \qquad
+        \tilde s := - F'(x).
+    \]
+    which are in a sense reflections of $s$ and $x$ across their barrier functions, and can be computed in in $O(n)$ time. 
+    The analogous notion of complementarity can then be defined as $\tilde \mu(z) := \nicefrac{\langle \tilde x, \tilde s \rangle}{\nu}$.
+    The scaling matrix, which we do not interpret here, can then be calculated as:
     \begin{equation}
         W :=
             \mu F''(x) + \frac{s s^{\sf T}}{\nu \mu}
@@ -3417,7 +3663,7 @@ There are still a number of open questions.
         \label{eq:scalemat}
     \end{equation}
     Doing so requires $O(n^2)$ steps (although it may be parallelized). 
-    The first four terms clearly require $O(n^2)$ steps, since each one is an outer product resulting in a $3n \times 3n$ matrix. 
+    The first four terms clearly require $O(n^2)$ steps, since each one is an outer product resulting in a $n \times n$ matrix. 
     The last term computes a matrix-vector product (which requires $O(n^2)$ steps), and computes an outer product with the resulting vector, which takes $O(n^2)$ steps as well. 
     
     The next step involves finding a solution $\daff z = (\cdots)$
@@ -3430,15 +3676,16 @@ There are still a number of open questions.
     \end{align}
     \end{subequations}
     
-    Since $\mathrm{dim}\,(z) = 6n+m+2$ and $\mathrm{dim}\,(x) = 3n$,
-    \eqref{eqns:sys1} is a system of $(3n + m + 1) + 1 + (3n) = 6n + m + 2$ equations
-    and $6n + m + 2$ unknowns,
-    which can be solved naively with Gaussian elimination in $O((n+m)^3)$ iterations,
-    or with slightly better asymptotic complexity of
-    $O((n+m)^{2.332})$.
-    It may be possible to exploit the sparsity of $G$ to do slightly better. 
+    % Since $\mathrm{dim}\,(z) = 6n+m+2$ and $\mathrm{dim}\,(x) = 3n$,
+    % \eqref{eqns:sys1} is a system of $(3n + m + 1) + 1 + (3n) = 6n + m + 2$ equations
+    (\ref{eqns:sys1}a-c) describe a system of $(n + m + 1) + 1 + (n) = 2n + m + 2$ equations and equally many unknowns, 
+    % which can be solved naively with Gaussian elimination in $O((n+m)^3)$ iterations,
+    % or with slightly better asymptotic complexity of
+    % $O((n+m)^{2.332})$.
+    and solved in $O((n+m)^\omega)$ steps.
+    It may be possible to exploit the sparsity of $G$ to do better.
     
-    The second half of the search direction is a solution $\dcen z$ to 
+    The next step is to center that search direction so that it lies on the central path. This is done by finding a solution $\dcen z$ to
     \begin{subequations}\label{eqns:sys2}
     \begin{align}
         G(\dcen z) &= G(z) \\
@@ -3448,14 +3695,14 @@ There are still a number of open questions.
     \end{subequations}
     which again can be done in $O((n+m)^3)$ steps with Gaussian elimination, or
     with a fancier solver in $O((n+m)^2.332)$ steps. 
-    
-    The two updates are then applied to the current guess $z$ to obtain
+    %
+    The two updates are then applied to the current point $z$ to obtain
     \[
-        z_+ = (y_+, x_+, \tau_+, s_+, \kappa_+) := z + \alpha (\daff z + \gamma \dcen z)
+        z_+ = (y_+, x_+, \tau_+, s_+, \kappa_+) := z + \alpha (\daff z + \gamma \dcen z).
     \]
     
-    Finally, a correction step $\Delta z_+^{\text{cor}}$
-        is found by solving the system of equations
+    Finally, a ``correction step'', which is the primary innovation of \textcite{badenbroek2021algorithm} and used in MOSEK's algorithm, 
+    is a third direction $\Delta z_+^{\text{cor}}$, which is found by solving the system of equations
     \begin{subequations}\label{eqns:sys3}
     \begin{align}
         G(\Delta z^{\text{cor}}) &= 0 \\
@@ -3475,11 +3722,10 @@ There are still a number of open questions.
     %             % { \Vert \tilde x \Vert^2_x - \nu \tilde \mu^2}
     %             { \tilde x^{\sf T} F''(x) \tilde x - \nu \tilde \mu^2}
     % \]
-    $W_+$ is defined the same way that $W$ is, except that it uses the components of $z_+$ instead of $z$. 
-    
-    The full algorithm, then, is given as below:
+    $W_+$ is defined the same way that $W$ is, except that it uses the components of $z_+$ instead of $z$.     
+    After adding the correction step $\Delta z_+^{\text{cor}}$ to $z$, we repeat the entire process. The full algorithm, then, is summarized as follows:
 
-    \begin{algorithmic}[1]
+    \begin{algorithmic}
         % \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$ as in \eqref{bbeq:init};
         \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$;
         \While{}
@@ -3493,51 +3739,468 @@ There are still a number of open questions.
         \EndWhile
     \end{algorithmic}
     
-    and each iteration of it takes $O((n+m)^{2.332})$ time. 
+    % and each iteration of it takes $O((n+m)^{2.332})$ time. 
+    We have verified that each iteration of this process can be done in $O((n+m)^\omega))$ time.
     Their main result \parencite[Theorem 3]{badenbroek2021algorithm}, states that for every $\epsilon \in (0,1)$,
     the algorithm results in a solution $z$ satisfying
     \[
-        % \mu^e = 
-        \frac{x^{\sf T} s + \tau \kappa}{3n + 1}
+        \mu^{\sf e}(z)
+        % \frac{x^{\sf T} s + \tau \kappa}{3n + 1}
         \le \epsilon
         \qquad \text{and}\qquad
         \Vert G(z) \Vert \le \epsilon 
-            % \Vert G(z_0) \Vert 
-            \sqrt{3n + 1}
+            \Vert G(z_0) \Vert 
+            % \sqrt{3n + 1}
     \]
-    in $O(3n \log (1/\epsilon))$ iterations, 
+    in $O(n \log (1/\epsilon))$ iterations, 
     for a total cost of 
     $O(n (m+n)^3 \log (1/\epsilon) )$ time with Gaussian elimination, or
     $O(n (m+n)^{2.332} \log (1/\epsilon) )$ time using the linear solver with best
          known asymptotatic complexity as of 2022.
-         
-    Finally,
-     % to be within $\epsilon'$ of every component, 
-    it suffices to set $\epsilon := 1/(m+n)$.
-    
-    \TODO[ In what sense is it converging at rate $\epsilon$? \\
-        What makes it enough to get a machine-precision representation of the
-        clique tree representing $\mu$?]
 
+    \medskip
+    \hrule
+         
+    \textbf{Verifying that the solution is approximately optimal.} 
+    What we have at this point is not quite enough: simply because the residual quantity $G(z)$ is approximately zero (so that we have approximately solved the homogenous model), does not mean that we've approximately solved the original problem.
+    Specifically, it's entirely possible on the surface that the parameter $\tau$ goes to zero at the same rate as everything else, and the quantity $(x/\tau)$ does not converge to a solution to the primal problem.
+    To address this issue, we must also trace the analysis of the seminal work of \textcite{nesterov1996infeasible}, who use slightly different quantities, conflicting with the notation we have been using thus far.
+     
+     
+    Following \textcite[pg. 231]{nesterov1996infeasible}, fix an initial point $z_0$, and let \emph{shifted feasible set} 
+    $\mathcal F := \{ z
+        \in \mathbb R \times K \times \mathbb R_{\ge 0} \times K^* \times \mathbb R_{\ge 0}
+        : G(z) = G(z_0)\}$
+    be the collection of all points that have the same residual as $z_0$.     
+    \citeauthor*{nesterov1996infeasible} also refer to a complementary gap by $\mu(z)$ and define it identically, but the meaning of this parameter is different, because the set $\mathcal F$ on which it's defined is quite distinct from (if closely related to) the iterates of \citeauthor*{badenbroek2021algorithm}'s algorithm.
+    In the service of clarity, 
+    will call this quantity $\mu^{\sf N}(z^{\sf N})$, for 
+    $z^{\sf N}
+    = (y^{\sf N}, x^{\sf N}, \tau^{\sf N}, s^{\sf N}, \kappa^{\sf N})
+    \in \mathcal F$.
+    
+    
+    Although we made a point of emphasizing that the two are distinct, 
+    the actual relationship between them is straightforward.
+    Let $z = (y, x,\tau, s, \kappa)$ be the final output of \textcite{badenbroek2021algorithm}. 
+    % Because they also prove that
+    In proving their main theorem, they also prove that
+    $G(z) = \epsilon G(z_0)$,  and $\mu^{\sf e}=\epsilon$;
+    because $G$ is linear, we know that $G(\nf{z}{\epsilon}) = G(z_0)$.
+    This means that $z^{\sf N} 
+    := \nf z\epsilon \in \mathcal F$. 
+    % This is precisely what it means for $\frac{z}{\epsilon}$ to be a member of the \emph{shifted feasible set} $\mathcal F$ defined by \textcite[pg. 231]{nesterov1996infeasible}.
+    Therefore, 
+    \[  
+        \mu^{\sf N}(z^{\sf N} )
+        = \frac{1}{\nu+1} \left( \left\langle\frac{s}{\epsilon}, \frac{x}{\epsilon}\right\rangle + \frac{\tau}{\epsilon} \frac{\kappa}{\epsilon} \right) 
+    = \frac{1}{\epsilon^2} \mu^{\sf e}(z) = \frac{1}{\epsilon}.
+    \]
+    % where $(*)$ is the definition of $\mu^{\sf e}$. 
+    So, roughly speaking, $\mu^{\sf N}$ and $\mu^{\sf e}$ are reciprocals.
+    % They also
+    \citeauthor*{badenbroek2021algorithm} also
+    prove that, every iterate $z$ satisfies their assumption (A2): for a fixed constant $\beta$ (equal to 0.9 in their analysis), $\beta \mu^{\sf e}(z) \le \tau \kappa$. 
+    Consequently, 
+    it happens that the same inequality holds with Nesterov's notation: 
+    \[ 
+        \tau^{\sf N} \kappa^{\sf N} = 
+        \frac{\tau}{\epsilon} \frac{\kappa}{\epsilon}
+            = \frac{\tau\kappa}{\epsilon^2} \ge \frac{\beta \epsilon}{\epsilon^2}
+            = \frac\beta\epsilon = \beta \mu^{\sf N}
+                % \left(\frac{z}{\epsilon}\right)
+                (z^{\sf N}).
+    \]
+    This witnesses that $z^{\sf N} = \frac{z}{\epsilon}$ satisfies equation (81) of \citeauthor{nesterov1996infeasible}, which allows us to apply one of their main theorems, thereby resolving our problems.
+    Supposing that the orignal problem is solvable, 
+    let $(x^*, s^*)$ be any solution to the primal and dual problems,
+    and define the value $\psi := 1 + \langle s_0, x^*\rangle + \langle s^*, x_0 \rangle \ge 1$, 
+    which depends only on the problem and the choice of initialization.
+    Then Theroem 1, part 1 of \citeauthor*{nesterov1996infeasible}, allows us to conclude that
+    \[
+        \frac{\kappa}{\epsilon}  \le \psi
+        \quad\text{and}\quad
+        \frac\tau\epsilon \ge \frac{\beta}{\epsilon\psi}
+    %
+    \qquad\qquad \iff\qquad\qquad
+        \kappa \le \epsilon\psi
+        \quad\text{and}\quad \tau \ge \frac\beta\psi.    
+    \]
+    Finally, the original theorem guarantees that 
+    $\Vert G(x) \Vert \le \epsilon \Vert G(z_0)\Vert$, meaning that
+    \[
+        \Big\Vert A \Big(\frac x\tau\Big) - b \Big\Vert \tau
+        ~+~\Big\Vert A^{\sf T} \Big(\frac y\tau\Big) - \frac{s}\tau - c \Big\Vert \tau
+        ~+~\Big\Vert b^{\sf T} \left(\frac{y}{\tau}\right) - c^{\sf T} \left(\frac{x}{\tau}\right) - \frac\kappa\tau \Big\Vert \tau \le \epsilon \Vert G(z_0) \Vert
+    \]
+    Since the euclidean norm is an upper bound on the deviation in any component
+    ( $\Vert v \Vert := \sqrt{\sum_i v_i^2} \ge \sqrt{\max_i v_i^2} = \max_i v_i =: \Vert v\Vert_\infty$ ), this means that in light of our bound on $\tau$ above, we have
+    \[
+        \Big\Vert A \Big(\frac x\tau\Big) - b \Big\Vert_\infty
+        ~+~\Big\Vert A^{\sf T} \Big(\frac y\tau\Big) + \frac{s}\tau - c \Big\Vert_\infty 
+        ~+~\Big\Vert b^{\sf T} \left(\frac{y}{\tau}\right) - c^{\sf T} \left(\frac{x}{\tau}\right) - \frac\kappa\tau \Big\Vert_\infty
+        \le \epsilon  \frac{\beta \Vert G(z_0) \Vert}{\psi }.
+    \]
+    The first two components show that the total constraint violation (in the primal and dual problems, respectively) is at most $\nicefrac{\epsilon\beta}{\psi} \Vert G(z_0) \Vert$.
+    Meanwhile, the final component shows that the duality gap 
+    $\mathit{gap} = b^{\sf T} (\frac{y}{\tau}) - c^{\sf T} (\frac{x}{\tau})$,
+    which is positive and an upper bound on the difference between the objective at $x/\tau$ and the optimal objective value, satisfies
+    \[   
+        \mathit{gap}  \le \mathit{gap} + \frac\kappa\tau \le \frac{\epsilon \beta \Vert G(z_0) \Vert}{\psi}.
+    \]    
+    Thus $x/\tau$ is an approximate solution to the original exponential conic problem.
+    Since also $\psi \ge 1$, we may freely drop it to get a looser bound.
+    All that remains is to investigate
+    \[
+        \Vert G(z_0) \Vert
+        = \Vert A x_0 - b \Vert
+            + \Vert A^{\sf T} y_0 + s_0 - c  \Vert
+            + | c^{\sf T} x - b^{\sf T} y + 1 |.
+    \]
+    Making use of our final assumption, that every component of $A$, $b$, and $c$ is at most one, we find that
+    \begin{align*}
+        \Vert A x_0 - b \Vert^2 
+            &= \sum_j (\sum_i A_{j,i} (1.3)  - b_j)^2 
+            % \le \sum_j (1.3n - b_j)^2
+            \le m (1.3n+1)^2 \in O(m n^2)
+                &\subset O((m+n)^3)\\
+        \Vert A^{\sf T}y_0 + s_0 - c \Vert^2 
+            &= \sum_i (\sum_j (A_{j,i})
+            \le n (m + 2)^2 \in O(n m^2)
+                &\subset O((m+n)^3) \\
+        | c^{\sf T} x - b^{\sf T} y + 1 | ^2
+            &\le (1.3n + m + 1)^2 \in O( (n+m)^2 )
+                &\subset O((n+m)^3).
+    \end{align*}
+    Therefore $G(z_0) \in O((n+m)^{\nf32})$. 
+    So, to attain machine precision $\epsilon_0$ (say, $10^{-15}$), it suffices to take $\frac{1}{\epsilon} \le O((n+m)^{\nf32}) $.
+    Thus, we arrive at our total advertised asymptotic complexity of
+    \[
+        O( n (n+m)^\omega \log (n+m) ) \text{~steps}. 
+    \]
+\end{lproof}
+
+Having combed through all of the details of the analysis of  \textcite{badenbroek2021algorithm} and \textcite{nesterov1996infeasible} for exponential
+conic programs as we have defined them, we are ready to show that this algorithm solves the problems presented in \cref{sec:clique-tree-expcone} within polynomial time. 
+
+\begin{lemma}\label{lem:cluster-inc-polytime}
+Problem \eqref{prob:cluster-inc} is solved to machine precision in time
+\[
+    O\Big( (\V\!\Ar + \V\mathdcal C)^{1 + \omega} ( \log (\V\!\Ar + \V\mathdcal C) 
+        % + \log(1+ \Vert\bbeta\Vert_\infty)) \Big)
+        + \log(1+ \max_a\beta_a)) \Big)
+    \quad \subset \quad
+        \tilde O\Big( (\V\!\Ar + \V\mathdcal C)^4 \Big)
+\]
+\end{lemma}
+\begin{lproof}
+    Problem \eqref{prob:cluster-inc}
+    % has $\V\!\Ar + $ constraints.
+    can translated via the DCP framework to 
+    the following exponential conic program, which has:
+    \begin{itemize}[label=$\blacktriangleright$]
+    \item variables 
+        $x = (\mat u, \mat v, \mat w, \bmu) \in K_{\exp}^{\V\!\Ar} \times \mathbb R_{\ge 0}^{\V \mathdcal C}$, 
+        where 
+        \begin{itemize}[label=\textbullet]
+        \item $\mathbf{u, v,w} \in \Rext^{\V\!\Ar}$
+            are all vectors over $\V\!\Ar$,
+            that at index $\iota = (a,s,t) \in \V\!\Ar$, have 
+            components $u_\iota$, $v_\iota$, and $w_\iota$, respectively;
+            % components 
+            % $\mat u = [u_{a,s,t}]_{ast\in\V\!\Ar},
+            %  \mat v = [v_{a,s,t}]_{ast\in\V\!\Ar}$, 
+            % and $\mat w = [w_{a,s,t}]_{ast\in\V\!\Ar}$ respectively, 
+            % respective components
+            % $(\mat u; \mat v; \mat w) = []_{(a,s,t)\in\V\!\Ar}$
+        \item
+            $\bmu = [\mu_{C}(C{=}c)]_%
+            % {(C,c) \in \V\mathdcal C}
+            {C \in \mathdcal C,\,c \in\V C}
+             \in \Rext^{\V \mathdcal C}$ is a vector representation of a clique tree over clusters $\mathdcal C$;
+    \end{itemize}
+
+    \item constraints as follows:
+        \begin{itemize}[label=\textbullet]
+            \item 
+            two linear constraints for every $(a,s,t) \in \V\!\Ar$ to ensure that
+            \begin{align*}
+                v_{a,s,t} &= \mu_{C_{\!a}}\!(s,t)
+                    \qquad\Big(~= \sum_{\bar c \in \V(C_a \setminus\{\Src a, \Tgt a\})}
+                        \mu_{C_{\!a}}\!(\bar c, s, t) \Big) \\
+                \qquad\text{and}\qquad
+                w_{a,s,t} &= \mu_{C_{\!a}}\!(\Src a{=}s)\, p\ssub a(\Tgt a{=}t\mid\Src a{=}s)
+                    \qquad\Big(~= p\ssub a(\Tgt a{=}t\mid\Src a{=}s) \sum_{\bar c \in \V(C_a \setminus\{\Src a\})}
+                        \mu_{C_{\!a}}\!(\bar c, s) \Big)
+            \end{align*}
+            \item for every edge $(C\!{-}\!D) \in \cal T$, and every value $\omega \in \V(C \cap D)$ of the variables that clusters $C$ and $D$ have in common, a linear constraint
+            \[
+                \sum_{\bar c \in \V(C\setminus D)} \mu_C(\bar c, \omega) 
+                    =
+                \sum_{\bar d \in \V(D \setminus C)} \mu_D(\bar d, \omega)
+            \]
+            \item and one constraint for each cluster $C \in \mathdcal C$ to ensure that $\mu_{C}$ lies on the probability simplex, i.e.,
+            \[
+                \sum_{c \in \V C} \mu_C(c) = 1.
+            \]     
+        \end{itemize}
+    \end{itemize}
+    
+    Altogether this means that we have an exponential conic program in the form
+    of \cref{lem:mainlemma}, with
+    % \begin{itemize}
+        % \item 
+        $n = 3|\V\!\Ar| + |\V\mathdcal C|$ variables,
+        and
+        % \item 
+        $m = 2 |\V\!\Ar| + |\V \mathcal T| +  |\mathdcal C|$ constraints,
+    where
+    $\V\mathcal T = \{ (C\!{-}\!D, \omega) :  C\!{-}\!D \in \mathcal T, \omega \in \V(C\cap D)\}$.
+    Since we can simply disregard variables whose value sets are singletons, we can assume $\V C > 1$; summing over all clusters yields $\V\mathdcal C > |\mathdcal C|$. 
+    At the same time, since $\V\mathcal T \le \V\mathdcal C$, 
+    we have 
+    \[ m,n,(m + n) \in O(\V\!\Ar, + \V\mathdcal C).  \]
+        % \footnote{by analogy to all of the other quantities}
+
+    
+    We now give the explicit construction of the data $(A, b,c)$ of the exponential conic program that \eqref{prob:cluster-inc} compiles to.
+    The variables are indexed by tuples
+    of the form $i = (\ell,a,s,t)$ for $(a,s,t) \in \V\!\Ar$ and $\ell \in \{u,v,w\}$, 
+    or by tuples of the form $(C,c)$, for $c \in \V C$ and $C \in \mathdcal C$, 
+    while the
+    constraints are indexed by tuples of the form
+    $j = (\ell,a,s,t)$ for $(a,s,t) \in \V\!\Ar$ and $\ell \in \{v,w\}$, 
+    of the form $(C\!{-}\!D, \omega)$, for an edge $(C\!{-}\!D) \in \mathcal T$ and $\omega \in \V(C \cap D)$, 
+    or simply by $(C)$, the name of a cluster $C \in \mathdcal C$. 
+    Then, the problem data $A = [A_{j,i}],b = [b_j],c = [c_i]$ of this program are zero, except (possibly) for the
+        components:
+    \begin{align*}
+        c_{(u,a,s,t)} &= \beta_a \\
+        % c_{(w,a,s,t)} &=  c_{(v,a,s,t)} = c_{(C,c)} = 0. 
+        A_{(v,a,s,t), (C,c)} &= 
+        \mathbbm1[C {=} C_{a} ~\land~ \Src a(c) {=} s ~\land~ \Tgt a(c) {=} t] \\
+        %  \begin{cases}
+        %     1 & \text{if }C = C_a,\,
+        %         \Src a(c) = s,~\text{ and } \Tgt a(c) = t\\
+        %     0 & \text{ otherwise}
+        % \end{cases} \\
+        A_{(w,a,s,t), (C,c)} &= 
+           %  \begin{cases}
+           %     p\ssub a(\Tgt a{=}t\mid \Src a{=}s)
+           %     % p\ssub a(t|s)
+           %      & \text{if }C = C_a\text{ and }
+           %         \Src a(c) = s\\
+           %     0 & \text{ otherwise}
+           % \end{cases}  \\
+           p\ssub a(\Tgt a{=}t\mid \Src a{=}s) 
+            \mathbbm1[C {=} C_a ~\land~ \Src a(c) {=} s] \\
+        A_{(w,a,s,t), (w,a,s,t)} &= -1 \\
+        A_{(v,a,s,t), (v,a,s,t)} &= -1 \\
+        % A_{(C'),(C,c)} &= \begin{cases}
+        %         1 & \text{ if } C = C' \\ 0 & \text{otherwise}
+        %     \end{cases}\\
+        % A_{(C{-}D, \omega), (C,c)} &= 1\\
+        % A_{(D{-}C, \omega), (C,c)} &= -1\\
+        A_{(C\!{-}\!D, \omega),(C',c)} &= \mathbbm1[C{=}C'] - \mathbbm1[C'{=}D]\\
+        % A_{(C), (C',c)} &= \mathbbm1[C{=}C'] \\
+        A_{(C),(C,c)} &= 1 \\
+        b_{(C)} &= 1,
+    \end{align*}
+    where, $\mathbbm1[\varphi]$ is equal to 1 if $\varphi$ is true, and zero if $\varphi$ is false.
+    We note that we can equivalently divide each $\beta_a$ by $\max_a \beta_a$ without affecting the problem, 
+    although this could affect the approximation accuracy by the same factor. 
+    
+    % We have arrived at our result:
+    To summarize, applying \Cref{lem:mainlemma}, we find that we can solve problem \eqref{prob:cluster-inc} in time
+    \begin{align*}
+        O\Big( (\V\!\Ar + \V\mathdcal C)^{1 + \omega} ( \log (\V\!\Ar + \V\mathdcal C) + \log( \Vert\bbeta\Vert_\infty)) \Big)
+        \quad
+        \subset \tilde O\Big( (\V\!\Ar + \V\mathdcal C)^4 \Big).
+    \end{align*}
+\end{lproof}
+
+We now quickly step through the analogous construction for problems \eqref{prob:cluster-small-gamma} and \eqref{prob:cluster+idef}, which
+solve the $\gamma$-inference problem, and $\epsilon$-inference, respectively.
+
+\begin{lemma}\label{lem:smallgamma-polytime}
+    Problem \eqref{prob:cluster-small-gamma} is solved to machine precision in time
+    \[
+        O\Big( |\V\!\Ar + \V\mathdcal C|^{1 + \omega} ( \log (\V\!\Ar + \V\mathdcal C) + \log(1+ \Vert\bbeta\Vert_\infty) + \log \log \frac{1}{p}) \Big)
+        \quad
+        \subset 
+        \quad
+        \tilde O\Big( (\V\!\Ar + \V\mathdcal C)^4 \Big)
+    \]
+    where $p$ is the smallest nonzero probability in the PDG.
+\end{lemma}
+\begin{lproof}
+    Problem \eqref{prob:cluster-small-gamma} has 
+    \begin{itemize}[label=$\blacktriangleright$]
+    \item variables 
+        $x = (\mat u, \mat y, \mat w,\,\, \mat v, \bmu, \mat z)
+        % where 
+        \in K_{\exp}^{\V\!\Ar} \times K_{\exp}^{\V \mathdcal C}$
+        % $x = (\mat u, \mat v, \mat w, \bmu) \in K_{\exp}^{\V\!\Ar} \times \mathbb R_{\ge 0}^{\V \mathdcal C}$, 
+        where 
+        \begin{itemize}[label=\textbullet]
+        \item 
+        $\mathbf{u,y,w} \in \Rext^{\V\!\Ar}$
+            are all vectors over $\V\!\Ar$
+            that at index $\iota = (a,s,t) \in \V\!\Ar$, have 
+            components $u_\iota$, $v_\iota$, and $w_\iota$, respectively;
+        \item 
+        Meanwhile, 
+        $\mathbf{v,\bmu,z} \in \Rext^{\V\mathdcal C}$
+            are all vectors over $\V\mathdcal C$ 
+            which at index $(C,c)$, have 
+            components $v_{C,c}$, $\mu_C(c)$, and $z_{C,c}$, respectively.
+            Once again, $\bmu = [\mu_{C}(C{=}c)]_%
+            % {(C,c) \in \V\mathdcal C}
+            {C \in \mathdcal C,\,c \in\V C}
+             \in \Rext^{\V \mathdcal C}$ is intended to be a vector representation of a clique tree.
+    \end{itemize}
+
+    \item constraints as follows:
+        \begin{itemize}[label=\textbullet]
+            \item 
+            two linear constraints for each $(a,s,t) \in \V\!\Ar$, to ensure that
+            \[
+                y_{a,s,t} = \mu_{C_{\!a}}(s,t)
+                \qquad\text{and}\qquad
+                w_{a,s,t} = \mu_{C_{\!a}}\!(\Src a{=}s)\, p\ssub a(\Tgt a{=}t\mid\Src a{=}s),
+            \]
+            \item for every edge $(C\!{-}\!D) \in \cal T$, and every value $\omega \in \V(C \cap D)$ of the variables that clusters $C$ and $D$ have in common, a linear constraint
+            \[
+                \sum_{\bar c \in \V(C\setminus D)} \mu_C(\bar c, \omega) 
+                    =
+                \sum_{\bar d \in \V(D \setminus C)} \mu_D(\bar d, \omega)
+            \]
+            \item for every $(a,s,t) \in \V\!\Ar^0$, a linear constraint
+            that ensures
+            \[
+                0 = \mu_{C_a}\!(\Src a{=}s,\Tgt a{=}t) 
+                \qquad\Big(~~
+                   = \sum_{\bar c \in \V(C \setminus \{\Src a, \Tgt a\})} \mu_{C_a}(\bar c, s, t) \Big)
+            \]
+            
+            \TODO[POSSIBLE ISSUE: doesn't this mean the problem isn't strictly feasible?]
+
+             
+            \item a linear constraint for every value $c \in \V C$ of every cluster $C \in \mathdcal C$, to ensure that
+            \[
+                z_{C,c} = \mu_C( \Pash_C(c) )
+                    \qquad \Big(~~= \sum_{\bar c \in \V(C \setminus \Pash_C)}
+                        \mu_{C}(\bar c, \Pash_C(c)) ~~\Big)
+            \]
+            \item and one constraint for each cluster $C \in \mathdcal C$ to ensure that $\mu_{C}$ lies on the probability simplex, i.e.,
+            \[
+                \sum_{c \in \V C} \mu_C(c) = 1.
+            \]
+        \end{itemize}
+    \end{itemize}
+    So in total, there are 
+    $n = |3 \V \!\Ar + 3 \V \mathdcal C|$ variables,
+    and 
+    $m = 2 |\V\!\Ar| + |\V \mathcal T| + |\V\!\Ar^0| + |\V \mathdcal C| + |\mathdcal C|$ constraints. 
+    The same arguments made in \cref{lem:cluster-inc-polytime} show that both $n,m \in O(|\V \!\Ar + \V \mathdcal C|)$.
+    
+    Also like before, it is easy to see that the components of $A$ and $b$ are all at most 1.  Here, however, to rescale the objective $c$ to be at most 1 at every component, we will need to divide by 
+    $\max \{ - \beta_a \log {p_a(t|s)} \}_{(a,s,t) \in \V\!\Ar} \cup \{ 1 \}$
+    
+    This gives rise to our result: problem \eqref{prob:cluster-small-gamma} can be solved in 
+    \begin{align*}
+        O\left( |\V \!\Ar + \V \mathdcal C|^{1+\omega} 
+            \left(\log |\V \!\Ar + \V \mathdcal C| + \log\left(1 + \max_{(a,s,t) \in \V\!\Ar} \beta_a \log \frac{1}{p\ssub a(t|s)} \right) \right)  \right) \\
+        \subset 
+        O\left( |\V \!\Ar + \V \mathdcal C|^{1+ \omega} 
+            \log |\V \!\Ar + \V \mathdcal C|
+            \log (\beta ) \log\log \frac{1}{p} \right)
+    \end{align*}
+    operations, where $p$ is the smallest nonzero probability in the PDG, and $\beta$ is the largest confidence in the PDG larger than 1.
+\end{lproof}
+
+\begin{lemma}\label{lem:cluster+idef-polytime}
+    Problem \eqref{prob:cluster+idef} is solved to machine precision in 
+    \[
+        O\Big( |\V \mathdcal C| |\V \!\Ar + \V \mathdcal C|^{\omega} 
+            \log |\V \!\Ar + \V \mathdcal C| \Big) 
+        \quad\subset\quad
+        \tilde O\Big( |\V \mathdcal C + \V \! \Ar|^{4} \Big) \text{~~time}.
+    \]
+\end{lemma}
+\begin{lproof}
+    Problem \eqref{prob:cluster+idef} is slightly more straightforward; having done
+    \cref{lem:cluster-inc-polytime,lem:smallgamma-polytime} in depth, we do this one more quickly.
+    In the standard form, problem \eqref{prob:cluster+idef}, has variables 
+    $x = (\mat u, \bmu, \mat w)
+        \in K_{\exp}^{\V\mathdcal C}$.
+    The constraints  are:
+     
+    \begin{itemize}[label=\textbullet]
+        \item 
+        one linear constraint for each $(C,c) \in \V\mathdcal C$, to ensure that
+        \[
+            w_{C,c} = k_{(C,c)} \mu_C( \Pash_C(c) )
+            \qquad\Big(~~= \sum_{\bar c \in \V(C\setminus \Pash_C )} \mu_C(\bar c, \Pash_C(c))
+                \Big)
+        \]
+        \item for every edge $(C\!{-}\!D) \in \cal T$, and every value $\omega \in \V(C \cap D)$ of the variables that clusters $C$ and $D$ have in common, a linear constraint
+        \[
+            \sum_{\bar c \in \V(C\setminus D)} \mu_C(\bar c, \omega) 
+                =
+            \sum_{\bar d \in \V(D \setminus C)} \mu_D(\bar d, \omega)
+        \]
+        \item for every $(a,s,t) \in \V\!\Ar$, a linear constraint
+        that ensures
+        \[
+            \mu_{C_a}(\Src a{=}s, \Tgt a{=}t) \, \nu_{C_a}(\Src a{=}s)
+                =
+            \nu_{C_a}(\Src a{=}s, \Tgt a{=}t) \, \mu_{C_a}(\Src a{=}s).
+        \]
+        This is linear, because recall that $\nu$ is a constant in this optimization
+        problem, found by having previously solved \eqref{prob:cluster-inc}. 
+        
+        \item and one constraint for each cluster $C \in \mathdcal C$ to ensure that $\mu_{C}$ lies on the probability simplex.
+    \end{itemize}
+    So in total, there are 
+    $n = 3 |\V \mathdcal C|$ variables,
+    and 
+    $m =  |\V \mathdcal C| + |\V \mathcal T| + |\V\!\Ar| + |\mathdcal C|$ constraints. 
+     % O(|\V \!\Ar + \V \mathdcal C|)$.
+    Once again, the components of $A$ and $b$ are all at most one, and now the compoents of the cost function $c = \mat 1$ are identically one. 
+    Therefore \eqref{prob:cluster+idef} can be solved in 
+    \begin{align*}
+        O\Big( |\V \mathdcal C| |\V \!\Ar + \V \mathdcal C|^{\omega} 
+            \log |\V \!\Ar + \V \mathdcal C| \Big) 
+        \quad\subset\quad
+        \tilde O( |\V \mathdcal C + \V \! \Ar|^{4} )
+    \end{align*}
+    operations.
 \end{lproof}
 
 \recall{theorem:main}
 \begin{lproof}\label{proof:main}
+    Suppose the PDG has $N$ variables 
+    (each of which can take at most $V$ distinct values), 
+    and $A$ hyperarcs, which together form a structure has tree-width $T$. 
     
-    Problem \eqref{prob:cluster-inc}
-    % has $\V\!\Ar + $ constraints.
-    can be reduced to the following exponential conic program:
-    % \[
-    % 
-    % \]
-    which has
+    Then each cluster (of which there are at most $N$) 
+    can have at most $T$ variables, and so can take at most $V^T$ values.
+    Therefore, $|\V \mathdcal C| \le N V^T$.
+    % Furthermore, because each 
+    Since each arc must be entirely contained within some cluster, 
+    $|\V\!\Ar| \le A V^T$. 
+    So, $|\V\!\Ar + \V \mathdcal C| \le (N+A) V^T$. 
     
-    
-    When translated via the DCP framework to 
-    an exponential conic program of the form \eqref{eq:exp-conic-program}, 
-    it has the original variables $\bmu$ and $\mat u$, as well as variables corresponding
-    to each $[\mu_{C_{\!a}}(\Src a, \Tgt a)]$
-    
+    Applying \cref{lem:cluster-inc-polytime,lem:smallgamma-polytime,lem:cluster+idef-polytime}, we conclude that PDG inference in any of the problems we've described, can be done in
+    \[
+        O\Big(  (N+A)^4 V^{4T} \log ((N+A) V^{4T}) \Big)
+        % \subset
+        % =
+        % O\Big(  (N+A)^4 \exp\log(V^{4T}) \Big) 
+        % = O\Big(  (N+A)^4 \exp(4T\log V) \Big) 
+    \]
+    time.
 \end{lproof}
 
 \subsection{}
@@ -3867,6 +4530,16 @@ There are still a number of open questions.
 
 \section{INFERENCE VIA INCONSISTENCY MINIMIZATION}
     \label{sec:inf-via-inc}
+
+\textbf{(extra definitions)}
+    
+One selling point of PDGs is their modularity:
+ if $\dg M_1$ and $\dg M_2$ are two PDGs, we can take the dusjoint union of their arcs (and associated data) to get a new PDG, denoted $\dg M_1 + \dg M_2$,
+which represents the combined information of both $\dg M_1$ and $\dg M_2$.
+
+For the purposes of adding data to PDGs in this way, we implicitly convert cpds to singleton PDGs that have default weight $\beta = 1$.
+
+
 
 \TODO[TODO: rewrite this assuming that the entire main paper is in scope, rather than
     as an alternate introduction to inference of PDGs]
@@ -4322,6 +4995,43 @@ to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
 % to a conditional probability query amounts to a standard postprocessing step,
 % which does not significantly impact the complexity of the algorithm.
 
+
+%oli5: added example.
+\subsection{}
+\label{sec:example-gamma}
+For example, consider a PDG $\dg M$ containing three hyperarcs
+$
+    \Ar = \{ \ed0XY, \quad \ed{1}{}{X}, \quad \ed2{}Y  \}.
+$
+% which are associated, respectively, with probabilities $p_1(X), p_2(Y)$, and $p_3(Y|X)$. 
+Suppose that the first two contain only structural information, 
+while the last contains only observational information. 
+Formally, this means that we have $\alpha_1 = \alpha_2 = 1$ while $\alpha_0 = 0$;
+and also $\beta_1 = \beta_2 = 0$ (so it doesn't matter what $p_1(X)$ or $p_2(Y)$ are), while $\beta_0 > 0$ and $p_0(Y|X)$ is some conditional distribution on $Y$ given $X$. 
+
+The structure of this PDG asserts that $X$ and $Y$ are independent.
+But unless $p_0(Y|X)$ gives the same distribution on $Y$ for every value of $X$, the structural and observational information in this PDG appear to be inconsistent.
+This is not quite true, because $X$ might be deterministic, making it independent of $Y$ no matter what. 
+In this case, for all $\gamma > 0$ and also in the observational limit, 
+$\bbr{\dg M}^*_\gamma$ consists of all disitributions $\mu(X,Y) = \mu(X)p_0(Y|X)$ in which
+$p_0(Y|x)$ is identical for all $x$ in the support of $\mu(X)$.
+
+Note that there was no \obslimit\ here, which is possible 
+because the condition $\bbeta > 0$ was not met.  Let's tweak the problem slightly, 
+and suppose that $\beta_1 > 0$.
+
+Now on the one extreme, we now have an \obslimit\
+\[
+    \bbr{\dg M}^*_{\epsilon} = p_1(X) p_0(Y|X)
+\]
+since the observational information alone is enough to determine a unique distribution.
+At the other extreme, as $\gamma \to \infty$, the PDG represents those distributions 
+in which $\mu(X)$ and $\mu(Y)$ are independent, but come closest to matching.
+If, in addition, we assume $\beta_0 = \beta_1$, then we can conclude that
+\[
+    \bbr{\dg M}^*_{\nf1\epsilon} = p_1(X) p_0(Y) 
+\]
+where $p_0(Y) := \Ex_{x \sim p_1}[ p_0(Y|x) ]$.
 
 
 \section{LARGER
