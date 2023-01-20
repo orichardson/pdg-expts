@@ -3,14 +3,13 @@
 % \usepackage{aistats2023}
 
 % Use the following line for the initial blind version submitted for review:
-\usepackage{icml2023}
 
 
 %%% flags
 \newif\ifbiblatex
     %oli5*: here's the bibliography fix; Joe: you'll want to use the second line.
-    \biblatextrue % use the more modern & extensible biblatex+biber for bibliography.
-    % \biblatexfalse % use BibTeX instead. 
+    % \biblatextrue % use the more modern & extensible biblatex+biber for bibliography.
+    \biblatexfalse % use BibTeX instead. 
 
 
 \usepackage{microtype}
@@ -18,10 +17,11 @@
 \input{inference-preamble.tex}
 \input{pdg-preamble-v2.tex}
 
-
-
 % Attempt to make hyperref and algorithmic work together better:
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage{icml2023}
+
+
 
 % Todonotes is useful during development; simply uncomment the next line
 %    and comment out the line below the next line to turn off comments
@@ -64,7 +64,8 @@
 % expanding the title in a less clunky way, to include that?  Also, can you help
 % me understand why "via" is the wrong word?
 Inference for Probabilistic Dependency Graphs,  \\
-    \voli{ via(?) Exponential Conic Programming} }
+    % \voli{ via(?) Exponential Conic Programming}
+    }
 
 % It is OKAY to include author information, even for blind
 % submissions: the style file will automatically remove it for you
@@ -237,7 +238,8 @@ We evaluate our approach by ...
 
 % \tableofcontents
 
-\section{INTRODUCTION}
+% \section{INTRODUCTION}
+\section{Introduction}
 
 
 % {\color{gray}
@@ -321,7 +323,10 @@ there has been no practical way to do probabilistic inference using
 % PDGs, that is,
 PDGs---that is,
 to answer questions of the form
-    ``what is the probability of $Y$ given $X$?''.
+``what is the probability of $Y$ given $X$?'',
+%oli5: giving this a name so we don't have to ask this question in as many words again.
+called probabilistic queries. 
+%oli5: again, our innovation isn't the algorithm; we're using an off-the-shelf algorithm.
 This paper presents the first such {\color{red}algorithm}.
 % This paper presents the first one.
 
@@ -335,15 +340,30 @@ This paper presents the first such {\color{red}algorithm}.
 %joe5*: I rewrote this pareagraph completely.  We need to tell the "right"
 %  story, and tell it early.  
 %oli5*: I really dislike this paragraph; to me it seems obvious, wordy, and several steps  of background removed from anything we actually do. The second paragraph is valuable  real estate and this strikes me as a very poor use for it. Only the last sentence is interesting, and the rest is all well-known background and repetition of the definition of probabilistic inference that we already gave. 
-Before discussing our algorithm, we must discuss what it even means to do inference for a PDG.  BNs and factor graphs represent a unique distribution. Thus, for example, when we ask ``What is the probability of $Y$ given $X$'' in a Bayesian network $B$, we mean ``what is $mu(Y \mid X)$?'' for the probability $\mu$ represented by $B$.  But a PDG does not, in general, represent a unique probability distribution.
+Before discussing our algorithm, we must discuss what it even means to do inference for a PDG.  BNs and factor graphs represent a unique distribution. 
+Thus, for example, when we ask ``What is the probability of $Y$ given $X$''
+% Thus, when we query the probability of $Y$ given $X$
+in a Bayesian network $B$, we mean ``what is $\mu(Y \mid X)$?'' for the probability $\mu$ represented by $B$.
+But a PDG does not, in general, represent a unique probability distribution.
 
 Like BNs, PDGs encode two types of information: ``structural''
-information about the independence of causal mechanism, captured by
-the structure of the graph, and ``observational'' information,
-captured by the conditional probability distributions associated with
-each edge in the graph.   Corresponding to these two types of
-information, we have two loss functions, which associate with a
-probability distribution $\mu$ how far $\mu$ is from capturing each of
+information about the independence of causal mechanisms,
+%oli5: more accurately, it is captured by the weights \alpha. Also we haven't defined
+% structure yet.
+% captured by the structure of the graph,
+and ``observational'' information,
+%oli5: we didn't define these either.
+% captured by the conditional probability distributions associated with
+% each edge in the graph.
+Corresponding to these two types of information,
+%oli5:
+% we have two loss functions,
+a PDG has two loss functions,
+which associate with a
+probability distribution $\mu$
+%oli5: added
+a number describing
+how far $\mu$ is from capturing each of
 these two types of information.
 %joe5*: I would really prefer to have \gamma \in [0,1]; is it too late for that?
 %oli5: I suppose we can make that happen, although it unnecessarily complicates the 
@@ -351,36 +371,137 @@ these two types of information.
 % Keep in mind that this second loss function can be negative or positive but is bounded,
 % while the first is only positive but can be unbounded.  I think the relationship is 
 % clearer when presented like a free energy. 
-Given a weight $\gamma \in [0,\infty)$,
-we take the \emph{$\gamma$-semantics} of a PDG to be the
-set of distributions that minimize the observational loss function
-plus $\gamma$ times the structural loss function plus.
-We can also consider the \emph{$*$-semantics}, which, roughly speaking,
-is the limit of $ \gamma$-semantics as $\gamma$ goes to 0 (so amounts to focusing on
-the observational loss, using the structural loss only to break
-ties).  This gives us a family of inference notions, parameterized
-by $\gamma$ (or $*$), depending on how we choose to weight the loss
-function.
+%oli5: It seems to me that this is is way too much detail for now. 
+% The fact that it's a linear trade-off,
+% and whether we use [0,1] or [0, \infty) shouldn't even be relevant here. 
+% beyond what we want to do in this paragraph. 
+% \discard
+{
+    Given a weight $\gamma \in [0,\infty)$,
+    we take the \emph{$\gamma$-semantics} of a PDG to be the
+    set of distributions that minimize the observational loss function
+    plus $\gamma$ times the structural loss function plus.
+    We can also consider the \emph{$*$-semantics}, which, roughly speaking,
+    is the limit of $ \gamma$-semantics as $\gamma$ goes to 0 (so amounts to focusing on
+    the observational loss, using the structural loss only to break
+    ties).  This gives us a family of inference notions, parameterized
+    by $\gamma$ (or $*$), depending on how we choose to weight the loss
+    function. 
+}
+It can be shown that, given a PDG $\dg M$, if there are distributions
 %oli5: I think this is deceptive; "consistent with structural info" in my head
 % is a lower bar than "maximally" consistent, which is what IDef represesents. 
-It can be shown that, given a PDG $\dg M$, if there are distributions
-consistent with both observational and the structural information in
-${\dg M}$, then all these inference notions coincide; that is, there is a
-single distribution $\mu_{\dg M}$ that minimizes both loss functions, so
-no matter how we weight the loss functions, we want to answer
-queries with respect  to $\mu_{\dg M}$.  Moreover, if $\dg M$ represents a BN,
+consistent with
+both observational and the structural information in
+${\dg M}$, then all these inference notions coincide; that is, 
+{
+    there is a
+    single distribution $\mu_{\dg M}$ that minimizes both loss functions, so
+    no matter how we weight the loss functions, we want to answer
+    queries with respect  to $\mu_{\dg M}$.
+}
+Moreover, if $\dg M$ represents a BN,
 then $\mu_M$ is the distribution represented by the BN.  
 However, if there is no
 distribution that is consistent with both types of information, then
-the choice of $\gamma$ matters.  Thus, we talk about
-$\gamma$-inference or $*$-inference.}
+the choice of $\gamma$ matters.  
+Thus, we talk about $\gamma$-inference or $*$-inference.
+}
 
-\expandafter\discard\voli{
+{
+Before discussing our algorithm, we must discuss what it even means to do inference for a PDG.  
+A BN or FG represents a unique distribution. 
+%oli5: an example of what?
+Thus, when we ask ``what is the probability of $Y$ given $X{=}x$''
+% Thus, when we query the probability of $Y$ given $X$
+in a BN $B$, we mean ``what is $\Pr(Y \mid X{=}x)$?'' for the probability $\Pr$ represented by $B$.
+But a PDG does not, in general, represent a unique probability distribution.
+
+Like BNs, PDGs encode two types of information: ``structural''
+information about the independence of causal mechanisms,
+%oli5: more accurately, it is captured by the weights \alpha. Also we haven't defined
+% structure yet.
+% captured by the structure of the graph,
+and ``observational'' information,
+about conditional probabilities.
+%oli5: we didn't define these either.
+% captured by the conditional probability distributions associated with
+% each edge in the graph.
+Corresponding to these two types of information,
+%oli5:
+% we have two loss functions,
+a PDG has two loss functions,
+which associate with a
+probability distribution $\mu$
+%oli5: added
+a number describing
+how far $\mu$ is from capturing each of
+these two types of information.
+%joe5*: I would really prefer to have \gamma \in [0,1]; is it too late for that?
+%oli5: I suppose we can make that happen, although it unnecessarily complicates the 
+% math in some places and looks like the two are more equal than they actually are. 
+% Keep in mind that this second loss function can be negative or positive but is bounded,
+% while the first is only positive but can be unbounded.  I think the relationship is 
+% clearer when presented like a free energy. 
+%oli5: It seems to me that this is is way too much detail for now. 
+% The fact that it's a linear trade-off,
+% and whether we use [0,1] or [0, \infty) shouldn't even be relevant here. 
+% beyond what we want to do in this paragraph. 
+\discard
+{
+    Given a weight $\gamma \in [0,\infty)$,
+    we take the \emph{$\gamma$-semantics} of a PDG to be the
+    set of distributions that minimize the observational loss function
+    plus $\gamma$ times the structural loss function plus.
+    We can also consider the \emph{$*$-semantics}, which, roughly speaking,
+    is the limit of $ \gamma$-semantics as $\gamma$ goes to 0 (so amounts to focusing on
+    the observational loss, using the structural loss only to break
+    ties).  This gives us a family of inference notions, parameterized
+    by $\gamma$ (or $*$), depending on how we choose to weight the loss
+    function. 
+}
+This gives us a family of inference notions, parameterized
+by the relative importance of structure to observation.
+%oli5: no longer helpful the way I wrote it.
+% It can be shown that,
+If there are distributions
+%oli5: I think this is deceptive; "consistent with structural info" in my head
+% is a lower bar than "maximally" consistent, which is what IDef represesents. 
+consistent with
+both observational and the structural information in
+a PDG $\dg M$, then all these inference notions coincide; 
+\discard{\color{red} 
+%oli5*: This is on very sketchy ground.
+% For example: if \alpha=0, we were imagining that every
+% distribution was "qualitatively consistent" with this structure,
+% but in fact only the uniform distribution is.  So, in that case, this 
+% sentence amounts to saying "if the uniform distribution is consistent with
+% observational info, then all inference is done on the uniform distribution". 
+%oli5*: also there is a technical issue, even if we are willing to 
+% use "consistent with structural information" in this very strict sense:
+% namely, it requires that  \beta >> \alpha (or the stronger assumption \beta > 0). 
+% Otherwise, there may not be a unique distribution. This story is too nice. 
+    that is, 
+    there is a
+    single distribution $\Pr_{\dg M}$ that minimizes both loss functions, 
+    in which case we want to answer queries with respect to $\Pr_{\dg M}$
+    no matter how we weight observational and structural information. 
+}
+Moreover, if $\dg M$ represents a BN,
+then $\mu_M$ is the distribution represented by the BN.  
+However, if there is no
+distribution that is consistent with both types of information, then
+the choice of $\gamma$ matters.  
+% Thus, we talk about $\gamma$-inference or $0^+$-inference.
+}
+
+% \expandafter\discard
+\voli{
 %oli5:
 % What does it mean to answer probabilistic queries \emph{correctly} for a PDG?
 Before discussing our algorithm, we must discuss what it even means
 % to answer such probabilistic queries with respect to a PDG. 
-to answer such questions with a PDG.
+to answer a probabilistic query with a PDG.
 % How to answer conditional probaility queries based on a PDG? 
 % $?(Y|X)$?
 The situation is more subtle that it is for other graphical models, because a PDG may
@@ -566,7 +687,9 @@ Thus, our result is not only a theoretical one, but practical as well.
 % Beyond its role as a probabilsitic model,
 Beyond their roles as probabilistic models,
     PDGs are also 
-As shown by Richardson \parencite*{one-true-loss},
+As shown by Richardson
+    % \parencite*{one-true-loss},
+    \yrcite{one-true-loss},
     many loss functions and statistical divergences
 %joe5: which loss function?  There are two
 can be viewed as measuring the minimum value of the loss function 
@@ -679,7 +802,8 @@ Finally, we evaluate this implementation empirically, and show that it is both m
 %
 % Moreover, the approach makes use of , giving us efficiency out-of-the box.
 
-\section{PRELIMINARIES AND RELATED WORK}
+% \section{PRELIMINARIES AND RELATED WORK}
+\section{Preliminaries and Related Work}
 
 \textbf{Notation.}
 % This paper concerns the
@@ -784,13 +908,9 @@ Every variable $X$ can take on values from a finite set $\V\mskip-1.5mu X$ of po
 %joe5: We define a PDG by the variables used.  If sets of variables
 %are also variables, then a PDG has many more variables.  We really
 %don't want to go there.
-%oli5: I still don't see the problem --- this just means the set of variables \X is closed under unions. 
-%oli5: in any case, this fix won't quite address the problem, 
-{\color{red}
-%oli5: maybe this softens the problem
-We can regard
-sets of variables $\mat X$ are variables themselves,}
-with
+%oli5: I still don't see the problem --- this just means the set of variables \X is closed under union.
+%oli5: in any case, this fix won't quite address the problem, because we also need to marginalize to sets of variables, for example.  Maybe this is more acceptable if I word it so it sounds more temporary, like this?:
+We can regard sets of variables $\mat X$ as variables themselves, with
 % We can use analogous notation for sets of variables, writing
 $\V \mat X = \Pi_{X \in \mat X} \V X$.
 A conditional probability distribution (cpd) $p(Y|X)$ is a map
@@ -838,6 +958,13 @@ An ordinary graph may be viewed as the special case in which every hyperedge con
 \begin{defn}
     A \emph{directed hypergraph} $G = (N, \mathcal A)$ is a set $N$ of nodes, and a collection $\mathcal A$ of \emph{(hyper)arcs}; each $a \in \mathcal A$
     is associated with a set $\Src a \subset N$ of source nodes, and a set $\Tgt a \subset N$ target nodes.
+    \discard{\color{red}
+    To simplify notation, 
+    Let $\ArST$ denote the set of triples $\{ (a, \Src a, \Tgt a) \}$.
+    % let $\ed aST$ be shorthand for the triple $(a, \Src a, \Tgt a)$,
+    % let $\ed aXY$ be shorthand for the triple $(a, X, Y)$,
+    % and let $\ArST := \{ \ed {\scriptsize ~a~} {\Src a }{\Tgt a}\}_{a \in \Ar}$.
+    }
 \end{defn}
 % A directed graph is just a directed hypergraph where the source and target sets of every hyperarc are singletons.
 A directed graph can be seen a directed hypergraph in which every source and target set is a singleton.
@@ -1134,7 +1261,12 @@ a collection of cpds and causal assertions,
         \balpha, \bbeta )
      % = (\mathcal P, \balpha, \bbeta)$
     $
-    is a directed hypergraph  $(\X, \Ar)$, whose nodes correspond to variables,
+    is     
+    a directed hypergraph 
+    %oli5: removing comma
+    % $(\X, \Ar)$, 
+    $(\X, \Ar)$ 
+    whose nodes correspond to variables,
 %oli4: Here's the first place we start to get into the problems I alluded to earlier. 
 % The notation you introduced on the previous line doesn't quite work. p_a is not a number, but rather a conditional probability distribution (or, if you prefer, a vector). 
 %joe5: Why is that a problem?  Who said that a vector had to be a
@@ -1149,39 +1281,59 @@ a collection of cpds and causal assertions,
 % $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$,
 % $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$
     % and each hyperarc
-    \vjoe{ ${\bf p} = [p]_{a \in \Ar}$,
-    $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$,
-    $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$,}
-    and each arc
+    %oli5: OK I'll do unpack the values first, if you insist.  
+    % However, it seems to me that it's more straightforward to first define
+    % the components and form a vector out of them, than to first define a vector out of
+    % undefined free variables, and then explain what those free variables are. 
+    %
+    % \vjoe{ ${\bf p} = [p]_{a \in \Ar}$,
+    % $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$,
+    % $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$,}
+    % $\mathbb P$ 
+    and
+     $\balpha = [\alpha_a]_{a \in \Ar}$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$
+    are vectors of shape $\Ar$,
+    and $\mathbb P$ is a set of cpds indexed by $\Ar$,
+    % and $\mathbb P = \{ \mathbb P_a (\Tgt a | \Src a) \}_{a \in \Ar}$, 
+    % $\mathbb P = \{ \p_a (\Tgt a | \Src a) \}_{a \in \Ar}$, 
+    so that each hyperarc
     % $\ed a{\Src a}{\Tgt a} \in \Ar$
     % $\ed a{\Src {}}{\Tgt {}} \in \Ar$
     % and each hyperarc
     $a \in \Ar$ is associated with:
     
     \begin{itemize}[itemsep=0pt]
-        % \item (subsets of) variables $\Src L, \Tgt L \subset \X$, indicating the respective source and target variables of the edge;
-        % \item variables $\Src L, \Tgt L \in \X$, the source and target of $L$;
-        % \item subsets $\Src L, \Tgt L \subset \X$, which are source and target variables of the edge $L$. For example,
-        %     $$\Src L = \{A, B\} \ed L{}{} \{C\} = \Tgt L$$
-        %  intuitively represents a joint dependence of $C$ on the variables $A$ and $B$;
-        \item a cpd $p\ssub a (\Tgt a | \Src a)$ on the target variables given the source variables,
-        \item a weight $\beta_a \in \Rext$ indicating
-            the modeler's confidence in the cpd $p\ssub a(\Tgt a | \Src a)$,
-            %oli4: probably not appropriate here, but I wanted to add it to tie it to the
-            % below. 
-            \discard{
-            (as measured by the number of independent observations that support $p\ssub a$), }
-            and
-        \item 
+    % \item (subsets of) variables $\Src L, \Tgt L \subset \X$, indicating the respective source and target variables of the edge;
+    % \item variables $\Src L, \Tgt L \in \X$, the source and target of $L$;
+    % \item subsets $\Src L, \Tgt L \subset \X$, which are source and target variables of the edge $L$. For example,
+    %     $$\Src L = \{A, B\} \ed L{}{} \{C\} = \Tgt L$$
+    %  intuitively represents a joint dependence of $C$ on the variables $A$ and $B$;
+    \item
+    %oli5: expanding so it reads better; uses two lines either way
+    % a cpd 
+    a conditional probability distribution
+    % $\p_a (\Tgt a | \Src a)$ 
+    $\p_a (\Tgt a | \Src a)$ 
+    on the target variables given 
+    %oli5: add
+    the values of
+    the source variables,
+    \item a weight $\beta_a \in \Rext$ indicating
+    the modeler's confidence in the cpd $\p_a(\Tgt a | \Src a)$,
+    %oli4: probably not appropriate here, but I wanted to add it to tie it to the below. 
+    \discard{(as measured by the number of independent observations that support $\p_a$), }
+    and
+    \item 
     %oli4: wasn't quite an honest depiction; playing with two fixes. See the oli4* below
     % to see why I did it this way.
     %PREVIOUS VERSION: the issue is that \alpha=2 more corresponds to a belief that there are *two* independent mechanisms along the edge, not that you're more certain that it's an independent mechanism. >>
     % a weight $\alpha_a \in \mathbb R$ indicating the modeler's confidence that
     % $a$ corresponds to an independent mechanism that determines $\Tgt a$ given $\Src a$.
     %FIXED VERSION, for same range of \alpha. >>
-    a weight $\alpha_a \in \mathbb R$ indicating
-    representing
-    the modeler's confidence in the functional dependence of $\Tgt a$ on $\Src a$ due to $a$
+    a weight $\alpha_a \in \mathbb R$
+    indicating
+    % representing
+    the modeler's confidence in the functional dependence of $\Tgt a$ on $\Src a$ due to $a$.
     \discard{
     (as measured by the expected number of independent causal mechanisms corresponding to $a$,
     that determine $\Tgt a$ given $\Src a$).%
@@ -1194,11 +1346,12 @@ a collection of cpds and causal assertions,
         % \qedhere
     %     % \item $\mathcal P = \{ p\ssub L (\mat T_L | \mat S_L) \}_{L \in \Ed}$ is an indexed set of cpds
     %     \item $\bbeta$
+    \qedhere
     \end{itemize}
 %joe5: This is misplaced.  It should go in the beginning, where I put
 %it.   You first desxcribe what the objects are, then explain them.
-    \voli{In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and
-    % $\mathcal P = \big[ p\ssub a(t|s) \big]{}^{a \in \mathcal A}_{(s,t) \in \V(\Src a,\Tgt a)}$
+    \expandafter\discard\voli{In aggregate, $\balpha = [\alpha_a]_{a \in \Ar} \in \Rext^\Ar$ and $\bbeta = [\beta_a]_{a \in \Ar} \in \Rext^\Ar$ are the vector forms of the weights, and
+    % $\mathcal P = \big[ \p_a(t|s) \big]{}^{a \in \mathcal A}_{(s,t) \in \V(\Src a,\Tgt a)}$
     $\mathcal P$ is the set of cpds indexed by $\Ar$.}
 \end{defn}
 
@@ -1262,7 +1415,11 @@ is given by the weighted sum of relative entropies:
 \begin{align*}
     \OInc_{\dg M}(\mu) :=
         % \sum_{L \in \Ed} \beta\ssub L\, \kldiv[\Big]{\mu(\Tgt L,\Src L)}{p\ssub L(\Tgt L | \Src L) \mu(\Src L)}.
-        \sum_{a \in \Ar} \beta_a\, \kldiv[\Big]{\mu(\Tgt a,\Src a)}{p\ssub a(\Tgt a | \Src a) \mu(\Src a)}.
+        %oli5:
+        % \sum_{a \in \Ar}
+        % \sum_{(a,S,T)\in \ArST} \subafalse
+        \sum_{\ed aST \in \ArST} \subafalse
+        \beta_a\, \kldiv[\Big]{\mu(\Tgt a,\Src a)}{\p_a(\Tgt a | \Src a) \mu(\Src a)}.
         % \Ex_{\mu} \sum_{L \in \Ed} \beta\ssub L
         %     \log \frac{\mu(\Tgt_L \mid \Src_L)}{p\ssub L(\Tgt_L \mid \Src_L)}
 \end{align*}
@@ -1322,15 +1479,17 @@ a causal picture consisting of independent mechanisms for each
 %causal incompatibility, or something like that.
 %oli4*: I actually agree, and your proposal makes a lot of sense to me. However, perhaps we would be better off reserving "causal incompatibility" for the variant IDef' which cannot be negative and (if my conjecture is right) is more closely related to our notion of qualitative independence. I've left this alone for now.
 %joe5*: I still really object to "deficiency".  Please change it to incompatibility.  I'm extremely uncomfortable with it being negative.  I have no intuition for that, and you've never given me any.
-% This is captured by the \emph{information deficiency}, given by
-% This is captured by the \emph{causal incompatibility}, and given by
-This is captured by the \emph{causal deficiency} }
+%oli5: I don't think there's a simple enough solution for the negativity that we can 
+% "fix it" here;  Based on our conversation, perhaps I should rename it name to
+% "structural score" or "structural loss". But 
+% This is captured by the \emph{causal deficiency} }
+This is captured by the \emph{structural deficit} }
 \vjoe{
 $\mu$ is compatible with 
 a causal picture consisting of independent mechanisms (one for each
 hyperedge).  
-This is captured by the \emph{causal incompatibility}
-\footnote{\vjoe{I still really object to ``deficiency''.  I'm extremely uncomfortable with it being {\color{red}negative}.  I have no intuition for that, and you've never given me any.}}
+This is captured by the \emph{structural incompatibility}
+% \footnote{\vjoe{I still really object to ``deficiency''.  I'm extremely uncomfortable with it being {\color{red}negative}.  I have no intuition for that, and you've never given me any.}}
 }
 (of $\mu$ relative to $\dg M$), and given by
 % This is captured by the \emph{information deficiency}, given by
@@ -1395,9 +1554,13 @@ $\bbr{\dg M}_\gamma: \Delta \V\!\X \to \Rext$, as follows:
         =& \Ex\nolimits_{\mu}\left[
             \,
             % \gamma \log \mu(\X) +
-            \sum_{a \in \Ar} \log \frac
+            \sum_{a \in \Ar}
+            % \sum_{a,S,T \in \ArST} \subafalse
+            % \sum_{a,S,T,\alpha,\beta,p \in \hat{\dg M}} \subafalse
+                % \let\plainbeta\beta \def\beta_a{\plainbeta} \let\plainalpha\alpha\def\alpha_a{\plainalpha} \def\p_a{p}
+            \log \frac
             {\mu(\Tgt a| \Src a)^{\beta_a - \gamma \alpha_a}}
-            {p\ssub a(\Tgt a | \Src a)^{\beta_a}}
+            {\p_a(\Tgt a | \Src a)^{\beta_a}}
         \right] - \gamma \H(\mu)
          % \right]
         .
@@ -1454,7 +1617,7 @@ to do $\gamma$-inference in $\dg M$ is to respond to probabilistic queries in a 
 % This paper demonstrates  that $\gamma$-inference is tractable for PDGs satisfying $\bbeta \ge \gamma \balpha$, which is sufficient to ensure strict convexity of \eqref{eqn:scoring-fn}, and hence a unique optimal distribution.
 It is not too difficult to see that when $\bbeta \ge \gamma\balpha$, 
  \eqref{eqn:scoring-fn} is strictly convex, which ensures that
- $\bbr{\dg M}^*_\gamma$ is a singleton
+ $\bbr{\dg M}^*_\gamma$ is a singleton.
 This paper demonstrates
  that $\gamma$-inference is tractable for such PDGs.
 %
@@ -1820,7 +1983,8 @@ to exponential conic programs even if they do not exactly conform to \eqref{eq:e
 
 % \section{REDUCING TO CONVEX PROGRAMS WITH EXPONENTIAL-CONE CONSTRAINTS}
 % \section{REDUCING TO EXPONENTIAL CONIC PROGRAMS}
-\section{PDG INFERENCE AS A CONVEX PROGRAM}
+% \section{PDG INFERENCE AS A CONVEX PROGRAM}
+\section{PDG Inference as a Convex Program}
     \label{sec:inf-as-cvx-program}
 
 Here is one obvious, if inefficient, way to calculate $\Pr_{\cal M}(Y|X{=}x)$ in a
@@ -2115,13 +2279,13 @@ for the set of all choices of an arc together with values of its source and targ
 %
 % In particular, for every hyperarc $a \in \Ar$, we regard the marginal distribution $\mu(\Tgt a, \Src a)$ as a vector over $\V a$;
 % $\V(\Tgt a, \Src a)$;
-% similarly, $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$ is a joint distribution over the same variables,
+% similarly, $\mu(\Src a)\p_a(\Tgt a | \Src a)$ is a joint distribution over the same variables,
 % and may be regarded as a vector of the same shape.
 % and may be regarded as a $\V a$-shaped vector as well.
 %joe4:
 %Then, for each $a \in \Ar$ 
 For each $a \in \Ar$, 
-we can regard $\mu(\Tgt a, \Src a)$ and $\mu(\Src a)p\ssub a(\Tgt a | \Src a)$, both distributions over $\{\Src a,\Tgt a\}$, 
+we can regard $\mu(\Tgt a, \Src a)$ and $\mu(\Src a)\p_a(\Tgt a | \Src a)$, both distributions over $\{\Src a,\Tgt a\}$, 
 %joe4*: please put in parens.  Be kind to the reader!
 %oli4*: I think it is kinder this way.  I agree with parentheses when we want to think
 % of things as functions, but I don't want you to think of \V as a function in this case;
@@ -2152,7 +2316,7 @@ vector
 $\mat u = [u_{a,s,t}]_{(a,s,t) \in \V\!\Ar}$
 in the optimization problem
 %
-% For each $a \in \Ar$, let $N_a := |\V(\Src a, \Tgt a)|$ be the dimension of joint settings of the source and target values of $a$, i.e., the dimension of the cpd $p \ssub a$,
+% For each $a \in \Ar$, let $N_a := |\V(\Src a, \Tgt a)|$ be the dimension of joint settings of the source and target values of $a$, i.e., the dimension of the cpd $\p_a$,
 % let $K := \sum_{a \in \Ar} N_a$ be the total dimension, and
 %joe2: As I said, I really don't like the subscript-superscript
 %notation.
@@ -2193,7 +2357,7 @@ in the optimization problem
         \sum_{\mathrlap{(a,s,t) \in \V\!\Ar}} \beta_a \, u_{a,s,t}
     \numberthis\label{prob:joint-inc}\\
     \text{\sf subject to:}&\quad \mu \in \Delta\V\!\X, \\[0.2ex]
-        \forall a \in \Ar.~&\big(-{\mat u}_a,\, \mu( \Tgt a,\Src a),\, p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}%
+        \forall a \in \Ar.~&\big(-{\mat u}_a,\, \mu( \Tgt a,\Src a),\, \p_a(\Tgt a | \Src a)  \mu(\Src a) \big) \in K_{\exp}%
         % ^{\V(\Src a\! \Tgt a\!)}
         ^{\V a}
         .
@@ -2306,8 +2470,8 @@ To see this, note that \eqref{eqn:scoring-fn} can be rewritten \parencite[Propos
             \sum_{a \in \Ar}
                 % \left[
                 \beta_a\, \Ex_\mu
-                    % \log \frac1{p\ssub a(\Tgt a | \Src a)}
-                    \log {p\ssub a(\Tgt a | \Src a)}
+                    % \log \frac1{\p_a(\Tgt a | \Src a)}
+                    \log {\p_a(\Tgt a | \Src a)}
                 % \right]
                 \\[-0.5ex]
             &~~+ \sum_{a \in \Ar}
@@ -2336,7 +2500,7 @@ every summand of the last term is a negative conditional entropy, and
 % can be easily converted to an exponential conic program.
 can be easily captured with an exponential cone constraint.
 
-The only wrinkle is that it is possible for a user to specify that some $p\ssub a(t\mid s) = 0$, in which case the linear term explodes.
+The only wrinkle is that it is possible for a user to specify that some $\p_a(t\mid s) = 0$, in which case the linear term explodes.
 %joe4
 %The effect, of course, is to enforce $\mu(s,t) = 0$ at such points,
 %oli4:
@@ -2351,8 +2515,8 @@ which we can instead encode directly with linear constraints.
 % Now,
 To do this formally,
 we divide $\V\!\Ar$ into two parts:
-$\V\!\Ar^+ := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) > 0\}$ and
-$\V\!\Ar^0 := \{ (a,s,t) \in\V\!\Ar : p\ssub a(t |s) = 0\}$.
+$\V\!\Ar^+ := \{ (a,s,t) \in\V\!\Ar : \p_a(t |s) > 0\}$ and
+$\V\!\Ar^0 := \{ (a,s,t) \in\V\!\Ar : \p_a(t |s) = 0\}$.
 Armed with this notation, we can give our constuction formally.
 %joe4
 %Consider upper bound vectors
@@ -2379,16 +2543,16 @@ in the following optimization problem:
     \numberthis\label{prob:joint-small-gamma}
     \\[-0.2ex]
     &\qquad
-    - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}} \beta_a \, \mu(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
+    - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}} \beta_a \, \mu(\Src a{=}s,\Tgt a {=} t) \log \p_a (t|s)
 \\[0.2ex]
 \text{\sf subject to:}&\quad \mu \in \Delta\V\!\X,
     \\[-0.4ex]
     \forall a \in \Ar.~
-        &\big(-\mat u_a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big)
+        &\big(-\mat u_a, \mu( \Tgt a,\Src a),\p_a(\Tgt a | \Src a)  \mu(\Src a) \big)
             \in K_{\exp}^{\V a}, \\[-0.1ex]
     \forall (a,s,t) &\in \V\!\Ar^0\!.~
     % \forall a \in \Ar. &~ \forall (s,t) \in \V(\Src a, \Tgt a)
-    % \text{ s.t. } p\ssub a(t|s) \!=\! 0.~
+    % \text{ s.t. } \p_a(t|s) \!=\! 0.~
     \mu(\Src a{=}\mskip2mus, \Tgt a{=}\mskip2mut) = 0, \\[-0.2ex]
     & (-\mat v,  \mu,  \mat 1) \in K_{\exp}^{\V\!\X}.
 \end{align*}
@@ -2588,7 +2752,7 @@ For reference, let's call it
     \mat k :=
         \Big[
         % [
-        ~\prod_{a \in \Ar} \nu(\Tgt a w | \Src a w)^{\alpha\ssub a}
+        ~\prod_{a \in \Ar} \nu(\Tgt a (w) | \Src a (w))^{\alpha\ssub a}
         % ]
         \Big]%
         _{w \in \V\!\X}.
@@ -2806,7 +2970,7 @@ and now consider the convex problem
         \forall C \in \mathdcal C.~\mu_C \in \Delta\V C, \\[-0.2ex]
         % exponential constraints
         \forall a \in \Ar.~
-            \big(&\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt a),\, \mu_{C\!_a}\!(\Src a) p\ssub a(\Tgt a | \Src a)\big) \in K_{\exp}^{\V a} \\
+            \big(&\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt a),\, \mu_{C\!_a}\!(\Src a) \p_a(\Tgt a | \Src a)\big) \in K_{\exp}^{\V a} \\
         % marginal constraints
         \forall (C,D) &\in \mathcal T.~~ \mu_{C}(C \cap D) = \mu_{D}(C \cap D),
 \end{align*}
@@ -3036,21 +3200,21 @@ the problem becomes:
     \\[-0.2ex]
     &\!
     - \sum_{\mathrlap{\!\!\!(a,s,t) \in \smash{\V\!\Ar^+}}}
-        \beta_a\, \mu_{C\!_a}\!(\Src a{=}s,\Tgt a {=} t) \log p\ssub a (t|s)
+        \beta_a\, \mu_{C\!_a}\!(\Src a{=}s,\Tgt a {=} t) \log \p_a (t|s)
         \numberthis\label{prob:cluster-small-gamma}
 \\[0.2ex]
 \text{\sf subject to:}&\quad
     \forall C \in \mathdcal C.~\mu_C \in \Delta\V C, \\[-0.2ex]
     %%% exponential constraints
     \forall a \in \Ar.~
-        \big(&\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt a),\, \mu_{C\!_a}\!(\Src a) p\ssub a(\Tgt a | \Src a)\big) \in K_{\exp}^{\V a}, \\
+        \big(&\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt a),\, \mu_{C\!_a}\!(\Src a) \p_a(\Tgt a | \Src a)\big) \in K_{\exp}^{\V a}, \\
     % \forall a \in \Ar.~
-    %     &\big(-\mat u_a, \mu( \Tgt a,\Src a),p\ssub a(\Tgt a | \Src a)  \mu(\Src a) \big)
+    %     &\big(-\mat u_a, \mu( \Tgt a,\Src a),\p_a(\Tgt a | \Src a)  \mu(\Src a) \big)
     %         \in K_{\exp}^{\V a}, \\[-0.1ex]
     %%% hard constraints
     \forall (a,s,t) &\in \V\!\Ar^0\!.~
     % \forall a \in \Ar. &~ \forall (s,t) \in \V(\Src a, \Tgt a)
-    % \text{ s.t. } p\ssub a(t|s) \!=\! 0.~
+    % \text{ s.t. } \p_a(t|s) \!=\! 0.~
     \mu_{C\!_a}\!(\Src a{=}\mskip2mus, \Tgt a{=}\mskip2mut) = 0, \\[-0.2ex]
     % & (-\mat v,  \mu,  \mat 1) \in K_{\exp}^{\V\!\X} \\
     %%% marginal constraints
@@ -3065,6 +3229,31 @@ the problem becomes:
         % another is to define a vector for the last bit
         ~(-\mat v_C, \mu_C, [\,\mu_C(\Pash_C(c))\,]_{c \in \V C}) \in K_{\exp}^{\V C}
     .
+%%%%%%%%%%%%% DESTRUCTURED VERSION
+% \mathop{\text{\sf minimize}}
+%     \limits_{\bmu, \mat u, \mat v} & ~~
+%     \sum_{\mathrlap{\!\!\!(a,s,t, \alpha,\beta) \in \langle\V\!{\Ar,\balpha,\bbeta}\rangle}} (\beta \!- \alpha \gamma) u_{a,s,t}
+%     + \gamma \sum_{C \in \mathdcal C} \sum_{{c \in \V C}} v_{C,c}
+%     \\[-0.2ex]
+%     &\!
+%     - \sum_{\mathrlap{\!\!\!(a,S,s,T,t,\beta,p) \in \langle\smash{\V\!\ArST^+},\bbeta,\mathbb P\rangle}} \subafalse
+%         \beta\, \mu_{C\!_a}\!(\Src a{=}s,\Tgt a {=} t) \log p (t|s)
+%         \numberthis\label{prob:cluster-small-gamma}
+% \\[0.2ex]
+% \text{\sf subject to:}&\quad
+%     \forall C \in \mathdcal C.~\mu_C \in \Delta\V C, \\[-0.2ex]
+%     %%% exponential constraints
+%     \mathllap{\forall (a,S,T,p) \in \langle\ArST,\mathbb P\rangle}.~ 
+%         \big(&\subafalse\!- \! \mat u_a,\, \mu_{C\!_a}\!(\Src a,\mskip-2mu \Tgt a),\, \mu_{C\!_a}\!(\Src a) p(\Tgt a | \Src a)\big) \in K_{\exp}^{\V a}, \\
+%     %%% hard constraints
+%     \forall (a,S,T,s,t) & \in \V\!\ArST^0\!.~\subafalse
+%     \mu_{C\!_a}\!(\Src a{=}\mskip2mus, \Tgt a{=}\mskip2mut) = 0, \\[-0.2ex]
+%     %%% marginal constraints
+%     \forall (C,D) &\in \mathcal T.~~ \mu_{C}(C \cap D) = \mu_{D}(C \cap D),\\[-0.3ex]
+%     %%% ent tol constraints
+%     \forall C \in \mathdcal C.& ~
+%     ~(-\mat v_C, \mu_C, [\,\mu_C(\Pash_C(c))\,]_{c \in \V C}) \in K_{\exp}^{\V C}
+%     .
 \end{align*}
 % }
 
@@ -3774,16 +3963,16 @@ There are still a number of open questions.
 
     \begin{algorithmic}
         % \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$ as in \eqref{bbeq:init};
-        \State $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$;
-        \While{}
-            \State Compute scaling matrix $W$ as in \eqref{eq:scalemat};
-            \State Find the solution $\daff z$ to (\ref{eqns:sys1}a-c),
+        \STATE $z \gets (y_0, x_0, \tau_0, s_0, \kappa_0)$;
+        \WHILE{}
+            \STATE Compute scaling matrix $W$ as in \eqref{eq:scalemat};
+            \STATE Find the solution $\daff z$ to (\ref{eqns:sys1}a-c),
                 and the solution $\dcen z$ to (\ref{eqns:sys2}a-c);
-            \State $z_+ \gets z + \alpha (\daff z + \gamma \dcen z)$;
-            \State Compute the saling matrix $W_+$;
-            \State Find the solution $\Delta z^{\text{cor}}_+$ to (\ref{eqns:sys3}a-c);
-            \State $z \gets z_+ + \Delta z_+^{\text{cor}}$;
-        \EndWhile
+            \STATE $z_+ \gets z + \alpha (\daff z + \gamma \dcen z)$;
+            \STATE Compute the saling matrix $W_+$;
+            \STATE Find the solution $\Delta z^{\text{cor}}_+$ to (\ref{eqns:sys3}a-c);
+            \STATE $z \gets z_+ + \Delta z_+^{\text{cor}}$;
+        \ENDWHILE
     \end{algorithmic}
     
     % and each iteration of it takes $O((n+m)^{2.332})$ time. 
@@ -3976,8 +4165,8 @@ Problem \eqref{prob:cluster-inc} is solved to machine precision in time
                     \qquad\Big(~= \sum_{\bar c \in \V(C_a \setminus\{\Src a, \Tgt a\})}
                         \mu_{C_{\!a}}\!(\bar c, s, t) \Big) \\
                 \qquad\text{and}\qquad
-                w_{a,s,t} &= \mu_{C_{\!a}}\!(\Src a{=}s)\, p\ssub a(\Tgt a{=}t\mid\Src a{=}s)
-                    \qquad\Big(~= p\ssub a(\Tgt a{=}t\mid\Src a{=}s) \sum_{\bar c \in \V(C_a \setminus\{\Src a\})}
+                w_{a,s,t} &= \mu_{C_{\!a}}\!(\Src a{=}s)\, \p_a(\Tgt a{=}t\mid\Src a{=}s)
+                    \qquad\Big(~= \p_a(\Tgt a{=}t\mid\Src a{=}s) \sum_{\bar c \in \V(C_a \setminus\{\Src a\})}
                         \mu_{C_{\!a}}\!(\bar c, s) \Big)
             \end{align*}
             \item for every edge $(C\!{-}\!D) \in \cal T$, and every value $\omega \in \V(C \cap D)$ of the variables that clusters $C$ and $D$ have in common, a linear constraint
@@ -4033,13 +4222,13 @@ Problem \eqref{prob:cluster-inc} is solved to machine precision in time
         % \end{cases} \\
         A_{(w,a,s,t), (C,c)} &= 
            %  \begin{cases}
-           %     p\ssub a(\Tgt a{=}t\mid \Src a{=}s)
-           %     % p\ssub a(t|s)
+           %     \p_a(\Tgt a{=}t\mid \Src a{=}s)
+           %     % \p_a(t|s)
            %      & \text{if }C = C_a\text{ and }
            %         \Src a(c) = s\\
            %     0 & \text{ otherwise}
            % \end{cases}  \\
-           p\ssub a(\Tgt a{=}t\mid \Src a{=}s) 
+           \p_a(\Tgt a{=}t\mid \Src a{=}s) 
             \mathbbm1[C {=} C_a ~\land~ \Src a(c) {=} s] \\
         A_{(w,a,s,t), (w,a,s,t)} &= -1 \\
         A_{(v,a,s,t), (v,a,s,t)} &= -1 \\
@@ -4114,7 +4303,7 @@ solve the $\gamma$-inference problem, and $\epsilon$-inference, respectively.
             \[
                 y_{a,s,t} = \mu_{C_{\!a}}(s,t)
                 \qquad\text{and}\qquad
-                w_{a,s,t} = \mu_{C_{\!a}}\!(\Src a{=}s)\, p\ssub a(\Tgt a{=}t\mid\Src a{=}s),
+                w_{a,s,t} = \mu_{C_{\!a}}\!(\Src a{=}s)\, \p_a(\Tgt a{=}t\mid\Src a{=}s),
             \]
             \item for every edge $(C\!{-}\!D) \in \cal T$, and every value $\omega \in \V(C \cap D)$ of the variables that clusters $C$ and $D$ have in common, a linear constraint
             \[
@@ -4157,7 +4346,7 @@ solve the $\gamma$-inference problem, and $\epsilon$-inference, respectively.
     This gives rise to our result: problem \eqref{prob:cluster-small-gamma} can be solved in 
     \begin{align*}
         O\left( |\V \!\Ar + \V \mathdcal C|^{1+\omega} 
-            \left(\log |\V \!\Ar + \V \mathdcal C| + \log\left(1 + \max_{(a,s,t) \in \V\!\Ar} \beta_a \log \frac{1}{p\ssub a(t|s)} \right) \right)  \right) \\
+            \left(\log |\V \!\Ar + \V \mathdcal C| + \log\left(1 + \max_{(a,s,t) \in \V\!\Ar} \beta_a \log \frac{1}{\p_a(t|s)} \right) \right)  \right) \\
         \subset 
         O\left( |\V \!\Ar + \V \mathdcal C|^{1+ \omega} 
             \log |\V \!\Ar + \V \mathdcal C|
