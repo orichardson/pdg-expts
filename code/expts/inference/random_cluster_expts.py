@@ -192,7 +192,8 @@ try:
 			n_worlds = int(np.prod(pdg.dshape)), # without cast, json cannot interperet int64 -.-
 			n_params = int(sum(p.size for p in pdg.edges('P'))), #here also	
 			n_edges = m,
-			n_VC = sum( np.prod([ len(pdg.vars[vn]) for vn in C]) for C in ctree.nodes()) # number of clique tree params
+			n_VC = int(sum( np.prod([ len(pdg.vars[vn]) for vn in C]) for C in ctree.nodes()))
+				# number of clique tree params
 		)
 					
 		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)
