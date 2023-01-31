@@ -17,15 +17,15 @@ import seaborn as sns
 # fname = 'tmp-aggregated.json'
 fnames = [
 ### RANDOM GRAPHS FIXED TW
-	('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
+	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
-	# 	
+	('tw-aggregated.json', 'tw-all'),
 ### RANDOM GRAPHS JOINT
-	('random-pdg-data-aggregated-6.json', 'rand6'),
-	('random-pdg-data-aggregated-5.json', 'rand5'),
-	('random-pdg-data-aggregated-4.json', 'rand4'),
-	('random-pdg-data-aggregated-3.json', 'rand3'),
-	('random-pdg-data-aggregated-2.json', 'rand2'),
+	# ('random-pdg-data-aggregated-6.json', 'rand6'),
+	# ('random-pdg-data-aggregated-5.json', 'rand5'),
+	# ('random-pdg-data-aggregated-4.json', 'rand4'),
+	# ('random-pdg-data-aggregated-3.json', 'rand3'),
+	# ('random-pdg-data-aggregated-2.json', 'rand2'),
 ### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
