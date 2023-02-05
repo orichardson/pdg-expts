@@ -35,8 +35,11 @@ many well-established ways to quantify (un)certinaty \parencite[\S2]{halpern2017
 % 	% one that complements traditional representations of uncertainty, and is fundementally different in nature. 
 % 	one that complements traditional representations of uncertainty (such as probability), and is fundementally different in nature. 
 % In our view, however, there is also another conception of confidence
-This paper, describes a very different conception of confidence
-that arises when updating beliefs. 
+% While ``confidence'' admits a coherent probabilistic reading,
+While ``confidence'' can be coherently read in probabilistic terms,
+	such usage may shadow another important concept.
+This paper details a different conception that arises when updating beliefs. 
+% This paper describes a very different conception of confidence that arises when updating beliefs. 
 	% one that complements traditional representations of uncertainty, and is fundementally different in nature. 
 % This alternate conception of confidence, which is the focus of the present paper,
 % This alternate conception
@@ -44,40 +47,69 @@ As we shall see, this notion of confidence
 % can be used alongside 
 complements traditional representations of uncertainty (such as probability), 
 % but is fundementally different in nature. 
-and moreover unifies a number of different concepts across computer science.
+and moreover unifies several different concepts
+across AI.
 % ranging from traditional notions of confidence like inverse variance, and Shafer's weight of evidence, to notions in ML and optimization: learning rates and objective strengths. 
 % We develop this notion 
 
 
 % For us, confidence is a measure of trust (in incoming information), rather than of likelihood (of hypothetical information). 
-For us, confidence (in an input $\phi$) is a measure of trust, rather than of likelihood;
-it quantifies seriously we take $\phi$ in updating our beliefs.
+For us, confidence (in an input $\phi$) is a measure of \emph{trust}, rather than of likelihood; it quantifies seriously to take $\phi$ in updating one's beliefs.
+% Like probability, confidence lies on a continuum between two extremes---but they have different meanings.
+% To see how the two notions diverge, imagine learning something surprising from a trusted source; that piece of information has high confidence but low probability.
+% While confidence and probability are often 
+Likelihood and trust often tightly coupled, but they are different.
+For example, we might trust a surprising piece of information despite thinking it unlikely.
+%
+Of course, after updating, we would find that same information likely (precisely because we took it seriously in the update).
+%
+Thus, high confidence implies high posterior likelihood, making it easy to confuse the two.
+The converse, however, is not true:
+% information from an untrusted source, but that you happen to already believe, should be ascribed high (prior and posterior) likelihood, but low confidence.
+% to information from an untrusted source that we happen to already believe, we should ascribe high (prior and posterior) likelihood but low confidence.
+we should ascribe high (prior \emph{and} posterior) likelihood, but low confidence, to information from an untrusted source that we happen to already believe.
+% we should ascribe high (prior and posterior) likelihood but low confidence information from an untrusted source, but that you happen to already believe, should be ascribed high (prior and posterior) likelihood, but low confidence.
+
 % in an updating context: it's how seriously you take an input
 % What we have in mind applies in an updating or learning setting. 
 % We take confidence (in an input $\phi$) to be a measure of how seriously we take $\phi$ in updating our beliefs.
 % Like probability, confidence lies in continuum between two extremes, but it ranges from untrusted to trusted, rather than from unlikely to likely.
 % More concretely, confidence interpolates between prior beliefs and the beliefs one would obtain by fully incorporating $\phi$, so as to obtain posterior beliefs somewhere in between. 
 More concretely, confidence interpolates between prior beliefs and those obtained by fully trusting $\phi$, so as to obtain posterior beliefs somewhere in between. 
+Consequently, the notion is heavily dependent on the geometry of beliefs.
 % This already suffices to characterize our simplest running example:
 To take a simple example,
-if our prior belief is a probability measure $p(X)$, then to update on event $A$ with confidence $\chi \in [0,1]$ might be to arrive at the posterior belief $p'(X) = (1-\chi) p(X) + (\chi)\, p(X|A)$. 
+if our prior belief is a probability measure $p$ over a finite set $X$, then to update on event $A$ with confidence $\chi \in [0,1]$ might be to arrive at the posterior belief $p'(X) = (1-\chi) p(X) + (\chi)\, p(X|A)$. 
 % In this case, $\chi$ can be viewed as a ``fraction of incorporation''.
 Note that 
-an update with no confidence ($\chi{=}0$) ignores new information (since $p' \!=\! p$),
+an update with no confidence ($\chi{\,=\,}0$) ignores new information (since $p' \!=\! p$),
 while a
 % more customary
-full confidence update ($\chi{=}1$) takes it as seriously as possible,
+full confidence update ($\chi{\,=\,}1$) takes it as seriously as possible,
 % (since then $p'(A) \!=\! 1$).  
 since afterwards $p'(A) \!=\! 1$ and there is no way to further incorporate $A$.
-% However, there more to it than linear interpolation.
+%
+%
+% It is less clear that the intermediate points are the ``right'' ones, or that this 
+% is the ``appropriate'' parameterization of the path
+The particular choice of path, as well as its parameterization,
+% are arguably natural consequences of the geometry of probability measures lying .
+are open for debate, but are natural consequences of the geometry when we think of probabilities as points in a simplex.
 %
 In this context, 
-full confidence updates are customary, and
-the confidence $\chi \in [0,1]$ has a clear interpretation as the ``fraction of the way towards fully incorporating $\phi$''.
+% full confidence updates are customary, and
+the confidence $\chi \in [0,1]$ has a clear interpretation as the ``fraction of the way towards full incorporation'',
 % In other cases, however, 
 % This is not always true.
-In others, however, it may not be clear what 
- 	such a number (say, $\chi=0.7$) means.
+but in others,
+% it may not be clear what an intermediate number (say, $\chi=0.7$) means.
+% it is less clear what such a number (say, $\chi=0.7$) means.
+% it is still important to articulate confidence, but 
+it may be 
+%it is
+less clear what a number on this scale (say, $\chi{=}0.7$) means.
+% there is still a natural path from distrust to complete trust that is parameterized differently.
+% it is less clear how to interpret such a number (say, $\chi=0.7$).
 % In other cases, there are other more natural ways to articulate one's confidence.
 % there are other, more natural ways to measure confidence.
 
@@ -87,24 +119,75 @@ In others, however, it may not be clear what
 % We still have a sensible notion of confidence in these cases, . 
 % We now describe such an example.
 % One such example is training a neural network. 
-Consider a neural network, whose ``belief'' state is a setting of weights,
-	which are updated when given a training point.
+Consider a neural network, whose ``belief'' state is a setting of weights.
+	% which are updated when given a training point.
 % As it sees each training point, it updates its weights. 
-Modern learning algorithms do not take any individual point too seriously;
-% the training data could be full of inconsistencies. 
-% For example, 
-each training point $x$ changes the weights incrementally, and alone may not even be enough for the network to classify that point correctly.
-Thus, there is a significant difference betwen cycling through the training data once, and doing so many times.
-Nevertheless, the weights do eventually converge if we repeatedly train on $x$, which is a natural notion of ``fully incorporating $x$''.
+% Modern learning algorithms do not take any individual point too seriously; each training point $x$ changes the weights incrementally, and alone may not even be enough for the network to classify that point correctly.
+Modern learning algorithms (like gradient descent) make small incremental changes to the weights, and updating with a training example $x$ does not guarantee that the resulting network handles $x$ correctly. 
+% In other words, the algorithm does not take any individual point too seriously.
+In other words, such algorithms 
+(in contrast to older learning algorithms \parencite{conjunctions}) 
+do not take any one encounter with a training example too seriously.
+% So, in contrast with conditioning, there is a significant difference betwen cycling through the training data once, and doing so many times.
+This distrust of any individual observation is arguably what makes the training process so robust to noisy and conflicting observations.
+\commentout{
+	As a result,
+	there is a significant difference between going through the training data once
+	 % (a single epoch)
+	\unskip, and doing so many times.}
+Nevertheless, the weights do eventually converge if we repeatedly train on $x$, 
+% which is a natural notion of 
+% % ``fully incorporating $x$''---%
+% full incorporation---%
+an extreme action that is only appropriate if we trust $x$ completely.
+At the other extreme, if we had no trust in $x$, we could ignore it leaving our weights unchanged. 
 % In this context, 
-Again we have two extremes: if we have no trust in $x$, we should throw it out; if we trust it completely, we should train until convergence (i.e., the limiting weights after an infinite number of iterations). 
-% Now, the number of training iterations is a more 
-What does it mean to train the network ``70\% of the way''?
-Clearly it doesn't make sense to measure as a fraction of the infinite time taken to get there, and while we could could measure by fraction total distance traveled, it is not clear it is possible to identify such a point without having already trained the network (nearly) to convergence. 
-% It doesn't make sense to measure fraction of the total training time, since 
-% Rather, in this context, the number of training iterations and the 
-In this case, the number of training iterations is a much more convenient measure of confidence. 
-% Instead there is a natural scale /$\beta \in [0,\infty]$ that works in all cases.
+% Once again we have two extremes:
+% Depending on our confidence, 
+% How we ought to treat $x$ 
+% What we ought to do depends on our confidence.
+% At one extreme, we have no trust in $x$ and should ignore it, leaving weights unchanged; at the other, we trust $x$ completely, we should adopt the weights that arise in the limit of infinite training. 
+Moreover, this sequence of incremental updates (roughly) describes a path between the two extremes.%
+	\footnote{it can be made into a continuous path by interpolating with a line segment, and made smooth in the limit of small step sizes; we will deal with both constructions in \cref{sec:project-additive}.}
+Note that the relevant geometry here is not just the (Euclidean) geometry of the weight space, but also that induced by the architecture and the loss function.
+% As we will see in \cref{sec:loss-repr}, such 
+% We have now seen a new way of quantifying confidence: the number of training iterations.
+% The number of training iterations a different way of quantifying confidence.  
+It is not so clear that a fraction of the way to completion (say 70\%) is as meaningful as it was before, and would be difficult to identify in any case,
+but we now have a different way to quantify confidence: the number of training iterations. 
+% It turns out that in general, there are close relationships 
+
+While there are some good reasons to prefer the first approach, 
+the second one applies more widely. 
+We could do the first example in the same way: fix a ``unit confidence'', say $\chi=0.01$. Now a sequence of $n$ updates is equivalent to a confidence of $\chi= 1-(0.99)^n$. 
+
+% which is typically log likelihood.
+\commentout{
+	% Now, the number of training iterations is a more 
+	What does it mean to train the network ``70\% of the way''?
+	It doesn't make sense as a fraction of the infinite time needed to converge, and while we could measure by fraction total distance traveled, it may not be possible to identify the 70\% mark without having already trained the network (nearly) to convergence. 
+	In this context, the number of training iterations $\chi \in \mathbb N$ is a much more convenient measure of confidence. 
+	% But this scale too has problems; to make 
+	% This scale has problems as well; it depends on the step size. 
+	This scale is not ideal either; its interpretation depends on things such as the step size, and so does not have a standardized meaning even 
+	% Instead there is a natural scale /$\beta \in [0,\infty]$ that works in all cases.
+}
+
+
+
+
+% natural measure of confidence that works in all cases,
+% which 
+% It turns out that there is a natural way of measuring confidence in all cases of interest, based on differential geometry of belief space. 
+% Furthermore, in the case where belief states are Dempster-Shafer belief functions, 
+% and inputs are simple support functions, this measure of confidence is what Shafer calls the ``weight of evidence''.
+%% TODO: Shafer
+
+
+%%%%% PARAGRAPH ON MANY DIFFERENT VIEWPOINTS
+% Linear interpolation, however, is just the tip of 
+% At the heart of our paper is a hierarchy 
+
 
 
 \begin{figure}
@@ -132,101 +215,69 @@ In this case, the number of training iterations is a much more convenient measur
 	\end{scope}
 \end{tikzpicture}
 \caption{%
-	hi}
+	A map of different kinds of commitment and their representations}
 \end{figure}
 
-
- % natural measure of confidence that works in all cases,
-% which 
-It turns out that there is a natural way of measuring confidence in all cases of interest, based on differential geometry of belief space. 
-Furthermore, in the case where belief states are Dempster-Shafer belief functions, 
-and inputs are simple support functions, this measure of confidence is what Shafer calls the ``weight of evidence''.
-%% TODO: Shafer
-
-
-%%%%% PARAGRAPH ON MANY DIFFERENT VIEWPOINTS
-% Linear interpolation, however, is just the tip of 
-% At the heart of our paper is a hierarchy 
 
 % It is not always most natural for confidence to range between zero and one. 
 % But there are many instances in which 
 % However, there is a more universal representation of it in $[0, \infty]$
 
-
-% Our notion of confidence applies only new information.
-Our notion of confidence 
-% 	applies to incoming information, rather than to  a belief state
-and it is a measure of trust, rather than likelihood.
-Like probability, it is a scale between two extremes.
 % While probability ranges from untenable (0) to undeniable (1),
 % confidence ranges from completely untrustworthy $(\bot)$ to fully trusted ($\top$).
-%
-% % We apply this notion confidence of updating.
-% % This paper explores how confidence works in state-updating context.
-% This paper explores how confidence works in the context of learning.
-% In this setting, one has some belief state, and recieves inputs, which one might have some degree of confidence in, which is used to modify one's belief state.
-% Our use of confidence can be viewed as a measure of how seriously to take an input in updating our beliefs.
-
-High confidence is in many ways like high probability: if we really trust a statement \stmt, we should fully incorporate it into our beliefs, and thereby come to believe it with high probability.
-Similarly, it only makes sense to be extremely confident in a \stmt\ if you believe that \stmt\ is extremely likely to be true.
-Low confidence, on the other hand, is quite different from low probability.
-If we have little trust in \stmt, we should \emph{ignore} \stmt, rather than coming to believe that \stmt\ is unlikely.
-% To say \stmt\ has low probabilty is  high confidence in the $\lnot$\stmt.
-For example, if an adversary tells you something that you happen to already believe,
-% is likely to be true
-you might say you have low confidence in their statement, but nevertheless ascribe it high probability.
-
-% The approach we take in this paper is very general,
-% Our approach is quite general, and applies any time a belief state is modified in resonse to an input.
-% one wants to measure (gradual) incorporation of new information into one's beliefs, and may be thought of as a measure of how much of the new information makes it into one's beliefs.
-
-\subsection{Other Conceptions of Confidence.}
-
-\textbf{Probability.}
-% Probability is a numerical scale that ranges from untenable (0) to undeniable (1).
-% No number on this scale is truly neutral.
-% One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
-Some people do use ``confidence'' to mean the same thing as probability. When they say they have low confidence in $\phi$, they mean that they think $\phi$ is unlikely.
-
-One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
-%  probability of $\frac12$ .
-% This shortcoming has perhaps been the primary selling point of many alternatives to probabiltiy, such as Dempster-Shafer Belief functions.
-A value of $\frac12$ may be equally far from zero as it is from one, but is by no means a neutral assessment in all cases: hearing that your favored candidate has a 50\% chance of winning is big news if a win was previously thought to be inevitable.
-For this reason, telling someone the odds are 50/50 is quite different from saying you have no idea.
-% By contrast, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.
-By contrast, zero confidence represents something truly neutral:
-	a statement made with zero confidence does not stake out a claim, and
-	a statement recieved with zero confidence does not affect the recipient's beliefs.
-Nevertheless, in some contexts, we will see that confidences correspond to to probabilities.
-
-\textit{Opacity.} To use a graphical metaphor, think of certainty as black or white.
-Probability describes shades of gray, while confidence describes opacity.
-If we are painting with black and start with a white canvas, there is a precise correspondence between the opacity and the resulting shade of gray.
-
-\textbf{Upper and Lower Probabilities.}
-Upper and lower probabilities can describe a neutral attitude towards a proposition, but they are not really a specification of trust, but rather a direct specification of a belief state.
-It isn't immediately clear how to use these representations of uncertainty to update, and they're a little too complex to function effectively as the primitive measure of trust that we're after.
 
 
-\textbf{Shafer's Weight of Evidence.}
-Shafer's ``weight of evidence'' is precisely the same concept we have in mind.
-Our analysis precsely reduces to his, in the setting where belief states are Belief functions (which generalize probabilities, but not, say, neural network weights), and observations are events.
-% This paper can be a generalization of Shafer's ``weight of evidence'' to a broader class of settings, where one might have very different belief states and observations.
-Thus, this paper can be viewed as generalizing this concept to a broader class of settings, without requiring that one adopt Shafer's conception of a belief state or an observation.
 
 
-\textbf{Variance and Entropy.}
-The inverse of variance, sometimes known as precision,
-	is also commonly used to measure confidence.
-If a sensor is unreliable and can give a range of answers, the variance of the estimate is a very common way of quantifying this reliablility.
-If measurements have zero variance, in some sense one has absolute confidence ($\top$) in the sensor. If measurements have infinite variance, then in some sense one has no confidence in the sensor, since individual samples convey no information about the true value of the quantity measured.
-As with probability, inverse variance will coincide with confidence in some settings; we will see how in \cref{sec:variance}.
+\commentout{
+	\subsection{Other Conceptions of Confidence.}
 
-Entropy, like variance, is a standard way of measuring uncertainty, and in some settings, confidence coincides with entropy (see \cref{sec:entropy}).
-The assumption underlying both approaches is that there's some ``true'' value of the variable, and that the randomness is epsistemic (due to sensor errors) rather than aleotoric (inherrent in the quantity being measured).
+	\textbf{Probability.}
+	% Probability is a numerical scale that ranges from untenable (0) to undeniable (1).
+	% No number on this scale is truly neutral.
+	% One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
+	Some people do use ``confidence'' to mean the same thing as probability. When they say they have low confidence in $\phi$, they mean that they think $\phi$ is unlikely.
 
-\textbf{Confidence Intervals and Error Bars.}
-Another notion of the word ``confidence'' comes from the term ``confidence interval''.
-This concept arises in settings involving a probability distribution $\Pr(X)$ over a metric space $X$, typically $X = \mathbb R$.
-A 95\% confidence interval is the (largest) ball containing 95\% of the probability, and its size is a geometric measurement of how .
-This intuition behind this reading of the word confidence is the same as
+	One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
+	%  probability of $\frac12$ .
+	% This shortcoming has perhaps been the primary selling point of many alternatives to probabiltiy, such as Dempster-Shafer Belief functions.
+	A value of $\frac12$ may be equally far from zero as it is from one, but is by no means a neutral assessment in all cases: hearing that your favored candidate has a 50\% chance of winning is big news if a win was previously thought to be inevitable.
+	For this reason, telling someone the odds are 50/50 is quite different from saying you have no idea.
+	% By contrast, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.
+	By contrast, zero confidence represents something truly neutral:
+		a statement made with zero confidence does not stake out a claim, and
+		a statement recieved with zero confidence does not affect the recipient's beliefs.
+	Nevertheless, in some contexts, we will see that confidences correspond to to probabilities.
+
+	\textit{Opacity.} To use a graphical metaphor, think of certainty as black or white.
+	Probability describes shades of gray, while confidence describes opacity.
+	If we are painting with black and start with a white canvas, there is a precise correspondence between the opacity and the resulting shade of gray.
+
+	\textbf{Upper and Lower Probabilities.}
+	Upper and lower probabilities can describe a neutral attitude towards a proposition, but they are not really a specification of trust, but rather a direct specification of a belief state.
+	It isn't immediately clear how to use these representations of uncertainty to update, and they're a little too complex to function effectively as the primitive measure of trust that we're after.
+
+
+	\textbf{Shafer's Weight of Evidence.}
+	Shafer's ``weight of evidence'' is precisely the same concept we have in mind.
+	Our analysis precsely reduces to his, in the setting where belief states are Belief functions (which generalize probabilities, but not, say, neural network weights), and observations are events.
+	% This paper can be a generalization of Shafer's ``weight of evidence'' to a broader class of settings, where one might have very different belief states and observations.
+	Thus, this paper can be viewed as generalizing this concept to a broader class of settings, without requiring that one adopt Shafer's conception of a belief state or an observation.
+
+
+	\textbf{Variance and Entropy.}
+	The inverse of variance, sometimes known as precision,
+		is also commonly used to measure confidence.
+	If a sensor is unreliable and can give a range of answers, the variance of the estimate is a very common way of quantifying this reliablility.
+	If measurements have zero variance, in some sense one has absolute confidence ($\top$) in the sensor. If measurements have infinite variance, then in some sense one has no confidence in the sensor, since individual samples convey no information about the true value of the quantity measured.
+	As with probability, inverse variance will coincide with confidence in some settings; we will see how in \cref{sec:variance}.
+
+	Entropy, like variance, is a standard way of measuring uncertainty, and in some settings, confidence coincides with entropy (see \cref{sec:entropy}).
+	The assumption underlying both approaches is that there's some ``true'' value of the variable, and that the randomness is epsistemic (due to sensor errors) rather than aleotoric (inherrent in the quantity being measured).
+
+	\textbf{Confidence Intervals and Error Bars.}
+	Another notion of the word ``confidence'' comes from the term ``confidence interval''.
+	This concept arises in settings involving a probability distribution $\Pr(X)$ over a metric space $X$, typically $X = \mathbb R$.
+	A 95\% confidence interval is the (largest) ball containing 95\% of the probability, and its size is a geometric measurement of how .
+	This intuition behind this reading of the word confidence is the same as
+}
