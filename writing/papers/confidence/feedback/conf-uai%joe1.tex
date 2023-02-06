@@ -1,0 +1,775 @@
+\documentclass{uai2023} % for initial submission
+% \documentclass[accepted]{uai2023} % after acceptance, for a revised
+                                    % version; also before submission to
+                                    % see how the non-anonymous paper
+                                    % would look like
+%% There is a class option to choose the math font
+% \documentclass[mathfont=ptmx]{uai2023} % ptmx math instead of Computer
+                                         % Modern (has noticable issues)
+% \documentclass[mathfont=newtx]{uai2023} % newtx fonts (improves upon
+                                          % ptmx; less tested, no support)
+% NOTE: Only keep *one* line above as appropriate, as it will be replaced
+%       automatically for papers to be published. Do not make any other
+%       change above this note for an accepted version.
+
+%% Choose your variant of English; be consistent
+\usepackage[american]{babel}
+% \usepackage[british]{babel}
+
+%% Some suggested packages, as needed:
+\usepackage{natbib} % has a nice set of citation styles and commands
+    \bibliographystyle{plainnat}
+    \renewcommand{\bibsection}{\subsubsection*{References}}
+% \usepackage{mathtools} % amsmath with fixes and additions
+% \usepackage{siunitx} % for proper typesetting of numbers and units
+\usepackage{booktabs} % commands to create good-looking tables
+% \usepackage{tikz} % nice language for creating drawings and diagrams
+
+\input{confidence-preamble}
+% \addbibresource{conf.bib}
+
+%% Provided macros
+% \smaller: Because the class footnote size is essentially LaTeX's \small,
+%           redefining \footnotesize, we provide the original \footnotesize
+%           using this macro.
+%           (Use only sparingly, e.g., in drawings, as it is quite small.)
+
+%% additional macros
+\newcommand{\ext}[1]{\overline #1} %  measures over phi
+\newcommand{\Unif}{\mathrm{Unif}}
+
+\newcommand\cofunc{commitment function}
+\newcommand\confdom{\mathdcal C}
+\newcommand\ZO{\mathrm{ZO}}
+% \def\ZO{[0,1]}
+\newcommand\Rplus{\mathbb R_+}
+\newcommand\X{\mathcal X}
+
+% \let\oldTheta\Theta
+% \renewcommand\Theta{\mathdcal{\Theta}}
+
+% \title{Measures of Confidence}
+\title{%
+    % Updating with Confidence
+    Updating with Confidence
+}
+
+% The standard author block has changed for UAI 2022 to provide
+% more space for long author lists and allow for complex affiliations
+%
+% All author information is authomatically removed by the class for the
+% anonymous submission version of your paper, so you can already add your
+% information below.
+
+% Add authors
+\author[1]{\href{mailto:<oer5@cornell.edu>?Subject=confidence-paper}{Oliver E Richardson}{}}
+\author[1]{Joseph Y Halpern}
+% Add affiliations after the authors
+\affil[1]{%
+    Computer Science Dept.\\
+    Cornell University\\
+    Ithaca, New York, USA
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+    We introduce a new notion of confidence, which arises in updating and learning settings.
+\end{abstract}
+
+\section{Introduction}\label{sec:intro}
+%\input{sections/intro}
+\def\stmt{$A$}
+% \def\stmt{$\phi$}
+
+% The ability articulate a \emph{degree of confidence} is an important aspect of knowledge representation.
+%joe1: you need to get to the point faster
+%The ability to articulate a \emph{degree of confidence} 
+%is a critical aspect of representing knowledge.
+What should it mean to say that one has a high degree of confidence in
+a statement $\phi$?  We often identify this with the
+likelihood of $\phi$ being 
+true to be high.  Here we argue that there is a related but
+more useful way of defining confidence, which complements
+liielihood and, moreover, unifies several different concepts in the
+literature.  
+
+% is an important aspect of representing knowledge.
+	% Subpoint: it helps avoid a brittleness of always beliving things
+	% Subpoint: Protects against overconfidence.
+%joe1: cut the rest of the first paragraph, although I salvaged some
+%of it above.  It's a bad idea to lead with "[confidence] can be read
+%in probabilitic terms". We're trying to distinguish confidence from
+%probaiblty, so we don't want to suggest that they can be conflated.
+\commentout{
+There are
+% Correspondingly, there are
+many well-established ways to quantify (un)certinaty \parencite[\S2]{halpern2017reasoning},
+	% probability chief among them.
+	and chief among them is probability.
+	% perhaps most common is to use probabilities.
+% Indeed, many people use ``confidence'' as a synonym for probability.
+% Indeed, ``confidence'' is often used as a synonym for probability.
+% Indeed, ``high confidence'' and ``high probability'' are often used interchangably.
+% Indeed, ``confidence'' and
+% In our view, this practice
+% Although this use of the word is perfectly functional, it seems to have shadowed another conception of confidence---one that is fundementally different, if at first sublty so.
+% However, this practice shadows
+% However, this practice seems to have shadowed
+% However, there is also another conception
+% However, there
+% However, there is also another conception
+% 	of confidence---one that is fundementally different, if at first subtly so.
+% Although there is nothing wrong with this,
+% which seems have been shadowed by the enormous success of probability---one that is fundementally different, if at first subtly so.
+% which seems to have been shadowed by the enormous success of probability---a concept that is fundementally different, if at first subtly so.
+% This paper develops that notion
+% However, there is also another conception of confidence---one that complements traditional representations of uncertainty, and is fundementally different in nature.
+% In our view, however, there is also another conception of confidence:
+% 	% one that complements traditional representations of uncertainty, and is fundementally different in nature.
+% 	one that complements traditional representations of uncertainty (such as probability), and is fundementally different in nature.
+% In our view, however, there is also another conception of confidence
+% While ``confidence'' admits a coherent probabilistic reading,
+While ``confidence'' can be coherently read in probabilistic terms,
+	such usage may shadow another important concept.
+This paper details a different conception that arises when updating beliefs.
+% This paper describes a very different conception of confidence that arises when updating beliefs.
+	% one that complements traditional representations of uncertainty, and is fundementally different in nature.
+% This alternate conception of confidence, which is the focus of the present paper,
+% This alternate conception
+As we shall see, this notion of confidence
+% can be used alongside
+complements traditional representations of uncertainty (such as probability),
+% but is fundementally different in nature.
+and moreover unifies several different concepts
+across AI.
+% ranging from traditional notions of confidence like inverse variance, and Shafer's weight of evidence, to notions in ML and optimization: learning rates and objective strengths.
+% We develop this notion
+}
+
+% For us, confidence is a measure of trust (in incoming information), rather than of likelihood (of hypothetical information).
+%joe1
+%For us, confidence (in an input $\phi$) is a measure of \emph{trust},
+%rather than of likelihood; it quantifies seriously to take $\phi$ in 
+%updating one's beliefs. 
+For us, the degree of confidence in $\phi$ is a measure of the degree
+to which we \emph{trust} $\phi$,
+rather than of the likelihood of $\phi$.  We formalize this by taking
+the degree of confidence to represent how seriously to take $\phi$
+when updating beliefs. 
+%joe1: added, to give the reader the intuition right away.  
+Thus, if we learn $\phi$ but have confidence 0 in it, it should not
+affect our beliefs at all, while if we have confidence 1 in $\phi$, we
+should update our beliefs by taking $\phi$ to be true; in a
+probabilistic setting, this amounts to conditioning on $\phi$.  In a
+probabilistic setting, we can capture an  intermediate degree of
+confidence by 
+interpolating in the obvious way: if we learn $\phi$ with confidence
+$\alpha$ 
+and start with a prior probability $\Pr$, then we end up with the
+posterior $(1-\alpha)\Pr + \alpha (\Pr\mid \phi)$.
+Thus, having high confidence in $\phi$ leads to beliefs that give $\phi$
+high posterior likelihood, but confidence and likelihood are, in
+general, quite different.   If we start out with a prior that gives
+$\phi$ high likelihood, and learn $\phi$ with very low confidence, our
+posterior beliefs still give $\phi$ high likelihood.  We might also
+have a great deal of confidence in an observation of $\phi$ 
+despite having a low prior belief in $\phi$.
+
+
+%joe1*: NO! Please do not talk about the "geometry" of beliefs.  This
+%may be a notion that you undestand, but you haven't defined it for
+%the poor reader, and it's completely unnecessary at this point.
+%Also, do not keep undercutting your story (by talking about things
+%being "less clear") unless you immediately make it clear.  This is
+%terrible salesmanship
+
+% Like probability, confidence lies on a continuum between two extremes---but they have different meanings.
+% To see how the two notions diverge, imagine learning something surprising from a trusted source; that piece of information has high confidence but low probability.
+% While confidence and probability are often
+%joe1; replaced this by the discussion above
+\commentout{
+Likelihood and trust often tightly coupled, but they are different.
+For example, we might trust a surprising piece of information despite thinking it unlikely.
+%
+Of course, after updating, we would find that same information likely (precisely because we took it seriously in the update).
+%
+Thus, high confidence implies high posterior likelihood, making it easy to confuse the two.
+The converse, however, is not true:
+% information from an untrusted source, but that you happen to already believe, should be ascribed high (prior and posterior) likelihood, but low confidence.
+% to information from an untrusted source that we happen to already believe, we should ascribe high (prior and posterior) likelihood but low confidence.
+we should ascribe high (prior \emph{and} posterior) likelihood, but low confidence, to information from an untrusted source which we happen to believe already.
+% we should ascribe high (prior and posterior) likelihood but low
+% confidence information from an untrusted source, but that you happen
+% to already believe, should be ascribed high (prior and posterior)
+% likelihood, but low confidence.
+
+
+% in an updating context: it's how seriously you take an input
+% What we have in mind applies in an updating or learning setting.
+% We take confidence (in an input $\phi$) to be a measure of how seriously we take $\phi$ in updating our beliefs.
+% Like probability, confidence lies in continuum between two extremes, but it ranges from untrusted to trusted, rather than from unlikely to likely.
+% More concretely, confidence interpolates between prior beliefs and the beliefs one would obtain by fully incorporating $\phi$, so as to obtain posterior beliefs somewhere in between.
+More concretely, confidence interpolates between prior beliefs and those obtained by fully trusting $\phi$, so as to obtain posterior beliefs somewhere in between.
+Consequently, the notion is heavily dependent on the geometry of beliefs.
+% This already suffices to characterize our simplest running example:
+To take a simple example,
+if our prior belief is a probability measure $p$ over a finite set $X$, then to update on event $A$ with confidence $\chi \in [0,1]$ might be to arrive at the posterior belief $p'(X) = (1-\chi) p(X) + (\chi)\, p(X|A)$.
+% In this case, $\chi$ can be viewed as a ``fraction of incorporation''.
+Note that
+an update with no confidence ($\chi{\,=\,}0$) ignores new information (since $p' \!=\! p$),
+while a
+% more customary
+full confidence update ($\chi{\,=\,}1$) takes it as seriously as possible,
+% (since then $p'(A) \!=\! 1$).
+since afterwards $p'(A) \!=\! 1$ and there is no way to further incorporate $A$.
+%
+%
+% It is less clear that the intermediate points are the ``right'' ones, or that this
+% is the ``appropriate'' parameterization of the path
+The particular choice of path, as well as its parameterization,
+% are arguably natural consequences of the geometry of probability measures lying .
+are open for debate, but are natural consequences of the geometry when we think of probabilities as points in a simplex.
+%
+In this context,
+% full confidence updates are customary, and
+the confidence $\chi \in [0,1]$ has a clear interpretation as the ``fraction of the way towards full incorporation'',
+% In other cases, however,
+% This is not always true.
+but in others,
+% it may not be clear what an intermediate number (say, $\chi=0.7$) means.
+% it is less clear what such a number (say, $\chi=0.7$) means.
+% it is still important to articulate confidence, but
+it may be
+%it is
+less clear what a number on this scale (say, $\chi{=}0.7$) means.
+% there is still a natural path from distrust to complete trust that is parameterized differently.
+% it is less clear how to interpret such a number (say, $\chi=0.7$).
+% In other cases, there are other more natural ways to articulate one's confidence.
+% there are other, more natural ways to measure confidence.
+}
+%joe1: \end{commentout}
+
+% The confidence domain $[0,1]$
+% In general, it is not clear what a confidence $\chi \in [0,1]$ means, and the scale starts to be less useful.
+% In other cases, however, it is not so clear what it means to go, say, ``70\% of the way'' to fully incorparting information.
+% We still have a sensible notion of confidence in these cases, .
+% We now describe such an example.
+% One such example is training a neural network.
+%joe1: added
+But confidence can be applied far more broadly.
+%joe1
+%Consider a neural network, whose ``belief'' state is a setting of
+Consider a neural network, whose ``belief state'' is a setting of
+weights. 
+	% which are updated when given a training point.
+% As it sees each training point, it updates its weights.
+% Modern learning algorithms do not take any individual point too seriously; each training point $x$ changes the weights incrementally, and alone may not even be enough for the network to classify that point correctly.
+%joe1*: You're going on a long digression here that's irrelevant.
+%This is the opposite of "clean and crisp".  Just cut to the chase:
+%what does confidence mean in this setting? What is it that gets
+%confidence?  This is not the least bit clear to me from your
+%writeup.  You say that we can quantify confidence by the number of
+%training iterations, but I don't see how to relate that to having a
+%high degree of confidence in \phi.  What's \phi?
+\commentout{
+Modern learning algorithms (like gradient descent) make small
+incremental changes to the weights, and updating with a training
+example $x$ does not guarantee that the resulting network handles $x$
+correctly. 
+% In other words, the algorithm does not take any individual point too seriously.
+In other words, such algorithms
+(in contrast to their historical counterparts \parencite{conjunctions})
+do not take any one encounter with a training example too seriously.
+% So, in contrast with conditioning, there is a significant difference betwen cycling through the training data once, and doing so many times.
+This distrust of any individual observation is arguably what makes the training process so robust to noisy and conflicting observations.
+}
+\commentout{
+	As a result,
+	there is a significant difference between going through the training data once
+	 % (a single epoch)
+	\unskip, and doing so many times.
+Nevertheless, the weights do eventually converge if we repeatedly train on $x$,
+% which is a natural notion of
+% % ``fully incorporating $x$''---%
+% full incorporation---%
+an extreme action that is only appropriate if we trust $x$ completely.
+% At the other extreme, if we had no trust in $x$, we could ignore it leaving our weights unchanged.
+% In this context,
+% Once again we have two extremes:
+% Depending on our confidence,
+% How we ought to treat $x$
+% What we ought to do depends on our confidence.
+% At one extreme, we have no trust in $x$ and should ignore it, leaving weights unchanged; at the other, we trust $x$ completely, we should adopt the weights that arise in the limit of infinite training.
+% Moreover, this sequence of incremental updates (roughly) describes a path between the two extremes.%
+Moreover, this sequence of incremental updates describes a path, from the opposite, low-confidence extreme of ignoring $x$.%
+	\footnote{This path can be made into a continuous path by interpolating with a line segment, and made smooth in the limit of small step sizes; we will deal with both constructions in \cref{sec:project-additive}.}
+Note that the relevant geometry here is not just the geometry of the weight space, but also that induced by the architecture and the loss function.
+% As we will see in \cref{sec:loss-repr}, such
+% We have now seen a new way of quantifying confidence: the number of training iterations.
+% The number of training iterations a different way of quantifying confidence.
+It is not so clear that a fraction of the way to completion (say 0.7) is as meaningful here as it was before (and it would be difficult to recognize that point in any case),
+but we now have a different way to quantify confidence: the number of training iterations.
+% It turns out that in general, there are close relationships
+}
+  %joe1: \end{commentout}
+
+%joe1: I have no idea what the "first" approach and the "second
+%approach" are.  Is the second approach [0,\infty].  If so, this is
+%the wrong place to discuss it.  It's a minor technical issue.  And I
+%still object strongly to "unit of confidence".  It would be good to
+%talk about the machine learning example here, but it has to be done
+%in a way that connects to everything else.  It would also be good to
+%relate what we're doing to Dempster-Shafer, but this can be done in a
+%much crisper way than you've done it.
+\commentout{
+While there are good reasons to prefer
+the first approach to quantifying confidence as a number in $[0,1]$,
+% $\chi \in [0,1]$,
+the second one is more broadly applicable.
+Our first example, for instance, can be handled in the style of the second one: once we fix a ``unit confidence'', say $\chi=0.01$, a sequence of $n$ unit updates is equivalent to a single one of confidence $\chi= 1-(0.99)^n$.
+As one might expect, if we take the appropriate limit as the step size goes to zero and rescale $n$ by the same degree, we get a continuous domain confidence domain $\beta \in [0,\infty]$ that corresponds to $\chi = 1 - e^{-n} \in [0,1]$ (\cref{sec:flow-repr}).
+% Specifically, we can take a limit
+Moreover, in the case where belief states are Dempster-Shafer belief functions,
+and inputs are simple support functions with degree of support $\chi$, the number $\beta$ corresponds what Shafer calls the \emph{weight of evidence} \parencite{shafer1976mathematical}.
+
+This general idea can be cleaned up by appeal to differential geometry.
+Fix an input $\phi$.
+Assuming that the update paths are differentiable in the degree of confidence at any initial beleifs, the collection of updates with infinitessimal confidence forms a complete vector field $X_\phi$ over the space of beliefs, whose integral curves are paths in belief space, parameterized by confidence $\beta \in [0,\infty]$.
+% Of course, we may always convert this number back to $[0,1]$,
+We step through this more carefully in \cref{sec:field-repr}.
+
+%joe1*: NO!  This is not the place to bring up Reimannian metrics!
+Finally, if our belief space is endowed with a Riemannian metric, so that we may take gradients, partial update functions may be specified by a loss.
+
+% natural measure of confidence that works in all cases,
+% which
+% It turns out that there is a natural way of measuring confidence in all cases of interest, based on differential geometry of belief space.
+% Furthermore, in the case where belief states are Dempster-Shafer belief functions,
+% and inputs are simple support functions, this measure of confidence is what Shafer calls the ``weight of evidence''.
+%% TODO: Shafer
+
+
+%%%%% PARAGRAPH ON MANY DIFFERENT VIEWPOINTS
+% Linear interpolation, however, is just the tip of
+% At the heart of our paper is a hierarchy
+
+
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+	\begin{scope}[fill=gray,fill opacity=0.2,rounded corners=4px]
+		\fill (0,0) rectangle (8,5); % URs (Full Updates)
+		\fill[] (0.2,0.1) rectangle (7.8,4.5); % Flow URs (Flows)
+		\fill[] (0.4,0.2) rectangle (7.6,4.0); % Diffble URs (Vec Field)
+		\fill[] (0.6,0.3) rectangle (7.4,3.5); % Conservative URs
+		\fill (0.8,0.4) -- (0.8, 3.0) -- (3, 3.0)
+		 	to[out=0,in=0,looseness=2] (3,0.4) --cycle; % CONVEX
+		\fill (7.2,0.4) -- (7.2, 3.0) -- (5, 3.0)
+		 	to[out=180,in=180,looseness=2] (5,0.4) --cycle; % CONCAVE
+	\end{scope}
+	\begin{scope}[anchor=north]
+		\node at (4.0, 5.0) {Update Rules};
+		\node at (4.0, 4.5) {Flow URs~~~$f$};
+		\node at (4.0, 4.0) {Diffble URs~~~$X$};
+		% \node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
+		\node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
+		\node at (2.5, 3.0) {Convex CFs};
+		\node at (4.0, 2.5) {Linear CFs};
+		\node at (5.5, 3.0) {Concave CFs};
+	\end{scope}
+\end{tikzpicture}
+\caption{%
+	A map of different kinds of commitment functions and their representations.}
+\end{figure}
+}
+%joe1: \end{commentout}
+
+% It is not always most natural for confidence to range between zero and one.
+% But there are many instances in which
+% However, there is a more universal representation of it in $[0, \infty]$
+
+% While probability ranges from untenable (0) to undeniable (1),
+% confidence ranges from completely untrustworthy $(\bot)$ to fully trusted ($\top$).
+
+
+
+
+\commentout{
+	\subsection{Other Conceptions of Confidence.}
+
+	\textbf{Probability.}
+	% Probability is a numerical scale that ranges from untenable (0) to undeniable (1).
+	% No number on this scale is truly neutral.
+	% One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
+	Some people do use ``confidence'' to mean the same thing as probability. When they say they have low confidence in $\phi$, they mean that they think $\phi$ is unlikely.
+
+	One of the biggest shortcomings of probability is its inability to represent a truly neutral attitude towards a proposition.
+	%  probability of $\frac12$ .
+	% This shortcoming has perhaps been the primary selling point of many alternatives to probabiltiy, such as Dempster-Shafer Belief functions.
+	A value of $\frac12$ may be equally far from zero as it is from one, but is by no means a neutral assessment in all cases: hearing that your favored candidate has a 50\% chance of winning is big news if a win was previously thought to be inevitable.
+	For this reason, telling someone the odds are 50/50 is quite different from saying you have no idea.
+	% By contrast, zero confidence represents a truly neutral stance; a statement with zero confidence has no effect.
+	By contrast, zero confidence represents something truly neutral:
+		a statement made with zero confidence does not stake out a claim, and
+		a statement recieved with zero confidence does not affect the recipient's beliefs.
+	Nevertheless, in some contexts, we will see that confidences correspond to to probabilities.
+
+	\textit{Opacity.} To use a graphical metaphor, think of certainty as black or white.
+	Probability describes shades of gray, while confidence describes opacity.
+	If we are painting with black and start with a white canvas, there is a precise correspondence between the opacity and the resulting shade of gray.
+
+	\textbf{Upper and Lower Probabilities.}
+	Upper and lower probabilities can describe a neutral attitude towards a proposition, but they are not really a specification of trust, but rather a direct specification of a belief state.
+	It isn't immediately clear how to use these representations of uncertainty to update, and they're a little too complex to function effectively as the primitive measure of trust that we're after.
+
+
+	\textbf{Shafer's Weight of Evidence.}
+	Shafer's ``weight of evidence'' is precisely the same concept we have in mind.
+	Our analysis precsely reduces to his, in the setting where belief states are Belief functions (which generalize probabilities, but not, say, neural network weights), and observations are events.
+	% This paper can be a generalization of Shafer's ``weight of evidence'' to a broader class of settings, where one might have very different belief states and observations.
+	Thus, this paper can be viewed as generalizing this concept to a broader class of settings, without requiring that one adopt Shafer's conception of a belief state or an observation.
+
+
+	\textbf{Variance and Entropy.}
+	The inverse of variance, sometimes known as precision,
+		is also commonly used to measure confidence.
+	If a sensor is unreliable and can give a range of answers, the variance of the estimate is a very common way of quantifying this reliablility.
+	If measurements have zero variance, in some sense one has absolute confidence ($\top$) in the sensor. If measurements have infinite variance, then in some sense one has no confidence in the sensor, since individual samples convey no information about the true value of the quantity measured.
+	As with probability, inverse variance will coincide with confidence in some settings; we will see how in \cref{sec:variance}.
+
+	Entropy, like variance, is a standard way of measuring uncertainty, and in some settings, confidence coincides with entropy (see \cref{sec:entropy}).
+	The assumption underlying both approaches is that there's some ``true'' value of the variable, and that the randomness is epsistemic (due to sensor errors) rather than aleotoric (inherrent in the quantity being measured).
+
+	\textbf{Confidence Intervals and Error Bars.}
+	Another notion of the word ``confidence'' comes from the term ``confidence interval''.
+	This concept arises in settings involving a probability distribution $\Pr(X)$ over a metric space $X$, typically $X = \mathbb R$.
+	A 95\% confidence interval is the (largest) ball containing 95\% of the probability, and its size is a geometric measurement of how .
+	This intuition behind this reading of the word confidence is the same as
+}
+
+
+\section{A Formalism For Updating}
+%\input{sections/update-formalism}
+
+
+Throughout, we use $\Theta$ to refer to some space of possible belief states,
+and $\Phi$ for a set of possible inputs.
+For example, a belief state $\theta \in \Theta$
+might be probability distribution,
+a Dempster-Shafer belief function, or
+weights for a neural network,
+while an input $\phi \in \Phi$ might be an event, or a sample from a dataset.
+%
+% $\Theta$ might be \textellipsis
+% \begin{itemize}[nosep]
+%     \item $\Delta W$, the set of probability distributions over measurable space $W$ of outcomes;
+%     \item the set of parameters to some parametric family of distributions;
+%     \item the set of belief functions over a common space of outcomes;
+%     \item the set of all possible PDGs;
+%     \item a set of worlds an agent considers possible;
+%     \item
+% % \end{itemize}
+% It might be
+% a probability distribution,
+% % a parameter setting to some parameteric family of probabilities,
+% a member of some parametric family of models,
+% a set of probabilities,
+% a Dempster-Shafer belief function, or
+% weights for a neural network.
+%
+% Before we add confidence into the mix, let's first see how this setup works without it, so that we can more clearly see what is missing.
+% Before we get to confidence, let's first see how far we can get without it.
+% The first assumption we make is that the updating process can be captured in functional form.
+% The first thing we need to assume is that the updating process can be captured in functional form.
+Now, suppose we have some belief state $\theta$, and observe input
+%joe1
+%$\phi$.
+$\phi$ with some confidence $\alpha$.
+%joe1: this is an awfully flunky sentence
+%How can we describe the processing of updating $\theta$, so as to
+%obtain some $\theta'$ which takes $\phi$ into account?
+How should $\theta$ be updated to take this into account?
+% The first assumption we need to make to study this mathematically is
+% that the process can be captured in functional form. 
+%joe1: We don't have to assume anything, but this is how we are
+%capturing it.  We should als oadd the degree of confidence as an
+%arguiment.   
+%To do so mathematically, we have to assume that it be captured in
+%functional form.
+To describe it formally, we assume that we have a function that, given
+a belief state in $\Theta$ and an observation in $\Phi$ in which we
+have some degree of confidence in $[0,1]$, produces a new belief
+state:.  Formally,
+\unskip\footnote{we can just as easily handle randomized updates;
+	the point is simply that the update can be prescribed by an algorithm.}
+% The primary assumption that we have to make is:
+\begin{CFaxioms}
+%joe1*: I'm not sure that we need to make this a separate assumption,
+%but I could live with it.  But we should explicitly describe the
+%degree of confidence.  That, after all, is what we're trying to
+%capture here!
+\item[\textbf{F}]
+		% The updating process can be described as a function
+		% There exists a function
+		% % $F : \Theta \times \Phi \to \Theta$,
+		% $F : \Phi \to ( \Theta \to \Theta)$,
+		% which, given the old belief state $\theta$ and new information $\phi$, produces the belief state $F_\phi(\theta)$ that corresponds to the result of observing $\phi$ in state $\theta$.
+		% which produces a new belief state, as a function of the old belief state and the new information.
+		There exists a function $F : \Phi \times \Theta \to \Theta$ that,
+		given prior beliefs $\theta$ and new information $\phi$, produces
+		posterior beliefs $\theta' = F(\phi, \theta)$.
+		% which incorporates $\phi$ into $\theta$.
+\end{CFaxioms}
+
+% In some ways this seems very reasonable:
+Given such a function $F$ and a statement $\phi$, we call $F_\phi = F(\phi, -) : \Theta \to \Theta$ an \emph{update}.
+% At this point, since we have no way of articulating how confident we are in the new information, the only reasonable thing to
+% At face value, \textbf{F} seems very reasonable: what more could
+% your next belief state depend on, aside from your previous one and
+% the new information?
+%joe1*: Cut.  this is not the place to start arguing that we should
+%take degree of confidencd into account.  We should incorporate it
+%from the get-go.  That's what the paper is about!
+\commentout{
+At face value, \textbf{F} seems quite reasonable:
+aside from your beliefs and the new information, what more could your
+next belief state depend on? 
+% We will soon argue that that there is another aspect worth separating out: the confidence you have in the new information.
+% We argue that the confidence you have in the new information is a third aspect, worthy of separate treatment.
+We argue that one's \emph{confidence} in the new information $\phi$ is a third consideration,
+% (distinct from $\phi$ itself),
+ worthy of special treatment.
+% We argue that there is a specific
+% Perhaps this is can be
+% Nevertheless, we will soon argue that the resulting belief state $\theta'$ should also depend on something else: one's confidence in the statement.
+% We argue: one's confidence in the statement.
+% Perhaps your confidence in it.
+ % after which we will weaken \textbf{F} appropriately.
+}
+
+
+% Suppose for now that our confidence in $\phi$ is not
+%joe1*: What you have here is (in mhy opinion) the wrong story.  This
+%is *not* the purpose of F.  F should take confidence into account.
+%Idempotence (and it's relationship to independent observations) needs
+%*much* more motivation.  This needs to be rewritten.
+If the purpose of $F$ is to \emph{fully} incorporate the new information into our beliefs
+(and without a notion of confidence, we can't very well specify how much to incorporate),
+then
+% it should be the case that a second update with the same information should not affect the belief state.
+% a second update with the same information should not affect the belief state.
+two successive updates with the same information ought to have the same effect as a single one.
+Intuitively, this is because if we have just updated our beliefs to be consistent with the information $\phi$, then a second observation of $\phi$ will require no further alterations of our belief state.
+In this case, we call $F$ an \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$}, and insist that
+\begin{CFaxioms}
+	\item[\textbf{UR}] For all $\phi \in \Phi$, the update $F_\phi$ is
+	% require that it be idempotent.
+	idempotent.
+    % (i.e., $F_\phi \circ F_\phi = F_\phi$).
+\end{CFaxioms}
+
+% In curried form, $F : \Phi \to (\Theta \to \Theta)$.
+
+% We now proceed with the formal details.
+% \textbf{Update Rules.}
+% Consider a space $\Theta$
+% of possible belief states,
+% and a set $\Phi$ of statements.
+% % and a set $\Phi$ of ``statements'', i.e., the things one can have confidence in.
+% % An \emph{update rule} (or more precisely, a \emph{$\Theta$-updating rule on $\Phi$})
+% An \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$},
+% is a function of the form
+% \[
+%     % F :  (\mathbb R \times \Phi) \to \Big( \Theta \to \Theta \Big)
+%     F :  \Phi \to \Big( \Theta \to \Theta \Big)
+% \]
+% % which describes how to update beliefs about $X$, with the new information, at a certain level of trust.
+% which describes how to (fully) update beliefs $\Theta$ with new information $\Phi$.
+% and for $F$ to be an update rule, we require that , meaning that updating any belief with $\phi$ twice in a row is equivalent to single update.
+% Having said that, one reading of this paper is a relaxation of this requirement.
+% Here are some examples.
+Once $\Theta$, $\Phi$, and any implicit structure in them is specified, there is often a natural choice of update rule.
+To illustrate, we now consider three different rules for different choices of $\Phi$.
+In each case, the possible belief states $\Theta := \Delta W$ be the set of all probability distributions over a finie set $W = \{w_1, \ldots, w_n\}$ of ``possible worlds''.
+
+\begin{enumerate}
+	\item %\textbf{Conditioning.}
+	\textbf{Conditioning.}
+	First, consider the case where observations are events, i.e., $\Phi := 2^W$.
+	% One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,
+	% Here, the appropriate update seems to be condition:
+	Here, the appropriate rule seems to be conditioning:
+	\[
+	\begin{aligned}
+		(-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W &\to (\Delta W \to \Delta W) \\
+		% (-) \smash{\,\Big|\,} (\;\cdot\;) : \qquad 2^W \times \Delta W &\to \Delta W \\
+		% (-) \,\Big|\, (\;\cdot\;) : \Delta X \times 2^X \to \Delta X.
+		% (\mu \in \Delta X, A \subset X) &\mapsto \mu | A .
+		% (A \subset W) &\mapsto (  ~~\mu~~ \mapsto \mu \mid A ),
+		A  &\mapsto (  ~\mu~~ \mapsto \mu \mid A ~),
+		% (A, \mu) ~&\mapsto~  \mu \mid A\, ,
+	\end{aligned}
+	% \qquad
+	% \qquad
+	% \begin{tikzpicture}[center base]
+	%     \node[dpad0] (W) {$W$};
+	%     \node[dpad0, right=0.5 of W] (Aq) {$A?$};
+	%     \draw[arr2, <-] (W) to node[above]{$\mu$} ++(-1, 0);
+	%     \draw[arr2, ->>] (W) to node[above,pos=0.3]{} (Aq);
+	%     \draw[arr2, <<-] (Aq) to node[above,pos=0.7]{$A!$} ++(1.2,0);
+	% \end{tikzpicture}
+	\]
+	% where $(\mu \mid A)(x) = \frac{\mu(\{x\})}{\mu(A)}$
+	% in which learning $A$ maps
+	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A) \{w\} = \ifrac{\mu\{w\}}{\mu(A)}$.
+	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+	where the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+	% and may be defined arbitrarily otherwise.
+	and otherwise is just equal to $\mu$.
+	Observe:
+	\begin{itemize}[nosep]
+		\item Provided $\mu(A) > 0$, then $(\mu\mid A) \mid A = \mu \mid A$, so conditioning is an update rule.
+		\item If $\mu(A \cap B) > 0$, then $(\mu \mid A) \mid B = \mu \mid (A \cap B) = (\mu \mid B) \mid A$, so the order that information is recieved does not matter, so long as that information is consistent with one's beliefs.
+	\end{itemize}
+	% However, it is not the only $\Delta W$-updating rule for $2^W$.
+	 % $\Phi$.
+
+	\item
+	\textbf{Imaging.}
+	A second example of an update rule is the ``imaging'' approach of David Lewis
+	\parencite{lewis1976probabilities}.
+	% , albeit in very different notation.
+	% Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
+	Suppose that, for some set $\Phi$, that we already have a $W$-update rule
+	$f : \Phi \to (W \to W)$, which we interpret as assigning, to each statement $\phi \in \Phi$ and $w \in W$, a unique world $f_\phi w \in W$ which is the world ``most similar to $w$, in which $\phi$ is true'' \parencite{gardenfors1979imaging}.
+	In this case, idempotence of $f_\phi$ amounts to the (very reasonable) requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
+	From $f$, we can construct a $\Delta W$-update rule by
+	\[
+    	\begin{aligned}
+    		F_\phi(\mu) &:=
+    			f^{\sharp}(\mu)
+    			% &= A \mapsto \mu( f^{-1}_\phi( A ))\\
+    			= A \mapsto \mu(\{w : f(w) \in A\})
+    	\end{aligned}
+		% \qquad
+		% \qquad
+		% \begin{tikzpicture}[center base]
+		% 	\node[dpad0] (W) {$W$};
+		% 	\node[dpad0, right=1 of W] (W') {$W$};
+		% 	\node[dpad0, below right=0.2 and 0.2 of W] (Phi) {$\Phi$};
+		% 	\mergearr{W}{Phi}{W'}
+		% 	\node[above=1pt of center-WPhiW']{$f$};
+		% 	\draw[arr2, <-] (W) to node[above]{$\mu$} ++(-1, 0);
+		% 	\draw[arr2, <<-] (Phi) to node[below]{$\phi$} ++(-1.3, 0);
+		% 	\draw[arr2, <-, dashed, gray] (W') to node[above]{$F_\phi(\mu)$} ++(2, 0);
+		% \end{tikzpicture}
+	\]
+	which intuitively moves the probability mass on each world $w$ to the $f_\phi w$, the closest world to $w$ in which $\phi$ is true.
+	% is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$''
+	And, since $f$ is idempotent, $F$ will be as well.
+
+
+	\commentout{
+	\item More generally, consider a measurable space $\mathcal W = (W, \mathcal A)$, where $W$ is a set and $\mathcal A$ is a $\sigma$-algebra over $W$, and let $\mathcal F \subset \mathcal A$ be closed under supersets in $\mathcal A$.
+	% Now, let $\Theta$ be the set of conditional probabili$
+
+	\TODO[Properly Use Conditional Probability Measure, to define on all events]
+
+	Conditioning a probability distribution $\mu \in \Delta\X$ on an event $A \in \mathcal A$ also makes sense in this more general measure-theoretic setting, at least so long as $\mu(A) > 0$, and is given by
+	% the Lebesgue integral
+	% \[
+	$$
+		% (\mu \mid A) (B) = \frac{1}{\mu(A)} \int \mathbf 1_{B}(x)  \mathrm d\mu(x)
+		(\mu \mid A) (B) = \frac{\mu(B \cap A)}{\mu(A)}
+	$$
+	}
+
+
+	\item \textbf{Jeffrey's Rule.}
+	% Once more, suppose that $W$ is a finite set and $\Theta := \Delta W$.
+	Next, consider a more general form of observation, in which observations themselves are probabilities.
+	% Formally, suppose $\Phi$ consists of pairs $(X,\pi)$,
+	% Formally, suppose $\Phi$ consists of marginal distributions $\pi(X)$
+	Formally, suppose $\Phi$ consists of distributions $\pi(X)$,
+	% written $\pi(X)$,
+	where $X : W \to S$ is a random variable,
+	% (i.e., some function of $W$),
+	and $\pi \in \Delta S$ is a distribution over the possible values that $X$ can take.
+	Jeffrey's rule, given by
+	\begin{align*}
+		% \mathrm{Jeffrey}_{(X,\pi)}
+		% \mathrm{Jeffrey}_{\pi(X)}
+		\mathrm{J}_{\pi(\mskip-2muX\mskip-2mu)}
+		(\mu) &:= \sum_{x \in S} \pi(X{=}x) \;  \mu \big|
+            X{=}x
+            % \{ w : X(w) = x \}
+			\\
+			&= A \mapsto \sum_{x \in S} \pi(X{=}x)\, \mu( A \mid X \!= x)
+	\end{align*}
+
+	When $\pi(X) = \delta_x$ is a point mass $X=x$, then Jeffrey's Rule simply conditions on the event $X = x$.
+	 % but for other choices of $\pi(X)$,
+	For this reason, Jeffrey's Rule is sometimes often thought of as a generalization of conditioning that admits for less that complete certainty (i.e., ``low-confidence'' updates), but as we will see, it instead is perhaps better thought of as a high-confidence update on a more expresive class of observations.
+
+	Note that if $\mu' := J_{\pi(X)}(\mu)$ is the result of applying Jeffrey's rule to $\pi(X)$ and $\mu$,
+	% then $\pi$ will be fully incorporated (that is, $\mu'(X) = \pi(X)$),
+	then $\mu'(X) = \pi(X)$, so $\pi(X)$ has been fully
+        incorporated into $\mu'$, and the old beliefs $\mu(X)$ about
+        $X$ have been completely destroyed by the update. 
+\end{enumerate}
+ 
+
+\section{Incremental Updates, and their
+    Flow Representations} \label{sec:flow-repr}
+% \input{sections/flow-repr.tex}
+
+\section{Differentiable Updates, and their
+    Vector Field Representations} \label{sec:field-repr}
+% \input{sections/vecfield-repr}
+
+\section{Optimizing Updates, and their
+    Loss Represntations} \label{sec:loss-repr}
+% \input{sections/loss-repr}
+
+\section{Relationships with Other Notions of Confidence}
+\subsection{Shaffer's Weight of Evidence}
+\subsection{Kallman Filtering}
+
+\section{Discussion}
+
+
+\begin{contributions} % will be removed in pdf for initial submission,
+                      % so you can already fill it to test with the
+                      % ‘accepted’ class option
+    Briefly list author contributions.
+    This is a nice way of making clear who did what and to give proper credit.
+
+    H.~Q.~Bovik conceived the idea and wrote the paper.
+    Coauthor One created the code.
+    Coauthor Two created the figures.
+\end{contributions}
+
+\begin{acknowledgements} % will be removed in pdf for initial submission,
+                         % so you can already fill it to test with the
+                         % ‘accepted’ class option
+    Briefly acknowledge people and organizations here.
+
+    \emph{All} acknowledgements go in this section.
+\end{acknowledgements}
+
+\ifbiblatex
+    % \bibliography{uai2022-template}
+    \printbibliography
+\else
+    \bibliography{conf}
+\fi
+
+\appendix
+% NOTE: necessary when ptmx or no mathfont class option is given
+\providecommand{\upGamma}{\Gamma}
+\providecommand{\uppi}{\pi}
+
+\end{document}
