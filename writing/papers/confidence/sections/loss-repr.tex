@@ -1,0 +1,377 @@
+Suppose we have:
+\begin{enumerate}[nosep]
+	\item A differentiable loss function $\mathcal L : \Theta \times \Phi  \to \mathbb R$, which intuitively measures the ``incompatibility'' between a belief state $\theta$ and an assertion $\varphi$, and
+	\item
+		% A way of taking gradients of $U$ with respect to $\theta$,
+		% % $\nabla : ()$
+		% such as an inner product $g_p : T_p\Theta \times T_p\Theta \to \mathbb R$, making $(\Theta, g)$ a Riemannian manifold.
+		A way of taking the gradient of ${\cal L}$ with respect to $\theta$,%
+			\footnote{
+			such as a tangent-cotangent isomorphism $(-)^\sharp : T^*_p\Theta \to T_p \Theta$, perhaps coming from an affine connection, in turn perhaps coming from a Riemmannian metric.}
+        so as to obtain a vector field on $\Theta$ which optimizes $\mathcal L.$
+\end{enumerate}
+% \def\GD#1{(\mathtt{GD}\;#1)}
+\def\GD#1{\mathtt{GF}[#1]}
+\def\NGD#1{\mathtt{NGF}[#1]}
+
+Then we can define an update rule $\GD {\cal L}$ that reduces inconsistency by gradient flow (the continuous limit of gradient descent). Concretely, such an update rule has a vector field:
+% \def\GD#1{(\mathtt{GD}\; #1)}
+\[
+	\GD {\cal L}'_\phi(\theta) = - \nabla_\theta {\cal L}(\theta,\phi).
+\]
+
+
+\begin{prop}
+	An update rule $F$ on a Riemannian manifold $\Theta$ is optimizing update rule if and only if $(F')^\flat$ is a conservative co-vector field.
+	\cite[Prop 11.40]{lee2013smooth}
+\end{prop}
+
+
+
+\begin{example}[Weighted Average]
+	\begin{align*}
+		\Theta = \mathbb R^n \times (\mathbb R_{> 0} \cup \{\infty\});
+		\qquad
+		\Phi = \mathbb R^n %; \qquad
+	\end{align*}
+	A belief state $(\mat x,w) \in \Theta$ consists a current estimate $\mat x$ of the quantity of interest, and a weight $w$ of the total internal confidence in the estimate.
+
+	Updating proceeds by taking a weighted average of the previous estimate and the new input, weighted by their respective confidences, which is captured by:
+	\begin{align*}
+		F^\beta_{\mat y}(\mat x, w) &=  \left( \frac{ w \mat x + \beta \mat y}{w + \beta} , w + \beta \right)
+		~~\text{and}~~
+		F^{\beta}_{\mat y}(\mat x, \infty) = (\mat x, \infty)
+	\end{align*}
+	It is additive, since
+	\begin{align*}
+		&F^{\beta_2}_{\mat y} \circ F^{\beta_1}_{\mat y}(\mat x, w) \\
+		&= \left( \frac{ (w + \beta_1) \frac{ w \mat x + \beta_1 \mat y}{w + \beta_1} + \beta_2 \mat y}{(w + \beta_1) + \beta_2}, (w  + \beta_1) + \beta_2 \right) \\
+		&= \left( \frac{  w \mat x + (\beta_1 + \beta_2) \mat y}{w + (\beta_1 + \beta_2)}, w  + (\beta_1 + \beta_2)\right)
+		= F^{\beta_1 + \beta_2}_{\mat y}(\mat x, w).
+	\end{align*}
+	And it is clearly differentiable, with a simple calculation revealing that
+	$ F'_{\mat y}(\mat x, w) = \left( \frac{\mat y - \mat x}{w}, 1\right) $.
+
+	Observations:
+	\begin{itemize}
+		\item The update rule cannot be extended differentiably to states $\theta = (\mat x, w)$ with $w = 0$.
+			Intuitively, we need to have some estimate with positive confidence to update beliefs in a differentiable way.
+			This is related to the fact that plain emperical risk minimization (ERM) is unstable, but stable with even a small amount of regularization.
+			% It is also similar to the fact that one needs a prior in order to do
+			% In this case, the prior may be arbitrarily weak.
+		\item The certainties are given by
+		\[
+			\lim_{\beta \to \infty} F^{\beta}_{\mat y}(\mat x, w) = (\mat y, \infty)
+		\]
+		% \item In this case,
+		\item $F$ is commutative, invertible, and symmetric with respect to permutation of the dimensions, but it is not conservative: if we had $U(\mat x, w, \mat y)$ twice differentiable such that $\nabla_{\mat x, w} U = F'$, then we would have
+        \begin{align*}
+        \frac{\partial^2}{\partial w \partial x_i} U &=
+			\frac\partial{\partial w} \frac{y_i - x_i}{w} = \frac{x_i - y_i}{w^2},\quad\text{but}
+            \\
+		\frac{\partial^2}{\partial x_1 \partial w} U
+			&= \frac\partial{\partial x_i} 1 = 0    
+        \end{align*}
+		violating Clairaut's theorem on equality of mixed partials.
+		Therefore, $F$ is not an optimizing update rule.
+	\end{itemize}
+\end{example}
+
+\textbf{Natural Gradients for Probability Distributions.}
+When $\Theta$ parameterizes a family of probability distributions, via some $\Pr : \Theta \to \Delta \X$, there is a particularly natural metric on $\Theta$, called the Fisher information metric.
+This metric is the unique one on $\Theta$ that is
+independent of the representation of $\X$ \parencite{chentsov}, in the following sense.
+If there are cpds $p(Y|X)$ and $q(X|Y)$ such that, for all $\theta \in \Theta$,
+% $\Pr_\theta = qp\Pr(\theta)$,
+% for all $\theta$, sampling $x\sim \Pr_\theta$
+% is the same as the distribution over $x'$  $y \sim p(Y|x)$, and $x'\sim q(X|y)$, is equialent to samkp
+the distribution $\Pr_{\theta}(X)$ is unchanged after converting to $Y$ and back again $X$ (via $p$ and $q$ respectively), as depicted by the following commutative diagram,
+% $q \circ p \circ \Pr_\theta(X) = \Pr_\theta(X)$
+\[
+	% g [ \Theta \xrightarrow{\Pr} X ]  = g [ \Theta \xrightarrow{\Pr} X \xrightarrow{p}
+	%  \Theta \xrightarrow{\Pr} X
+	% \quad = \quad {} \xrightarrow{\theta} \Theta \xrightarrow{\Pr} X \overset p\to Y \overset q\to X,
+	\begin{tikzcd}
+		\Theta \ar[r,"\Pr"]\ar[d,"\Pr"']
+			% \ar[rd,dashed,"\Pr^{(Y)}"description]
+			& X \\
+		X \ar[r,"p"'] & Y \ar[u, "q"']
+	\end{tikzcd}
+\]
+then clearly the family $\Pr(Y|\Theta) := p\,\circ\,\Pr_{\theta}$ carries the same information about the parameters (and in particular how best to update them) as $\Pr_\theta$.
+% since we can (losslessly) convert between the two.
+Chentsov's theorem says, that, up to a multaplicative constant, the Fisher information metric is the only metric on $\Theta$, as a function of the parameterization $\Pr$, which gives identical geometry in both cases.
+% $g[\Pr] = g[\Pr^{Y}]$
+% \footnote{at least when $X$ and $Y$ take values in a finite set, although there have since been numerous extensions of it.}
+
+
+% This allows us to compute the gradient with respect to this metric as
+At each point $\Theta$, the components of the Riemannian metric form a matrix---in this case, the Fisher information matrix $\mathcal I(\theta)$---which allow us to now compute the gradient in the natural geometry from the coordinate derivatives as
+\[
+	\NGD {\cal L}'_\phi (\theta) = - \hat \nabla_\theta \mathcal L(\theta,\phi)
+		% = \mathcal I(\theta)^{-1} \frac{\partial}{\partial \theta_i} U(\theta, \phi)
+		= \mathcal I(\theta)^{\dagger}  \nabla \mathcal L(\theta, \phi)
+\]
+where $ \mathcal I(\theta)^{\dagger} $ denotes the Moore-Penrose psuedoinverse of the matrix $ \mathcal I(\theta)$,
+and $\nabla \mathcal L$ is the gradient for the euclidean metric i.e., the vector of partials $[\frac{\partial \mathcal L}{\partial \theta_1}, % \ldots, \frac{\partial U}{\partial \theta_i},
+ \ldots, \frac{\partial \mathcal L}{\partial \theta_n}]^{\mathsf T}$.
+% which is the transpose of the derivative.
+
+
+
+\subsubsection{Expected Utility Maximization Update Rules}
+% \subsection{Boltzmann Update Rules}
+
+
+% Again, suppose we have a differentiable function $U : \Theta \times \Phi  \to \mathbb R$.
+% Suppose further that we have a recovering a parameter that gives rise to a given probability distribution, i.e., a section of $\Pr$, or concretely,
+% a function $\Pr^{-1} : \Delta\X \to \Theta$ such that $\Pr(\Pr^{-1}(\mu)) = \mu$ for all $\mu \in \Delta\X$.
+%
+% This time, define an update rule directly, by
+%
+% \begin{align*}
+%     (\mathtt{Boltz} U)_\varphi^\beta(\theta)
+%         &:\propto \Pr\nolimits_\theta \exp(-\beta U(\theta,\varphi))\\
+%         &:= \Pr\nolimits^{-1}\bigg\{
+%             A \mapsto \Pr\nolimits_\theta(A)  \, \frac
+%             % {1}
+%             { \exp(-\beta U(\theta,\varphi)) }
+%             {\Ex_{\Pr_\theta}[\exp(-\beta U(\theta,\varphi))]}
+%             % \int_A  \exp(-\beta U(\theta,\varphi)) \mathrm d\,\Pr\nolimits_\theta
+%         \bigg\}
+% \end{align*}
+% Now suppose we have a potential function $U : X \times \Phi  \to \mathbb R$.
+
+\def\Bolz#1{\mathrm{Bolz}[#1]}
+% Suppose, for each $\phi \in \Phi$, we have a potential function $U_\phi : X \to \mathbb R$ on the underlying set $X$.
+
+% What in the special case where $\Theta$ parameterizes a family of probability distributions, $\Thet$
+
+Suppose, for each $\phi \in \Phi$, we have a utility function $U_\phi : X \to \mathbb R$ on the underlying set $X$.
+We can use this to define an update rule
+
+\begin{align*}
+	\Bolz U &: (\mathbb R \times \Phi) \to \Delta\X \to \Delta\X \\
+	\Bolz U^\beta_\varphi(\mu)
+		&:\propto
+			\mu \exp(-\beta U_\phi) \\
+		&= A \mapsto \frac
+			1{\Ex_{\mu} [ \exp(-\beta U_\phi)]}
+			{\int \exp(-\beta U_\phi) \mathbbm 1_A \mathrm d\mu }
+\end{align*}
+
+\begin{prop}
+	Bolzmann Update Rules are additive, zero, differentiable, invertable, and commutative.
+\end{prop}
+
+\begin{lproof}
+	\textbf{Commutativity.}
+	For some normalization factors $Z, Z', Z''$, we have:
+	\begin{align*}
+		 F^\beta_\phi( F^{\beta'}_{\phi'}(\mu))
+		 &= F^\beta_\phi \Big( \frac{1}{Z} \,\mu\, \exp(- \beta' c_{\phi'}) \Big) \\
+		 &= \frac{1}{Z'} \frac{1}{Z} \,\mu\, \exp(- \beta' c_{\phi'}) \exp(- \beta c_{\phi}) \\
+		 &= \frac{1}{Z''} \,\mu\, \exp(-\beta' c_{\phi'} - \beta c_\phi)
+	\end{align*}
+	which is the same expression when we exchange $(\phi, \beta)$ and $(\phi', \beta')$.
+\end{lproof}
+
+Note that this is true even for costs generated by asymmetric distances $c_{\{y\}}(x) = d(y, x) \ne d(x,y) = c_{\{x\}}(a)$.
+
+
+\begin{remark}
+	% For fixed, $\varphi$,
+	 % and in particular, if $\Phi = \{\varphi\}$ is a singleton,
+	Regarding $U_\varphi : \X \to \mathbb R$ as a potential energy over $X$,
+	$\Bolz U^\beta_\varphi(\Unif)$ is the Boltzmann distribution at inverse temperature (thermodynamic coldness) $\beta$
+	% and base measure $\mu$.
+	In the thermodynamic analogy, as temperature decreases, one becomes more certain that particles are in their most favorable states.
+\end{remark}
+
+
+The certainties of $\Bolz U$ are the minimizers of $U$.
+% $(\mu(X),\varphi) \mapsto \mu(X ~|~ \arg\min_x U(x,\varphi))$.
+
+
+
+
+\begin{wip}
+	% Suppose $\Theta$
+	As a reminder, we have $\Theta = \Delta \X$, and suppose we have $c : X \times \Phi \to \mathbb R$.
+	Suppose $U(\theta, \varphi) = \Ex_\theta[ c_\varphi ]$ (linearity, \cref{ax:linear}).
+	Then
+	$% \begin{align*}
+		(\mathrm{Boltz}\;U)'_\varphi \theta = \theta(\Ex_\theta[c_\varphi] - c_\varphi),
+	$% \end{align*}
+	while
+	\begin{align*}
+		 (\mathtt{GD}\; U)'_\varphi \theta &=
+			 - \nabla_{\theta} \Ex\nolimits_\theta [ c_\varphi ]
+			 \\ &= - c_\varphi
+			 % {\color{gray}~+ \Ex\nolimits_{\theta}[c_\varphi]}
+			 .
+	\end{align*}
+	This second expression, though, doesn't seem quite right --- it isn't even a tangent vector to the probability simplex, since its components don't sum to zero.
+	This issue is in our naive computation of the gradient.
+	We have computed the collection of partial derivatives $\frac{\partial}{\partial \theta_i} ( \theta \cdot  c_\varphi) = (c_\varphi)_i$,
+	which is technically  co-vector field, not a vector field.%
+		\footnote{it acts on a vector field $V$ by $ -c_\varphi ( V ) = - V(c_\varphi)$.}
+
+	For simplicity, suppose that $X = \{1, \ldots, n\}$, in the discussion that follows.
+	If our parameter space were all of $\mathbb R^n$, we could simply collect these terms and take a transpose, to get
+	\[
+		\nabla_\theta \Ex_{\theta}[c_\varphi]
+	\]
+	There are two ways to proceed from here.
+	The first makes use of manifold theory: for each point $p \in \Delta X$, begin by identifing a neighborhood $U \ni p$ with an open subset of $\mathbb R^{(n-1)}$, and define an inner product (a metric tensor) $g_p(\cdot, \cdot)$ on tangent vectors $v \in T_p\Delta X$, making $\Delta\X$ into a Riemannian Manifold, and then compute the gradient in the standard way, using the inverse of the metric tensor $g$ in order to convert covectors to vectors in a natural way.
+
+	% The second, which is simpler but more constrained than the first, is to simply
+	The second, which is computationally simpler, is to take the metric induced by an embedding in Euclidean space.
+	This approach is equally general, because Nash's Theorem \parencite{nash1956imbedding} tells us that any $n$-dimensional Riemannian manifold may be isometrically embeded in $\mathbb R^{2n+1}$.
+
+
+
+	% we have
+	% \[ \frac{\partial}{\partial \theta^i} ( \theta \cdot  c_\varphi) \]
+\end{wip}
+
+\begin{prop}
+	% Fix $\varphi$.
+	% Let $f(X) := \exp(-\beta U(X,\varphi))$, and $g(X) := U(X,\varphi)$.
+	% With the metric on $\Delta\X$ induced by its embedding as a simplex in $\mathbb R^{|X|}$, we have that
+	% When parameterized as a simplex,
+	The associated vector field is given by
+	%
+	% \begin{align*}
+	$
+		% (\mathrm{Boltz}\,U'_\varphi p)_{x} = p(x) (\Ex_p[U(X,\varphi)] - U(x,\varphi) )
+		(\mathrm{Boltz}\,U)'_\varphi p = p (\Ex_p[U_\varphi] - U_\varphi )
+	$.
+	% \end{align*}
+\end{prop}
+\begin{lproof}
+	Let $f(X) := \exp(-\beta U(X,\varphi))$, and $g(X) := U(X,\varphi)$.
+	\begin{align*}
+		\mathrm{Boltz}'_\varphi\theta &= \frac{\partial}{\partial \beta} \mathrm{Boltz}^\beta_\varphi(p) \Big|_{\beta=0} \\
+	\intertext{\TODO[TODO: finish typesetting algebra]}
+		&= x \mapsto
+			p(x) \frac{f(x)}{\Ex_p[f]}
+				\left(\Ex_p\left[ \frac{f}{\Ex_{p}[f]} g\right] - g(x) \right)
+				% {\exp(-\beta U(x,\varphi))}
+				% {\Ex_{}}
+				\Big|_{\beta=0}
+				\\
+		&= \frac{pf}{\Ex_p[f]^2}
+			\left(\Ex\nolimits_p\left[ f g\right] - g \Ex\nolimits_{p}[f] \right)
+			\Big|_{\beta=0} \\
+		&= x \mapsto p(x) (\Ex\nolimits_p[g] - g(x)) &
+			\text{since $f(X) = 1$ when $\beta=0$}
+	\end{align*}
+	As a sanity check, note that the sum over all components is
+	\[ \sum_{x \in X} ((\mathrm{Boltz}\,U)'_\varphi\, \theta)_x
+		 = \sum_{x \in X} p(x) (\Ex\nolimits_p[g] - g(x))
+		 = \Ex\nolimits_p[ \Ex\nolimits_p [ g ]] - \Ex\nolimits_p [g] = 0,
+	 \]
+	 so indeed it lies within the tangent space.
+\end{lproof}
+
+
+\begin{prop}
+	The optimizing update rules for $\Theta = \Delta X$ whose loss represntation is linear (i.e., an expected utility), are precisely the Bolzmann update rules.
+	In particular, the Bolzmann update rule with potential $U(X)$ is the natural gradient flow update rule for expected value of $U$, i.e.,
+	\(
+		\Bolz U =
+		\NGD{\mu\mapsto\Ex_\mu U} .
+	\)
+\end{prop}
+
+
+\begin{example}[Gaussian NGD]\label{gauss-ngd}
+	Consider the case where $\Theta  = \{ (\mu, \sigma^2) \in \mathbb R \times \mathbb R_+ \}$ is the half-space of parameters to a Gaussian over some real variable $X$, and $\Phi \cong \mathbb R$ consists of possible observations of $X$.
+
+	One natural loss function is negative log likelihood (differential surprisal) of the observation $x$ according to your belief state $\theta = (\mu, \sigma^2)$:
+	\begin{align*}
+		&\mathcal L(x, \mu, \sigma^2) = - \log \mathcal N(x \mid \mu, \sigma^2) 
+        = \frac12 \log 2\pi\sigma^2  + \frac12 \left(\frac{x-\mu}{\sigma}\right)^2 \\
+        &\quad=
+		\aar*{%
+		\begin{tikzpicture}[center base]
+			\node[dpad0](X) at (0,0){$X$};
+			% \node[dpad
+			\draw[arr2, <<-] (X) to node[above,pos=0.7]{$x$} ++(1.0,0);
+			% \draw[arr2, <-] (X) to node[above]{$\mathcal N(X|\mu,\sigma^2)$} ++(-1.7,0);
+			\node[dpad0](m) at (-1.5, 0.3) {$\mu$};
+			\node[dpad0](s2) at (-1.5, -0.3) {$\sigma^2$};
+			\mergearr{m}{s2}{X};
+			\node[above=2pt of center-ms2X](N){$\mathcal N$};
+			\draw[arr1, <<-] (m) to node[above, pos=0.7]{$\mu$} +(-0.9,0);
+			\draw[arr1, <<-] (s2) to node[above, pos=0.7]{$\sigma^2$} +(-0.9,0);
+		\end{tikzpicture}}.
+	\end{align*}
+
+	The Fisher information for a normal distribution is given by
+	\[
+	\mathcal I(\mu, \sigma) =
+	% \begin{bmatrix}
+	%     \Ex_{\mathcal N(X|\mu,\sigma^2}[ \frac{\partial mathcal N(X|\mu,\sigma^2}{\partial \mu}) ]
+	% \end{bmatrix}
+	% =
+	\begin{bmatrix}
+		\frac1{\sigma^2} & 0 \\
+		0 & \frac{1}{2 \sigma^4}
+	\end{bmatrix}
+	\]
+
+
+
+	The natural gradient update rule is given by
+	\begin{align*}
+		F'_{x}(\mu, \sigma^2)
+        &= - \hat\nabla_{\mu, \sigma^2} \mathcal L(x,\mu,\sigma^2)
+        \\ &= \mathcal I(\mu, \sigma^2)^{-1}
+		\begin{bmatrix}
+			\frac{x-\mu}{\sigma} \\[1ex] \frac {-\sigma^2 + (x-\mu)^2}{2 \sigma^4}
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			x-\mu \\ (x-\mu)^2 - \sigma^2
+		\end{bmatrix}.
+	\end{align*}
+
+	Note that:
+	\begin{itemize}
+		\item  $\Ex_{x \sim \nu} [ F'_x(\mu,\sigma^2) ] = \mat 0$ if and only if $\nu$ has mean $\mu$ and variance $\sigma^2$.
+		% We can interpret this in two ways:
+		% This means that if observations are drawn from a fixed distribution $\nu(X)$,
+		Moreover, this point is the unique global attractor.
+		This means that,
+		\begin{enumerate}
+			\item If observations are drawn from a fixed distribution $\nu(X)$, and we repeatedly use $F$ to update $\theta = (\nu, \sigma)$ with small confidence $\epsilon$,
+			then $\mu$ will approach the mean $\Ex_{\nu}[X]$ of $\nu$
+			and $\sigma^2$ will approach the variance $\Ex_{\nu}[X^2] - \Ex_{\nu}[X]^2$.
+			% If we make f observations are drawn from a fixed distribution $\nu(X)$,
+			% If we update our belief parameters $\theta = (\mu, \sigma)$ according to $F$ with
+
+			\item If we perform a single high-confidence update on the extended observation $\varphi \propto \nu$, in which each $x$ has relative confidence $\nu(x)$, the result will be a Gaussian with the mean and variance of $\nu$, i.e.,
+			\[
+				\forall \theta.\quad
+				\lim_{c \to \infty} \Pr\nolimits_{F_{\nu}^c(\theta)} = \mathcal N(\Ex\nolimits_{\nu}[X], {\mathrm{Var}}_{\nu}[X])
+			\]
+		\end{enumerate}
+		In this sense, relative confidence acts like probability.
+		% So,
+
+		\item
+		If we update with the observation $x = \mu$ of our estimate with confidence $c$,
+		the mean is unchanged, and our estimate of the variance becomes the harmonic mean of our previous variance $\sigma_0^2$ and the inverse confidence $\frac1c$.
+		That is,
+		\[
+			F^c_\mu(\mu, \sigma_0^2) =
+			\left(\mu, \frac{1}{c + \frac{1}{\sigma_0^2}} \right).
+		\]
+		Equivalently, the precision of the resulting distribution is the average of the confidence $c$ and the previous precision $\nicefrac{1}{\sigma_0^2}$, which suggests that confidence is of the same type as precision.
+		%
+		Note that if $\sigma_0^2$ is very large, so that our initial beliefs are very uncertain, updating with confidence $c$ results in variance $\frac1t$.
+		In this sense, the magnitude of confidence acts as the inverse of variance.
+	\end{itemize}
+\end{example}

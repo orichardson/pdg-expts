@@ -67,22 +67,29 @@ at the other, if we have full confidence in $\phi$,
 % In the setting where, our beliefs is a probability measure $\Pr$, and $\phi$ is an event, 
 % In a probabilistic setting, we can capture an intermediate degree of
 % If our belief state is a probability measure $\Pr$ and $\phi$ is an event, for example, then fully incorporating $\phi$ amounts to conditioning $\Pr$ on it.
-Suppose, for example, that 
+\begin{example} \label{ex:prob-simple}
+% Suppose, for example, that 
+Suppose
 % For example, if
 our belief state is a probability measure, and $\phi$ is an event. 
-In this setting, 
-a full-confidence update amounts to conditioning on $\phi$, after which $\phi$ has probability 1 and cannot be further incorporated.
+% In this setting, 
+% Here,
+A full-confidence update then amounts to conditioning on $\phi$, after which $\phi$ has probability 1, and so cannot be further incorporated.
 %oli1: changed from "the obvious way" to "an obvious way"
 % In a probabilistic setting, we can capture an  intermediate degree of confidence by interpolating in the obvious way:
-In this case,
+% In this case,
 % we can also capture intermediate degrees of confidence in an obvious way:
-there is also an obvious way to describe intermediate degrees of confidence:
+We also have an obvious way to describe intermediate degrees of confidence:
 if we learn $\phi$ with confidence
 %oli1: now adding range here
 % $\alpha$
 $\alpha \in [0,1]$
 % and start with a prior probability $\Pr$, then we end up with the
-and start with prior probability $\Pr$, then we might end up with the
+and start with prior probability $\Pr$, then we end up with the
+%oli1: I agree that this notation is nicer, but these days it
+% is also much less standard than p(X) and p(X|\phi). In particular,
+% my ML friends who work with applied probability a lot do not understand
+% how to parse  "\Pr | \phi". 
 posterior $(1-\alpha)\Pr + \alpha (\Pr\mid \phi)$.
 %
 Thus, having high confidence in $\phi$ leads to posterior beliefs that give $\phi$
@@ -106,7 +113,7 @@ then our prior gives $\phi$ high probability, but we learn $\phi$ with low confi
 Confidence and prior probability are even more independent: 
 if we learn a surprising fact $\phi$ from a trusted source, we have high confidence in $\phi$ despite it having low prior probability.
 % This leads to an important observation: one's confidence in $\phi$ is not a feature of one's prior probability at all.
-
+\end{example}
 
 \commentout{
 	In this context, 
@@ -118,32 +125,67 @@ if we learn a surprising fact $\phi$ from a trusted source, we have high confide
 	% In other cases, there are other more natural ways to articulate one's confidence.
 }
 
+%oli1: something bothers me about starting a paragraph with "but", 
+% especially without directly pushing off of something concrete about the
+% way the previous sentence ended.
+% But confidence can be applied far more broadly.
+% This notion of confidence applies far more broadly. 
+This notion of confidence applies far more broadly.
+% Here is an example that has similar 
+% We now give a quite different ,
+We now give an example with the same critical elements,
+but a very different flavor.
+% of a very different flavor, 
+% in which confidence is measured differently.
 
-But confidence can be applied far more broadly.
+\begin{example}\label{ex:classifier}
 Consider a neural network, whose ``belief state'' is a setting of weights.
+% $ \in \mathbb R^n$.
 	% which are updated when given a training point.
 % As it sees each training point, it updates its weights. 
 % Modern learning algorithms do not take any individual point too seriously; each training point $x$ changes the weights incrementally, and alone may not even be enough for the network to classify that point correctly.
 %oli1:adding, per our discussion
-For definiteness, suppose we are talking about a classifier, so that there is a function $f : \Theta \times X \to \Delta Y$, that, when supplied a setting of the network weights weights $\theta \in \Theta$, and an input $x \in X$, outputs a distribution $f_\theta(x)$ over possible class lables $Y$. 
-Modern learning algorithms (like gradient descent) make small incremental changes to the weights, and so updating with a labeled training example $\phi = (x,y)$ does not ensure that $f_\theta(x)$ is of high probability. 
+For definiteness, suppose we are talking about a classifier, so that for every setting of weights $\theta$, there is a function
+%oli1: I can also siplify this to be a function f : X \to [0,1] if it's
+% a binary classifier, which will simplify the text. 
+$f_\theta : X \to \Delta Y$ that maps inputs $x \in X$ to distributions $f_\theta(x)$ over possible class lables $Y$. 
+%joe1*: You're going on a long digression here that's irrelevant.
+%This is the opposite of "clean and crisp".  Just cut to the chase:
+%what does confidence mean in this setting? What is it that gets
+%confidence?  This is not the least bit clear to me from your
+%writeup.  You say that we can quantify confidence by the number of
+%training iterations, but I don't see how to relate that to having a
+%high degree of confidence in \phi.  What's \phi?
+%oli1*: what I said was all relevant and curated, but evidently it wasn't
+% clear and I lost you pretty early on. I'm trying to fill out what I had
+% so it's easier to follow.
+Modern learning algorithms (like gradient descent) make small incremental changes to the weights.
+Therefore, if we update $\theta$ with a labeled training example $\phi = (x,y)$ to obtain new weights $\theta'$, there is no guarantee that $f_{\theta'}(x)$ gives high probability to $y$.
+ % that it assigns higher probability to $y$ than $f_{\theta}(x)$ does. 
 % does not guarantee that the resulting network handles $x$ correctly. 
 % In other words, the algorithm does not take any individual point too seriously.
 In other words, such algorithms 
-(in contrast to their historical counterparts \parencite{conjunctions}) 
-do not take any one encounter with a training example too seriously.
+(in contrast to their historical counterparts like conjunction learning algorithms \parencite{conjunctions}) 
+do not take any one encounter with a training example too seriously---
+%oli1:added
+\unskip that is, they make low-confidence updates. 
 % So, in contrast with conditioning, there is a significant difference betwen cycling through the training data once, and doing so many times.
-This distrust of any individual observation is arguably what makes the training process so robust to noisy and conflicting observations.
+This relative distrust of each individual sample is arguably what makes the training process robust to noisy or contradictory observations.
 \commentout{
 	As a result,
 	there is a significant difference between going through the training data once
 	 % (a single epoch)
 	\unskip, and doing so many times.}
-Nevertheless, the weights do eventually converge if we repeatedly train on $x$, 
+%oli1: paragraph break now that we have example structure to hold it together
+
+Nevertheless, 
+% the weights do eventually converge if we repeatedly train on $x$, 
+if we train by repeatedly updating with the sample $\phi$, 
 % which is a natural notion of 
 % % ``fully incorporating $x$''---%
 % full incorporation---%
-an extreme action that is only appropriate if we trust $x$ completely.
+the weights do eventually converge.%
+	\commentout{\footnote{Note for Joe: this is a white lie; the truth depends a bit on the architecture, and we may require that the space is compact. But this can be easily achieved by considering weights taking extended real values.}}
 % At the other extreme, if we had no trust in $x$, we could ignore it leaving our weights unchanged. 
 % In this context, 
 % Once again we have two extremes:
@@ -152,28 +194,189 @@ an extreme action that is only appropriate if we trust $x$ completely.
 % What we ought to do depends on our confidence.
 % At one extreme, we have no trust in $x$ and should ignore it, leaving weights unchanged; at the other, we trust $x$ completely, we should adopt the weights that arise in the limit of infinite training. 
 % Moreover, this sequence of incremental updates (roughly) describes a path between the two extremes.%
-Moreover, this sequence of incremental updates describes a path, from the opposite, low-confidence extreme of ignoring $x$.%
-	\footnote{This path can be made into a continuous path by interpolating with a line segment, and made smooth in the limit of small step sizes; we will deal with both constructions in \cref{sec:project-additive}.}
-Note that the relevant geometry here is not just the geometry of the weight space, but also that induced by the architecture and the loss function.
+%oli1: slowing down to fill out the story and explicitly bring out the connection to the other one
+Doing so would be an extreme action, and only appropriate if we have complete trust in $\phi$, meaning we think important that $x$ always be classified as $y$.
+At the opposite extreme, if we have no trust in $\phi$, we should simply discard it without changing our weights. 
+Furthermore, if we train on $\phi$ but stop before convergence,
+the number of training iterations a natural notion of how to handle intermediate levels of confidence, as it interpolates
+% the sequence of itermediate settings of weights 
+%oli1: I'll save this verbage for later, per your request
+% describes a path
+% provides.
+ between no confidence (zero iterations) to full confidence (infinite iterations).
+% \footnote{Another white lie: This path can be made into a continuous path by interpolating with a line segment, and made smooth in the limit of small step sizes; we will deal with both constructions in \cref{sec:project-additive}.}
 % As we will see in \cref{sec:loss-repr}, such 
 % We have now seen a new way of quantifying confidence: the number of training iterations.
 % The number of training iterations a different way of quantifying confidence.  
-It is not so clear that a fraction of the way to completion (say 0.7) is as meaningful here as it was before (and it would be difficult to recognize that point in any case),
-but we now have a different way to quantify confidence: the number of training iterations. 
 % It turns out that in general, there are close relationships 
+\end{example}
 
-While there are some good reasons to prefer the first approach, 
-the second one is more general. 
-We can treat the example in this way: once we fix a ``unit confidence'', say $\chi=0.01$, a sequence of $n$ unit updates is equivalent to a single one of confidence $\chi= 1-(0.99)^n$. 
-This general idea can be cleaned by appeal to differential geometry.
-Specifically, we can take a limit
+% While there are some good reasons to prefer the first approach, 
+% the second one is more general. 
+%
+%joe1: I have no idea what the "first" approach and the "second
+%approach" are.  Is the second approach [0,\infty].  If so, this is
+%the wrong place to discuss it.  It's a minor technical issue. 
+%oli1*: you're right, what I wrote here was sloppy. However, I don't
+% agree that this is a minor technical issue, because the point is
+% to illustrate how one can measure confidence. I promise we will 
+% not want to hide the [0,\infty] scale, because many of the concepts
+% I plan on unifying under the word "confidence" are typically 
+% measured in this scale. However, I will 
+%
+We have now seen two very different descriptions of confidence. 
+% Which one should we prefer?
+Are they related? 
+Should we prefer one over the other?
+The number $\alpha \in [0,1]$ used in \cref{ex:prob-simple}
+% \unskip, which we call \emph{fractional confidence}, 
+has
+an advantage: it has a clear interpretation as the ``fraction of the
+way incorporated'', while he number of training iterations $n$ used in
+\cref{ex:classifier} only really has meaning relative to
+% the algorithm that performs the incremental updates.
+% other values of $n$. 
+other values of $n$ performed with the same training algorithm.
+% the way in which individual updates are performed.
+%
+% But by the same token, the latter description turns out to be more general.
+On the other hand, the number-of-iterations description in
+\cref{ex:classifier} is at least as general, because we can use it
+capture fractional confidence $\alpha \in [0,1]$ as follows.
+% 
+% For example, we can use the quantification of uncertainty from \cref{ex:classifier} to treat \cref{ex:prob-simple} as follows. 
+%
+%joe1: And I still object strongly to "unit of confidence". 
+%oli1: I don't understand the objection. What I originally wrote
+% needed (and may still needs) fixing, but I'm convinced that 
+% this is an important part of how everything fits together. I've
+% redone it below because I think it provides a very nice lead-in
+% to Shafer's theory of evidence, and brings up some fundemental
+% questions early.
+%
+If we fix some ``unit confidence'', say $\iota=0.01$,
+then sequentially performing $t$ updates of confidence $\iota$ is 
+equivalent to a single one of confidence $\alpha= 1-(0.99)^t$.
+Thus, confidence $\alpha$ corresponds
+exactly to a sequence of 
+% $t = \log (1 - \alpha ) / \log(1-\iota)$
+\begin{equation} t = \log (1 - \alpha ) / \log(1-\iota) \end{equation}
+updates of confidence $\iota$.
+% A natural number describing the number of incremental updates (as in  \cref{ex:classifier}) is in some ways less satisfying then a number between zero and one (as in \cref{ex:prob-simple});
+% In some ways, the way of describing confidence in \cref{ex:classifier}
+% is less satisfying than that of \cref{ex:prob-simple}; 
+% it is easy to inteperet 
+% ``halfway'' incorporated means in this scale, for example.
+% It turns out that, apart frmo 
+So, rougly speaking, the two confidence domains
+are equivalent once we have a clear
+picture of what a ``unit update'' means in the second case.
+%
+% This general idea can be cleaned by appeal to differential geometry.
+% Specifically, we can take a limit
+%
+To illustrate this, we turn to a third example
+based on the work of 
+\citeauthor{shafer1976mathematical},
+whose 
+\citeyear{shafer1976mathematical} book
+was written largely 
+% with our notion of confidence in mind. 
+to develop a theory of
+what we have been calling confidence, in his preferred 
+representation of uncertainty.
+In it, he makes extensive use of both scales.
+% Mathematical Theory of Evidence (\citeyear{shafer1976mathematical},
+% purpose was precisely to 
+%
+% The utility of these two different representations
+% of confidence 
+% was well-understood by
+% \textcite{shafer1976mathematical}.
 
-Moreover, in the case where belief states are Dempster-Shafer belief functions, 
-and inputs are simple support functions, this measure of confidence is what Shafer calls the \emph{weight of evidence} \parencite{shafer1976mathematical}.
 
-the updating process can be written as a vector field.
+\begin{example}
+	Let $W$ be a finite set of possible worlds, 
+and suppose our belief state is a Dempster-Shafer belief function
+\parencite{shafer1976mathematical}, or equivalently, a
+\emph{basic probability assignment}: a function $m : 2^W \to [0,1]$
+satisfying $\sum_{B \subseteq W} m(B) = 1$ and $m(\emptyset) = 0$.
+%
+Now, suppose we come accross evidence that supports an event $A
+\subseteq W$ to a degree $\alpha \in [0,1]$. This evidence summarized
+with a second basic probability assignment
+$s = \alpha\, A + (1-\alpha)\,  W$ called a 
+\emph{simple support function} which 
+intuitively lends $\alpha$ support to $A$, but otherwise
+says nothing, by placing the rest of its mass on the trivial event.
+We can then combine our prior belief $m$ with the new evidence $s_A$
+according to Dempster's rule of combination, 
+% to obtain a posterior belief
+which in this case yields posterior belief $m'$ whose value 
+at each 
+% $\emptyset \ne$
+non-empty
+$B \subseteq W$ is:
+ % $m'$ by:
+% $ m'(B) := $
+\begin{align*}
+ 	m'(B) &= 
+	% &
+	% \frac{1}{1\!-\!k} 
+	% \sum_{\substack{U,V \mathrlap{\subseteq W} \\ U \cap V \mathrlap{= B}}}
+	% 		m(U) s_{\!A}(V), ~~
+	% \text{where}~~
+	% k := \sum_{\mathclap{\substack{U,V \subseteq W \\ U \cap V = \emptyset}}}
+	%  	m(u) s_{\!A}(V)
+	% \\
+	% %
+	% &= 
+	\frac{1}{\displaystyle 1 - \alpha \sum_{\mathclap{U \subseteq (W \setminus A)}} m(U)}
+	\Big(
+	(1-\alpha) m(B) + 
+	\alpha \sum_{\substack{\mathclap{U \subseteq W} \\ \mathllap{U \cap A} = \mathrlap{B}}} m(U) 
+		\Big).
+\end{align*}
+As before, when $\alpha = 0$, the posterior beliefs are the same as the
+prior ones, and when $\alpha = 1$, this has the effect of removing all 
+mass from sets $W$ that are not subsets of $A$ and renormalizing.
+\[
+	m'(B) =\begin{cases}
+		& \text{ if } B \subseteq A \\
+		& \text{otherwise}
+	\end{cases}
+\]
+
+% What if $m$ itself is a simple support function on $A$?
+% When combining two simple support functions both on $A$, we might
+% want to describe 
+If $m$ is a also simple support function on $A$, $m'$ is as well.
+No suppose we wanted a property of simple support functions on $A$,
+that combines additively when we combned them with $\oplus$. 
+Shafer defines that to be the \emph{weight of evidence},
+and proves that, up to a positive scaling constant, it is equal to
+% of $s_A$ to be 
+$- \log (1-\alpha)$  
+\parencite[pg 78]{shafer1976mathematical}. 
+Note that this is precisely the expression for $t$, up to the choice
+$\iota$ of unit above. This aspect of simple support functions turns
+out not only to be useful conceptually, but also integral to the
+theory of evidence he is looking to develop, and so the entirety of
+Chapter 5 is devoted to it.
+\end{example}
+
+\cref{fig:}
 
 
+\commentout{
+This general idea can be cleaned up by appeal to differential geometry.
+Fix an input $\phi$.
+Assuming that the update paths are differentiable in the degree of confidence at any initial beleifs, the collection of updates with infinitessimal confidence forms a complete vector field $X_\phi$ over the space of beliefs, whose integral curves are paths in belief space, parameterized by confidence $\beta \in [0,\infty]$.
+% Of course, we may always convert this number back to $[0,1]$,
+We step through this more carefully in \cref{sec:field-repr}.
+
+%joe1*: NO!  This is not the place to bring up Reimannian metrics!
+Finally, if our belief space is endowed with a Riemannian metric, so that we may take gradients, partial update functions may be specified by a loss.}
 
 
 % natural measure of confidence that works in all cases,
@@ -189,7 +392,7 @@ the updating process can be written as a vector field.
 % At the heart of our paper is a hierarchy 
 
 
-
+\commentout{
 \begin{figure}
 \centering
 \begin{tikzpicture}
@@ -217,6 +420,37 @@ the updating process can be written as a vector field.
 \caption{%
 	A map of different kinds of commitment functions and their representations.}
 \end{figure}
+}
+
+\begin{figure*}
+\centering
+\begin{tikzpicture}
+\begin{scope}[every node/.style={align=left,rounded corners=3,draw,thick,inner sep=5pt,anchor=center}]
+	\node at (-5, 0) (fc) {Full-Confidence Update\\
+		$(\,\cdot\mid \cdot\,) : \Theta \times \Phi \to \Theta$\\
+			\small\hfill\color{gray}(idempotent)\hfill};
+	\node at (0, -1.4)(flow) {Complete Positive Flows\\
+		$f: [0,\infty] \times \Phi \times \Theta \to \Theta$\\
+			\small\hfill\color{gray}(diffble, additive, limiting)\hfill};
+	\node at (0, 1.4)(path) {Smoooth Paths\\ 
+		$\gamma: [0,1] \times \Phi \times \Theta \to \Theta$\\
+		\small\hfill\color{gray}(diffble)\hfill};
+	\node at (4.5, 0)(vfield) {Vector Fields \\
+		$F : \Phi \to \mathfrak X(\Theta)$\\
+		\small\hfill\color{gray}(complete, terminating)\hfill};
+	\node at (8.5, 0) (loss) {Loss Repr \\
+		$\mathcal L : \Theta \times \Phi \to \mathbb R$};
+\end{scope}
+	\draw[arr] (loss) to node[above]{$\hat\nabla$} (vfield);
+	\draw[arr] (vfield) to[out=-95,in=-2] node[above,pos=0.8]{$\int \mathrm dt$} (flow);
+	% \draw[arr1] (vfield) to[out=90,in=0] node[below right]{$\int \mathrm dt$} (path);
+	\draw[arr] (path) to[out=0,in=90] node[above right]{$\frac{\partial}{\partial t}$} (vfield);
+	\draw[arr] (flow) to[out=-7,in=-85] node[below right,pos=0.8]{$\frac{\partial}{\partial t}$} (vfield);
+	% \draw (vfield) to[out=90,in=0] node[above]{$\int \mathrm dt$} (flow);
+\end{tikzpicture}
+\caption{Different representations of update functions, and the relationships they have with one another. 
+Sections 3 and }
+\end{figure*}
 
 
 % It is not always most natural for confidence to range between zero and one. 
