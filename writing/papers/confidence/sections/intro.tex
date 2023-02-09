@@ -102,13 +102,17 @@ high
 %likelihood.
 probability.
 % But confidence and probability are not always so tightly coupled.
-Still, confidence and probability are quite different in general.
+% Still, confidence and probability are quite different in general.
+The converse is false, however, so
+confidence and probability can still be quite different.
 % 
 %oli1: the context here has been stripped; we're now missing how it might be possible to learn \phi with low confidence if we already assign it high probability.
 % If we start out with a prior that gives $\phi$ high likelihood, and learn $\phi$ with low confidence, our posterior beliefs still give $\phi$ high likelihood.  
 % We might also have a great deal of confidence in an observation of $\phi$  despite having a low prior belief in $\phi$.
 If an untrusted source tells us $\phi$ which we already happen to believe, 
-then our prior gives $\phi$ high probability, but we learn $\phi$ with low confidence, and then our posterior beliefs still give $\phi$ high probability.  
+then our prior assigns $\phi$ high probability,
+we learn $\phi$ with low confidence,
+and then our posterior beliefs still give $\phi$ high probability.  
 % Confidence is even easier to distinguish from prior probability: 
 Confidence and prior probability are even more independent: 
 if we learn a surprising fact $\phi$ from a trusted source, we have high confidence in $\phi$ despite it having low prior probability.
@@ -160,7 +164,7 @@ $f_\theta : X \to \Delta Y$ that maps inputs $x \in X$ to distributions $f_\thet
 % clear and I lost you pretty early on. I'm trying to fill out what I had
 % so it's easier to follow.
 Modern learning algorithms (like gradient descent) make small incremental changes to the weights.
-Therefore, if we update $\theta$ with a labeled training example $\phi = (x,y)$ to obtain new weights $\theta'$, there is no guarantee that $f_{\theta'}(x)$ gives high probability to $y$.
+Therefore, if we update $\theta$ with a labeled training example $\phi = (x,y)$ to obtain new weights $\theta'$, there is no guarantee that $f_{\theta'}(x)$ gives high probability to $y$---only that it will be higher than it was before.
  % that it assigns higher probability to $y$ than $f_{\theta}(x)$ does. 
 % does not guarantee that the resulting network handles $x$ correctly. 
 % In other words, the algorithm does not take any individual point too seriously.
@@ -185,7 +189,7 @@ if we train by repeatedly updating with the sample $\phi$,
 % % ``fully incorporating $x$''---%
 % full incorporation---%
 the weights do eventually converge.%
-	\commentout{\footnote{Note for Joe: this is a white lie; the truth depends a bit on the architecture, and we may require that the space is compact. But this can be easily achieved by considering weights taking extended real values.}}
+	\footnote{Note for Joe: this is a white lie; the truth depends a bit on the architecture, and we may require that the space is compact. But this can be easily achieved by considering weights taking extended real values.}
 % At the other extreme, if we had no trust in $x$, we could ignore it leaving our weights unchanged. 
 % In this context, 
 % Once again we have two extremes:
@@ -197,18 +201,32 @@ the weights do eventually converge.%
 %oli1: slowing down to fill out the story and explicitly bring out the connection to the other one
 Doing so would be an extreme action, and only appropriate if we have complete trust in $\phi$, meaning we think important that $x$ always be classified as $y$.
 At the opposite extreme, if we have no trust in $\phi$, we should simply discard it without changing our weights. 
-Furthermore, if we train on $\phi$ but stop before convergence,
-the number of training iterations a natural notion of how to handle intermediate levels of confidence, as it interpolates
+Furthermore, our definition of a full-confidence update 
+already suggests what to do for intermediate levels of confidence: simply stop the training process before convergence.
+ % if we train with the sample $\phi$ but stop early,
+Consequently, the number of training iterations $n$ 
+functions as a description of 
+% how to handle
+intermediate levels of confidence: it interpolates
 % the sequence of itermediate settings of weights 
 %oli1: I'll save this verbage for later, per your request
 % describes a path
 % provides.
- between no confidence (zero iterations) to full confidence (infinite iterations).
+between no confidence (zero iterations) and full confidence (infinite iterations).
 % \footnote{Another white lie: This path can be made into a continuous path by interpolating with a line segment, and made smooth in the limit of small step sizes; we will deal with both constructions in \cref{sec:project-additive}.}
 % As we will see in \cref{sec:loss-repr}, such 
 % We have now seen a new way of quantifying confidence: the number of training iterations.
 % The number of training iterations a different way of quantifying confidence.  
 % It turns out that in general, there are close relationships 
+% \commentout{
+
+	This way of measuring confidence also has a convenient property:
+	% starting from intital weights $\theta$,
+	first updating with confidence $n$ (that is, performing $n$ training iterations),
+	and then afterwards updating with confidence $m$ (so $m$ additional iterations),
+	is equivalent to a single update with confidence $m+n$.
+	We call a measure of confidence that behaves this way \emph{additive}.
+% }
 \end{example}
 
 % While there are some good reasons to prefer the first approach, 
@@ -224,25 +242,37 @@ the number of training iterations a natural notion of how to handle intermediate
 % I plan on unifying under the word "confidence" are typically 
 % measured in this scale. However, I will 
 %
-We have now seen two very different descriptions of confidence. 
+% We have now seen two very different descriptions of confidence. 
+We have now seen two very different ways of describing confidence. 
 % Which one should we prefer?
 Are they related? 
-Should we prefer one over the other?
+Should we prefer one style over the other?
+% Should we prefer one way of describing confidence over the other?
 The number $\alpha \in [0,1]$ used in \cref{ex:prob-simple}
 % \unskip, which we call \emph{fractional confidence}, 
-has
-an advantage: it has a clear interpretation as the ``fraction of the
-way incorporated'', while he number of training iterations $n$ used in
+appears to have an important advantage: an intermediate value can be clearly interpreted as a ``proportion of incorporation'', while the number of training iterations $n$ used in
 \cref{ex:classifier} only really has meaning relative to
 % the algorithm that performs the incremental updates.
 % other values of $n$. 
-other values of $n$ performed with the same training algorithm.
+other values of $n$ for the same training algorithm.
 % the way in which individual updates are performed.
 %
 % But by the same token, the latter description turns out to be more general.
-On the other hand, the number-of-iterations description in
-\cref{ex:classifier} is at least as general, because we can use it
-capture fractional confidence $\alpha \in [0,1]$ as follows.
+On the other hand,
+% % the additive description in \cref{ex:classifier}
+% the description in \cref{ex:classifier}
+the apprach taken in the second example
+appears to be more general. 
+% But the approach used in the second example appears to be more general.
+% The proportion of incorporation $\alpha \in [0,1]$ does 
+	% make as much sense in \cref{ex:classifier},
+It is not clear that a proportion $\alpha \in [0,1]$ 
+is meaningful in \cref{ex:classifier},
+but \cref{ex:prob-simple} can be
+readily captured by a number of iterations 
+% $n \in [0,\infty]$, as follows.
+$n$, as follows.
+% capture proportional confidence $\alpha \in [0,1]$ as follows.
 % 
 % For example, we can use the quantification of uncertainty from \cref{ex:classifier} to treat \cref{ex:prob-simple} as follows. 
 %
@@ -255,36 +285,48 @@ capture fractional confidence $\alpha \in [0,1]$ as follows.
 % questions early.
 %
 If we fix some ``unit confidence'', say $\iota=0.01$,
-then sequentially performing $t$ updates of confidence $\iota$ is 
-equivalent to a single one of confidence $\alpha= 1-(0.99)^t$.
-Thus, confidence $\alpha$ corresponds
-exactly to a sequence of 
+then sequentially performing $n$ updates of confidence $\iota$ is 
+equivalent to a single one of confidence $\alpha= 1-(0.99)^n$.
+% Therefore, confidence $\alpha$ corresponds to a sequence of
+% Therefore, 
+% Or to say the same thing backwards:
+Or, inverting:
+to specify confidence $\alpha$, it suffices to 
+instead give the number
 % $t = \log (1 - \alpha ) / \log(1-\iota)$
-\begin{equation} t = \log (1 - \alpha ) / \log(1-\iota) \end{equation}
-updates of confidence $\iota$.
+\begin{equation} \label{eq:loglogiota}
+ 	n = \log (1 - \alpha ) / \log(1-\iota) 
+	\quad\in[0,\infty]
+\end{equation}
+of confidence $\iota$ updates to be performed in sequence.
 % A natural number describing the number of incremental updates (as in  \cref{ex:classifier}) is in some ways less satisfying then a number between zero and one (as in \cref{ex:prob-simple});
 % In some ways, the way of describing confidence in \cref{ex:classifier}
 % is less satisfying than that of \cref{ex:prob-simple}; 
 % it is easy to inteperet 
 % ``halfway'' incorporated means in this scale, for example.
 % It turns out that, apart frmo 
-So, rougly speaking, the two confidence domains
-are equivalent once we have a clear
-picture of what a ``unit update'' means in the second case.
-%
-% This general idea can be cleaned by appeal to differential geometry.
-% Specifically, we can take a limit
-%
-To illustrate this, we turn to a third example
-based on the work of 
+% So, rougly speaking, the two confidence domains are equivalent once we have a clear picture of what a ``unit update'' means in the second case.
+% Or, to rephrase a third time:
+Thus,
+in contexts where a proportion of incorporation $\alpha\in[0,1]$ is meaningful,
+% the only effective difference between the two descriptions of confidence is the .
+% effectively the only difference between the two ways of describing confidence is that the latter has a choice of scale.
+% the $n$ is precisely due to 
+a number of iterations $n$ is meaningful as well, provided the unit
+$\iota$ is understood.
+
+\TODO
+
+% To illustrate this, we turn to another example of confidence, in yet another specialized context.
+
+This one is based on the work of 
 \citeauthor{shafer1976mathematical},
 whose 
 \citeyear{shafer1976mathematical} book
 was written largely 
 % with our notion of confidence in mind. 
-to develop a theory of
-what we have been calling confidence, in his preferred 
-representation of uncertainty.
+to develop a theory of uncertain evidence---what we have been calling confidence---%
+tailored to (and in defense of) his preferred representation of uncertainty.
 In it, he makes extensive use of both scales.
 % Mathematical Theory of Evidence (\citeyear{shafer1976mathematical},
 % purpose was precisely to 
@@ -295,32 +337,52 @@ In it, he makes extensive use of both scales.
 % \textcite{shafer1976mathematical}.
 
 
-\begin{example}
-	Let $W$ be a finite set of possible worlds, 
-and suppose our belief state is a Dempster-Shafer belief function
-\parencite{shafer1976mathematical}, or equivalently, a
-\emph{basic probability assignment}: a function $m : 2^W \to [0,1]$
-satisfying $\sum_{B \subseteq W} m(B) = 1$ and $m(\emptyset) = 0$.
+\begin{example} \label{ex:shafer}
+Let $W$ be a finite set of possible worlds, 
+and suppose our belief state is a Dempster-Shafer belief function, 
+which is a particular generalization of a finite probability measure,
+% $\Bel : 2^W \to [0,1]$ which intuitively assigns each subset of $W$ 
+% a degree of belief
+or equivalently, a
+% \emph{basic probability assignment}: a function $m : 2^W \to [0,1]$
+\emph{mass function} $m : 2^W \! \to\! [0,1]$
+satisfying $\sum_{U \subseteq W} m(U) \!=\! 1$ 
+and $m(\emptyset) \!=\! 0$
+\parencite{shafer1976mathematical}.
 %
-Now, suppose we come accross evidence that supports an event $A
+Now, suppose we come accross evidence that supports an event $\phi = A
 \subseteq W$ to a degree $\alpha \in [0,1]$. This evidence summarized
-with a second basic probability assignment
-$s = \alpha\, A + (1-\alpha)\,  W$ called a 
-\emph{simple support function} which 
+with 
+% a second basic probability assignment $s = \alpha\, A + (1-\alpha)\,  W$
+a second mass function $s = \alpha\, A + (1-\alpha)\,  W$
+(that is, $s(A) = \alpha$, $s(W) = 1-\alpha$, and $s(U) = 0$ for all other $U \subseteq W$)
+% a belief function
+% \[
+% 	S(U) = \begin{cases}
+% 	0 &\text{ if } U \subsetneq A \\
+% 	\alpha &\text{ if } A \subseteq U  \subsetneq W; \\
+% 	1 &\text{ if } U = W.	
+% \end{cases}
+% \]
+called a \emph{simple support function}, which 
 intuitively lends $\alpha$ support to $A$, but otherwise
 says nothing, by placing the rest of its mass on the trivial event.
-We can then combine our prior belief $m$ with the new evidence $s_A$
+We can then combine our prior belief $m$ with the new evidence $s$
 according to Dempster's rule of combination, 
 % to obtain a posterior belief
-which in this case yields posterior belief $m'$ whose value 
-at each 
-% $\emptyset \ne$
-non-empty
-$B \subseteq W$ is:
+which in this case yields 
+a complicated-looking posterior belief 
+% $m'$ whose value at each 
+% % $\emptyset \ne$
+% non-empty $B \subseteq W$ is:
  % $m'$ by:
 % $ m'(B) := $
 \begin{align*}
- 	m'(B) &= 
+	% m' &:= m \oplus s \\[-1ex]
+	m'(B) &:= (m \oplus s)(B) \\[-0.5ex]
+ 	% m'(B) &= 
+	% =B &\mapsto
+	=\;&
 	% &
 	% \frac{1}{1\!-\!k} 
 	% \sum_{\substack{U,V \mathrlap{\subseteq W} \\ U \cap V \mathrlap{= B}}}
@@ -337,35 +399,208 @@ $B \subseteq W$ is:
 	\alpha \sum_{\substack{\mathclap{U \subseteq W} \\ \mathllap{U \cap A} = \mathrlap{B}}} m(U) 
 		\Big).
 \end{align*}
-As before, when $\alpha = 0$, the posterior beliefs are the same as the
-prior ones, and when $\alpha = 1$, this has the effect of removing all 
-mass from sets $W$ that are not subsets of $A$ and renormalizing.
-\[
-	m'(B) =\begin{cases}
-		& \text{ if } B \subseteq A \\
-		& \text{otherwise}
-	\end{cases}
-\]
+It is easy to verify that, when $\alpha = 0$, the posterior beliefs are the same as the
+prior ones, and that when $\alpha = 1$,
+ % this has the effect of removing all 
+% one effect is to discard the mass from sets
+all mass is assigned to subsets of $A$.
+It follows that, the posterior degree of belief 
+% $\Bel_{m'}(U)$
+in $A$, (and in any superset of $A$) equals one.
+So again, we have two extremes in confidence, continuously parameterized
+by a value $\alpha \in [0,1]$.
+% equals $1$ for every $U$ that contains $A$.
+% $W$ that are not subsets of $A$
+% so that now $\Bel_{m'}(B) = 1$ for all $B \supseteq A$. 
+% \[
+% 	m'(B) =\begin{cases}
+% 		& \text{ if } B \subseteq A \\
+% 		& \text{otherwise}
+% 	\end{cases}
+% \]
 
 % What if $m$ itself is a simple support function on $A$?
 % When combining two simple support functions both on $A$, we might
 % want to describe 
-If $m$ is a also simple support function on $A$, $m'$ is as well.
-No suppose we wanted a property of simple support functions on $A$,
-that combines additively when we combned them with $\oplus$. 
-Shafer defines that to be the \emph{weight of evidence},
-and proves that, up to a positive scaling constant, it is equal to
+We now look at some special cases. If $m$ corresponds to a probability
+% measure, meaning that gives mass only to singletons, then $m'$ is as well,
+measure $p$, meaning that $m(\{x\}) = p(\{x\})$ and $m(B) = 0$ when $B$ is not a singleton, then
+$m'$ is also a probability measure, and is given by:
+\begin{equation}
+m'(\{x\}) =
+ % \frac{\alpha \mathbbm1[x \in A] p(x) + (1-\alpha) p(x)}{1 - \alpha + \alpha p(A)}.
+ % \frac{\alpha\; m(\{x\} \cap A) + (1-\alpha)\, m(\{x\})}{1 - \alpha + \alpha\; \sum_{y \in A} m(\{y\})}.
+ \frac{\alpha\; p(\{x\} \cap A) + (1-\alpha)\, p(\{x\})}{1 - \alpha + \alpha\; p(A)}.
+\end{equation}
+which, as a function of $\alpha \in [0,1]$, is a path that begins at $p$
+and ends at $p|A$, just like we had in \cref{ex:prob-simple}. However,
+it is parameterized differently.
+%
+\commentout{
+	 Desite lying in $[0,1]$,
+	it does not have quite the same interpretation as
+	a ``proportion of the way to incorporation'', since }
+% this $\alpha$ does \emph{not} represent 
+% ``fraction of the way to incorporation'',
+% as we will see in \cref{sec:shafer-example-extended}.
+
+% We now turn to a second special case.
+Alternatively, suppose that $m$ is not a probability but rather
+another simple support function on $A$. 
+Then so is $m' = m\oplus s$. 
+% We might then want to describe a property of a simple support function
+Most quantification of amount of stuff is additive:
+the if you had three gallons of water and get another, you now have four;
+if you had six independent random bits and get three more, you now have nine. 
+What if we wanted a quantification of confidence that works in the same way? 
+% Since we are summing the evidence for $A$, we might want 
+% on $A$ that combines additively,
+Shafer calls such a quantity \emph{weight of evidence},
+and proves that the weight of evidence carried by $s$
+must be of the form
 % of $s_A$ to be 
-$- \log (1-\alpha)$  
-\parencite[pg 78]{shafer1976mathematical}. 
-Note that this is precisely the expression for $t$, up to the choice
-$\iota$ of unit above. This aspect of simple support functions turns
-out not only to be useful conceptually, but also integral to the
-theory of evidence he is looking to develop, and so the entirety of
-Chapter 5 is devoted to it.
+% $w = - k \log (1-\alpha)$ for some $k > 0$
+$w = k \log (1-\alpha)$ for some $k < 0$
+% \parencite[pg 78]{shafer1976mathematical}. 
+[\citeauthor[pg 78]{shafer1976mathematical}]. 
+Note that this is precisely the expression for $t$
+in \eqref{eq:loglogiota}, 
+% because if $\iota < 1$, then $\log(1- \iota) < 0$. 
+because a choice of $\iota < 1$
+is equivalent to a choice of $k = \log(1-\iota) < 0$.
+This description of simple support functions in terms weight of 
+evidence is not just nice because of additivity;
+it also plays quite a fundemental role in the theory of belief
+functions.
+% that can be written as a Dempster-combination of simple support functions. 
+For example, it provides a
+canonical (and minimal) way of decomposing
+combined evidence into simple support functions
+% \parencite[Theorem 5.5]{shafer1976mathematical}.
+[\citeauthor[Theorem 5.5]{shafer1976mathematical}].
+% This is why Shafer  $w \in [0,\infty]$
+% on page 8, and devotes Chapter 5 to studying it.
 \end{example}
 
-\cref{fig:}
+Shafer's notions of confidence---both the degree of support $\alpha$
+and the weight of evidence $w$---have been studied extensively.
+They solve a real problem that probabilists have: an inability
+to gracefully handle uncertain observations. 
+% But once again they only apply in 
+However, they only apply in an increaslingly esoteric paradigm in which
+one's mental state is a Dempster-Shafer belief function. 
+The present paper, and the general notion of confidence we will
+formally define in the next section, 
+can be thought of a vast generalization 
+of Shafer's handling of this problem to any space of
+beliefs satisfying some minimal axioms.
+
+% Shafer's weight of evidence has the advantage of be
+% Shafer too 
+%%%%% PARAGRAPH ON MANY DIFFERENT VIEWPOINTS
+% Linear interpolation, however, is just the tip of 
+% At the heart of our paper is a hierarchy 
+%
+% Let's return to the idea of incremental updating. 
+% If we start at an initial belief $\theta_0$, 
+% Our discussion of \eqref{eq:loglogiota} and Shafer's weight of evidence both 
+In three places now we have seen evidence suggesting that the 
+ additive $[0,\infty]$ domain for describing confidence requires an
+ inscrutible choice. 
+In \cref{ex:classifier}, the number of iterations $n$ is 
+% Indeed, 
+ % in the former, this amounts to choosing a ``unit update'' $\iota$, and in
+%
+It turns out that there is actually a natural scale for this, for essentially the same reason there is natural base for exponentiation: a special connection with the derivative.  	
+	
+% Instead of taking an ar
+
+% For our unit $\iota$, instead of a small positive , let's take an 
+Instead of a small positive number, let's take our unit $\iota$ to actually be infinitessimal. 
+What happens if we 
+
+
+% Motivated by 
+Suppose that we wanted to 
+
+
+The remainder of the paper will proceed as follows.
+In \cref{sec:updateformalism}, we will s
+
+
+
+\cref{fig:map} shows how all of these correspond.
+
+\commentout{
+	\begin{figure}
+	\centering
+	\begin{tikzpicture}
+		\begin{scope}[fill=gray,fill opacity=0.2,rounded corners=4px]
+			\fill (0,0) rectangle (8,5); % URs (Full Updates)
+			\fill[] (0.2,0.1) rectangle (7.8,4.5); % Flow URs (Flows)
+			\fill[] (0.4,0.2) rectangle (7.6,4.0); % Diffble URs (Vec Field)
+			\fill[] (0.6,0.3) rectangle (7.4,3.5); % Conservative URs 
+			\fill (0.8,0.4) -- (0.8, 3.0) -- (3, 3.0)
+			 	to[out=0,in=0,looseness=2] (3,0.4) --cycle; % CONVEX
+			\fill (7.2,0.4) -- (7.2, 3.0) -- (5, 3.0)
+			 	to[out=180,in=180,looseness=2] (5,0.4) --cycle; % CONCAVE
+		\end{scope}
+		\begin{scope}[anchor=north]
+			\node at (4.0, 5.0) {Update Rules};
+			\node at (4.0, 4.5) {Flow URs~~~$f$};
+			\node at (4.0, 4.0) {Diffble URs~~~$X$};
+			% \node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
+			\node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
+			\node at (2.5, 3.0) {Convex CFs};
+			\node at (4.0, 2.5) {Linear CFs};
+			\node at (5.5, 3.0) {Concave CFs};
+		\end{scope}
+	\end{tikzpicture}
+	\caption{%
+		A map of different kinds of commitment functions and their representations.}
+	\end{figure}
+	}
+
+\begin{figure*}
+\centering
+\begin{tikzpicture}
+\begin{scope}[every node/.style={align=left,rounded corners=3,draw,thick,inner sep=5pt,anchor=center}]
+	\node at (-5, 0) (fc) {Full-Confidence Update\\
+		$(\,\cdot\mid \cdot\,) : \Theta \times \Phi \to \Theta$\\
+			\small\hfill\color{gray}(idempotent)\hfill};
+	\node at (0, -1.4)(flow) {Complete Positive Flows\\
+		$f: [0,\infty] \times \Phi \times \Theta \to \Theta$\\
+			\small\hfill\color{gray}(diffble, additive, limiting)\hfill};
+	\node at (0, 1.4)(path) {Smoooth Paths\\ 
+		$\gamma: [0,1] \times \Phi \times \Theta \to \Theta$\\
+		\small\hfill\color{gray}(diffble, halting)\hfill};
+	\node at (4.5, 0)(vfield) {Vector Fields \\
+		$F : \Phi \to \mathfrak X(\Theta)$\\
+		\small\hfill\color{gray}(complete, terminating)\hfill};
+	\node at (8.5, 0) (loss) {Loss Repr \\
+		$\mathcal L : \Theta \times \Phi \to \mathbb R$};
+\end{scope}
+	\draw[arr] (loss) to node[above]{$\hat\nabla$} (vfield);
+%
+	\draw[arr] (path) to[out=7,in=85] 
+		node[right=5pt,pos=0.7]{$\frac{\partial}{\partial c}$} (vfield);
+	\draw[arr] (flow) to[out=-7,in=-85]
+		node[right=3pt,pos=0.7]{$\frac{\partial}{\partial t}$} (vfield);
+%
+	\draw[arr] (vfield) to[out=-95,in=-2] node[above=0pt,pos=0.75]
+		% {$\int \mathrm dt$}
+		% {$\int dt$} 
+		{$\int$}
+		(flow);
+	% \draw[arr1] (vfield) to[out=90,in=0] node[below right]{$\int \mathrm dt$} (path);
+	% \draw (vfield) to[out=90,in=0] node[above]{$\int \mathrm dt$} (flow);
+	\draw[arr] (path) to node[above, sloped]{$c=1$} (fc);
+	\draw[arr] (flow) to node[below,sloped]{$t=\infty$}(fc);
+\end{tikzpicture}
+\caption{Different representations of update functions, and the relationships they have with one another. 
+Sections 3 and }\label{fig:map}
+\end{figure*}
+
 
 
 \commentout{
@@ -386,71 +621,6 @@ Finally, if our belief space is endowed with a Riemannian metric, so that we may
 % and inputs are simple support functions, this measure of confidence is what Shafer calls the ``weight of evidence''.
 %% TODO: Shafer
 
-
-%%%%% PARAGRAPH ON MANY DIFFERENT VIEWPOINTS
-% Linear interpolation, however, is just the tip of 
-% At the heart of our paper is a hierarchy 
-
-
-\commentout{
-\begin{figure}
-\centering
-\begin{tikzpicture}
-	\begin{scope}[fill=gray,fill opacity=0.2,rounded corners=4px]
-		\fill (0,0) rectangle (8,5); % URs (Full Updates)
-		\fill[] (0.2,0.1) rectangle (7.8,4.5); % Flow URs (Flows)
-		\fill[] (0.4,0.2) rectangle (7.6,4.0); % Diffble URs (Vec Field)
-		\fill[] (0.6,0.3) rectangle (7.4,3.5); % Conservative URs 
-		\fill (0.8,0.4) -- (0.8, 3.0) -- (3, 3.0)
-		 	to[out=0,in=0,looseness=2] (3,0.4) --cycle; % CONVEX
-		\fill (7.2,0.4) -- (7.2, 3.0) -- (5, 3.0)
-		 	to[out=180,in=180,looseness=2] (5,0.4) --cycle; % CONCAVE
-	\end{scope}
-	\begin{scope}[anchor=north]
-		\node at (4.0, 5.0) {Update Rules};
-		\node at (4.0, 4.5) {Flow URs~~~$f$};
-		\node at (4.0, 4.0) {Diffble URs~~~$X$};
-		% \node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
-		\node at (4.0, 3.5) {Conservative CFs~~~$\mathcal L$};
-		\node at (2.5, 3.0) {Convex CFs};
-		\node at (4.0, 2.5) {Linear CFs};
-		\node at (5.5, 3.0) {Concave CFs};
-	\end{scope}
-\end{tikzpicture}
-\caption{%
-	A map of different kinds of commitment functions and their representations.}
-\end{figure}
-}
-
-\begin{figure*}
-\centering
-\begin{tikzpicture}
-\begin{scope}[every node/.style={align=left,rounded corners=3,draw,thick,inner sep=5pt,anchor=center}]
-	\node at (-5, 0) (fc) {Full-Confidence Update\\
-		$(\,\cdot\mid \cdot\,) : \Theta \times \Phi \to \Theta$\\
-			\small\hfill\color{gray}(idempotent)\hfill};
-	\node at (0, -1.4)(flow) {Complete Positive Flows\\
-		$f: [0,\infty] \times \Phi \times \Theta \to \Theta$\\
-			\small\hfill\color{gray}(diffble, additive, limiting)\hfill};
-	\node at (0, 1.4)(path) {Smoooth Paths\\ 
-		$\gamma: [0,1] \times \Phi \times \Theta \to \Theta$\\
-		\small\hfill\color{gray}(diffble)\hfill};
-	\node at (4.5, 0)(vfield) {Vector Fields \\
-		$F : \Phi \to \mathfrak X(\Theta)$\\
-		\small\hfill\color{gray}(complete, terminating)\hfill};
-	\node at (8.5, 0) (loss) {Loss Repr \\
-		$\mathcal L : \Theta \times \Phi \to \mathbb R$};
-\end{scope}
-	\draw[arr] (loss) to node[above]{$\hat\nabla$} (vfield);
-	\draw[arr] (vfield) to[out=-95,in=-2] node[above,pos=0.8]{$\int \mathrm dt$} (flow);
-	% \draw[arr1] (vfield) to[out=90,in=0] node[below right]{$\int \mathrm dt$} (path);
-	\draw[arr] (path) to[out=0,in=90] node[above right]{$\frac{\partial}{\partial t}$} (vfield);
-	\draw[arr] (flow) to[out=-7,in=-85] node[below right,pos=0.8]{$\frac{\partial}{\partial t}$} (vfield);
-	% \draw (vfield) to[out=90,in=0] node[above]{$\int \mathrm dt$} (flow);
-\end{tikzpicture}
-\caption{Different representations of update functions, and the relationships they have with one another. 
-Sections 3 and }
-\end{figure*}
 
 
 % It is not always most natural for confidence to range between zero and one. 
