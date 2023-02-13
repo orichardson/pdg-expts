@@ -205,8 +205,10 @@ try:
 		# expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
 		ctree_args = dict(varname_clusters=ctree.nodes(), cluster_edges=ctree.edges())
 
-		expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args, output_processor=pprocessor(pdg))
-		expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args, output_processor=pprocessor(pdg))
+		# expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args, output_processor=pprocessor(pdg))
+		# expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args, output_processor=pprocessor(pdg))
+		expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args)
+		expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args)
 		#,verbose=verb
 		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
 
@@ -220,7 +222,7 @@ try:
 
 			for ozrname in args.ozrs:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
-								torch_opt.torch_opt_clusters, pdg, 
+								torch_opt.opt_clustree, pdg, 
 								gamma=gamma, **ctree_args, 
 								# output_processor=pprocessor(pdg)
 								) #, verbose=verb

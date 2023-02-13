@@ -155,7 +155,7 @@ try:
 					for oi in niters[ozrname]:
 						expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
 						# expt.enqueue(str(i), stats,
-							torch_opt.opt_dist, pdg,
+							torch_opt.opt_joint, pdg,
 							gamma=gamma, optimizer=ozrname, iters=oi, representation=rep)
 		
 

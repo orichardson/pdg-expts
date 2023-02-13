@@ -88,12 +88,14 @@ if __name__ == '__main__':
 
 		for gamma in args.gammas:
 			expt.enqueue(bn_name+"-as-pdg.cccp.gamma%.0e"%gamma, stats,
-					 ip.cccp_opt_joint, pdg, gamma=gamma)
+					 ip.cccp_opt_clusters, pdg, gamma=gamma)
 			for ozrname in args.ozrs:
-				for oi in niters[ozrname]:
-					expt.enqueue(bn_name+".torch(%s).gamma%.0e"%(ozrname,gamma), stats,
-						torch_opt.opt_dist, pdg,
-						gamma=gamma, optimizer=ozrname, iters=oi)
+				# for oi in niters[ozrname]:
+				expt.enqueue(bn_name+".torch(%s).gamma%.0e"%(ozrname,gamma), stats,
+					torch_opt.opt_clustree, pdg,
+					gamma=gamma, optimizer=ozrname,
+					#  iters=oi
+					)
 				
 
 	expt.done()
