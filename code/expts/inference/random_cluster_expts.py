@@ -57,6 +57,7 @@ from pdg.dist import CPT, RawJointDist as RJD
 
 from pdg.alg import interior_pt as ip
 from pdg.alg import torch_opt
+from pdg.gen.randpdg import rand_PDG
 
 import os
 import signal
@@ -68,14 +69,14 @@ global expt
 expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores, 
 	kw_params_to_ignore=['varname_clusters', 'cluster_edges'])
 
+random.seed(343434)
+
 def terminate_signal(signalnum, *args):
 	global expt
 	expt.finish_now = True
 
 signal.signal(signal.SIGINT, terminate_signal)
 signal.signal(signal.SIGTERM, terminate_signal)
-
-
 
 import itertools as itt
 
@@ -122,15 +123,17 @@ def random_k_tree(n, k):
 	return G, ctree_tree
 
 
-def pprocessor(M): # postprocess cluster pseudomarginal
-	def process_pseudomarginals(cpm):
-		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
-		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
-		if 'inc' in cpm._asdict():
-			return (cpm.inc, cpm.idef)
-		else:
-			return M.Inc(cpm.cluster_dist), float('nan')
-	return process_pseudomarginals
+# def pprocessor(M): # postprocess cluster pseudomarginal
+# 	# def process_pseudomarginals(cpm):
+# 	def process(ctree):
+# 		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
+# 		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
+# 		# if 'inc' in cpm._asdict():
+# 		# 	return (cpm.inc, cpm.idef)
+# 		# else:
+# 		# 	return M.Inc(cpm.cluster_dist), float('nan')
+# 		return M.Inc(ctree), M.IDef(ctree)
+# 	return process
 
 try:
 	for i in range(args.num_pdgs):
@@ -211,8 +214,17 @@ try:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 								ip.cccp_opt_clusters, pdg, 
 								gamma=gamma, **ctree_args, 
-								output_processor=pprocessor(pdg)) #, verbose=verb
-			# expt.enqueue(str(i), stats, ip.cccp_opt_joint, pdg, gamma=gamma)
+								# output_processor=pprocessor(pdg)
+								) #, verbose=verb
+
+
+			for ozrname in args.ozrs:
+				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
+								torch_opt.torch_opt_clusters, pdg, 
+								gamma=gamma, **ctree_args, 
+								# output_processor=pprocessor(pdg)
+								) #, verbose=verb
+
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
 			## don't know what to do here... will use a joint distribution!
