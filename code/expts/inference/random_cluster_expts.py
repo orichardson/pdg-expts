@@ -220,12 +220,14 @@ try:
 								) #, verbose=verb
 
 
-			for ozrname in args.ozrs:
+		for ozrname in args.ozrs:
+			for gamma in args.gammas:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
-								torch_opt.opt_clustree, pdg, 
-								gamma=gamma, **ctree_args, 
-								# output_processor=pprocessor(pdg)
-								) #, verbose=verb
+							torch_opt.opt_clustree, pdg, 
+							optimizer=ozrname,
+							gamma=gamma, **ctree_args, 
+							# output_processor=pprocessor(pdg)
+							) #, verbose=verb
 
 			
 			# for ozrname in ['adam', "lbfgs", "asgd"]:

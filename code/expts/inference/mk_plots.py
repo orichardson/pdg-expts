@@ -19,7 +19,8 @@ fnames = [
 ### RANDOM GRAPHS FIXED TW
 	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
-	('tw-aggregated.json', 'tw-all'),
+	# ('tw-aggregated.json', 'tw-all'),
+	('tw-temp-aggregated.json', 'tw-temp'),
 ### RANDOM GRAPHS JOINT
 	# ('random-pdg-data-aggregated-6.json', 'rand6'),
 	# ('random-pdg-data-aggregated-5.json', 'rand5'),
@@ -169,14 +170,42 @@ sns.scatterplot(data=df,
 df1 = df
 fig, AX = plt.subplots(2, 2, figsize=(15,15))
 sns.lineplot(data=df1,
-	x='n_params', y='total_time', hue='method_fine', ax=AX[0][0])
+	x='n_VC', y='total_time', hue='method_fine', ax=AX[0][0])
 sns.lineplot(data=df1,
 	x='n_worlds', y='total_time', hue='method_fine', ax=AX[0][1])
 sns.lineplot(data=df1,
 	x='n_params', y='max_mem', hue='method_fine', ax=AX[1][0])
 sns.lineplot(data=df1,
-	x='n_worlds', y='max_mem', hue='method_fine', ax=AX[1][1])
+	x='n_VC', y='max_mem', hue='method_fine', ax=AX[1][1])
 
+
+
+#%% #####
+
+# df1 = df[df.gamma >= 1E-9]
+
+fig, AX = plt.subplots(2, 2, figsize=(15,15))
+sns.lineplot(data=df1,
+	x='n_params', y='total_time', hue='method_fine', ax=AX[0][0])
+sns.lineplot(data=df1,
+	x='n_VC', y='total_time', hue='method_fine', ax=AX[0][1])
+sns.lineplot(data=df1,
+	x='n_params', y='max_mem', hue='method_fine', ax=AX[1][0])
+sns.lineplot(data=df1,
+	x='n_VC', y='max_mem', hue='method_fine', ax=AX[1][1])
+
+
+#%% ####
+# scatter time vs 
+df1 = df
+fig, AX = plt.subplots(1, 1, figsize=(10,10))
+# AX.set(xscale='log',yscale='log')
+# sns.scatterplot(data=dfsmall, 
+#     x=df.gamma * (np.random.rand(len(df))/2+0.6), y='gap', hue='method', 
+#     linewidth=0, alpha=0.4, s=50,
+#     ax=AX)
+AX.set(yscale='log', xscale='log')
+sns.scatterplot(data=df1, x="obj", y="total_time", ax=AX, hue="method")
 
 
 
@@ -187,7 +216,8 @@ fig, AX = plt.subplots(2, 2, figsize=(20,20))
 sns.lineplot(data=df1,
 	x='n_params', y='gap', hue='method_fine', ax=AX[0,0])
 sns.lineplot(data=df1,
-	x='n_worlds', y='gap', hue='method_fine', ax=AX[0,1])
+	# x='n_worlds', y='gap', hue='method_fine', ax=AX[0,1])
+	x='n_VC', y='gap', hue='method_fine', ax=AX[0,1])
 
 # sns.kdeplot(data=df,
 #     x='n_params', y='gap', hue='method', ax=AX[1,0])
@@ -214,7 +244,8 @@ sns.lineplot(data=df1,
 ###############################################
 # What about if we zoom in on # worlds < 2k?
 # dfsmall = df[df.n_worlds < 3000]
-dfsmall = df
+# dfsmall = df
+dfsmall = df[df.gamma >= 1E-9]
 
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
 # AX.set(xscale='log',yscale='log')
@@ -227,7 +258,9 @@ sns.stripplot(data=dfsmall,
 	x= np.round(np.log10(df.gamma),1).astype(str), y='gap', hue='method_fine', 
 	order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
 	# s=10 + np.log(dfsmall.n_worlds)/1,
-	s= 2 + dfsmall.n_worlds / 500,
+	# s= 2 + dfsmall.n_worlds / 500,
+	s = 2 + dfsmall.n_VC.astype(float) / 200,
+	# s=8,
 	# linewidth=np.log(dfsmall.n_worlds)/1,
 	linewidth=1,
 	alpha=0.25,
