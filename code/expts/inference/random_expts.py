@@ -26,9 +26,14 @@ parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 parser.add_argument("-r", "--reprs", nargs='*', type=str,
 	default=['simplex', 'gibbs'],
 	help="Which representation to use? Choose from {simplex, gibbs, soft-simplex}")
-parser.add_argument("-i", "--num-iters", nargs='*', type=int,
-	default=20,
-	help="How many iterations?")
+# parser.add_argument("-i", "--num-iters", nargs='*', type=int,
+# 	default=20,
+# 	help="Maximum Iters")
+
+parser.add_argument("-l", "--learning-rates", nargs='*', type=float,
+	# default=[1E0, 1E-1, 1E-2, 1E-3, 1E-4],
+	default=[],
+	help="Learning Rates")
 
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
 	default=[1E-12, 1E-8, 1E-4, 1E-2, 1, 2],
@@ -74,8 +79,6 @@ signal.signal(signal.SIGINT, terminate_signal)
 signal.signal(signal.SIGTERM, terminate_signal)
 
 
-
-
 import itertools as itt
 def reset():
 	global var_names
@@ -86,16 +89,6 @@ def reset():
 reset()
 
 verb = args.verbose
-
-niters = {
-	# 'adam': [500, 1500, 5000],
-	# 'lbfgs': [50, 150, 400],
-	# 'asgd': [500, 1500, 5000],
-	'adam': [500],
-	'lbfgs': [50],
-	'asgd': [500],	
-	# 'cccp' : [5, 10, 15, 20, 25]
-}
 
 try:
 	for i in range(args.num_pdgs):
@@ -152,11 +145,22 @@ try:
 			# for ozrname in ['adam', "lbfgs", "asgd"]:
 			for rep in args.reprs:
 				for ozrname in args.ozrs:
-					for oi in niters[ozrname]:
-						expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
-						# expt.enqueue(str(i), stats,
+					# for oi in niters[ozrname]:
+					if len(args.learning_rates) == 0:
+						expt.enqueue("%d--torch(%s;%s)--gamma%.0e"%
+									(i,ozrname,rep,gamma), stats,
 							torch_opt.opt_joint, pdg,
-							gamma=gamma, optimizer=ozrname, iters=oi, representation=rep)
+							gamma=gamma, optimizer=ozrname,
+							representation=rep)
+
+					for lr in args.learning_rates:
+						expt.enqueue("%d--torch(%s;%s@%.0f)--gamma%.0e"%
+									(i,ozrname,rep,lr,gamma), stats,
+							torch_opt.opt_joint, pdg,
+							gamma=gamma, optimizer=ozrname, lr=lr,
+							representation=rep)
+
+
 		
 
 		#Finally, just multiply the cpds for gamma = 1. 

@@ -20,8 +20,8 @@ fnames = [
 	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
 	# ('tw-aggregated.json', 'tw-all'),
-	# ('tw-temp-aggregated.json', 'tw-temp'),
-	('tw-aggregated-6.json', 'tw6'),
+	('tw-temp-aggregated.json', 'tw-temp'),
+	# ('tw-aggregated-6.json', 'tw6'),
 ### RANDOM GRAPHS JOINT
 	# ('random-pdg-data-aggregated-6.json', 'rand6'),
 	# ('random-pdg-data-aggregated-5.json', 'rand5'),
@@ -163,6 +163,52 @@ sns.lineplot(data=df1,
 
 
 
+
+#%% ##########################################
+# scatter time cost vs gap
+#############################################
+df1 = df
+fig, AX = plt.subplots(1, 1, figsize=(10,10))
+AX.set(yscale='log', xscale='log')
+sns.scatterplot(data=df1, x="gap", y="total_time", 
+	hue="method_fine",ax=AX,
+	s=25,
+	# s=15 + df1.n_VC/10,
+	alpha=0.5,
+	# linewidth=1
+	)
+
+#%% ######################################################
+# scatter time cost vs objective, for each value of gamma
+##########################################################
+# df1 = df[df.gamma >= 1E-9]
+df1 = df
+gammas = df1.gamma.unique()
+methods_fine = df1.method_fine.unique()
+fig, AX = plt.subplots(1, len(gammas), figsize=(18,6), sharey=True)
+for (ax,g) in zip(AX,gammas):
+	# ax.set(yscale='log', xscale='log')
+	ax.set(yscale='log')
+	ax.set_title("($\gamma = 10^{%d}$)"%(int(round(np.log10(g)))))
+
+	dfg = df1[df1.gamma==g]
+	sns.scatterplot(data=dfg, x="obj", y="total_time", 
+		hue="method_fine",
+		hue_order=methods_fine,
+		s=15 + dfg.n_VC/10,
+		alpha=0.5,
+		ax=ax)
+	
+	ax.set_ylabel("total time (s)")
+	ax.set_xlabel("objective value")
+fig.tight_layout()
+
+
+
+
+
+
+
 #%% ############################################
 df1 = df
 
@@ -234,45 +280,6 @@ sns.lineplot(data=df1,
 
 
 
-
-#%% ##########################################
-# scatter time cost vs gap
-#############################################
-df1 = df
-fig, AX = plt.subplots(1, 1, figsize=(10,10))
-AX.set(yscale='log', xscale='log')
-sns.scatterplot(data=df1, x="gap", y="total_time", 
-	hue="method_fine",ax=AX,
-	# s=25,
-	s=15 + df1.n_VC/10,
-	alpha=0.5,
-	# linewidth=1
-	)
-
-#%% ######################################################
-# scatter time cost vs objective, for each value of gamma
-##########################################################
-# df1 = df[df.gamma >= 1E-9]
-df1 = df
-gammas = df1.gamma.unique()
-methods_fine = df1.method_fine.unique()
-fig, AX = plt.subplots(1, len(gammas), figsize=(18,6), sharey=True)
-for (ax,g) in zip(AX,gammas):
-	# ax.set(yscale='log', xscale='log')
-	ax.set(yscale='log')
-	ax.set_title("($\gamma = 10^{%d}$)"%(int(round(np.log10(g)))))
-
-	dfg = df1[df1.gamma==g]
-	sns.scatterplot(data=dfg, x="obj", y="total_time", 
-		hue="method_fine",
-		hue_order=methods_fine,
-		s=15 + dfg.n_VC/10,
-		alpha=0.5,
-		ax=ax)
-	
-	ax.set_ylabel("total time (s)")
-	ax.set_xlabel("objective value")
-fig.tight_layout()
 
 
 
