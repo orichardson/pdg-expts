@@ -24,7 +24,7 @@ parser.add_argument("-t", "--tgt-range", nargs=2,  type=int,
 	default=[1,2],
 	help="bounds for how many targets each edge can have")
 parser.add_argument("-z", "--ozrs", nargs='*', type=str,
-	default=['adam', 'lbfgs' ,'asgd'],
+	default=['adam', 'lbfgs'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
 
 parser.add_argument("-i", "--num-iters", nargs='*', type=int,
@@ -187,7 +187,10 @@ try:
 
 		with open(args.datadir+"/%d.pdg" % i, 'wb') as fh:
 			pickle.dump(pdg, fh)
-			
+		with open(args.datadir+"/%d.ctree" % i, 'wb') as fh:
+			pickle.dump(ctree, fh)
+
+		
 		stats = dict(
 			graph_id = i,
 			max_tw = k,
@@ -224,8 +227,7 @@ try:
 			for gamma in args.gammas:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
 							torch_opt.opt_clustree, pdg, 
-							optimizer=ozrname,
-							gamma=gamma, **ctree_args, 
+							gamma=gamma, optimizer=ozrname, **ctree_args, 
 							# output_processor=pprocessor(pdg)
 							) #, verbose=verb
 

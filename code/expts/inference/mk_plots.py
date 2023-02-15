@@ -20,7 +20,8 @@ fnames = [
 	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
 	# ('tw-aggregated.json', 'tw-all'),
-	('tw-temp-aggregated.json', 'tw-temp'),
+	# ('tw-temp-aggregated.json', 'tw-temp'),
+	('tw-aggregated-6.json', 'tw6'),
 ### RANDOM GRAPHS JOINT
 	# ('random-pdg-data-aggregated-6.json', 'rand6'),
 	# ('random-pdg-data-aggregated-5.json', 'rand5'),
@@ -82,15 +83,19 @@ df.loc[df.method=='factor_product', 'gamma'] = 1.0
 
 # set up fine method
 df['method_fine'] = df['method'].copy()
-df.loc[df.method=='cvx_opt_joint',
-	'method_fine'] = df[df.method=='cvx_opt_joint']['also_idef'].map(
-		{True : 'cvx+idef', False:'cvx-idef'})
-df.loc[df.method=='cccp_opt_joint',
-	'method_fine'] = (df[df.method=='cccp_opt_joint']['gamma'] <= 1).map(
-		{True : 'cccp-VEX', False:'cccp-CAVE'})
+if 'also_idef' in df.columns:
+	cvx_rows = df.method.isin(['cvx_opt_joint','cvx_opt_clusters'])
+	df.loc[cvx_rows,'method_fine'] = df[cvx_rows]['also_idef'].map(
+			{True : 'cvx+idef', False:'cvx-idef'})
+
+# cccp_rows = df.method.isin(['cccp_opt_joint','cccp_opt_clusters'])
+# df.loc[cccp_rows, 'method_fine'] = (df[cccp_rows]['gamma'] <= 1).map(
+# 		{True : 'cccp-VEX', False:'cccp-CAVE'})
 if 'optimizer' in df.columns:
-	df.loc[df.method=='opt_dist',
-		'method_fine'] = 'torch:'+df[df.method=='opt_dist']['optimizer']
+	torch_rows = df.method.isin(['opt_dist','opt_clustree'])
+	desc = df[torch_rows].method.map({'opt_dist':'joint', 'opt_clustree':'ctree'})
+	df.loc[torch_rows,
+		'method_fine'] = 'torch:'+desc+"."+df[torch_rows]['optimizer']
 
 # make sure inc is nonegative (no rounding errors)
 df.inc.clip(lower=0, inplace=True)
@@ -110,7 +115,8 @@ for gid,gamma in df[['graph_id', 'gamma']].value_counts().index:
 df['gap'] = df.apply(lambda x: x.obj - best[(x.graph_id, x.gamma)], axis=1)
 
 # Lower bounds for log plot
-MIN = 1E-15
+# MIN = 1E-15
+MIN = 1E-20
 df[['gap','gamma']] += MIN 
 
 
@@ -133,9 +139,56 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 	plt.show()
 
 
-###########################################
-#  ONE-OFF PLOTTING CELLS BELOW
+#%%##########################################
 #############################################
+########  ONE-OFF PLOTTING CELLS  ###########
+#############################################
+#############################################
+
+
+#%%###########################################
+###   1.   Resources vs Problem Size       ###
+##############################################
+# df1 = df[df.gamma >= 1E-9]
+df1=df
+fig, AX = plt.subplots(2, 2, figsize=(15,15))
+sns.lineplot(data=df1,
+	x='n_params', y='total_time', hue='method_fine', ax=AX[0][0])
+sns.lineplot(data=df1,
+	x='n_VC', y='total_time', hue='method_fine', ax=AX[0][1])
+sns.lineplot(data=df1,
+	x='n_params', y='max_mem', hue='method_fine', ax=AX[1][0])
+sns.lineplot(data=df1,
+	x='n_VC', y='max_mem', hue='method_fine', ax=AX[1][1])
+
+
+
+#%% ############################################
+df1 = df
+
+fig, AX = plt.subplots(2, 2, figsize=(20,20))
+AX[0,0].set(yscale='log')
+sns.scatterplot(data=df1, 
+    x=df.n_VC * (np.random.rand(len(df))/4+0.6), y='gap', hue='method_fine', 
+    linewidth=0, alpha=0.4, s=50,
+    ax=AX[0,0])
+# AX.set(xscale='log')
+# sns.stripplot(data=df1, 
+# 	# x= np.round(np.log10(df1.gamma),1).astype(str),
+# 	x=df1.graph_id.astype(str),
+# 	y="gap",
+# 	hue='method_fine', 
+# 	# order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
+# 	# s=10 + np.log(dfsmall.n_worlds)/1,
+# 	# s= 2 + dfsmall.n_worlds / 500,
+# 	# s = 2 + dfsmall.n_VC / 200,
+# 	s=8,
+# 	# linewidth=np.log(dfsmall.n_worlds)/1,
+# 	linewidth=1,
+# 	alpha=0.1,
+# 	ax=AX)
+
+
 
 #%%
 # ax = plt.
@@ -180,36 +233,50 @@ sns.lineplot(data=df1,
 
 
 
-#%% #####
-
-# df1 = df[df.gamma >= 1E-9]
-
-fig, AX = plt.subplots(2, 2, figsize=(15,15))
-sns.lineplot(data=df1,
-	x='n_params', y='total_time', hue='method_fine', ax=AX[0][0])
-sns.lineplot(data=df1,
-	x='n_VC', y='total_time', hue='method_fine', ax=AX[0][1])
-sns.lineplot(data=df1,
-	x='n_params', y='max_mem', hue='method_fine', ax=AX[1][0])
-sns.lineplot(data=df1,
-	x='n_VC', y='max_mem', hue='method_fine', ax=AX[1][1])
 
 
-#%% ####
-# scatter time vs 
+#%% ##########################################
+# scatter time cost vs gap
+#############################################
 df1 = df
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
-# AX.set(xscale='log',yscale='log')
-# sns.scatterplot(data=dfsmall, 
-#     x=df.gamma * (np.random.rand(len(df))/2+0.6), y='gap', hue='method', 
-#     linewidth=0, alpha=0.4, s=50,
-#     ax=AX)
 AX.set(yscale='log', xscale='log')
-sns.scatterplot(data=df1, x="obj", y="total_time", ax=AX, hue="method")
+sns.scatterplot(data=df1, x="gap", y="total_time", 
+	hue="method_fine",ax=AX,
+	# s=25,
+	s=15 + df1.n_VC/10,
+	alpha=0.5,
+	# linewidth=1
+	)
+
+#%% ######################################################
+# scatter time cost vs objective, for each value of gamma
+##########################################################
+# df1 = df[df.gamma >= 1E-9]
+df1 = df
+gammas = df1.gamma.unique()
+methods_fine = df1.method_fine.unique()
+fig, AX = plt.subplots(1, len(gammas), figsize=(18,6), sharey=True)
+for (ax,g) in zip(AX,gammas):
+	# ax.set(yscale='log', xscale='log')
+	ax.set(yscale='log')
+	ax.set_title("($\gamma = 10^{%d}$)"%(int(round(np.log10(g)))))
+
+	dfg = df1[df1.gamma==g]
+	sns.scatterplot(data=dfg, x="obj", y="total_time", 
+		hue="method_fine",
+		hue_order=methods_fine,
+		s=15 + dfg.n_VC/10,
+		alpha=0.5,
+		ax=ax)
+	
+	ax.set_ylabel("total time (s)")
+	ax.set_xlabel("objective value")
+fig.tight_layout()
 
 
 
- #%% 
+#%% 
 df1 = df
 # df1 = df[df.gamma <= 1]
 fig, AX = plt.subplots(2, 2, figsize=(20,20))
@@ -244,8 +311,8 @@ sns.lineplot(data=df1,
 ###############################################
 # What about if we zoom in on # worlds < 2k?
 # dfsmall = df[df.n_worlds < 3000]
-# dfsmall = df
-dfsmall = df[df.gamma >= 1E-9]
+dfsmall = df
+# dfsmall = df[df.gamma >= 1E-9]
 
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
 # AX.set(xscale='log',yscale='log')
@@ -253,17 +320,19 @@ fig, AX = plt.subplots(1, 1, figsize=(10,10))
 #     x=df.gamma * (np.random.rand(len(df))/2+0.6), y='gap', hue='method', 
 #     linewidth=0, alpha=0.4, s=50,
 #     ax=AX)
-AX.set(yscale='log')
+# AX.set(xscale='log')
 sns.stripplot(data=dfsmall, 
-	x= np.round(np.log10(df.gamma),1).astype(str), y='gap', hue='method_fine', 
-	order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
+	x= np.round(np.log10(df.gamma),1).astype(str),
+	y="gap",
+	hue='method_fine', 
+	# order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
 	# s=10 + np.log(dfsmall.n_worlds)/1,
 	# s= 2 + dfsmall.n_worlds / 500,
-	s = 2 + dfsmall.n_VC.astype(float) / 200,
-	# s=8,
+	# s = 2 + dfsmall.n_VC / 200,
+	s=8,
 	# linewidth=np.log(dfsmall.n_worlds)/1,
 	linewidth=1,
-	alpha=0.25,
+	alpha=0.1,
 	ax=AX)
 
 
@@ -276,7 +345,7 @@ df1 = df
 #%% ####
 # df1 = df[df.n_worlds <= 4000]
 df1 = df
-fig, AX = plt.subplots(2, 2, figsize=(15,12))
+fig, AX = plt.subplots(2, 2, figsize=(15,15))
 AX[0,0].set(yscale='log')
 sns.lineplot(data=df1,
 	x='n_worlds', y='gap', hue='method', ax=AX[0][0])
@@ -338,10 +407,13 @@ sns.scatterplot(data=df,
 
 #%%
 #
+fig, ax = plt.subplots(1,1)
+ax.set(xscale='log')
 sns.stripplot(data=df, 
 	x='total_time', y='method', hue='gap',
 	alpha=0.5, linewidth=0,
-	hue_norm=LogNorm()
+	hue_norm=LogNorm(),
+	ax=ax
 	)
 
 
@@ -353,7 +425,7 @@ blu_org = sns.diverging_palette(250, 30, l=65, center="dark", as_cmap=True)
 ax = sns.scatterplot(data=df, 
 	x='inc', y='idef',hue='method',style='method',
 	hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
-	alpha=0.2, # cmap=blu_org,
+	alpha=0.2,  cmap=blu_org,
 	s=50,linewidth=0)
 
 idef_range = np.linspace(df['idef'].min(), df['idef'].max(), 100)

@@ -81,8 +81,8 @@ def run_expt_log_datapt_worker( DATA_DIR,
 			M = args[0] # assume M is first argument
 			# assumre rslt is either RJD | CliqueForest, and can be npified
 			rslt.npify(inplace=True)
-			inc = M.Inc(rslt)
-			idef = M.IDef(rslt)
+			inc = float(M.Inc(rslt))
+			idef = float(M.IDef(rslt))
 		else:
 			inc,idef = output_processor(rslt)
 
