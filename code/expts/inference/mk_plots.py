@@ -47,14 +47,19 @@ for (fname, shortid) in fnames:
 
 		to_inline = [c for c in ['input_stats', 'parameters', 'rslt_metrics'] if c in tempdf.columns]
 		
-		dflist = [ tempdf.drop(to_inline, axis=1, inplace=False) ] # rest
-		
-
-		tempdf = pd.concat([
-			tempdf.drop(['input_stats', 'parameters'], axis=1, inplace=False),
-			pd.json_normalize(tempdf['input_stats']),
-			pd.json_normalize(pd.json_normalize(tempdf['parameters'])[1]) # only kw parameters matter
-		], axis=1) 
+		dflist = [ tempdf.drop(to_inline, axis=1, inplace=False) ]
+		for c in to_inline:
+			# special case of "parameters: just want the second component "
+			if c == 'parameters': dflist.append(
+					pd.json_normalize(pd.json_normalize(tempdf['parameters'])[1]))
+			else:
+				dflist.append(pd.json_normalize(tempdf[c]))
+		tempdf = pd.concat(dflist,axis=1)
+		# tempdf = pd.concat([
+		# 	tempdf.drop(['input_stats', 'parameters'], axis=1, inplace=False),
+		# 	pd.json_normalize(tempdf['input_stats']),
+		# 	pd.json_normalize(pd.json_normalize(tempdf['parameters'])[1]) # only kw parameters matter
+		# ], axis=1) 
 
 	elif fname.endswith(".csv"):
 		tempdf = pd.read_csv(fname)

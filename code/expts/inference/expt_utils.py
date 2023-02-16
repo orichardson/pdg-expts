@@ -113,8 +113,8 @@ def run_expt_log_datapt_worker( DATA_DIR,
 		print(datapt)
 
 		with open(fileprefix+".pt", "w") as f:
-			# json.dump(datapt._asdict(), f)
-			json.dump(datapt, f)
+			json.dump(datapt._asdict(), f)
+			# json.dump(datapt, f)
 
 		if rslt_connection is None:
 			return rslt
@@ -272,7 +272,7 @@ class MultiExptInfrastructure:
 					else:
 						self.results[namenum] = result._replace(max_mem = m_m)
 						with open(self.datadir+"/"+namenum[0]+"-"+str(namenum[1])+".mpt", 'w') as fh:
-							json.dump(self.results[namenum], fh)
+							json.dump(self.results[namenum]._asdict(), fh)
 				
 				except EOFError:
 					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
