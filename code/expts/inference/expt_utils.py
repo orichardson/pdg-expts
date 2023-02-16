@@ -44,13 +44,14 @@ class dotdict(dict):
 DataPt = namedtuple('DataPt', 
 	# ['result', 'total_time', 'max_mem'])
 	['method', 'input_stats', 'input_name', 'parameters', 'gamma',
-		'inc', 'idef', 'total_time', 'init_mem', 'max_mem', 'timestamp']
+		# 'inc', 'idef',
+		'rslt_metrics',  'total_time', 'init_mem', 'max_mem', 'timestamp']
 )
 
 def run_expt_log_datapt_worker( DATA_DIR,
 			input_name, job_number, input_stats, rslt_connection,
 			fn,	args, kwargs, output_processor=None, IGNORE=set()
-		) -> DataPt:
+		):
 	""" this is the worker method.
 	"""
 	fileprefix = f"{DATA_DIR}/{input_name}-{job_number}"
@@ -85,8 +86,9 @@ def run_expt_log_datapt_worker( DATA_DIR,
 			idef = M.IDef(rslt)
 			if numpy.ma.is_masked(inc): inc = numpy.inf
 			if numpy.ma.is_masked(idef): idef = numpy.nan
+			rslt_metrics = dict(inc=inc,idef=idef)
 		else:
-			inc,idef = output_processor(rslt)
+			rslt_metrics = output_processor(rslt)
 
 		datapt = DataPt(
 			method=fn.__name__,
@@ -96,8 +98,9 @@ def run_expt_log_datapt_worker( DATA_DIR,
 			gamma=kwargs['gamma'] if 'gamma' in kwargs else 0,
 			# inc=M.Inc(rslt).real,
 			# idef = M.IEef(rslt),
-			inc = inc,
-			idef = idef,
+			# inc = inc,
+			# idef = idef,
+			rslt_metrics=rslt_metrics,
 			total_time=total_time,
 			# max_mem=mem_diff,
 			init_mem=init_mem,
@@ -110,9 +113,13 @@ def run_expt_log_datapt_worker( DATA_DIR,
 		print(datapt)
 
 		with open(fileprefix+".pt", "w") as f:
-			json.dump(datapt._asdict(), f)
+			# json.dump(datapt._asdict(), f)
+			json.dump(datapt, f)
 
-		rslt_connection.send(datapt)
+		if rslt_connection is None:
+			return rslt
+		else:
+			rslt_connection.send(datapt)
 
 	except Exception as e:
 		with open(fileprefix+".err", "w") as f:
@@ -120,10 +127,12 @@ def run_expt_log_datapt_worker( DATA_DIR,
 				 + "".join(traceback.TracebackException.from_exception(e).format()))
 			# json.dump(datapt, f)
 			f.writelines(traceback.TracebackException.from_exception(e).format())
-		rslt_connection.send(None)
+		if rslt_connection is not None:
+			rslt_connection.send(None)
 	
 	finally:
-		rslt_connection.close()
+		if rslt_connection is not None:
+			rslt_connection.close()
 
 	# prefix = f"{input_name+'-'+str(job_number):>20}|"
 	# print(prefix, "requesting memory")
@@ -287,6 +296,17 @@ class MultiExptInfrastructure:
 		print('cleaned up ', namenum)
 		return True
 
+	def execute(self, input_name, input_stats, fn, *args, output_processor=None, **kwargs):
+		# nonlocal available_cores
+		print('requested execute: ', input_name, fn.__name__, kwargs)
+		
+		rslt = run_expt_log_datapt_worker(self.datadir,input_name,self.jobnum,
+			input_stats, rslt_connection=None, fn=fn,args=args,kwargs=kwargs,
+			output_processor=output_processor,IGNORE=self.kwparams2ignore)
+		
+		self.jobnum += 1
+
+		return rslt
 	def enqueue(self, input_name, input_stats, fn, *args, output_processor=None, **kwargs):
 		rslt_recvr, rslt_sender = multiproc.Pipe()
 

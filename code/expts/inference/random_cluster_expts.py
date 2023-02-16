@@ -67,7 +67,7 @@ from expt_utils import MultiExptInfrastructure
 
 global expt
 expt = MultiExptInfrastructure(args.datadir, n_threads=args.num_cores, 
-	kw_params_to_ignore=['varname_clusters', 'cluster_edges'])
+	kw_params_to_ignore=['varname_clusters', 'cluster_edges', 'ctree'])
 
 random.seed(343434)
 
@@ -123,16 +123,10 @@ def random_k_tree(n, k):
 	return G, ctree_tree
 
 
-def pprocessor(M): # postprocess cluster pseudomarginal
-	# def process_pseudomarginals(cpm):
+def pprocessor(M, baseline_ctree=None): # postprocess cluster pseudomarginal
 	def process(ctree):
-		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
-		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
-		# if 'inc' in cpm._asdict():
-		# 	return (cpm.inc, cpm.idef)
-		# else:
-		# 	return M.Inc(cpm.cluster_dist), float('nan')
 		ctree.npify(inplace=True)
+		violation = ctree.marginal_constraint_violation()
 		ctree._fallback_recalibrate_bp()
 		
 		inc = M.Inc(ctree)
@@ -140,8 +134,27 @@ def pprocessor(M): # postprocess cluster pseudomarginal
 		if np.ma.is_masked(inc): inc = np.inf
 		if np.ma.is_masked(idef): idef = np.nan
 		
-		return inc,idef
+		baseline_comparisons = dict(
+				baseline_tv = float(sum( np.abs(di.data-bi.data).sum() 
+					for (di,bi) in zip(ctree.dists,baseline_ctree.dists))),
+				baseline_KL = float(sum( bi // di
+					for (di,bi) in zip(ctree.dists,baseline_ctree.dists)))
+			) if baseline_ctree is not None else {}
+
+		return dict(
+			inc = inc,
+			idef = idef,
+			local_violation = violation,
+			**baseline_comparisons
+		)
 	return process
+
+def clique_tree_calibrate(M, gamma, ctree):
+	assert all(np.allclose(a *gamma, b) for a,b in M.edges('alpha,beta'))
+
+	cf = M.to_uncalibrated_cforest(ctree)
+	cf._fallback_recalibrate_bp()
+	return cf
 
 try:
 	for i in range(args.num_pdgs):
@@ -210,24 +223,22 @@ try:
 				# number of clique tree params
 		)
 					
-		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=False)
-		# expt.enqueue(str(i), stats, ip.cvx_opt_joint, pdg, also_idef=True)
-		# expt.enqueue("%d--cvx-idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=False)
-		# expt.enqueue("%d--cvx+idef"%i, stats, ip.cvx_opt_joint, pdg, also_idef=True)
 		ctree_args = dict(varname_clusters=ctree.nodes(), cluster_edges=ctree.edges())
 
-		# expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args, output_processor=pprocessor(pdg))
-		# expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args, output_processor=pprocessor(pdg))
 		expt.enqueue("%d--ctree-idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=False, **ctree_args)
 		expt.enqueue("%d--ctree+idef"%i, stats, ip.cvx_opt_clusters, pdg, also_idef=True, **ctree_args)
 		#,verbose=verb
-		# collect_inference_data_for(bn_name+"-as-pdg", pdg, store)
+
+
+		# pdg.to_markov_nets()
+		bp_baseline = expt.execute("%d--bp"%i, stats, clique_tree_calibrate, 
+			pdg, gamma=1, ctree=ctree, output_processor=pprocessor(pdg))
 
 		for gamma in args.gammas:
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 								ip.cccp_opt_clusters, pdg, 
 								gamma=gamma, **ctree_args, 
-								# output_processor=pprocessor(pdg)
+								output_processor=pprocessor(pdg,bp_baseline)
 								) #, verbose=verb
 
 
@@ -236,7 +247,7 @@ try:
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
 							torch_opt.opt_clustree, pdg, 
 							gamma=gamma, optimizer=ozrname, **ctree_args, 
-							# output_processor=pprocessor(pdg)
+							output_processor=pprocessor(pdg,bp_baseline)
 							) #, verbose=verb
 
 			
