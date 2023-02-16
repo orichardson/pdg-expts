@@ -123,17 +123,25 @@ def random_k_tree(n, k):
 	return G, ctree_tree
 
 
-# def pprocessor(M): # postprocess cluster pseudomarginal
-# 	# def process_pseudomarginals(cpm):
-# 	def process(ctree):
-# 		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
-# 		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
-# 		# if 'inc' in cpm._asdict():
-# 		# 	return (cpm.inc, cpm.idef)
-# 		# else:
-# 		# 	return M.Inc(cpm.cluster_dist), float('nan')
-# 		return M.Inc(ctree), M.IDef(ctree)
-# 	return process
+def pprocessor(M): # postprocess cluster pseudomarginal
+	# def process_pseudomarginals(cpm):
+	def process(ctree):
+		# print(cpm.inc, cpm.idef, cpm.cluster_dist)
+		# assert np.allclose([cpm.inc, cpm.idef], [M.Inc(cpm.cluster_dist), M.IDef(cpm.cluster_dist)])
+		# if 'inc' in cpm._asdict():
+		# 	return (cpm.inc, cpm.idef)
+		# else:
+		# 	return M.Inc(cpm.cluster_dist), float('nan')
+		ctree.npify(inplace=True)
+		ctree._fallback_recalibrate_bp()
+		
+		inc = M.Inc(ctree)
+		idef = M.IDef(ctree)
+		if np.ma.is_masked(inc): inc = np.inf
+		if np.ma.is_masked(idef): idef = np.nan
+		
+		return inc,idef
+	return process
 
 try:
 	for i in range(args.num_pdgs):
