@@ -20,14 +20,16 @@ fnames = [
 	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
 	# ('tw-aggregated.json', 'tw-all'),
-	('tw-temp-aggregated.json', 'tw-temp'),
+	# ('tw-temp-aggregated.json', 'tw-temp'),
 	# ('tw-aggregated-6.json', 'tw6'),
+	# ('tw-aggregated-7.json', 'tw7'),
 ### RANDOM GRAPHS JOINT
-	# ('random-pdg-data-aggregated-6.json', 'rand6'),
-	# ('random-pdg-data-aggregated-5.json', 'rand5'),
-	# ('random-pdg-data-aggregated-4.json', 'rand4'),
-	# ('random-pdg-data-aggregated-3.json', 'rand3'),
-	# ('random-pdg-data-aggregated-2.json', 'rand2'),
+	# ('random-joint-bad-aggregated.json', 'bad-rand1')
+	('random-pdg-data-aggregated-6.json', 'rand6'), # 448
+	('random-pdg-data-aggregated-5.json', 'rand5'), # 7273
+	('random-pdg-data-aggregated-4.json', 'rand4'),
+	('random-pdg-data-aggregated-3.json', 'rand3'),
+	('random-pdg-data-aggregated-2.json', 'rand2'),
 ### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
@@ -69,13 +71,13 @@ for (fname, shortid) in fnames:
 
 	tempdf = tempdf.loc[:,~tempdf.columns.duplicated()].copy() # get rid of extra "gamma" column
 	dfs.append( tempdf )
-	print(tempdf.columns)
+	print(shortid, '--> ', tempdf.columns)
 
 df0 = pd.concat(dfs, axis='index')
 df0.reset_index(inplace=True)
 df = df0
 
-#%%##########################################
+#%##########################################
 #  DATA ALTERATIONS AND PREPROCESSING
 #############################################
 
@@ -92,8 +94,9 @@ if 'also_idef' in df.columns:
 # df.loc[cccp_rows, 'method_fine'] = (df[cccp_rows]['gamma'] <= 1).map(
 # 		{True : 'cccp-VEX', False:'cccp-CAVE'})
 if 'optimizer' in df.columns:
-	torch_rows = df.method.isin(['opt_dist','opt_clustree'])
-	desc = df[torch_rows].method.map({'opt_dist':'joint', 'opt_clustree':'ctree'})
+	torch_rows = df.method.isin(['opt_dist', 'opt_joint','opt_clustree'])
+	desc = df[torch_rows].method.map(
+		{'opt_dist':'joint', 'opt_joint':'joint', 'opt_clustree':'ctree'})
 	df.loc[torch_rows,
 		'method_fine'] = 'torch:'+desc+"."+df[torch_rows]['optimizer']
 
@@ -101,7 +104,8 @@ if 'optimizer' in df.columns:
 df.inc.clip(lower=0, inplace=True)
 
 # calculate objective
-df['obj'] = df['inc'] + df['gamma'] * df['idef']
+# df['obj'] = df['inc'] + df['gamma'] * df['idef']
+df['obj'] = df['inc'] + df['gamma'] * df['idef'] * np.log(2)
 
 # calculate memdif
 if 'init_mem' in df.columns:
@@ -109,16 +113,25 @@ if 'init_mem' in df.columns:
 
 # calculate gap
 best = {}
+winner = {}
 for gid,gamma in df[['graph_id', 'gamma']].value_counts().index:
 	samegraph = df[(df.graph_id == gid)]
-	best[(gid,gamma)] = (samegraph.inc + gamma*samegraph.idef).min()
+	# best[(gid,gamma)] = (samegraph.inc + gamma*samegraph.idef).min()
+	scores = (samegraph.inc + gamma*samegraph.idef * np.log(2))
+	best[(gid,gamma)] = scores.min()
+	winner[(gid,gamma)] = samegraph.iloc[scores.argmin()]['index']
 df['gap'] = df.apply(lambda x: x.obj - best[(x.graph_id, x.gamma)], axis=1)
 
 # Lower bounds for log plot
 # MIN = 1E-15
 MIN = 1E-20
 df[['gap','gamma']] += MIN 
+df['noisy_gap'] = df.gap + MIN * np.random.rand(len(df))
 
+
+df['n_params_smoothed'] = df.n_params.map(lambda x: round(x,-2))
+if 'n_VC' in df.columns:
+	df['n_VC_smoothed'] = df.n_VC.map(lambda x: round(x,-2))
 
 
 #%%##########################################
@@ -151,59 +164,101 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 ##############################################
 # df1 = df[df.gamma >= 1E-9]
 df1=df
+wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds'
+
 fig, AX = plt.subplots(2, 2, figsize=(15,15))
 sns.lineplot(data=df1,
-	x='n_params', y='total_time', hue='method_fine', ax=AX[0][0])
+	x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0])
 sns.lineplot(data=df1,
-	x='n_VC', y='total_time', hue='method_fine', ax=AX[0][1])
+	x=wmeasure, y='total_time', hue='method_fine', ax=AX[0][1])
 sns.lineplot(data=df1,
-	x='n_params', y='max_mem', hue='method_fine', ax=AX[1][0])
+	x='n_params_smoothed', y='max_mem', hue='method_fine', ax=AX[1][0])
 sns.lineplot(data=df1,
-	x='n_VC', y='max_mem', hue='method_fine', ax=AX[1][1])
+	x=wmeasure, y='max_mem', hue='method_fine', ax=AX[1][1])
 
 
 
 
-#%% ##########################################
-# scatter time cost vs gap
+#%% #########################################
+#####       2.    Time vs Gap           #####
 #############################################
-df1 = df
+df1 = df.copy()
+# df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
 AX.set(yscale='log', xscale='log')
-sns.scatterplot(data=df1, x="gap", y="total_time", 
+sns.scatterplot(data=df1,
+	# x="gap",
+	x="noisy_gap",
+	y="total_time", 
 	hue="method_fine",ax=AX,
-	s=25,
+	s=80,
 	# s=15 + df1.n_VC/10,
 	alpha=0.5,
 	# linewidth=1
 	)
 
-#%% ######################################################
-# scatter time cost vs objective, for each value of gamma
-##########################################################
+#%% #############################################
+####   2a. Time vs Obj(or Gap), by Gamma    #####
+#################################################
 # df1 = df[df.gamma >= 1E-9]
 df1 = df
 gammas = df1.gamma.unique()
 methods_fine = df1.method_fine.unique()
-fig, AX = plt.subplots(1, len(gammas), figsize=(18,6), sharey=True)
-for (ax,g) in zip(AX,gammas):
-	# ax.set(yscale='log', xscale='log')
-	ax.set(yscale='log')
-	ax.set_title("($\gamma = 10^{%d}$)"%(int(round(np.log10(g)))))
+fig, AX = plt.subplots(2, len(gammas), figsize=(18,12), sharey=True)
+for i,yattr in enumerate(['obj', 'gap']):
+	for j,(ax,g) in enumerate(zip(AX[i],gammas)):
+		# ax.set(yscale='log', xscale='log')
+		ax.set(yscale='log')
+		if yattr == 'gap':
+			ax.set(xscale='log')
+		ax.set_title("($\gamma = 10^{%d}$)"%(int(round(np.log10(g)))))
 
-	dfg = df1[df1.gamma==g]
-	sns.scatterplot(data=dfg, x="obj", y="total_time", 
-		hue="method_fine",
-		hue_order=methods_fine,
-		s=15 + dfg.n_VC/10,
-		alpha=0.5,
-		ax=ax)
-	
-	ax.set_ylabel("total time (s)")
-	ax.set_xlabel("objective value")
+		dfg = df1[df1.gamma==g]
+		sns.scatterplot(data=dfg, x=yattr, y="total_time", 
+			hue="method_fine",
+			# style="expt_src",
+			hue_order=methods_fine,
+			# s=15 + dfg.n_VC/10,
+			s=100,
+			alpha=0.5,
+			ax=ax)
+		
+		ax.set_ylabel("total time (s)")
+		# ax.set_xlabel("objective value")
+		ax.set_xlabel(yattr)
+		if i > 0 or j > 0:
+			# pass
+			# ax.legend.remove()
+			ax.legend().set_visible(False)
 fig.tight_layout()
 
 
+#%% #############################################
+####   3.    Graph id  normalized        #####
+#################################################
+dfsmall = df
+# dfsmall = df[df.gamma >= 1E-9]
+
+fig, AX = plt.subplots(1, 1, figsize=(10,10))
+# AX.set(xscale='log',yscale='log')
+# sns.scatterplot(data=dfsmall, 
+#     x=df.gamma * (np.random.rand(len(df))/2+0.6), y='gap', hue='method', 
+#     linewidth=0, alpha=0.4, s=50,
+#     ax=AX)
+# AX.set(xscale='log')
+sns.stripplot(data=dfsmall, 
+	x= np.round(np.log10(df.gamma),1).astype(str),
+	y="gap",
+	hue='method_fine', 
+	# order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
+	# s=10 + np.log(dfsmall.n_worlds)/1,
+	# s= 2 + dfsmall.n_worlds / 500,
+	# s = 2 + dfsmall.n_VC / 200,
+	s=8,
+	# linewidth=np.log(dfsmall.n_worlds)/1,
+	linewidth=1,
+	alpha=0.1,
+	ax=AX)
 
 
 
@@ -253,8 +308,9 @@ sns.scatterplot(data=df, x=df.iters, y=np.log(df.gap), hue='method_fine')
 #%%
 
 sns.scatterplot(data=df, 
-	x='total_time', y='obj',hue='method',style='method',
-	hue_order=['opt_dist', 'cccp_opt_joint', 'cvx_opt_joint'],
+	x='total_time', y='obj',hue='method',
+	# hue_order=['opt_dist, 'cccp_opt_joint', 'cvx_opt_joint'],
+	hue_order=['opt_clustree', 'cccp_opt_clusters', 'cvx_opt_clusters'],
 	alpha=0.2, # cmap=blu_org,
 	s=50,linewidth=0)
 

@@ -154,7 +154,7 @@ try:
 							representation=rep)
 
 					for lr in args.learning_rates:
-						expt.enqueue("%d--torch(%s;%s@%.0f)--gamma%.0e"%
+						expt.enqueue("%d--torch(%s;%s;%.0e)--gamma%.0e"%
 									(i,ozrname,rep,lr,gamma), stats,
 							torch_opt.opt_joint, pdg,
 							gamma=gamma, optimizer=ozrname, lr=lr,
