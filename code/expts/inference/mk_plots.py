@@ -20,16 +20,17 @@ fnames = [
 	# ('tw-data-aggregated-1.json', 'tw1'),  # issues: max_tw is wrong;
 	# 									# IDef is missing; no optimization baselines.
 	# ('tw-aggregated.json', 'tw-all'),
-	# ('tw-temp-aggregated.json', 'tw-temp'),
 	# ('tw-aggregated-6.json', 'tw6'),
 	# ('tw-aggregated-7.json', 'tw7'),
+	# ('tw-temp-aggregated.json', 'tw-temp'),
 ### RANDOM GRAPHS JOINT
 	# ('random-joint-bad-aggregated.json', 'bad-rand1')
-	('random-pdg-data-aggregated-6.json', 'rand6'), # 448
-	('random-pdg-data-aggregated-5.json', 'rand5'), # 7273
-	('random-pdg-data-aggregated-4.json', 'rand4'),
-	('random-pdg-data-aggregated-3.json', 'rand3'),
-	('random-pdg-data-aggregated-2.json', 'rand2'),
+	# ('random-pdg-data-aggregated-6.json', 'rand6'), # 448
+	# ('random-pdg-data-aggregated-5.json', 'rand5'), # 7273
+	# ('random-pdg-data-aggregated-4.json', 'rand4'),
+	# ('random-pdg-data-aggregated-3.json', 'rand3'),
+	# ('random-pdg-data-aggregated-2.json', 'rand2'),
+	('rj-temp-aggregated.json', 'rj-temp'),
 ### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
@@ -122,17 +123,44 @@ for gid,gamma in df[['graph_id', 'gamma']].value_counts().index:
 	winner[(gid,gamma)] = samegraph.iloc[scores.argmin()]['index']
 df['gap'] = df.apply(lambda x: x.obj - best[(x.graph_id, x.gamma)], axis=1)
 
-# Lower bounds for log plot
-# MIN = 1E-15
-MIN = 1E-20
+# Lower bounds for log plots
+MIN = 1E-15
 df[['gap','gamma']] += MIN 
-df['noisy_gap'] = df.gap + MIN * np.random.rand(len(df))
+df['noisy_gap'] = df.gap + MIN * np.random.rand(len(df))*4
 
 
 df['n_params_smoothed'] = df.n_params.map(lambda x: round(x,-2))
 if 'n_VC' in df.columns:
 	df['n_VC_smoothed'] = df.n_VC.map(lambda x: round(x,-2))
+if 'n_worlds' in df.columns:
+	df['n_worlds_smoothed'] = df.n_worlds.map(lambda x: round(x,-2))
 
+# df_lr_curated = df.copy()
+# if 'lr' in df.columns:
+ozr_axes = {'lr','optimizer', 'representation'} & set(df.columns)
+to_select = {'lr'}
+df_best_hyperparam_idx = df.sort_values('gap').groupby(
+		['gamma', 'graph_id', 'method'] + list(ozr_axes - to_select) ).head(1).index
+df_hyper_curated = df[(~torch_rows) | df.index.isin(df_best_hyperparam_idx)]
+
+
+#############################
+# set up colors
+sns.set_style("darkgrid", {"axes.facecolor": ".9"})
+
+mpalette = {
+	'torch:ctree.adam' : 'tab:green',
+	'torch:joint.adam' : 'tab:green',
+	'torch:ctree.lbfgs' : 'darkgreen',
+	'torch:joint.lbfgs': 'darkgreen',
+	'factor_product': 'slategray',
+    'cccp_opt_joint': 'purple',
+	'cccp_opt_clusters': 'purple', 
+    'cvx+idef': 'goldenrod',
+    'cvx-idef': 'darkgoldenrod',
+}
+morder = list(reversed(mpalette.keys()))
+df = df.iloc[df.method_fine.map(lambda mf : -morder.index(mf)).sort_values().index]
 
 #%%##########################################
 #  PLOTTING FUNCTIONS
@@ -163,46 +191,57 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 ###   1.   Resources vs Problem Size       ###
 ##############################################
 # df1 = df[df.gamma >= 1E-9]
-df1=df
+df1=df_hyper_curated
 wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds'
 
 fig, AX = plt.subplots(2, 2, figsize=(15,15))
 sns.lineplot(data=df1,
-	x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0])
+	x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0],palette=mpalette)
 sns.lineplot(data=df1,
-	x=wmeasure, y='total_time', hue='method_fine', ax=AX[0][1])
+	x=wmeasure, y='total_time', hue='method_fine', ax=AX[0][1],palette=mpalette)
 sns.lineplot(data=df1,
-	x='n_params_smoothed', y='max_mem', hue='method_fine', ax=AX[1][0])
+	x='n_params_smoothed', y='max_mem', hue='method_fine', ax=AX[1][0],palette=mpalette)
 sns.lineplot(data=df1,
-	x=wmeasure, y='max_mem', hue='method_fine', ax=AX[1][1])
-
+	x=wmeasure, y='max_mem', hue='method_fine', ax=AX[1][1],palette=mpalette)
 
 
 
 #%% #########################################
 #####       2.    Time vs Gap           #####
 #############################################
-df1 = df.copy()
+df1 = df_hyper_curated
+df1 = df1[df1.method != 'factor_product']
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
-fig, AX = plt.subplots(1, 1, figsize=(10,10))
-AX.set(yscale='log', xscale='log')
+fig, AX = plt.subplots(1, 1, figsize=(10,5))
+AX.set(yscale='log', 
+	xscale='log'
+	)
 sns.scatterplot(data=df1,
 	# x="gap",
 	x="noisy_gap",
 	y="total_time", 
 	hue="method_fine",ax=AX,
 	s=80,
+	# s = 15 + df1.n_worlds/20,
 	# s=15 + df1.n_VC/10,
-	alpha=0.5,
-	# linewidth=1
+	alpha=0.4,
+	linewidth=0,
+	palette=mpalette,
+	# hue_order=morder
 	)
+sns.despine()
+AX.set_ylabel("total time (s)")
+		# ax.set_xlabel("objective value")
+AX.set_xlabel("gap between objective and best known objective for this graph (plus %.0e floor)"%MIN)
+AX.legend(title="Algorithm")
+fig.tight_layout()
 
 #%% #############################################
 ####   2a. Time vs Obj(or Gap), by Gamma    #####
 #################################################
 # df1 = df[df.gamma >= 1E-9]
 df1 = df
-gammas = df1.gamma.unique()
+gammas = sorted(df1.gamma.unique())
 methods_fine = df1.method_fine.unique()
 fig, AX = plt.subplots(2, len(gammas), figsize=(18,12), sharey=True)
 for i,yattr in enumerate(['obj', 'gap']):
@@ -217,14 +256,19 @@ for i,yattr in enumerate(['obj', 'gap']):
 		sns.scatterplot(data=dfg, x=yattr, y="total_time", 
 			hue="method_fine",
 			# style="expt_src",
-			hue_order=methods_fine,
+			# hue_order=methods_fine,
 			# s=15 + dfg.n_VC/10,
-			s=100,
+			# s=15 + dfg.n_worlds/20,
+			# s=100,
+			s=80,
 			alpha=0.5,
+			palette=mpalette,
 			ax=ax)
 		
 		ax.set_ylabel("total time (s)")
 		# ax.set_xlabel("objective value")
+		sns.despine()
+
 		ax.set_xlabel(yattr)
 		if i > 0 or j > 0:
 			# pass
@@ -232,9 +276,33 @@ for i,yattr in enumerate(['obj', 'gap']):
 			ax.legend().set_visible(False)
 fig.tight_layout()
 
-
 #%% #############################################
-####   3.    Graph id  normalized        #####
+####   3.    gap vs problem size            #####
+#################################################
+df1 = df_hyper_curated
+wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds_smoothed'
+# df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
+fig, AX = plt.subplots(1, 1, figsize=(10,10))
+AX.set(yscale='log', 
+	xscale='log'
+	)
+sns.lineplot(data=df1,
+	# x="gap",
+	# x="noisy_gap",
+	# y="total_time", 
+	x=wmeasure,
+	# y='noisy_gap',
+	y='gap',
+	hue="method_fine",ax=AX,
+	# s=80,
+	# s = 15 + df1.n_worlds/20,
+	# s=15 + df1.n_VC/10,
+	# alpha=0.25,
+	# linewidth=0,
+	palette=mpalette
+	)
+#%% #############################################
+####   4.            #####
 #################################################
 dfsmall = df
 # dfsmall = df[df.gamma >= 1E-9]
@@ -262,6 +330,11 @@ sns.stripplot(data=dfsmall,
 
 
 
+#%% ##############################################
+####  5. violin plot: gap by method_fine     #####
+##################################################
+
+sns.violinplot(data=df, x='method', y='total_time')
 
 
 #%% ############################################
