@@ -23,6 +23,7 @@ fnames = [
 	# ('tw-aggregated-6.json', 'tw6'),
 	# ('tw-aggregated-7.json', 'tw7'),
 	# ('tw-temp-aggregated.json', 'tw-temp'),
+	('cluster_rand_n=1.json', 'tw-test')
 ### RANDOM GRAPHS JOINT
 	# ('random-joint-bad-aggregated.json', 'bad-rand1')
 	# ('random-pdg-data-aggregated-6.json', 'rand6'), # 448
@@ -30,7 +31,7 @@ fnames = [
 	# ('random-pdg-data-aggregated-4.json', 'rand4'),
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
-	('rj-temp-aggregated.json', 'rj-temp'),
+	# ('rj-temp-aggregated.json', 'rj-temp'),
 ### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
@@ -43,6 +44,11 @@ for (fname, shortid) in fnames:
 	if fname.endswith('.json'):
 		with open(fname, 'r') as f:
 			tempdf = pd.DataFrame( json.load(f) )
+
+		to_inline = [c for c in ['input_stats', 'parameters', 'rslt_metrics'] if c in tempdf.columns]
+		
+		dflist = [ tempdf.drop(to_inline, axis=1, inplace=False) ] # rest
+		
 
 		tempdf = pd.concat([
 			tempdf.drop(['input_stats', 'parameters'], axis=1, inplace=False),

@@ -272,7 +272,7 @@ class MultiExptInfrastructure:
 					else:
 						self.results[namenum] = result._replace(max_mem = m_m)
 						with open(self.datadir+"/"+namenum[0]+"-"+str(namenum[1])+".mpt", 'w') as fh:
-							json.dump(self.results[namenum]._asdict(), fh)
+							json.dump(self.results[namenum], fh)
 				
 				except EOFError:
 					sys.stderr.write(f"EOFError! @process: {namenum}; already in results? "
