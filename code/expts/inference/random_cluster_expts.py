@@ -127,7 +127,8 @@ def pprocessor(M, baseline_ctree=None): # postprocess cluster pseudomarginal
 	def process(ctree):
 		ctree.npify(inplace=True)
 		violation = ctree.marginal_constraint_violation()
-		ctree._fallback_recalibrate_bp()
+		ctree._fallback_recalibrate_bp(avg_init=True)
+		ctree.renormalized()
 		
 		inc = M.Inc(ctree)
 		idef = M.IDef(ctree)
@@ -153,7 +154,7 @@ def clique_tree_calibrate(M, gamma, ctree):
 	assert all(np.allclose(a *gamma, b) for a,b in M.edges('alpha,beta'))
 
 	cf = M.to_uncalibrated_cforest(ctree)
-	cf._fallback_recalibrate_bp()
+	cf._fallback_recalibrate_bp(avg_init=False)
 	return cf
 
 try:
@@ -235,19 +236,21 @@ try:
 			pdg, gamma=1, ctree=ctree, output_processor=pprocessor(pdg))
 
 		for gamma in args.gammas:
+			compare_to = bp_baseline if gamma==1 else None
 			expt.enqueue("%d--cccp--gamma%.0e"%(i,gamma), stats,
 								ip.cccp_opt_clusters, pdg, 
 								gamma=gamma, **ctree_args, 
-								output_processor=pprocessor(pdg,bp_baseline)
+								output_processor=pprocessor(pdg,compare_to)
 								) #, verbose=verb
 
 
 		for ozrname in args.ozrs:
 			for gamma in args.gammas:
+				compare_to = bp_baseline if gamma==1 else None
 				expt.enqueue("%d--torch(%s)--gamma%.0e"%(i,ozrname,gamma), stats,
 							torch_opt.opt_clustree, pdg, 
 							gamma=gamma, optimizer=ozrname, **ctree_args, 
-							output_processor=pprocessor(pdg,bp_baseline)
+							output_processor=pprocessor(pdg,compare_to)
 							) #, verbose=verb
 
 			

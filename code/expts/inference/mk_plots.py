@@ -23,7 +23,7 @@ fnames = [
 	# ('tw-aggregated-6.json', 'tw6'),
 	# ('tw-aggregated-7.json', 'tw7'),
 	# ('tw-temp-aggregated.json', 'tw-temp'),
-	('cluster_rand_n=1.json', 'tw-test')
+	('cluster-rand-n1.json', 'tw-test')
 ### RANDOM GRAPHS JOINT
 	# ('random-joint-bad-aggregated.json', 'bad-rand1')
 	# ('random-pdg-data-aggregated-6.json', 'rand6'), # 448
@@ -155,8 +155,16 @@ df_best_hyperparam_idx = df.sort_values('gap').groupby(
 df_hyper_curated = df[(~torch_rows) | df.index.isin(df_best_hyperparam_idx)]
 
 
-#############################
-# set up colors
+##########################################
+# set up colors and styles and fonts
+#####
+
+# csfont = {'fontname':'Times New Roman'}
+plt.rcParams.update({
+    "text.usetex": True,
+	"font.family": 'serif'
+})
+
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 
 mpalette = {
@@ -165,6 +173,7 @@ mpalette = {
 	'torch:ctree.lbfgs' : 'darkgreen',
 	'torch:joint.lbfgs': 'darkgreen',
 	'factor_product': 'slategray',
+	'clique_tree_calibrate': 'slategray',
     'cccp_opt_joint': 'purple',
 	'cccp_opt_clusters': 'purple', 
     'cvx+idef': 'goldenrod',
@@ -173,10 +182,6 @@ mpalette = {
 morder = list(reversed(mpalette.keys()))
 df = df.iloc[df.method_fine.map(lambda mf : -morder.index(mf)).sort_values().index]
 
-#%%##########################################
-#  PLOTTING FUNCTIONS
-#############################################
-# sns.set_theme()
 
 def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 	if condition:
@@ -214,7 +219,7 @@ sns.lineplot(data=df1,
 	x='n_params_smoothed', y='max_mem', hue='method_fine', ax=AX[1][0],palette=mpalette)
 sns.lineplot(data=df1,
 	x=wmeasure, y='max_mem', hue='method_fine', ax=AX[1][1],palette=mpalette)
-
+fig.tight_layout()
 
 
 #%% #########################################
@@ -282,9 +287,9 @@ for i,yattr in enumerate(['obj', 'gap']):
 
 		ax.set_xlabel(yattr)
 		if i > 0 or j > 0:
-			# pass
+			pass
 			# ax.legend.remove()
-			ax.legend().set_visible(False)
+			# ax.legend().set_visible(False)
 fig.tight_layout()
 
 #%% #############################################
