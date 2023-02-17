@@ -2363,6 +2363,10 @@ There's also another, bigger problem: simply identifying inconsistency is just a
 \recall{prop:consistent-NP-hard}
 
 
+%oli8: wait until the full version to get into this.
+% but we still want the link to the example you asked for...
+\section{More on The Trade-off Between Observation and Structure}
+\ifvfull
 % \section{INFERENCE IN A PDG, AND THE COMPUTATION OF INCONSISTENY}
 \section{What is Inference?  Further Subtleties in PDGs}
 % \section{PDG INFERENCE, AND COMPUTING INCONSISTENCY}
@@ -2519,9 +2523,11 @@ to compute the usual conditional probability $\mu^*(Y|X{=}x)$.
 % to a conditional probability query amounts to a standard postprocessing step,
 % which does not significantly impact the complexity of the algorithm.
 
-
+\fi
+%oli8: keeping example. Removing heading, making it actually an example
 %oli5: added example.
-\subsection{Examples: The Trade-off Between Qualitative and Quantitative}
+% \subsection{An Example: The Trade-off Between Qualitative and Quantitative}
+\begin{example}
 \label{sec:example-gamma}
 
 \begin{figure}
@@ -2564,6 +2570,7 @@ If, in addition, we assume $\beta_0 = \beta_1$, then we can conclude that
 \]
 where $p_0(Y) := \Ex_{x \sim p_1}[ p_0(Y|x) ]$.
 % An illustration of how this can make a difference 
+\end{example}
 
 
 \section{Larger
@@ -2574,9 +2581,11 @@ where $p_0(Y) := \Ex_{x \sim p_1}[ p_0(Y|x) ]$.
 Next, let's consider the case where $\gamma$ is
 larger, meaning that the structural term $(\SInc_{})$,
 becomes more important.
-Because $\SInc_{}$ can express features of a distribution like conditional indepenedence,
-it cannot be convex.%
-    \footnote{one can easily verify that set of distributions that make $X$ and $Y$ independent is not convex.}
+Because 
+% $\SInc_{}$
+this term can express features of a distribution like indepenedence, it cannot be convex. 
+(It is easy to see that the set of distributions that make $X$ and $Y$ is independent is not convex: note that they are independent if either $X$ or $Y$ is deterministic, so if this set were convex, it would include all distributions. )%
+    % \footnote{one can easily verify that set of distributions that make $X$ and $Y$ independent is not convex.}
 Nevertheless, \eqref{eq:altscore} still gives us a way to proceed because it is a decomposition into a sum of a convex and a concave function, meaning that we can apply the convex-concave procedure, or CCCP \parencite{yuille2003concave}.
 % The first line is the sum of a linear term and a convex one,
 In more detail: and each individual term on the second line is either convex or concave, depending on the sign of the quantity $\gamma \alpha_a - \beta_a$.
@@ -2587,8 +2596,7 @@ Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(
         \nabla g(\mu_t)
 \end{align*}
 
-As we will see, the aproach presented here section is
-not very fast, but it is guaranteed to make progress, since
+This algorithm is not very fast, but it is guaranteed to make progress, since
 \def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
 \begin{align*}
     f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
@@ -2600,14 +2608,23 @@ not very fast, but it is guaranteed to make progress, since
 &= f(\mu_t) + g(\mu_t)
 \end{align*}
 and eventually find an optimum, because the concave terms are bounded (since they are conditional entropies of a finitely supported distribution).
+Furthermore, it does better than black-box optimizers when the problem has a concave component.
 
-\subsection{Experiments}
+\subsection{Implementation and Experiments with the CCCP}
+
+In our impementation, one will notice that there is no 
+method corresponding to problems \eqref{prob:joint-small-gamma} or \eqref{prob:cluster-small-gamma} --- rather, we have only implemented the CCCP. 
+This is because they are special cases of the CCCP, for when the problem happens to satisfy $\bbeta \ge \gamma \balpha$. In this case, the concave part of the function $g$ is identically zero, and one needs precisly one iteration. 
 
 
+One can see in \cref{fig:gamma-v-gap-fine}, for example, that when $\gamma = 2 > 1 = \max_a {(\beta_a / \alpha_a)}$, the problem is concave, which creates
+significant difficulties for the gradient-based methods.
+CCCP performs better, and the only reason it doesn't do significantly better than it does, is because we restrict to a mere five iterations to collect the data. 
 
 
-\section{Empirical Evaluation}\label{sec:expt-setup}.
-
+\section{Details on the Empirical Evaluation}\label{sec:expt-setup}
+Imagine a very steep $V$-shaped canyon, and inside a small slow-moving stream at a gentle incline. The end of the river may be very far away, and the whole landscape may be smooth and strongly convex, but the gradient will still almost always point perpendicular to it, and rather towards the center of the river.
+This explains why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable in $\mu$ and $\gamma$-strongly convex, it can still be challenging to optimize, especially when the $\beta$'s are very different, or when $\gamma$ is small.
 
 % One interesting feature of this class of problems is that they do not seem to be
 % amenable to the same kinds of generic modeling techniques that
@@ -2627,25 +2644,102 @@ and eventually find an optimum, because the concave terms are bounded (since the
 %oli5: haha it's good to finally know what "emperical" means after using it for all these years! I've replaced the remaining few of these and will run a complete spell check in the next iteration. 
 
 \begin{figure}
-    \includegraphics[width=\linewidth]{figs/resources-fine}
+    % \includegraphics[width=\linewidth]{figs/resources-fine}
+    \includegraphics[width=\linewidth]{figs/rand-joint/resource-costs}
     \caption{
-        The resource costs: computation time (top) and maximum memory usage (bottom) for the various optimization methods (by color), as the size of the PDG increases.
+        Resource costs for the joint-distribution optimization setting of \cref{sec:inf-as-cvx-program}.
+        We measure computation time (\texttt{total\_time}, top) and maximum memory usage (\texttt{max\_mem}, bottom) for the various optimization methods (by color), as the size of the PDG increases, as measured by the number of parameters in the PDG (\texttt{n\_params}$\,=\V\!\Ar$, left), and the size of a joint distribution over its variables (\texttt{n\_worlds}$\,=\V\!\X$, right).
+        Note that the convex solvers for the 0 and $0^+$ semantics are significantly faster than LBFGS, and on par with Adam.
+        % However, the small-$\gamma$ method (\verb|cccp_opt_joint|)
+        However, all three convex-solver based approaches require significantly more memory than the black-box optimizers.
      }\label{fig:resources}
 \end{figure}
 
 % \textbf{Comparison to Black-Box Optimizers, on Joint Distributions. }
-\textbf{Comparison with black-box optimizers, on joint distributions. }
+\subsection{Comparison with Black-Box Optimizers, on Joint Distributions.}
 % Even without the fancier construction 
 % From an optimization perspective, 
 % one interesting feature of PDG inference
 % is that, despite having incredibly nice properties
-Even though $\bbr{\dg M}_\gamma$ is infinitely differentiable in $\mu$ and $\gamma$-strongly convex, it can still be challenging to optimize, in part because the different search directions can have vastly different magnitudes.
-We begin with some results on joint distributions; 
-the experimental setup is described in \cref{sec:expt-setup}.
+% We begin with some results on joint distributions; 
+% the experimental setup is described in \cref{sec:expt-setup}.
  % applying black-box optimization methods such as gradient descent and LBFGS, do not seem to reliably find minima of \eqref{eqn:scoring-fn}.
 % \textit{Resources.}
-%
-Look at \cref{fig:resources}.
+Here is a more precise description of our first synthetic experiment,
+on joint distributions, which contrasts the convex optimization approaches of \cref{sec:inf-as-cvx-program} with black-box optimizers.
+
+\begin{itemize}
+    \item generate 300 PDGs, each of which has the following quantities, to each of which we choose the following natural numbers uniformly at random:
+    \begin{itemize}
+        % [nosep,label={$\blacktriangleright$}]
+        \item the number $N \in \{5,\ldots,9\}$ of variables
+            (so that $\X := \{1, \ldots, N\}$),
+        \item the number $V_X \in \{2, 3\}$ values per variable
+            (so that $|\V X| = V_X$ for each $X \in \X$)
+        \item the number $A \in \{7, \ldots, 14\}$ hyperarcs,
+        each $a \in \{1, \ldots, A\} =: \Ar$ of which has
+        \item $N^S_a \in \{0, 1, 2, 3\}$ sources, and
+        \item $N^T_a \in \{1,2\}$ targets.
+    \end{itemize}
+    \item For each arc $a \in \Ar$, $N^S_a$ of the $N$ variables are choosen without replacement to be sources $S_a \subseteq N$, and $N^T_a$ of remaining variables are chosen to be targets. Finally, to each value of $S_a$ and $T_a$, a number $p_{a,s,t} \in [0,1]$ is chosen uniformly at random, and the cpd 
+    \[
+     \p_a(\Tgt a {=} t \mid \Src a {=} s) = \frac{p_{a,s,t}}{\sum_{t' \in \V(T)} p_{a,s,t'}}
+     \qquad\text{ is given by normalizing appropriately.}
+    \]
+    This defines a PDG $\dg M = (\X, \Ar, \mathbb P, \mat 1, \mat 1)$, that
+    has $\balpha = \bbeta = \mat 1$, which will allow us to comapre against
+    belief propogation and other graphical models at $\gamma = 1$.
+    The complexity of this PDG is summarized by two numbers:
+    \begin{itemize}[nosep]
+        % \item \texttt{n\_edges}, the number of edges in $\dg M$,
+        \item \texttt{n\_params}$\,:= \V\!\Ar$, the total number of parameters across all the cpds of $\dg M$, and
+        \item \texttt{n\_worlds}$\,:= \V\!\X$, the size of the joint distributions on the variables of $\dg M$.
+    \end{itemize}
+    
+    \item Run MOSEK on \eqref{prob:joint-inc} to find a distribution that minimizes $\OInc$; we refer to this method as \texttt{cvx-idef}
+    \item Use the result to run MOSEK on \eqref{prob:joint+idef} to find the special distribution $\bbr{\dg M}^*_{0^+}$; we refer to this method as \texttt{cvx+idef}. These names are due to the fact that $\SInc$ is called $\IDef{}$ in previous work \parencite{pdg-aaai,one-true-loss};
+    thus, this refers to using the convex solver to compute minimizers of $\OInc$ with and without considering $\IDef{}$.
+    
+    \item Now for the torch baselines. 
+    Let $\theta = [\theta_{\mat x}]_{\mat x \in \V\X} \in \mathbb R^{\V\X}$, be a vector of optimization variables, and define
+    $\displaystyle
+        \mu_{\theta}(\mat x) := \frac{\max\{\theta_{\mat x}, 0\} }
+            {\sum_{\mat y \in \V\!\X}\max\{\theta_{\mat y}, 0\} }
+    $.
+    \item 
+    Then, for each value of gamma: $\gamma \in \{0, 10^{-8}, 10^{-4}, 10^{-2}, 1\}$, and each learning rate $\texttt{lr} \in 1E-3, 1E-2, 1E-1, 1E0$, and each optimizer $\mathit{opt} \in \{\texttt{adam}, \texttt{L-BFGS}\}$, 
+    run $\mathit{opt}$ over the parameters $\theta$ to minimize $\bbr{\dg M}_\gamma(\mu_{\theta})$
+     until convergence (or a maximum of 1500 iterations)  
+     
+     \item We collect the following data about the resulting distribution and the process of computing it:
+     \begin{itemize}[nosep]
+         \item the total time taken to arrive at $\mu$;
+         \item the maximmum memory taken by the process computing $\mu$;
+         \item the objective and its component values:
+         \vspace{-1ex}
+         \[
+            \texttt{inc} := \SInc_{\dg M}(\mu),
+            \qquad \texttt{idef} := \SInc_{\dg M}(\mu),
+            \qquad \texttt{obj} := \OInc_{\dg M}(\mu) + \gamma \SInc_{\dg M}(\mu) = \bbr{\dg M}_\gamma(\mu) 
+        \]
+     \end{itemize}
+\end{itemize}
+
+The numbers can then be recreated by running our experimental script as follows:
+\begin{verbatim}
+python random_expts.py -N 300 -n 5 9 -e 7 14 -v 2 3
+    --ozrs lbfgs adam
+    --learning-rates 1E0 1E-1 1E-2 1E-3
+    --gammas 0 1E-8 1E-4 1E-2 1E0
+    --num-cores 20
+    --data-dir random-joint-data
+\end{verbatim}
+which creates a folder called \verb|random-joint-data|,
+and fills it with \verb|.mpt| files corresponding to each distribution
+and the method / parameters that gave rise to it. 
+
+\textbf{Analyzing the Results.}
+Look at  \cref{fig:resources}.
 The black-box py-torch based approaches clearly have an edge in that they can handle larger models; see the cut-offs on the right side.
 Note that the exponential cone methods (blue and green) are actually faster than LBFGS, which was the best-performing torch optimizer.
 However, they use \emph{significantly} more memory, and cannot handle large models.
@@ -2673,8 +2767,10 @@ Since PDGs generalize other graphical models, one might wonder how our method st
     \includegraphics[width=\linewidth]{figs/gamma-vs-gap-bettergap}
     \caption{
         A graph of the gap (the difference between the attained objective value, and the best objective value obtained across all methods for that value of $\gamma$),
-        as $\gamma$ varies. As before, colors indicate method.
+        as $\gamma$ varies. The x-axis is $\log_{10} ( \gamma + 10^{-15})$.
+        As before, colors indicate the optimization method; here blue corresponds to \eqref{prob:joint+idef}, while orange corresonds to \eqref{prob:joint-small-gamma}, and green, as before, correponds to all optimization baselines.
         The size of the circle illustrates the relative number of worlds.
+        See \cref{fig:gamma-v-gap-fine} for a more detailed breakdown.
     }\label{fig:gamma-v-gap}
 \end{figure}
 
@@ -2683,8 +2779,10 @@ Since PDGs generalize other graphical models, one might wonder how our method st
     \includegraphics[width=\linewidth]{figs/2}
     \caption{
         A fine-grained variant of \cref{fig:gamma-v-gap}, which splits each method into sub-groups.
-        The ExpCone methods \texttt{cvx\_opt\_joint} are split into two variants, depending on whether or not it also computed the second step described in \cref{sec:also-idef} to account for $\SInc_{}$.
-        The CCCP variants are \texttt{cccp\_opt\_joint} split into regimes where the entire problem is convex, and the entire problem is concave. The optimization approaches \texttt{opt\_dist} are split into three different optimizers: LBFGS, Adam, and accelerated Gradient Descent.
+        The ExpCone methods \texttt{cvx\_opt\_joint} are split into two variants, depending on whether or not it also computed the second step described in \cref{sec:empirical-limit} to account for $\SInc_{}$.
+        The CCCP variants are \texttt{cccp\_opt\_joint} split into regimes where the entire problem is convex ($\gamma \le 1$, \verb|cccp-VEX|), and the entire problem is concave ($\gamma > 1$, \verb|cccp-CAVE|).
+        The optimization approaches \texttt{opt\_dist} are split into three different optimizers: LBFGS, Adam, and also a third one that is relatively poor: accelerated gradient descent.
+        Note that for small $\gamma$, the exponential-cone based methods significantly outperform the gradient-based ones.
     }\label{fig:gamma-v-gap-fine}
 \end{figure}
 

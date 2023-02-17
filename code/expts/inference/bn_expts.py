@@ -6,12 +6,13 @@ parser.add_argument("--data-dir", dest='datadir', type=str,
 
 example_bn_names =  [ 
 	"asia", "cancer", "earthquake", "sachs", "survey", "insurance", "child",
-	#  "barley", "alarm",
+	 "barley", "alarm",
 	#  "mildew", "water", "hailfinder", "hepar2", "win95pts", "andes", "diabetes",
 	# "link", "munin1", "munin2", "munin3", "munin4", "pathfinder", "pigs", "munin" 
 ]
 parser.add_argument("-z", "--ozrs", nargs='*', type=str,
-	default=['adam', 'lbfgs' ,'asgd'],
+	# default=['adam', 'lbfgs' ,'asgd'],
+	default=['adam', 'lbfgs'],
 	help="Which optimizers to use? Choose from {adam, lbfgs, asgd, sgd}")
 
 # parser.add_argument("--idef", action="store_true")
@@ -19,7 +20,8 @@ parser.add_argument("-z", "--ozrs", nargs='*', type=str,
 parser.add_argument("--BNs", default=example_bn_names, nargs='*',
 	help="do a second optimization to also optimize IDef subject to Inc minimization")
 parser.add_argument("-g", "--gammas", nargs='*', type=float,
-	default=[1E-8, 1E-4, 1E-2, 1, 2, 10],
+	# default=[1E-8, 1E-4, 1E-2, 1, 2, 10],
+	default=[0, 1E-2, 1],
 	help="Selection of gamma values")
 parser.add_argument("--num-cores", type=int, default=-1)
 parser.add_argument("--verbose", action="store_true", default=False)
@@ -55,12 +57,6 @@ if __name__ == '__main__':
 	# main()
 # def main():
 	expt = MultiExptInfrastructure(args.datadir,  n_threads=args.num_cores)
-
-	niters = {
-		'adam': [500, 1500, 5000],
-		'lbfgs': [50, 150, 400],
-		'asgd': [500, 1500, 5000]
-	}
 
 	for bn_name in example_bn_names:
 		bn = get_example_model(bn_name)

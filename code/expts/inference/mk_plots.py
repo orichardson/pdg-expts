@@ -23,7 +23,9 @@ fnames = [
 	# ('tw-aggregated-6.json', 'tw6'),
 	# ('tw-aggregated-7.json', 'tw7'),
 	# ('tw-temp-aggregated.json', 'tw-temp'),
-	('cluster-rand-n1.json', 'tw-test')
+	# ('cluster-rand-n1.json', 'tw-test')
+	# ('cluster-rand.json', 'clu-1'),
+	# ('tw-aggregated-9.json', 'tw9')
 ### RANDOM GRAPHS JOINT
 	# ('random-joint-bad-aggregated.json', 'bad-rand1')
 	# ('random-pdg-data-aggregated-6.json', 'rand6'), # 448
@@ -32,6 +34,7 @@ fnames = [
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
 	# ('rj-temp-aggregated.json', 'rj-temp'),
+	('rj-aggregated.json', 'rj'),
 ### BNS
 	# ('datapts-all.json', 'bns0'),  #BNs
 	# ('bn-data-aggregated-2.json', 'bns2')
@@ -162,9 +165,12 @@ df_hyper_curated = df[(~torch_rows) | df.index.isin(df_best_hyperparam_idx)]
 # csfont = {'fontname':'Times New Roman'}
 plt.rcParams.update({
     "text.usetex": True,
-	"font.family": 'serif'
+	"font.family": 'serif',
+	'font.serif' : 'Times New Roman'
 })
 
+# sns.set_theme(font_scale=1.5)
+sns.set_theme(font_scale=1.4)
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 
 mpalette = {
@@ -208,17 +214,18 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 ##############################################
 # df1 = df[df.gamma >= 1E-9]
 df1=df_hyper_curated
-wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds'
+wmeasure = 'n_VC_smoothed' if 'n_VC' in df1.columns else 'n_worlds'
 
 fig, AX = plt.subplots(2, 2, figsize=(15,15))
 sns.lineplot(data=df1,
 	x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0],palette=mpalette)
+# AX[0][0].
 sns.lineplot(data=df1,
 	x=wmeasure, y='total_time', hue='method_fine', ax=AX[0][1],palette=mpalette)
 sns.lineplot(data=df1,
-	x='n_params_smoothed', y='max_mem', hue='method_fine', ax=AX[1][0],palette=mpalette)
+	x='n_params_smoothed', y='mem_diff', hue='method_fine', ax=AX[1][0],palette=mpalette)
 sns.lineplot(data=df1,
-	x=wmeasure, y='max_mem', hue='method_fine', ax=AX[1][1],palette=mpalette)
+	x=wmeasure, y='mem_diff', hue='method_fine', ax=AX[1][1],palette=mpalette)
 fig.tight_layout()
 
 
@@ -226,30 +233,33 @@ fig.tight_layout()
 #####       2.    Time vs Gap           #####
 #############################################
 df1 = df_hyper_curated
-df1 = df1[df1.method != 'factor_product']
+# df1 = df1[df1.method != 'factor_product']
+# df1 = df1[df1.expt_src == 'tw-aggregated-9.json']
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
 fig, AX = plt.subplots(1, 1, figsize=(10,5))
 AX.set(yscale='log', 
 	xscale='log'
 	)
-sns.scatterplot(data=df1,
+sns.scatterplot(data=df1[['noisy_gap','total_time','method_fine']],
 	# x="gap",
 	x="noisy_gap",
 	y="total_time", 
-	hue="method_fine",ax=AX,
+	hue="method_fine",
 	s=80,
 	# s = 15 + df1.n_worlds/20,
 	# s=15 + df1.n_VC/10,
-	alpha=0.4,
+	# s = 15 + np.ones(len(df1)-1),
+	alpha=0.3,
 	linewidth=0,
-	palette=mpalette,
+	palette=mpalette,ax=AX,
 	# hue_order=morder
 	)
 sns.despine()
 AX.set_ylabel("total time (s)")
 		# ax.set_xlabel("objective value")
-AX.set_xlabel("gap between objective and best known objective for this graph (plus %.0e floor)"%MIN)
-AX.legend(title="Algorithm")
+# AX.set_xlabel("gap between objective and best known objective for this graph (plus %.0e floor)"%MIN)
+AX.set_xlabel("gap between objective and best known for this PDG (plus %.0e)"%MIN)
+AX.legend(title="Algorithm",loc='lower right')
 fig.tight_layout()
 
 #%% #############################################
@@ -286,10 +296,10 @@ for i,yattr in enumerate(['obj', 'gap']):
 		sns.despine()
 
 		ax.set_xlabel(yattr)
-		if i > 0 or j > 0:
-			pass
+		if (i > 0 or j > 0) and (i < 1 or j < len(gammas)-1):
+			# pass
 			# ax.legend.remove()
-			# ax.legend().set_visible(False)
+			ax.legend().set_visible(False)
 fig.tight_layout()
 
 #%% #############################################
@@ -317,6 +327,40 @@ sns.lineplot(data=df1,
 	# linewidth=0,
 	palette=mpalette
 	)
+fig.tight_layout()
+
+
+
+#%% #############################################
+####   4. representation vs gap      #####
+#################################################
+# df1 = df_hyper_curated
+df1 = df
+# wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds_smoothed'
+# df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
+fig, AX = plt.subplots(1, 1, figsize=(10,10))
+AX.set(yscale='log', 
+	# xscale='log'
+	)
+sns.stripplot(data=df1,
+	# x="gap",
+	# x="noisy_gap",
+	# y="total_time", 
+	x='representation',
+	# y='noisy_gap',
+	y='gap',
+	hue="method_fine",ax=AX,
+	# s=80,
+	s = 2 + df1.n_worlds/400,
+	# s=15 + df1.n_VC/10,
+	alpha=0.25,
+	linewidth=1,
+	# linecol
+	palette=mpalette
+	)
+fig.tight_layout()
+
+
 #%% #############################################
 ####   4.            #####
 #################################################
@@ -350,7 +394,14 @@ sns.stripplot(data=dfsmall,
 ####  5. violin plot: gap by method_fine     #####
 ##################################################
 
-sns.violinplot(data=df, x='method', y='total_time')
+fig, ax = plt.subplots(1, 1, figsize=(10,6))
+ax.set(xscale='log')
+# sns.violinplot(data=df,
+# 	# x=np.log10(df.noisy_gap),
+# 	x='total_time',
+# 	y='method_fine',palette=mpalette,
+# 	ax=ax)
+
 
 
 #%% ############################################
