@@ -34,11 +34,11 @@ fnames = [
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
 	# ('rj-temp-aggregated.json', 'rj-temp'),
-	('rj-aggregated.json', 'rj'),
+	# ('rj-aggregated.json', 'rj'),
 ### BNS
-	# ('datapts-all.json', 'bns0'),  #BNs
-	# ('bn-data-aggregated-2.json', 'bns2')
-	# ('random-expts-1.csv', 'rand1')
+	('datapts-all.json', 'bns0'),  #BNs
+	('bn-data-aggregated-2.json', 'bns2'),
+	('random-expts-1.csv', 'rand1')
 ]
 
 dfs = []
@@ -145,9 +145,9 @@ df['noisy_gap'] = df.gap + MIN * np.random.rand(len(df))*4
 
 df['n_params_smoothed'] = df.n_params.map(lambda x: round(x,-2))
 if 'n_VC' in df.columns:
-	df['n_VC_smoothed'] = df.n_VC.map(lambda x: round(x,-2))
+	df['n_VC_smoothed'] = df.n_VC.map(lambda x: np.exp(round(np.log(x),1)))
 if 'n_worlds' in df.columns:
-	df['n_worlds_smoothed'] = df.n_worlds.map(lambda x: round(x,-2))
+	df['n_worlds_smoothed'] = df.n_worlds.map(lambda x: round(x,2))
 
 # df_lr_curated = df.copy()
 # if 'lr' in df.columns:
@@ -169,8 +169,8 @@ plt.rcParams.update({
 	'font.serif' : 'Times New Roman'
 })
 
-# sns.set_theme(font_scale=1.5)
 sns.set_theme(font_scale=1.4)
+# sns.set_theme(font_scale=2.4)
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 
 mpalette = {
@@ -178,8 +178,10 @@ mpalette = {
 	'torch:joint.adam' : 'tab:green',
 	'torch:ctree.lbfgs' : 'darkgreen',
 	'torch:joint.lbfgs': 'darkgreen',
+	'torch:joint.asgd' : 'lightseagreen',
 	'factor_product': 'slategray',
 	'clique_tree_calibrate': 'slategray',
+	'calibrate': 'slategray',
     'cccp_opt_joint': 'purple',
 	'cccp_opt_clusters': 'purple', 
     'cvx+idef': 'goldenrod',
@@ -232,7 +234,8 @@ fig.tight_layout()
 #%% #########################################
 #####       2.    Time vs Gap           #####
 #############################################
-df1 = df_hyper_curated
+# df1 = df_hyper_curated
+df1 = df[['noisy_gap', 'total_time', 'method_fine','n_worlds']].copy()
 # df1 = df1[df1.method != 'factor_product']
 # df1 = df1[df1.expt_src == 'tw-aggregated-9.json']
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
@@ -245,8 +248,8 @@ sns.scatterplot(data=df1[['noisy_gap','total_time','method_fine']],
 	x="noisy_gap",
 	y="total_time", 
 	hue="method_fine",
-	s=80,
-	# s = 15 + df1.n_worlds/20,
+	# s=80,
+	s = 15 + df1.n_worlds/20,
 	# s=15 + df1.n_VC/10,
 	# s = 15 + np.ones(len(df1)-1),
 	alpha=0.3,
@@ -306,7 +309,7 @@ fig.tight_layout()
 ####   3.    gap vs problem size            #####
 #################################################
 df1 = df_hyper_curated
-wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds_smoothed'
+wmeasure = 'n_VC_smoothed' if 'n_VC_smoothed' in df1.columns else 'n_worlds_smoothed'
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
 AX.set(yscale='log', 
@@ -327,6 +330,7 @@ sns.lineplot(data=df1,
 	# linewidth=0,
 	palette=mpalette
 	)
+AX.legend().remove()
 fig.tight_layout()
 
 
@@ -335,7 +339,7 @@ fig.tight_layout()
 ####   4. representation vs gap      #####
 #################################################
 # df1 = df_hyper_curated
-df1 = df
+df1 = df[pd.notna(df.representation)]
 # wmeasure = 'n_VC' if 'n_VC_smoothed' in df1.columns else 'n_worlds_smoothed'
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
 fig, AX = plt.subplots(1, 1, figsize=(10,10))
@@ -350,11 +354,11 @@ sns.stripplot(data=df1,
 	# y='noisy_gap',
 	y='gap',
 	hue="method_fine",ax=AX,
-	# s=80,
-	s = 2 + df1.n_worlds/400,
+	s=5,
+	# s = 2 + df1.n_worlds/400,
 	# s=15 + df1.n_VC/10,
 	alpha=0.25,
-	linewidth=1,
+	# linewidth=1,
 	# linecol
 	palette=mpalette
 	)

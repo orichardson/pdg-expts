@@ -2322,7 +2322,7 @@ Furthermore, this optimization problem is solved by
 % (gradient descent with infinitesimal steps)
 gradient descent with infinitesimal steps,
 since:
-\begin{linked}{prop}{}
+\begin{linked}{prop}{smooth-and-strictly-cvx}
     the function $h \mapsto \aar{\dg M + h}_\gamma$
     % is $C^\infty$ smooth
     is infinitely differentiable
@@ -2570,6 +2570,7 @@ If, in addition, we assume $\beta_0 = \beta_1$, then we can conclude that
 \]
 where $p_0(Y) := \Ex_{x \sim p_1}[ p_0(Y|x) ]$.
 % An illustration of how this can make a difference 
+See \cref{fig:inc-idef} for a visual illustration of how this trade-off can happen.
 \end{example}
 
 
@@ -2584,7 +2585,7 @@ becomes more important.
 Because 
 % $\SInc_{}$
 this term can express features of a distribution like indepenedence, it cannot be convex. 
-(It is easy to see that the set of distributions that make $X$ and $Y$ is independent is not convex: note that they are independent if either $X$ or $Y$ is deterministic, so if this set were convex, it would include all distributions. )%
+(It is easy to see that the set of distributions that make $X$ and $Y$ is independent is not convex: note that they are independent if either $X$ or $Y$ is deterministic, so if this set were convex, it would include all distributions.)
     % \footnote{one can easily verify that set of distributions that make $X$ and $Y$ independent is not convex.}
 Nevertheless, \eqref{eq:altscore} still gives us a way to proceed because it is a decomposition into a sum of a convex and a concave function, meaning that we can apply the convex-concave procedure, or CCCP \parencite{yuille2003concave}.
 % The first line is the sum of a linear term and a convex one,
@@ -2593,10 +2594,10 @@ Once we sort the terms into convex terms $f(\mu)$ and strictly concave terms $g(
 %
 \begin{align*}
     \mu_{t+1} &:= \argmin_{\mu} f(\mu) + (\mu - \mu_{t})^{\sf T}
-        \nabla g(\mu_t)
+        \nabla g(\mu_t).
 \end{align*}
 
-This algorithm is not very fast, but it is guaranteed to make progress, since
+This can be quite slow becaues each iteration of this algorithm is very expensive, but it is guaranteed to make progress, since
 \def\tplus1{{t\mskip-2mu+\mskip-2mu1}}
 \begin{align*}
     f(\mu_\tplus1) \!+\! g(\mu_\tplus1) &<  f(\mu_\tplus1) \!+\! (\mu_\tplus1 \!-\! \mu_t)^{\sf T} \nabla g(\mu_t) \!+\! g(\mu_t)
@@ -2617,14 +2618,16 @@ method corresponding to problems \eqref{prob:joint-small-gamma} or \eqref{prob:c
 This is because they are special cases of the CCCP, for when the problem happens to satisfy $\bbeta \ge \gamma \balpha$. In this case, the concave part of the function $g$ is identically zero, and one needs precisly one iteration. 
 
 
-One can see in \cref{fig:gamma-v-gap-fine}, for example, that when $\gamma = 2 > 1 = \max_a {(\beta_a / \alpha_a)}$, the problem is concave, which creates
-significant difficulties for the gradient-based methods.
-CCCP performs better, and the only reason it doesn't do significantly better than it does, is because we restrict to a mere five iterations to collect the data. 
-
+One can see in \cref{fig:gamma-v-gap-fine}, for example, that when $\gamma = 2 > 1 = \max_a {(\beta_a / \alpha_a)}$, 
+CCCP performs better than the other methods. One big reason it doesn't do significantly better than it currently does, is because only allow it five iterations, which is already time-consuming.
+For combinations of larger $\gamma$ and more worlds, however, this is not nearly enough to converge, while the black-box optimizers are both faster and attain better objective values.
 
 \section{Details on the Empirical Evaluation}\label{sec:expt-setup}
 Imagine a very steep $V$-shaped canyon, and inside a small slow-moving stream at a gentle incline. The end of the river may be very far away, and the whole landscape may be smooth and strongly convex, but the gradient will still almost always point perpendicular to it, and rather towards the center of the river.
-This explains why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable in $\mu$ and $\gamma$-strongly convex, it can still be challenging to optimize, especially when the $\beta$'s are very different, or when $\gamma$ is small.
+This intuition may help explain why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable in $\mu$ and $\gamma$-strongly convex, it can still be challenging to optimize, especially when the $\beta$'s are very different, or when $\gamma$ is small.
+For example, a solution to \eqref{prob:cluster-inc} finds a minimizer of $\OInc$, but such minimizers may be very far away from $\bbr{\dg M}_{0^+}^*$, despite sharing an objective value.
+
+We now see how this is true even when working with very small PDGs and joint distributions.
 
 % One interesting feature of this class of problems is that they do not seem to be
 % amenable to the same kinds of generic modeling techniques that
@@ -2646,7 +2649,7 @@ This explains why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable
 \begin{figure}
     % \includegraphics[width=\linewidth]{figs/resources-fine}
     \includegraphics[width=\linewidth]{figs/rand-joint/resource-costs}
-    \caption{
+    \caption{\small
         Resource costs for the joint-distribution optimization setting of \cref{sec:inf-as-cvx-program}.
         We measure computation time (\texttt{total\_time}, top) and maximum memory usage (\texttt{max\_mem}, bottom) for the various optimization methods (by color), as the size of the PDG increases, as measured by the number of parameters in the PDG (\texttt{n\_params}$\,=\V\!\Ar$, left), and the size of a joint distribution over its variables (\texttt{n\_worlds}$\,=\V\!\X$, right).
         Note that the convex solvers for the 0 and $0^+$ semantics are significantly faster than LBFGS, and on par with Adam.
@@ -2655,8 +2658,10 @@ This explains why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable
      }\label{fig:resources}
 \end{figure}
 
+
+
 % \textbf{Comparison to Black-Box Optimizers, on Joint Distributions. }
-\subsection{Comparison with Black-Box Optimizers, on Joint Distributions.}
+\subsection{Synthetic Experiment: Comparison with Black-Box Optimizers, on Joint Distributions.} \label{sec:joint-expt-details}
 % Even without the fancier construction 
 % From an optimization perspective, 
 % one interesting feature of PDG inference
@@ -2665,8 +2670,19 @@ This explains why, even though $\bbr{\dg M}_\gamma$ is infinitely differentiable
 % the experimental setup is described in \cref{sec:expt-setup}.
  % applying black-box optimization methods such as gradient descent and LBFGS, do not seem to reliably find minima of \eqref{eqn:scoring-fn}.
 % \textit{Resources.}
+\begin{wrapfigure}{R}{4.8cm}
+    \centering
+    \vspace{-3ex}
+    \includegraphics[width=4.5cm]{figs/rand-joint/representation}
+    \caption{\small differences in performance between the Gibbs and simplex parameterizations of probabilities.}%
+    \label{fig:representation}%
+\end{wrapfigure}
+
+
 Here is a more precise description of our first synthetic experiment,
 on joint distributions, which contrasts the convex optimization approaches of \cref{sec:inf-as-cvx-program} with black-box optimizers.
+
+
 
 \begin{itemize}
     \item generate 300 PDGs, each of which has the following quantities, to each of which we choose the following natural numbers uniformly at random:
@@ -2692,20 +2708,29 @@ on joint distributions, which contrasts the convex optimization approaches of \c
     The complexity of this PDG is summarized by two numbers:
     \begin{itemize}[nosep]
         % \item \texttt{n\_edges}, the number of edges in $\dg M$,
-        \item \texttt{n\_params}$\,:= \V\!\Ar$, the total number of parameters across all the cpds of $\dg M$, and
-        \item \texttt{n\_worlds}$\,:= \V\!\X$, the size of the joint distributions on the variables of $\dg M$.
+        \item \texttt{n\_params}$\,:= \V\!\Ar$, the total number of parameters in all cpds of $\dg M$, and
+        \item \texttt{n\_worlds}$\,:= \V\!\X$, the dimension of joint distributions over $\dg M$'s variables.
     \end{itemize}
-    
+\end{itemize}
+
+\begin{itemize}    
     \item Run MOSEK on \eqref{prob:joint-inc} to find a distribution that minimizes $\OInc$; we refer to this method as \texttt{cvx-idef}
     \item Use the result to run MOSEK on \eqref{prob:joint+idef} to find the special distribution $\bbr{\dg M}^*_{0^+}$; we refer to this method as \texttt{cvx+idef}. These names are due to the fact that $\SInc$ is called $\IDef{}$ in previous work \parencite{pdg-aaai,one-true-loss};
     thus, this refers to using the convex solver to compute minimizers of $\OInc$ with and without considering $\IDef{}$.
     
     \item Now for the torch baselines. 
-    Let $\theta = [\theta_{\mat x}]_{\mat x \in \V\X} \in \mathbb R^{\V\X}$, be a vector of optimization variables, and define
-    $\displaystyle
-        \mu_{\theta}(\mat x) := \frac{\max\{\theta_{\mat x}, 0\} }
+    Let $\theta = [\theta_{\mat x}]_{\mat x \in \V\X} \in \mathbb R^{\V\X}$, be a vector of optimization variables, and choose a representation of the joint distribution, either by
+    \[
+    % $\displaystyle
+        \Big(\begin{array}{c}\text{renormalized}\\
+        \text{simplex}\end{array}\Big)\quad
+        \mu_{\theta}(\mat x) = \frac{\max\{\theta_{\mat x}, 0\} }
             {\sum_{\mat y \in \V\!\X}\max\{\theta_{\mat y}, 0\} }
-    $.
+    % $.
+    \qquad\text{or}\qquad
+    \mu_{\theta}(\mat x) = \frac{\exp(\theta_{\mat x})}{\sum_{\mat y \in \V\!\X} \exp(\theta_{\mat y})}\quad(\text{Gibbs})
+    \qquad\quad\text{(see \cref{fig:representation})}
+    \]
     \item 
     Then, for each value of gamma: $\gamma \in \{0, 10^{-8}, 10^{-4}, 10^{-2}, 1\}$, and each learning rate $\texttt{lr} \in 1E-3, 1E-2, 1E-1, 1E0$, and each optimizer $\mathit{opt} \in \{\texttt{adam}, \texttt{L-BFGS}\}$, 
     run $\mathit{opt}$ over the parameters $\theta$ to minimize $\bbr{\dg M}_\gamma(\mu_{\theta})$
@@ -2725,6 +2750,8 @@ on joint distributions, which contrasts the convex optimization approaches of \c
      \end{itemize}
 \end{itemize}
 
+
+
 The numbers can then be recreated by running our experimental script as follows:
 \begin{verbatim}
 python random_expts.py -N 300 -n 5 9 -e 7 14 -v 2 3
@@ -2739,32 +2766,33 @@ and fills it with \verb|.mpt| files corresponding to each distribution
 and the method / parameters that gave rise to it. 
 
 \textbf{Analyzing the Results.}
-Look at  \cref{fig:resources}.
-The black-box py-torch based approaches clearly have an edge in that they can handle larger models; see the cut-offs on the right side.
-Note that the exponential cone methods (blue and green) are actually faster than LBFGS, which was the best-performing torch optimizer.
-However, they use \emph{significantly} more memory, and cannot handle large models.
+Look at  \cref{fig:resources}.  Our theoretical analysis, and in particular the proof of \cref{lem:cluster-inc-polytime}, suggest that the magnitudes of $\V\!\X$ and $\V\!\Ar$ play similar roles in the asymptotic complexity of PDG inference. 
+Our experiments reveal that, at least for random PDGs, the number of worlds is the far more important of the two; observe how much more variation there is on the left side of the figure than the right---and now note that the left side has been smoothed, while the right side has not.
+% Observe also that the time complexity of L-BFGS seemst to be growing at a larger rate than 
+The black-box py-torch based approaches clearly have an edge in that they can handle larger models, as evidenced by the cut-offs on the right-hand side of \cref{fig:gap-resource-fine-old}, when with 5GB memory.
+
+Note that the exponential-cone-based methods for the observational limit (gold) are actually faster than L-BFGS (the black-box optimizer with the lowest gap), and also seem to be growing at a slower rate.
+However, they use significantly more memory, and cannot handle large models.
 In addition to being faster, our techniques also seem to be more precise; they achieve objective values that are consistently much better than the black-box methods.
+% Recall 
 
 
-
-
-
-\textbf{Comparing to belief propagation, on cluster trees.}
-Since PDGs generalize other graphical models, one might wonder how our method stacks up against algorithms tailored to the more traditional models. In brief: our algorithm is much slower, and only handle much smaller networks. 
+Now look at \cref{fig:joint-gap-vs-time-by-gamma},
+which contains a break-down of the information in \cref{fig:joint-gap-time}. The bottom half of the figure is just the same information, but with each value of $\gamma$ separated out, so that the special cases of the factor product and $0^+$ inference become clear, while the top half shows why it's more important to look at the gap than the actual objective value for these random PDGs. 
+\Cref{fig:joint-gap-vs-time-by-gamma} also makes it clearer how larger problems take longer, and especially so for \texttt{cccp} (violet), which solves the most complex version of the problem \eqref{prob:joint-small-gamma}.
 
 \begin{figure}
-    \includegraphics[width=\linewidth]{figs/1}
-    \caption{
-        A fine-grained variant of the right half of \cref{fig:resources},
-        with gap information on the left.
-    }\label{fig:gap-resource-fine}
+    \includegraphics[height=0.45\textheight]{figs/rand-joint/gap-vs-time-by-gamma}
+    \caption{\small
+        An un-compressed version of the information in \cref{fig:joint-gap-time}, that groups by the value of $\gamma$, and also gives the absolute values of the objectives (top row) in addition to the relative gaps (bottom row).
+    }\label{fig:joint-gap-vs-time-by-gamma}
 \end{figure}
 
 
 
 
-\begin{figure}
-    \includegraphics[width=\linewidth]{figs/gamma-vs-gap-bettergap}
+\discard{\begin{figure}
+    \includegraphics[height=0.45\textheight]{figs/gamma-vs-gap-bettergap}
     \caption{
         A graph of the gap (the difference between the attained objective value, and the best objective value obtained across all methods for that value of $\gamma$),
         as $\gamma$ varies. The x-axis is $\log_{10} ( \gamma + 10^{-15})$.
@@ -2772,49 +2800,108 @@ Since PDGs generalize other graphical models, one might wonder how our method st
         The size of the circle illustrates the relative number of worlds.
         See \cref{fig:gamma-v-gap-fine} for a more detailed breakdown.
     }\label{fig:gamma-v-gap}
-\end{figure}
+\end{figure}}
 
 
 \begin{figure}
     \includegraphics[width=\linewidth]{figs/2}
     \caption{
-        A fine-grained variant of \cref{fig:gamma-v-gap}, which splits each method into sub-groups.
-        The ExpCone methods \texttt{cvx\_opt\_joint} are split into two variants, depending on whether or not it also computed the second step described in \cref{sec:empirical-limit} to account for $\SInc_{}$.
-        The CCCP variants are \texttt{cccp\_opt\_joint} split into regimes where the entire problem is convex ($\gamma \le 1$, \verb|cccp-VEX|), and the entire problem is concave ($\gamma > 1$, \verb|cccp-CAVE|).
+        A graph of the gap (the difference between the attained objective value, and the best objective value obtained across all methods for that value of $\gamma$),
+        as $\gamma$ varies. The x-axis is $\log_{10} ( \gamma + 10^{-15})$.
+        As before, colors indicate the optimization method, and
+        the size of the circle illustrates the number of optimization variables (i.e., the number of possible worlds).
+        % A fine-grained variant of \cref{fig:gamma-v-gap}, which splits each method into sub-groups.
+        \texttt{cvx-idef} corresponds to just solving \eqref{prob:joint-inc}, and \texttt{cvx+idef} corresponds to then solving problem \eqref{prob:joint+idef} afterwards.
+         % depending on whether or not it also computed the second step described in \cref{sec:empirical-limit} to account for $\SInc_{}$.
+        The CCCP runs are split into regimes where the entire problem is convex ($\gamma \le 1$, \texttt{cccp-VEX}), and the entire problem is concave ($\gamma > 1$, \texttt{cccp-CAVE}).
         The optimization approaches \texttt{opt\_dist} are split into three different optimizers: LBFGS, Adam, and also a third one that is relatively poor: accelerated gradient descent.
         Note that for small $\gamma$, the exponential-cone based methods significantly outperform the gradient-based ones.
     }\label{fig:gamma-v-gap-fine}
 \end{figure}
 
 
-\subsection{Evaluations On Random PDGSs}
-We start by focusing on empirical properties of the optimization over joint distributions.
+\subsection{Synthetic Experiment: Comparing with Black-Box Optimizers, on Clique Trees} \label{sec:clus-expt-details}
 
-We generated several hundred PDGs with various properties: 9 or 10 variables, each of which can take 2-3 values. Each PDG contains 7-15 hyperedges, with 1-2 target nodes and 0-3 source nodes. The cpds are chosen by taking uniformly random numbers from [0,1] and normalizing appropriately, and every $\beta$ is set to 1.
-For each PDG $\dg M$, we measure its complexity by:
-\begin{itemize}[nosep]
-    \item \texttt{n\_edges}, the number of edges in $\dg M$,
-    \item \texttt{n\_params}, the total number of parameters across all the cpds of $\dg M$, and
-    \item \texttt{n\_worlds}, the size of the joint distributions on the variables of $\dg M$.
-\end{itemize}
-
-
-
-\textbf{Accuracy.}
-In addition to being faster, the exponential cone techniques are also more precise.
-Note that the CCCP is typically more precise than the black-box optimizers when the problem is fully convex $\gamma \le 1$, and mirrors the performance of the exp-cone algorithms for the quantitative limit on the left, in blue.  For combinations of larger $\gamma$ and more worlds however, the 20 iteration maximum we imposed is not nearly enough to get convergence, and the black-box optimizers are both faster and attain better objective values.
-
-
+\begin{figure}
+    \centering
+    \includegraphics[width=0.67\linewidth]{figs/rand-clus/gap-vs-time}
+    \caption{An analogue of \cref{fig:joint-gap-time}, for the cluster setting.
+    Note that there is even more separation between the exponential-cone based approaches, and the black-box optimization based ones.
+    The new grey points on the bottom correspond to belief propogation, which is both faster and typically the most accurate.}
+    \label{fig:clus-gap-vs-time}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.67\linewidth]{figs/rand-clus/resource-costs}
+    \caption{Resource costs for the cluster setting. Once again, the $\OInc$-optimimzing exponential cone methods are in gold, the small-gamma and CCCP is in violet, and the baselines are in green. The bottom line is belief propogation, which is significantly faster and requires very little memory, but also only gives the correct answer under very specific cirucumstances.}
+    \label{fig:clus-resource-costs}
+\end{figure}
 
 
+\begin{enumerate}
+    \item Choose a number of variables $N \in \{ 8, \ldots, 32 \}$, and a treewidth $k \in \{1, \ldots, 4\}$ uniformly at random. 
+    Then, draw a random $k$-tree and corresponding tree of clusters $(\C, \mathcal T)$, as follows:
+    \begin{enumerate}
+        \item initialize $G \gets K_{k+1}$ to a complete graph on $k+1$ vertices, and $\C \gets\{ K_{k+1} \}$ to be set containing a single cluster, and $\mathcal T\gets \emptyset$.
+        \item until there are $N$ vertices: add a new vertex $v$ to $G$, then randomly select a size $k$-clique (fully-connected subgraph) $U \subset G$, and add edges between $v$ and every vertex $u \in U$.
+        Then, add $U \cup \{v\}$ to $\C$, and add edges to every other cluster $C \in \C$ such that $U \subset C$.
+    \end{enumerate}
+    % It is well-known that this procedure gives a tree; see, for instance,
+    % \cite{}
+    \item Then, draw the same parameters $V_X \in \{2,3\}$, $A \in \{8, \cdots, 120\}$, $N_a^S \in \{0,1,2,3\}$, and $N^{T}\in \{1,2\}$ 
+    as in \cref{sec:joint-expt-details} uniformly at random.
+    While $N_a^S + N^T_a > k+1$, for any $a$, resample $N_a^S$ and $N_a^T$.
+    
+    \item Form a PDG whose structure $\Ar$ can be decomposed by $(\C, \cal T)$, as follows: 
+    for each edge $a \in \Ar$, sample a cluster $C \in \C$ uniformly at random; then select $N_a^S$ nodes from that cluster without replacement as sources, and $N_a^T$ nodes as targets; this is possible because each cluster has $k+1$ nodes, and $N_a^S + N_a^T \le k+1$ by construction.
+    \item Fill in the probabilities by drawing uniform random numbers and re-normalizing, just as before, to form a PDG $\dg M$
+    
+    \item The black-box optimization baselines work in much the same way also, although now the optimization variables include not one distribution $\mu$ but a collection $\bmu$ of them; 
+    this time, we use only the simplex representation of $\bmu_\theta$.
+    More importantly, we want these clusters to share appropriate marginals; to encourage this, we add a terms to the loss function, so overall, it is
+    \[
+        \ell(\theta) := \bbr{\dg M}_{\gamma}(\bmu_{\theta}) + \sum_{C{-}D \in \mathcal T} \exp \left(\sum_{w \in \V(C\cap D)} \Big(\mu_C(C\cap D{=}w) - \mu_D(C \cap D {=}w)\Big)^2 \right) - 1.
+    \]
+    This is admittedly pretty ad-hoc; the point is just that it is zero and does not contribute to the gradient if $\bmu_\theta$ is calibrated, and otherwise quickly becomes overwhelmingly important.
+    % \begin{enumerate}
+    %     \item 
+    % \end{enumerate}
+\end{enumerate}
+
+\textbf{Analyzing the Results.}
+Observe in \cref{fig:clus-gap-vs-time} that the separation between the clique tree convex solver and the black-box algorithms is even more distinct. This is because, in this case, the penalty for violating constraints was too small, and the optimization effort was largely wiped out by the calibration before evalution. 
 
 
-\textbf{Comparing to belief propagation, on cluster trees.}
-Since PDGs generalize other graphical models, one might wonder how our method stacks up against algorithms tailored to the more traditional models. In brief: our algorithm is much slower, and only handle much smaller networks. 
-Concretely, our methods can handle all of the ``small'' networks, and some of the ``medium'' ones, from the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository. 
- In these cases, we have verified that the two methods yield the same results. 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{figs/bn/gap-v-time}
+    \caption{Gap vs inference time for the small PDGs in the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository}
+    \label{fig:bn-gap-v-time}
+\end{figure}
 
+This illustrates another general advantage that the convex solver has over black-box optimizers: it is much less brittle and reliant and exactly tuning parameters correctly. Note that even in this minimal example, there were many hyper-parameters that require tuning:
+the regularization strengths that enforce soft constraints (clique tree calibration, normalization), as well as learning rate, not to mention
+various other structural choices: the optimizer, the representation of the distribution, and the maximum number of iterations, none of which are clear-cut choices, but rather require first being tuned to the data.
+While the convex solver does have internal parameters (tolerences and such) these do not need to be tuned to the problem under normal circumstances.
 
+\subsection{Comparing to Belief Propagation, on Clique Trees.}
+    \label{sec:bn-expt-details}
+ Since PDGs generalize other graphical models, one might wonder how our method stacks up against algorithms tailored to the more traditional models. In brief: our algorithm is much slower, and only handle much smaller networks. 
+ Concretely, our methods can handle all of the ``small'' networks, and some of the ``medium'' ones, from the \href{https://www.bnlearn.com/bnrepository/}{\texttt{bnlearn}} repository. 
+  In these cases, we have verified that the two methods yield the same results.
+  \Cref{fig:bn-gap-v-time} contains the analogue of \cref{fig:joint-gap-time,fig:clus-gap-vs-time}
+  for the Bayesian Nets. This graph looks qualitatively quite similar to the other graphs we've seen, suggesting that the results in our synthetic experiments hold more broadly for small real-world models as well.
+  
+
+  
+
+ \begin{figure}
+     \includegraphics[height=0.45\textheight]{figs/1}
+     \caption{
+         A variant of \cref{fig:resources}, with 
+         with gap (accuracy) information on the left, and slightly different parameter settings. 
+     }\label{fig:gap-resource-fine-old}
+ \end{figure}
 
 
 \section{Further Proofs, for Appendix Material}
