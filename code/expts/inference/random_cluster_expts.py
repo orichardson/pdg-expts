@@ -126,7 +126,8 @@ def random_k_tree(n, k):
 def pprocessor(M, baseline_ctree=None): # postprocess cluster pseudomarginal
 	def process(ctree):
 		ctree.npify(inplace=True)
-		violation = ctree.marginal_constraint_violation()
+		m_violation = ctree.marginal_constraint_violation()
+		s_violation = sum( np.abs(d.data.sum()-1) for d in ctree.dists ) 
 		ctree._fallback_recalibrate_bp(avg_init=True)
 		ctree.renormalized()
 		
@@ -145,7 +146,8 @@ def pprocessor(M, baseline_ctree=None): # postprocess cluster pseudomarginal
 		return dict(
 			inc = inc,
 			idef = idef,
-			local_violation = violation,
+			margin_violation = m_violation,
+			norm_violation = s_violation,
 			**baseline_comparisons
 		)
 	return process
