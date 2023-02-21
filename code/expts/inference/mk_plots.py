@@ -34,11 +34,11 @@ fnames = [
 	# ('random-pdg-data-aggregated-3.json', 'rand3'),
 	# ('random-pdg-data-aggregated-2.json', 'rand2'),
 	# ('rj-temp-aggregated.json', 'rj-temp'),
-	# ('rj-aggregated.json', 'rj'),
+	('rj-aggregated.json', 'rj'),
 ### BNS
-	('datapts-all.json', 'bns0'),  #BNs
-	('bn-data-aggregated-2.json', 'bns2'),
-	('random-expts-1.csv', 'rand1')
+	# ('datapts-all.json', 'bns0'),  #BNs
+	# ('bn-data-aggregated-2.json', 'bns2'),
+	# ('random-expts-1.csv', 'rand1')
 ]
 
 dfs = []
@@ -130,6 +130,7 @@ if 'init_mem' in df.columns:
 best = {}
 winner = {}
 for gid,gamma in df[['graph_id', 'gamma']].value_counts().index:
+
 	samegraph = df[(df.graph_id == gid)]
 	# best[(gid,gamma)] = (samegraph.inc + gamma*samegraph.idef).min()
 	scores = (samegraph.inc + gamma*samegraph.idef * np.log(2))
@@ -158,7 +159,7 @@ df_best_hyperparam_idx = df.sort_values('gap').groupby(
 df_hyper_curated = df[(~torch_rows) | df.index.isin(df_best_hyperparam_idx)]
 
 
-##########################################
+#%%#########################################
 # set up colors and styles and fonts
 #####
 
@@ -169,8 +170,9 @@ plt.rcParams.update({
 	'font.serif' : 'Times New Roman'
 })
 
-sns.set_theme(font_scale=1.4)
-# sns.set_theme(font_scale=2.4)
+# sns.set_theme(font_scale=2.1)
+sns.set_theme(font_scale=1.6)
+# sns.set_theme(font_scale=3)
 sns.set_style("darkgrid", {"axes.facecolor": ".9"})
 
 mpalette = {
@@ -178,6 +180,7 @@ mpalette = {
 	'torch:joint.adam' : 'tab:green',
 	'torch:ctree.lbfgs' : 'darkgreen',
 	'torch:joint.lbfgs': 'darkgreen',
+	'opt_dist' : 'green',
 	'torch:joint.asgd' : 'lightseagreen',
 	'factor_product': 'slategray',
 	'clique_tree_calibrate': 'slategray',
@@ -186,6 +189,7 @@ mpalette = {
 	'cccp_opt_clusters': 'purple', 
     'cvx+idef': 'goldenrod',
     'cvx-idef': 'darkgoldenrod',
+	'cvx_opt_joint' : 'darkorange'
 }
 morder = list(reversed(mpalette.keys()))
 df = df.iloc[df.method_fine.map(lambda mf : -morder.index(mf)).sort_values().index]
@@ -218,34 +222,38 @@ def plot_grid(data, x_attrs, y_attrs, plotter, condition=None, **kws):
 df1=df_hyper_curated
 wmeasure = 'n_VC_smoothed' if 'n_VC' in df1.columns else 'n_worlds'
 
-fig, AX = plt.subplots(2, 2, figsize=(15,15))
-sns.lineplot(data=df1,
-	x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0],palette=mpalette)
-# AX[0][0].
+# fig, AX = plt.subplots(2, 2, figsize=(15,15))
+fig, ax = plt.subplots(1,1,figsize=(10,10))
+AX = [[ax,ax],[ax,ax]]
+# sns.lineplot(data=df1,
+	# x='n_params_smoothed', y='total_time', hue='method_fine', ax=AX[0][0],palette=mpalette)
+# # AX[0][0].
 sns.lineplot(data=df1,
 	x=wmeasure, y='total_time', hue='method_fine', ax=AX[0][1],palette=mpalette)
-sns.lineplot(data=df1,
-	x='n_params_smoothed', y='mem_diff', hue='method_fine', ax=AX[1][0],palette=mpalette)
-sns.lineplot(data=df1,
-	x=wmeasure, y='mem_diff', hue='method_fine', ax=AX[1][1],palette=mpalette)
+# sns.lineplot(data=df1,
+	# x='n_params_smoothed', y='mem_diff', hue='method_fine', ax=AX[1][0],palette=mpalette)
+# sns.lineplot(data=df1,
+	# x=wmeasure, y='mem_diff', hue='method_fine', ax=AX[1][1], palette=mpalette)
+ax.legend().remove()
 fig.tight_layout()
 
 
 #%% #########################################
 #####       2.    Time vs Gap           #####
 #############################################
-# df1 = df_hyper_curated
-df1 = df[['noisy_gap', 'total_time', 'method_fine','n_worlds']].copy()
-# df1 = df1[df1.method != 'factor_product']
+df1 = df_hyper_curated
+# df1 = df[['noisy_gap', 'total_time', 'method_fine','n_worlds']].copy()
+df1 = df1[df1.method != 'factor_product']
 # df1 = df1[df1.expt_src == 'tw-aggregated-9.json']
 # df1['noisy_gap'] = df1.gap + MIN * np.random.rand(len(df1))
 fig, AX = plt.subplots(1, 1, figsize=(10,5))
 AX.set(yscale='log', 
 	xscale='log'
 	)
-sns.scatterplot(data=df1[['noisy_gap','total_time','method_fine']],
-	# x="gap",
-	x="noisy_gap",
+sns.scatterplot(data=df1,
+	# x="obj",
+	x="gap",
+	# x="noisy_gap",
 	y="total_time", 
 	hue="method_fine",
 	# s=80,
@@ -303,6 +311,32 @@ for i,yattr in enumerate(['obj', 'gap']):
 			# pass
 			# ax.legend.remove()
 			ax.legend().set_visible(False)
+fig.tight_layout()
+
+
+#%% ##### 2b. 
+df1 = df_hyper_curated
+
+fig, AX = plt.subplots(1, 1, figsize=(10,5))
+AX.set( xscale='log' )
+sns.scatterplot(data=df1,
+	x=df1.inc+MIN, y=df1.idef,
+	hue="method",
+	s=80,
+	# s = 25 + df1.n_worlds/50,
+	# s=15 + df1.n_VC/10,
+	# s = 15 + np.ones(len(df1)-1),
+	alpha=0.3,
+	linewidth=0,
+	palette=mpalette,ax=AX,
+	# hue_order=morder
+	)
+sns.despine()
+# AX.set_ylabel("total time (s)")
+		# ax.set_xlabel("objective value")
+# AX.set_xlabel("gap between objective and best known objective for this graph (plus %.0e floor)"%MIN)
+# AX.set_xlabel("g)
+AX.legend(title="Algorithm",loc='lower right')
 fig.tight_layout()
 
 #%% #############################################
@@ -377,16 +411,16 @@ fig, AX = plt.subplots(1, 1, figsize=(10,10))
 #     x=df.gamma * (np.random.rand(len(df))/2+0.6), y='gap', hue='method', 
 #     linewidth=0, alpha=0.4, s=50,
 #     ax=AX)
-# AX.set(xscale='log')
+AX.set(yscale='log')
 sns.stripplot(data=dfsmall, 
-	x= np.round(np.log10(df.gamma),1).astype(str),
+	x= np.round(np.log10(dfsmall.gamma),1).astype(str),
 	y="gap",
 	hue='method_fine', 
 	# order=sorted(np.round(np.log10(df.gamma),1).astype(str).unique(),key=float),
 	# s=10 + np.log(dfsmall.n_worlds)/1,
-	# s= 2 + dfsmall.n_worlds / 500,
+	s= 2 + dfsmall.n_worlds / 500,
 	# s = 2 + dfsmall.n_VC / 200,
-	s=8,
+	# s=8,
 	# linewidth=np.log(dfsmall.n_worlds)/1,
 	linewidth=1,
 	alpha=0.1,
