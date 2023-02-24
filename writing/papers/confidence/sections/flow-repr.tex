@@ -47,110 +47,6 @@ As before, our first axiom is that we can capture the updating process in functi
 % % (1) our previous belief state, (2) the new information, or (3) our confidence in it.
 % in our prior belief state $(\theta)$, the new information $(\phi)$, or our attitude towards it ($c$).
 
-Historically speaking, \cref{ax:funcform} has not proved as anodyne as it looks.
-Some might object that it's not possible to write such a function that is appropriate in all circumstances.
-For example, Shafer argues for Dempster's rule of combination as a way of incorporating information, but is very careful to emphasize that it ought to be used only on \emph{independent} information, for reasons illustrated below.
-
-
-
-\begin{example}\label{ex:dupl}
-	You have initial belief state $\theta_0$.
-	Now, someone comes up to you and tells you that $\phi$ is true, a statement
-		that you trust to some intermediate degree of confidence $c \notin\{ \bot, \top\}$.
-	So, in accordance with \Cref{ax:funcform}, you use $F$ to transform your beliefs, partially incorporating the information to arrive at some belief state $\theta_1 := F^c_\phi(\theta_0)$.
-	Immediately afterwards, your friend repeats what they just said: $\phi$ is true.
-	Your confidence in the statement remains the same, and so according to
-	\Cref{ax:funcform}, you again update your beliefs, arriving at $\theta_2 := F^c_\phi(\theta_1)$.
-	Except in very special circumstances (e.g., you already know that $\phi$ is true, or $c \in \{\bot,\top\}$), typically $\theta_2$.
-	And yet, it seems your your attitude towards $\phi$ ought to be the same whether you've heard it twice or only once.
-\end{example}
-
-
-Now, it's important to mention that we're not quite in the same position as Shafer.
-Shafer was prescribing a concrete representation of $\Theta$ (a belief function) and a concrete update rule $F$ (Dempster's rule of combination), and so he needed to defend these choices.
-% To take an analogous prescriptive stance,
-We only need to defend something much more modest: we only need to defend the assumption that, if $\Theta$ and $\Phi$ properly model the relevant aspects of the scenario at hand, then there exists \emph{some} function $F$ which performs updates appropriately.
-Descriptively speaking, we're also in good shape: for synthetic agents, it suffices to point out that learning algorithms represent functions, which given a state, an input, and a number of iterations (confidence), produce an output.
-And, supposing that $\Theta$, $\Phi$, and $\confdom$ all capture the relevant respective aspects of a human's belief state, input information, and attitude towards it, how could it be that a human does otherwise?
-%
-% After all, if you recieve the same input twice, and your confidence in it has not changed, it would be best to only update once.
-% There are essentially three ways to proceed.
-In any case, keeping \cref{ex:dupl} in mind, here are three ways to proceed.
-
-\begin{enumerate}[label={\textbf{I\arabic*.}},ref={I\arabic*}]
-	\item \textbf{Accept Severe Limiations.} \label{approach:assume}
-	Like Shafer, we could be careful
-	% not to claim anything about how to update beliefs, except
-	to claim nothing about the belief updating process except in the (unusual) case where
-	information recieved is independent.
-	% This severly handicaps the usefulness of .
-	This would be a severe limiation to the theory, and much less necessary than it was for Shafer.
-	Imagine that we are writing code that describes how a synthetic agent updates its beliefs. Shafer's approach is to package any such code with a warning against running it unless assured that observations will always be independent.
-	But independece is notoriously difficult to establish; are we to simply accept that the code will not behave correctly in any realistic scenario?
-	% Under what circumstances could we possibly be sure that all inputs we will be independent?
-
-	In practice, many theoretical properties of standard statistical learning algorithms are heavily dependent on indepencence assumptions (most commonly, that one recieves independent, identically distributed samples).
-	% Despite this, such algorithms .
-	This warning label not seem to keep them from being applied in settings where practitioners readily admit samples are not really independent at all---nor indeed performing well emperically in those settings \parencite{???}.
-
-	% If we need to make a decision that depends on information that is not given, then
-	% Shafer found himself in a position where he needed to qualify usage of the update rule
-
-
-	\item \textbf{Appropriately Enrich Domains.}\label{approach:enrich}
-	% For instace, the agent has been totally
-	% We told a story wanting to avoid incorporating information twice.
-	In \cref{ex:dupl}, it seems obvious that we ought to ignore the second copy of the information, because it has already been accounted for.
-	However, this intuition is highly contingent on the implicit supposition that we \emph{know} the second input to be a replica of the first.
-	Were we ignorant to the nature of the second piece of information, perhaps it would not be so unreasonable to incroproate it again, even without a proof of independence.
-	% If we want our agent to do the same
-	% In asking our agent to take such issues into account, it is only fair to give it access to the same
-	% It seems unfair to criticize an agent for not behaving
-	So, if we would like our agent to make the same decisions that we did, it seems only fair to give it access to the knowledge that we needed to get there.
-	One way of doing this is to extend the belief state so that it also tracks what information has been incorporated.
-	% For instance, suppose that every message
-
-	For \cref{ex:dupl} to work, it is critical that we are able to discern that the two inputs were identical.
-	As a result, it seems that the relevant description of the input information was not just $\phi$, but a pair $(\phi, \mathit{id})$ that also a description of its identity.
-	It is also critical that we remember the identity of previously incorporated information, so we would also be better off with a belief space $\Theta$ reflects this.
-	With these two modifications, any \cofunc\ can be straightforwardly modified to avoid the issue in \Cref{ex:dupl}.
-
-
-	We submit that it is always possible to enrich the space of beliefs and observations in this way to track the relevant information, to resolve the issue.
-	With a few more assumptions later on, we will be able to formalize the construction we just alluded to (\cref{ex:dupl-enriched}).
-
-	\item \textbf{An Incremental Interpretation of Confidence.}
-		\label{approach:interperet}
-	Finally, we can get around the issue by interpreting a confidence $c \in \confdom$ not as an absolute measurement of confidence, but rather an incremental one.  This means viewing $c \in \confdom$ as the degree of \emph{additional} confidence we have in $\phi$, beyond whatever we have already incorporated into our beliefs.
-
-	% This proposal immediately raises some important questions.
-	This proposal might be concerning.
-	% First, how
-	One might worry that it's harder to make sense of ``incremental confidence'' than an absolute notion.
-	How ought we to numerically describe the confidence of an update?
-	Suddenly this becomes much more subjective, for to assign a number, not only must we describe how much trust we have in the new information, but we must also take history or current belief state into account.
-	Furthermore, the words ``incremental'' and ``additional'' suggest that we will need a formal description of how to aggregate confidences---%
-	the very concept of which we will need to defend.
-	% Indeed, such a way of combining confidences will ultimately play a large role for us.
-	% It will turn out that such a way of combining confidences
-	% Fortunately, it will turn out that
-
-	Even modulo these concerns, the incremental interpretation still leaves us in a strictly better place than we were before.
-	%  with \cref{approach:assume}.
-	To begin, in situations where inputs are independent (i.e., the only cases where we would have been allowed to apply the \cofunc\ according to \cref{approach:assume}), the two notions coincide.
-	More explicitly: if the new information $\phi$ is indepenendent of everything we've previously seen, then an absolute measurement of our confidence in it is no different from a measrurement of how much we ought to increment it from having no confidence.
-	Already, though, we can do more.
-	In the situation described by \cref{ex:dupl}, for instance,
-	the second utterance induce no \emph{additional} confidence ($\bot$), and so applying $F$ with no confidence clearly gives the desired result of ignoring the new information (per \cref{ax:zero}).
-%
-%
-	And even in general, the prospect of having to numerically estimate a fuzzy quantity seems more promising than red tape requiring that $F$ only be used (in good conscience) on independent information.
-	% In some ways, this approach it is not so different from directly requiring independence of inputs, there are several aspects of this framing, that in our view, make it more pallatable.
-	% First,
-	% In cases
-	% This raises some questions. Even if we already had a
-
-\end{enumerate}
 
 
 % We submit that any information that is relevant to that final belief state ought to be present in one of these places. For instance, if we've already heard this same information before, this fact should either be present in our beliefs $(\theta)$, in the observation $(\phi)$, or in the description of our confidence in it ($c$).
@@ -205,20 +101,8 @@ Furthermore, we will insist that \cofunc s respect our interpretation of confide
 	%     \hfill \textbf{(combination)} \label{ax:additivity}
 \end{CFaxioms}
 \Cref{ax:zero} captures the intuition that we should ignore information in which we have no confidence, while \cref{ax:idemp} formalizes the intuition that a full-confidence updates act as we imagined.
-At this point, we would like to point out that those who find \cref{ax:zero} reasonable have implicitly either accepted either \cref{approach:assume} or \cref{approach:interperet}.
 
-\begin{example}
-	Suppose you first hear $\phi$ from a partially trusted source, and incroproate it into your beliefs appropriately.
-	Then, the same source sends you a second message, which is obviously spam.
-	In an absolute sense, you now have no confidence ($\bot$) in anything this source tells you, including (in retrospect) both messages.
-	It seems appropriate to excise $\phi$ from your belief state in response, rather than leaving your belief state unchanged, as \cref{ax:zero} would prescribe.
 
-	Note that in this scenario, while it seems that we ultimately have no confidence in $\phi$, it does not seem to be the case that we have no incremental confidence in $\phi$.
-	Rather, the incremental confidence seems to be the inverse of the original confidence.
-\end{example}
-
-From this point forward, we use the incremental interpretation of confidence, with the understanding that
-all of our results also admit a more conservative reading, in which confidence is measured absolutely, and also all applications of the function $F$ are independent. 
 
 
 % \Cref{ax:additivity} states that, for all $\theta$, the function $c \mapsto F^c_\phi\theta : \confdom \to \Theta$ is a group homomorphism.
