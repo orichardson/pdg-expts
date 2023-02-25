@@ -24,7 +24,9 @@ To study this mathematically, we assume that the process can be captured in func
 \unskip\footnote{we can just as easily handle randomized updates;
 	the point is simply that the update can be prescribed by an algorithm.}
 \begin{CFaxioms}
-	\item[CF0]
+	\setcounter{CFaxiomsi}{-1}
+	\item
+	% \item[CF0]
 	There exists some function
 	$
 	% \[
@@ -259,7 +261,9 @@ In each case, the possible belief states $\Theta := \Delta W$ be the set of all 
 \end{enumerate}
 
 
-\subsection{The Path of Middling Confidence}
+\subsection{%
+	% Continuity and
+ 	The Path of Middling Confidence}
 
 Full updates are quite extreme.
 An agent that updates by conditioning, for instance,
@@ -282,16 +286,32 @@ This is the role of intermediate values of confidence.
 Since confidence is supposed to interpolate between prior beliefs and full update,
 we would like each $\chi \mapsto F(\theta,\chi,\phi) : [0,1] \to \Theta$
 to be a continuous path in belief states, from the initial belief to full incorporation.
-For this to be meaningful, we need $\Theta$ to be a topological space,
-in which case the simplest thing is to require:
-% And at that point, we may as well require that
-% At this point, it also makes sense to require that the dependence on the prior beliefs is continuous as well.
 
+\begin{CFaxioms}[nosep]
+	\item
+	$\Theta$ comes with a topology, with respect to which
+	the restriction
+	$F_{\phi}|_\theta : [0,1] \to \Theta$
+	is continuous
+		% for all $\phi, \theta \in \Phi\times\Theta$.
+	for all $\phi \in \Phi$ and $\theta \in \Theta$.
+	\label{ax:cont}
+\end{CFaxioms}
+
+
+% For this to be meaningful, we need $\Theta$ to be a topological space,
+% in which case the simplest and most convenient thing would be to require:
+
+It would be particularly nice if updates were continuous in our initial
+beliefs as well: after all, similar priors typically result
+in similar posteriors beliefs. This would allow us to strengthen
+\cref{ax:cont} to something simpler:
 
 \begin{CFaxioms}[nosep]
 	\item
 	% [TOP]
-	[CF{\the\numexpr\value{CFaxiomsi}+1\relax}${^\prime}$]
+	% [CF{\the\numexpr\value{CFaxiomsi}+1\relax}${^\prime}$]
+	[CF{\the\numexpr\value{CFaxiomsi}\relax}${^\prime}$]
 	% $\Theta$ is a topological space, and
 	$\Theta$ comes with a topology, with respect to which
 	% \item
@@ -300,9 +320,12 @@ in which case the simplest thing is to require:
 	\label{ax:cont-strong}
 \end{CFaxioms}
 
-Axiom \cref{ax:cont-strong} says more---it says
-that the posterior belief is also continuous in the prior beliefs, 
-which also seems appropriate. But this assumption has significant bite.
+Unfortunately, this is too strong to handle extreme beliefs.
+In the probabilistic case, for instance:
+
+% Axiom \cref{ax:cont-strong} says more---it says that the posterior 
+% belief is also continuous in the prior beliefs, 
+% which also seems appropriate. But this assumption has significant bite.
 
 % \commentout{%
 % actually, this shows a problem with defining 
@@ -327,48 +350,77 @@ which also seems appropriate. But this assumption has significant bite.
 % 	now \cref{ax:cont-strong} implies that 	
 % \end{example}%
 \begin{prop}
-	There is no continuous extension of conditioning.
+	There is no continuous extension of conditioning to a function
+	$F$ satisfying \cref{ax:cont-strong}.
+	% nor even one whose restriction to  $ [0,\epsilon) \times \Phi \times \Theta \to \Theta$
+	% is continuous, for $\epsilon > 0$.
 \end{prop}
-\begin{proof}
-	Conditioning itself cannot be continuously 
-	extended to a (total) function $\Delta X \times 2^X \to \Delta X$.
-\end{proof}
+% \begin{proof}
+% 	Conditioning itself cannot even be extended to
+% 	to a continuous (total) function $\Delta X \times 2^X \to \Delta X$,
+% 	because there is no adequate way to handle probability-zero events.
+% \end{proof}
 % }%
+This is a consequence of the fact that there's no way to extend
+conditioning continuously to zero-probability events. 
+What we can do is to define a set $\Theta_\phi$ of belief states that do not
+outright contradict $\phi$, and ask that $F_\phi$ is continuous when 
+restricted to this set. 
+% It turns out that 
+Better yet, we can do the reverse, and define $\Theta_\phi$ as the set
+of beliefs on which $F_\phi$ is continuous.
+% This can be done purely in terms of the continuity of $F$.
 
-\begin{CFaxioms}[nosep]
-	\item
-	% [TOP]
-	% $\Theta$ is a topological space, and
-	$\Theta$ comes with a topology, with respect to which
-	% \item
-	$F_{\phi}|_\theta : [0,1] \to \Theta$ is continuous
-	for all $\phi \in \Phi$ and $\theta \in \Theta$.
-	In addition,
-	$F_{\phi} : [0,1] \times \to \Theta$
-	\label{ax:cont}
-\end{CFaxioms}
+\begin{prop}
+	There is a maximal open set $\Theta_\phi \subseteq \Theta$ such that
+	 % and ask that $F_\phi$ is continuous on that set. 
+	the restriction $F_{\phi} |_{\Theta_\phi} : [0,1) \times \Theta_\phi \to \Theta$
+	is continuous. 	
+\end{prop}
+% \begin{defn}
+ 	% Given $\Theta$, $\Phi$, and $F$, d
+% \end{defn} 
 
-% A smaller convic
-Suppose that we learn $\phi$ with some small degree of confidence $\chi$,
+In \cref{ex:prob-simple}, $\Theta_\phi = \{ \mu \in \Delta W : \mu(\phi) > 0\}$.
+In \cref{ex:classifier}, $\Theta_\phi$ consists of all weights $\mat w$ 
+such that
+the loss $\mathcal L(\mat w, \phi) < \infty$ that the training algorithm minimizes is finite.
+
+
+To motivate our final axiom,
+suppose that we learn $\phi$ with some small degree of confidence $\chi$,
 but then decide we should have updated with higher confidence. 
-It should be possible to attain that belief state from the one we already
-have, by updating with $\phi$ again, this time with a (smaller, residual) 
-degree of confidence.
+It seems evident that to fix this, we need to gain more confidence
+in $\phi$, which can be done with a second update (with 
+a smaller residual degree of confidence).
 
 \begin{CFaxioms}
 	\item 
 	% More precisely, 
-	If $\chi_2 > \chi_1$, then for all $\theta \in \Theta$, 
+	% If $\chi_2 > \chi_1$, 
+	If $0 \le \chi_1 < \chi_2 < 1$, 
+	then for all $\theta \in \Theta$, 
 	there exists 
-	$\chi_{1{\to}2}^\theta \in [0,1]$
+	% $\chi_{1{\to}2}^\theta \in [0,1]$
+	% $\chi_{1{\to}2} \in [0,1]$
+	% $\chi_3 \in [0,1]$
+	$\chi_3 \in [0,\chi_2]$
 	such that
 	$
-	F_\phi^{\chi_{1{\to}2}^\theta}(F_\phi^{\chi_1}(\theta)) = F_\phi^{\chi_2}(\theta).
+	F_\phi^{
+	% \chi_{1{\to}2}^\theta
+	% \chi_{1{\to}2}
+	\chi_{3}
+	}(F_\phi^{\chi_1}(\theta)) = F_\phi^{\chi_2}(\theta).
 	$
 	\label{ax:seq-for-more}
 \end{CFaxioms}
 
-For exampe, to go 
+The effect of \cref{ax:seq-for-more} is to require
+that a high confidence update can be decomposed into
+several updates of lower confidence. 
+
+Together, these axioms allow us to define an update rule, by:
 
 \begin{defn}
 	A function $F: \Phi \times [0,1] \times \Theta \to \Theta$ 
@@ -377,36 +429,16 @@ For exampe, to go
 	a \emph{path update function}.
 \end{defn}
 
+Path update functions capture some important aspects of uncertain
+updating%
+---but a number $\chi \in [0,1]$ is not the only useful
+way to quantify confidence, and to get the full picture of how the
+concepts we're intersted in are related, we will
+need to look at the problem from a few more angles.
 
 % If $\phi_1$ and $\phi_2$ are such that
 % $F_{\phi_1}$ and $\phi_2$
 
-\subsection{Manipulating Paths}
-Since each $\phi$ corresponds to a path
-
-\begin{defn}[Homotopic update rules]
-	$\phi \sim_F \psi$  iff 
-	they behave the same way for full confidence (that is, 
-	$F^1_{\phi}(\theta) = F^1_{\psi}(\theta)$ for all $\theta \in \Theta$)
-	and  there exists a continuous function
-	$H : \Theta \times [0,1] \times [0,1]$ such that,
-	for all $\theta \in \Theta$ and $\chi \in [0,1]$,
-	\begin{enumerate}[nosep]
-		\item $H(\theta, \chi, 0)= F(\theta, \chi, \phi)$,
-		\item $H(\theta, \chi, 1)= F(\theta, \chi, \psi)$
-	\end{enumerate}
-	and for all $s \in [0,1]$,
-	\begin{enumerate}[nosep,resume]
-		\item $H(\theta, 0, s) = \theta$;
-		\item $H(\theta, 1, s) = F^1_{\phi}(\theta) = F^1_{\psi}(\theta)$,
-		the last two of	which are the same by assumption. \qedhere
-	\end{enumerate}
-\end{defn}
-
-As usual, homotopy is an equivalence relation.
-
-For example, the Dempster-Shafer update rule \eqref{eq:ds-prob} is homotopic 
-to the linear update rule from \cref{ex:prob-simple}. 
 
 
 % Intuitively,
