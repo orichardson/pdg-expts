@@ -21,8 +21,15 @@ and $\Phi$ for a set of possible inputs.
 Now, suppose we have some initial belief state $\theta$, and observe $\phi$ with confidence $\alpha \in [0,1]$. 
 How do our beliefs change as a result? 
 To study this mathematically, we assume that the process can be captured in functional form:
-\unskip\footnote{we can just as easily handle randomized updates;
-	the point is simply that the update can be prescribed by an algorithm.}
+\unskip\footnote{%
+	% we can just as easily handle randomized updates;
+	It should be straightforward to extend our theory
+	so as to handle randomized updates as well;
+	the point is that
+	% the update can be prescribed by an algorithm.
+	the belief state, observation, and confidence must together contain
+	enough information to describe the updating process.
+	}
 \begin{CFaxioms}
 	\setcounter{CFaxiomsi}{-1}
 	\item
@@ -411,12 +418,9 @@ if it is not just continuous, but differentiable as well.
 	is differentiable.
 \end{CFaxioms}
 
-
-
-
-To motivate our final axiom,
+To motivate our next axiom,
 suppose that we learn $\phi$ with some small degree of confidence $\chi$,
-but then decide we should have updated with higher confidence. 
+but then immediately realize that we should have updated with higher confidence. 
 To fix this, it seems clear that we need to gain additional confidence
 in $\phi$, which can be done with a second update 
 (with a smaller residual degree of confidence).
@@ -425,13 +429,15 @@ in $\phi$, which can be done with a second update
 	\item 
 	% More precisely, 
 	% If $\chi_2 > \chi_1$, 
-	If $0 \le \chi_1 < \chi_2 < 1$, 
+	% If $0 \le \chi_1 < \chi_2 < 1$, 
+	If $0 < \chi_1 < \chi_2 < 1$, 
 	then for all $\theta \in \Theta$, 
 	there exists 
 	% $\chi_{1{\to}2}^\theta \in [0,1]$
 	% $\chi_{1{\to}2} \in [0,1]$
 	% $\chi_3 \in [0,1]$
-	$\chi_3 \in [0,\chi_2]$
+	% $\chi_3 \in [0,\chi_2]$
+	$\chi_3 \in (0,\chi_2)$
 	such that
 	$
 	F_\phi^{
@@ -443,38 +449,70 @@ in $\phi$, which can be done with a second update
 	\label{ax:seq-for-more}
 \end{CFaxioms}
 
-The effect of \cref{ax:seq-for-more} is to require
+The point of the monotonicity condition \cref{ax:seq-for-more} is to rule out cases such 
+as the one depicted below, in which ``resuming'' an update
+results in a totally different set of belief states.
+\begin{center}
+\begin{tikzpicture}
+    \coordinate[label=left:$\mu~$] (A) at (0,0);
+    \coordinate[label=right:$~\mu|\phi$] (C) at (3,0);
+    \coordinate[label=above:$F_\phi^{.6}(\mu)\mid\phi$] (C') at (6,-0.4);
+    \draw (A) to[bend right] 
+		node[outer sep=0,pos=0.6,label=above:$F_\phi^{.6}(\mu)$](B){} (C);
+    \fill 
+        (A) circle (0.1)
+        (B) circle (0.1)
+        (C) circle (0.1)
+        (C') circle (0.1);
+    \draw (B.center) to (C');
+\end{tikzpicture}
+\end{center}
+% \cref{ax:seq-for-more} also has a more significant effect: it means
+\cref{ax:seq-for-more} also ensures
 that a high confidence update can be decomposed into
 several updates of lower confidence. 
 
 
-\begin{conj}
-	% If $F, G: \Phi \times [0,1] \times \Theta \to \Theta$ are
-	If 
-	 % $F: \Phi \times [0,1] \times \Theta \to \Theta$ 
-	$F$ and $G$ satisfy
-	% $F$ satisfies
-	\cref{ax:funcform,ax:zero,ax:idemp,ax:cont,ax:seq-for-more%
-		% ,ax:diffble
-		},
-	and behave the same way under full-confidence,
-	then 
-	there is a translation 
-	$g: [0,1] \to [0,1]$ 
-	such that
-	$F(\phi, g(\chi), \theta) = G(\phi, \chi, \theta)$. 
-	% then there is a unique function $F^*$ 
-\end{conj}
+Finally, we impose a mild regularity condition
+that can be thought of as
+% a special case arising in 
+a limit \cref{ax:seq-for-more}
+when confidences $\chi_1$ and $\chi_2$ become infinitessimally close;
+% for infinitessimal values of confidence (specifically $\chi_1$),
+% which we can make sense of because of \cref{ax:diffble}. 
+% which we can make sense of via differentiability (\cref{ax:diffble}). 
+we make this precise via differentiability (\cref{ax:diffble}). 
+% The next axiom states
+% This is a relatively minor condition
 
-Thus, functions satisfying these axioms are defined up to parameterization
-of intermediate confidences. For this reason, we give them a special name
+\begin{CFaxioms}
+	\item \label{ax:nopause}
+	If
+	% $\frac{\partial}{\partial\chi} F(\theta,\chi,\phi) \!=\! 0$
+	$\frac{\partial}{\partial\chi} F^\chi_\phi(\theta) = 0$
+	and $\chi' > \chi$,
+	then 
+	% $F(\theta, \chi', \phi) \!=\! \theta$.	 
+	$F^{\chi'}_\phi(\theta) = \theta$.	 
+\end{CFaxioms}
+
+Intuitively, \cref{ax:nopause} amounts to requiring that updates
+do not ``temporarily pause'' for intermediate values of confidence,
+and then resume for higher values of confidence.
+The culmination of these axioms results in our first definition of an
+update function that takes confidence into account.
+
+
+% For this reason, we give them a special name
 % Together, these axioms allow us to define an update rule, by:
 
 \begin{defn}
 	A function $F: \Phi \times [0,1] \times \Theta \to \Theta$ 
-	satisfying \cref{ax:zero,ax:idemp,ax:cont,ax:seq-for-more,ax:diffble} is 
+	satisfying
+	\cref{ax:zero,ax:idemp,ax:cont,ax:seq-for-more,ax:diffble,ax:nopause}
+	is 
 	% an \emph{update function}.
-	a \emph{flow update function}.
+	a \emph{path update function}.
 \end{defn}
 
 
