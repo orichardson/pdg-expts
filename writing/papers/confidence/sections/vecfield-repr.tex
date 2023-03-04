@@ -101,9 +101,9 @@ can be measured, it has no effect on what confidence can express.
 			\chi,
 		 \theta )
 		 =
-		{^+}\!F(\phi, 
+		{^+}\!F(\phi,~ 
 		% \beta,
-		g(\phi,\chi,\theta),
+		g(\phi,\chi,\theta),~
 		 \theta).
 	\]
 \end{linked}
@@ -155,16 +155,20 @@ intuitively, is a direction that one can travel in $\Theta$ beginning at $\theta
 A vector field $X$ over $\Theta$ is then
 a smooth map $X : \Theta \to T \Theta$ 
 assigning a tangent vector $X(\theta) = (\theta, \mat v) \in TM$ 
-to every $\theta \in \Theta$; the set of all 
-vector fields over $\Theta$ is denoted $\mathfrak X(\Theta)$ and is closed
-under linear combination
+to every $\theta \in \Theta$.
+The set of all vector fields over $\Theta$ is denoted $\mathfrak X(\Theta)$
+ % and is closed under linear combination
+ and forms a vector space.
 \parencite[\S8]{lee2013smooth}
 \unskip.
+
 There is a close relationship between additive confidence and such vector fields.
 % A vector field is called \emph{complete} if it generates a global flow.
 % , or equivalently, a smooth section of the projection map $\pi : T M \to M$, where $\pi((p, v)) = p$.
 Given a flow update function $F$, and observation $\phi$, the
-differential of $F$ is a vector field
+differential of $F$
+intuitively represents an update with infinitessimal confidence, 
+and is a vector field
 \begin{equation}
 	F'_\phi 
 	:= \frac{\partial}{\partial \chi} F_{\theta}^{\chi} \Big|_{\chi=0}
@@ -176,7 +180,25 @@ Moreover, we can recover $F_\phi$ as the integral curves of $F'_\phi$.
 % we could 
 % because $F_\phi$ is the unique function satsifying \eqref{eq:f-field}.
 
-\begin{prop}
+\begin{fact}[{\citeauthor[Thm 9.12]{lee2013smooth}}]
+	If $X \in \mathfrak X(\Theta)$, 
+	there is at most one
+	 % function 
+	$f : [0,\infty) \times \Theta \to \Theta$
+	such that for all $\theta \in \Theta$ and $a,b\ge 0$,
+	\[
+	f(a, f(b, \theta)) = f(a+b,\theta)
+		~~\text{and}~~
+	\frac{\partial}{\partial \chi}
+	 	f(\chi,\theta)
+		% \underset{\chi=0}|
+		\Big|_{\chi{=}0}
+		\!\!= X(\theta)
+		.
+	\]
+	\label{fact:unique-integral-curves}
+\end{fact}
+\begin{coro}
 	% Suppose $X_\phi \in \mathfrak X(\Theta)$ be a vector field.
 	% Let $F$ be a flow-update rule. 
 	% Suppose $X_\phi \in \mathfrak X(\Theta)$ be a vector field.
@@ -186,7 +208,8 @@ Moreover, we can recover $F_\phi$ as the integral curves of $F'_\phi$.
 	Let $F$ be a flow update function, and fix the vector field $F'_{\phi}$.
 	$F_\phi$ is the only flow update satisfying \eqref{eq:f-field}.
 	% If $F$ is the uni
-\end{prop}
+	\label{fact:unique-flow-for-vfield}
+\end{coro}
 
 % Therefore, \cref{theorem:add-reparam}
 Thus, every flow update function can be equivalently represented
@@ -232,40 +255,92 @@ It may seem counter-intuitive that $F'_\phi$,
 which no longer mentions confidence at all,
 can capture confidence. In a sense, it does so by specifying 
 everything about the update \emph{except} for the degree of confidence.
-Having separated the confidence from the mechanics of the update,
-this vector field representation allows us to 
+Moreover, this representation will turn out to be quite useful, 
+in two respects: at a mathematical level, it will allows us to
+describe and classify update functions on $\Theta$, 
+and at a practical level, it will give us a natural extension of $\Phi$
+that allows us to talk about ``mixtures'' of observations. 
+% Having separated the confidence from the mechanics of the update,
+% this vector field representation allows us to describe and
+% classify update functions on $\Theta$
 
-\subsection{Orderless Combination of Observations}
-
+% \subsection{Orderless Combination of Observations}
+% \textbf{Orderless Combination of Observations.}
 One defining feature of vector fields is that they
+form a vector space, and so
 can be linearly combined to form new vector fields.
-Therefore flow update rules, which are in natural correspondance with differentiable additive update rules, also inherrit this structure.
+Therefore flow update functions, which are in natural correspondance
+with differentiable update functions, also inherrit this structure.
 
-The first way of combining propositions is to rescale them.
+% The first way of combining 
+From scalar mutliplication, we get a way of rescaling
+inputs $\phi$ by a ``relative confidence'' $k \in [0,\infty)$.
 % \begin{prop}
 	% Suppose $F$ is a flow udpate rule.
-For $\phi \in \Phi$ and a scalar $k \in [0,\infty)$, 
-we can extend $F$ a new input $k \cdot \phi \in \ext\Phi$ by
+% For $\phi \in \Phi$, we can extend $F$ 
+Concretely,
+ % given $k$ and $\phi$,
+define a new observation 
+% $k\cdot\phi \in \ext\Phi$
+$k\cdot\phi$
+and extend $F$ to handle it by:
 \[
-	F^{\chi}_{k\cdot\phi}(\theta) := F^{k\chi}_{\phi}(\theta).
+	F^{\chi}_{k\cdot\phi}(\theta) := F^{k\chi}_{\phi}(\theta)
+	,\quad\text{or equivalently,}\quad
+	F'_{k\cdot \phi} := k F'_{\phi}
+	.
 \]
 % \end{prop}
-In this way, the set $\Phi$ inherits 
-the additivity of the update rule in the form of scalar multiplication.
-It turns out more is possible: updates inherit the entire vector space structure.
+Note that if $k > 0$, the rescaled input
+$k\cdot \phi$ behaves the same way that $\phi$
+does for extreme values of confidence,
+since $k 0 = 0$ and $k\infty = \infty$. 
+
+% In this way, the set $\Phi$ inherits 
+% the additivity of the update rule in the form of scalar multiplication.
+% It turns out more is possible: updates inherit the entire vector space structure.
 
 
-The second way of combining propositions is to ``run them concurrently''.
+% The second way of combining propositions is to ``observe them concurrently''.
+% The second way we 
+% Making use of vector field addition, we can also 
+From vector field addition, we get a natural way to combine observations.
+Up to now, we have only been able to combine observations provided they are
+both of the same input $\phi$ (e.g., via \cref{ax:additivity}).
+The vector field representation allows us to do this for distinct inputs. 
+% This can be quite powerful.
 % In particular, given \cofunc s $F, G : \mathbb R \to \Theta$, we can define
 % $F \oplus G$ via the vector field $(F \oplus G)' = F' + G'$.
 % \begin{defn}
 % 	For $\phi_1, \phi_2 \in \Phi$, we extend $F$ to 
 % 	$\phi_1 \oplus \phi_2$
 % \end{defn}
-Given $\phi_1, \phi_2 \in \Phi$, we can form a new input 
-$\phi_1 \oplus \phi_2 \in \ext \Phi$, and we extend $F$ on it by
-adding the vector fields
-$F'_{\phi_1 \oplus \phi_2} := F'_{\phi_1} + F'_{\phi_2}$.
+Concretely,
+given $\phi_1, \phi_2 \in \Phi$, we can form a new input 
+% $\phi_1 \oplus \phi_2 \in \ext \Phi$, 
+$\phi_1 \oplus \phi_2$
+and extend $F$ to handle it by taking 
+% $F'_{\phi_1 \oplus \phi_2} := F'_{\phi_1} + F'_{\phi_2}$.
+its vector field 
+$F'_{\phi_1 \oplus \phi_2}$
+to be the sum $F'_{\phi_1} + F'_{\phi_2}$ of the vector fields of $\phi_1 $ and $\phi_2$.
+Unlike before, there is no easy way to describe the flow update function
+$F_{\phi_1\oplus\phi_2}$ directly,
+but \cref{fact:unique-integral-curves} implies that there's a unique
+such function, if it exists.
+We now prove that it does.
+% limits to a point, 
+% allowing it to be continously extended to $\infty$. 
+
+\begin{prop}
+	If $F$ is a flow update function, and $\phi_1, \phi_2 \in \Phi$, 
+	then there exists a function 
+	$F_{\phi_1 \oplus \phi_2} : [0, \infty] \times \Theta \to \Theta$
+	such that
+	% to handle 	input $\phi_1 \oplus \phi_2$ such that $F'_{}$
+\end{prop}
+
+
 Note that by definition, $\phi_1 \oplus \phi_2 = \phi_2 \oplus \phi_1$,
 so this is a way of combining observations orderlessly, even in cases
 where $\phi_1$ and $\phi_2$ do not commute. And when $\phi_1$ and $\phi_2$
@@ -298,10 +373,30 @@ as $\phi_1$ followed by $\phi_2$.
 
 Intuitively, $\phi_1 \oplus \phi_2$ is a ``mixture observation'' containing
 one part $\phi_1$ and one part $\phi_2$. This intuition is made
-precise by the following proposition, which 
+precise by the following proposition,
+which shows that 
 
 \begin{prop}
-	
+	Let $\phi_1, \phi_2 \in \Phi$ be inputs, and for $t > 0$, let
+	$u_t := F_{\phi_1}^t \circ F_{\phi_2}^t : \Theta \to \Theta$
+ 	be shorthand for 
+	a confidence-$t$ update $\phi_1$ followed
+	by a confidence-$t$ update of $\phi_2$. 
+	Then,
+	\[
+		F_{\phi_1 \oplus \phi_2}^\chi = 
+		\lim_{n \to \infty}~~
+		\overbrace{u_{\nf \chi n}\circ u_{\nf \chi n} \circ\cdots\circ
+			u_{\nf \chi n}}^{\text{$n$ times}}
+			.
+		%  (F^{\frac\chi n}_{\phi_1} \circ F^{\frac\chi n}_{\phi_2})
+		%  \circ
+		%  (F^{\frac\chi n}_{\phi_1} \circ F^{\frac\chi n}_{\phi_2})
+		%  \circ
+		%  \cdots
+		%  \circ
+		%  (F^{\frac\chi n}_{\phi_1} \circ F^{\frac\chi n}_{\phi_2})
+	\]
 \end{prop}
 
 \begin{example}
