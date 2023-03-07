@@ -41,9 +41,13 @@ To study this mathematically, we assume that the process can be captured in func
 	% \[
 		% F : \confdom \to ( \Phi \to ( \Theta \to \Theta) )
 		F :  \Phi \times [0,1] \times \Theta \to \Theta
+		% F :  \Phi \times [0,\top] \times \Theta \to \Theta
 	% \]
 	$
-	which, given input $\phi \in \Phi$, confidence $\chi \in [0,1]$, and a prior belief state $\theta \in \Theta$, 
+	which, given input $\phi \in \Phi$, confidence
+	$\chi \in [0,1]$,
+	% $\chi \in [0,\top]$,
+	and a prior belief state $\theta \in \Theta$, 
 	produces the appropriate posterior belief state $F(\phi, \chi, \theta) \in \Theta$. 
 	 % belief state $F^c_\phi\theta$ that corresponds to the result of observing $\phi$ in state $\theta$. 
 	 	\label[CFaxiomsi]{ax:funcform}
@@ -55,7 +59,7 @@ $F^\chi_\phi = F(\phi, \chi, -) : \Theta \to \Theta$
 % a (confidence-$\chi$) \emph{update}.
 an \emph{update}.
 To ensure $F$ captures the belief updating process, we also require that it satisfy axioms
-that characterize the important shared features between \cref{ex:prob-simple,ex:classifier,ex:shafer}.
+that characterize the important features shared among \cref{ex:prob-simple,ex:classifier,ex:shafer}.
 First, we would like no-confidence updates to leave our belief state unchanged. 
 
 \begin{CFaxioms}
@@ -91,11 +95,18 @@ but it still characterized by an important property.
 
 % \textbf{High Confidence Updates.}
 \subsection{Updating with Full Confidence}
-Since the purpose of $F^1_\phi$ is to \emph{fully} incorporate $\phi$ into our beliefs,
+Since the purpose of
+% $F^1_\phi$
+$F^\top_\phi$
+is to \emph{fully} incorporate $\phi$ into our beliefs,
 two successive updates with the same information ought to have the same effect as a single one.
 Intuitively, this is because if we have just updated our beliefs to be consistent with the information $\phi$, then a second observation of $\phi$ will require no further alterations of our belief state.
 % In this case, we call $F$ an \emph{update rule}, or more precisely, a \emph{$\Theta$-update rule on $\Phi$}, and insist that
 
+%joe3: This is problematic, because the issue of succiessive updates is, in general, problematic. You haven’t discussed it at all. Indeed, you haven’t even hinted that there’s an issue.
+%oli3: It's actually not problematic for full confidence. That's why
+% it never gets discussed when people talk about conditioning. But I will 
+% discuss this later. 
 \begin{defn}
 	A \emph{full-confidence ($\Theta$-)update rule} (for $\Phi$) is
 	a mapping $P: \Phi \times \Theta \to \Theta$ such that
@@ -116,7 +127,8 @@ Intuitively, this is because if we have just updated our beliefs to be consisten
     % (i.e., $F^1_\phi \circ F^1_\phi = F_\phi$).
 	Full-confidence updates are idempotent. Or,
 	equivalently,
-	$F^1 = (\phi, \theta) \mapsto F(\phi,1,\theta): \Phi \times \Theta \to \Theta$ is a full-confidence
+	% $F^1 = (\phi, \theta) \mapsto F(\phi,1,\theta): \Phi \times \Theta \to \Theta$ is a full-confidence
+	$F^\top = (\phi, \theta) \mapsto F(\phi,\top,\theta): \Phi \times \Theta \to \Theta$ is a full-confidence
 	update rule.
 	\label{ax:idemp}
 \end{CFaxioms}
@@ -143,14 +155,15 @@ Intuitively, this is because if we have just updated our beliefs to be consisten
 % Here are some examples.
 Once $\Theta$, $\Phi$, and any implicit structure in them is specified, there is often a natural choice of full-confidence update rule.
 To illustrate, we now consider three different rules for different choices of $\Phi$.
-In each case, the possible belief states $\Theta := \Delta W$ be the set of all probability distributions over a finie set $W = \{w_1, \ldots, w_n\}$ of ``possible worlds''.
+In each case, the possible belief states $\Theta := \Delta W$ be the set of all probability distributions over a finite set
+ $W
+  % = \{w_1, \ldots, w_n\}
+  $ of ``possible worlds''.
 
 \begin{enumerate}[wide, label=\textbf{\thesubsection.\arabic*}]
 	\item %\textbf{Conditioning.}
 	\textbf{Conditioning.}
 	First, consider the case where observations are events, i.e., $\Phi := 2^W$.
-	% One particularly natural $\Delta W$-update rule on $2^W$ is given by conditioning,
-	% Here, the appropriate update seems to be condition:
 	Here, the appropriate rule seems to be conditioning:
 	% \[
 	% \begin{aligned}
@@ -163,32 +176,48 @@ In each case, the possible belief states $\Theta := \Delta W$ be the set of all 
 	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A) \{w\} = \ifrac{\mu\{w\}}{\mu(A)}$.
 	% where the action of the conditional measure $\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
 	starting with $\mu \in \Delta W$, the conditional measure 
-	$\mu\mid A$ is given by $(\mu \mid A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$,
+	$\mu|A$ is given by $(\mu|A)(B) = \ifrac{\mu(B \cap A)}{\mu(A)}$, provided $\mu(A) > 0$.
+	Note that $(\mu|A)|A = \mu|A$, so conditioning is idempotent. 
 	% and may be defined arbitrarily otherwise.
-	and otherwise is just equal to $\mu$.
-	Observe:
-	\begin{itemize}[nosep, leftmargin=1.2em]
-		\item Provided $\mu(A) > 0$, then $(\mu\mid A) \mid A = \mu \mid A$, so conditioning is a full-confidence update.
-		\item If $\mu(A \cap B) > 0$, then $(\mu \mid A) \mid B = \mu \mid (A \cap B) = (\mu \mid B) \mid A$, so the order that information is recieved does not matter (so long as it is consistent with one's beliefs).
-	\end{itemize}
+	% and otherwise is just equal to $\mu$.
+	% and is otherwise undefined, although for completeness
+ 	% equal to $\mu$.
+	% Observe:
+	% \begin{itemize}[nosep, leftmargin=1.2em]
+	% 	\item Provided $\mu(A) > 0$, then $(\mu\mid A) \mid A = \mu \mid A$, so conditioning is a full-confidence update.
+	% 	\item If $\mu(A \cap B) > 0$, then $(\mu \mid A) \mid B = \mu \mid (A \cap B) = (\mu \mid B) \mid A$, so the order that information is recieved does not matter (so long as it is consistent with one's beliefs).
+	% \end{itemize}
 	There are well-known issues with conditioning $\mu$ on $A$ when
-	$\mu(A) = 0$, typically this operation is undefined. Note that to satisfy
-	\cref{ax:idemp}, the result must either be $\mu$ itself or a
-	 distribution that gives probability 1 to $A$. 
+	$\mu(A) = 0$, typically this operation is undefined. 
+	% Note that to satisfy
+	But to satisfy \cref{ax:funcform,ax:idemp}, the result must either
+	be $\mu$ itself or 
+	give probability 1 to $A$.
+	% distribution that gives probability 1 to $A$. 
 	% However, it is not the only $\Delta W$-updating rule for $2^W$.
 	 % $\Phi$.
 
 	\item
 	\textbf{Imaging.}
-	A second example of an update rule is the ``imaging'' approach of David Lewis
-	\parencite{lewis1976probabilities}.
+	% A second example of an update rule is the ``imaging'' 
+	Our second example is the ``imaging''
+	% approach of David Lewis \parencite{lewis1976probabilities}.
+	approach of \textcite{lewis1976probabilities}.
 	% , albeit in very different notation.
 	% Once again, consider a finite set $W$, and belief states $\Theta := \Delta W$.
-	Suppose that, for some set $\Phi$, that we already have a full-confidence update rule
+	Suppose that
+	% , for some set $\Phi$, that
+ 	we already have a full-confidence update rule
 	$f : \Phi \times W \to W$ on individual worlds, which we interperet as assigning each statement $\phi \in \Phi$ and $w \in W$ an element $f(\phi, w) \in W$ which is the unique ``world most similar to $w$, in which $\phi$ is true'' \parencite{gardenfors1979imaging}.
-	In this case, idempotence of $f_\phi: W \to W$ amounts to the (very reasonable) requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
-	From $f$, we can construct a full confidence update rule $F$ for $\Delta W$
-	with the pushforward	
+	In this case, idempotence of $f_\phi: W \to W$
+	% amounts to the (very reasonable) requirement that the world most similar to $f_\phi w$ in which $\phi$ is true, is $f_\phi w$ itself.
+	says the world most similar to $f(\phi,w)$ in which $\phi$ is true, is $f(\phi,w)$ itself.
+	% From $f$, we can 
+	We can then 
+	% construct a full confidence update rule for $\Delta W$
+	lift $f$ to a full confidence update rule for $\Delta W$,
+	% with the pushforward	ide
+	by
 	\[
     	\begin{aligned}
     		% F_\phi(\mu) &:=
@@ -211,9 +240,13 @@ In each case, the possible belief states $\Theta := \Delta W$ be the set of all 
 		% 	\draw[arr2, <-, dashed, gray] (W') to node[above]{$F_\phi(\mu)$} ++(2, 0);
 		% \end{tikzpicture}
 	\]
-	which intuitively moves the probability mass on each world $w$ to the $f_\phi w$, the closest world to $w$ in which $\phi$ is true.
+	which intuitively moves the probability mass on each world $w$ to
+	 % $f_\phi w$
+	$f(\phi,w)$.	
+	%$f_\phi w$, the world closest to $w$ in which $\phi$ is true.
 	% is the pushforward measure of $\mu$ through $f_\phi$, which Lewis calls the ``image of $\mu$ on $\phi$''
-	And, since $f$ is idempotent, $F$ will be as well.
+	% And, since $f$ is idempotent, $F$ will be as well.
+	Since $f$ is idempotent, so is $F$.
 
 
 	\commentout{
@@ -235,13 +268,14 @@ In each case, the possible belief states $\Theta := \Delta W$ be the set of all 
 	\item
 	\textbf{Jeffrey's Rule.}
 	% Once more, suppose that $W$ is a finite set and $\Theta := \Delta W$.
+	% Next, consider a more general form of observation, in which observations themselves are probabilities.
 	Next, consider a more general form of observation, in which observations themselves are probabilities.
 	% Formally, suppose $\Phi$ consists of pairs $(X,\pi)$,
 	Formally, let $\Phi$ be the set of pairs $(X,\pi)$,
 	% Formally, suppose $\Phi$ consists of marginal distributions $\pi(X)$
 	% Formally, suppose $\Phi$ consists of distributions $\pi(X)$,
 	% written $\pi(X)$,
-	where $X : W \to S$ is a random variable taking values in some set $S$,
+	where $X : W \to S$ is a random variable taking values in a set $S$,
 	% (i.e., some function of $W$),
 	and $\pi \in \Delta S$ is a probability on
 	% the possible values that $X$ can take.
@@ -260,36 +294,70 @@ In each case, the possible belief states $\Theta := \Delta W$ be the set of all 
 	\end{align*}
 
 	When $\pi$ places all mass on some $x \in S$, Jeffrey's Rule amounts to conditioning on $X {=} x$.
+	% and so it is sometimes thought to generalize conditioning so that 
+	% absolute certainty is no longer necessary.
+	For this reason, Jeffrey's Rule is sometimes thought to 
+		generalize conditioning to observations of lower confidence.
 	 % but for other choices of $\pi(X)$,
-	For this reason, Jeffrey's Rule is sometimes often thought of as a generalization of conditioning that admits for less that complete certainty.
-	However, it is still a full-confidence update rule---just one that handles observations that can be uncertain.
-
-	Let $\mu' := J_{\pi(X)}(\mu)$ be the result of applying Jeffrey's rule for $(X,\pi)$ to $\mu$.
-	% then $\pi$ will be fully incorporated (that is, $\mu'(X) = \pi(X)$),
-	Note that $\mu'(X) = \pi(X)$, so $\pi(X)$ has been fully incorporated into $\mu'$, while all information about the old prior belief about $X$ has been destroyed by the update.
+	% For this reason, Jeffrey's Rule is sometimes often thought of as a generalization of conditioning that admits for less that complete certainty.
+	However, it is still a full-confidence update rule---just 
+	% one that handles observations that can be uncertain.
+	one that handles a different kind of observation.
+	$J_{(X,\pi)}$ is idempotent, and the marginal of $J_{(X,\pi)}$ on $X$ is $\pi$, so $\pi$ has been fully 
+	incorporated, while the prior belief about $X$ has been destroyed.
+	% Let $\mu' := J_{\pi(X)}(\mu)$ be the result of applying Jeffrey's rule for $(X,\pi)$ to $\mu$.
+	% % then $\pi$ will be fully incorporated (that is, $\mu'(X) = \pi(X)$),
+	% Note that $\mu'(X) = \pi(X)$, so $\pi(X)$ has been fully incorporated into $\mu'$, while all information about the old prior belief about $X$ has been destroyed by the update.
 \end{enumerate}
 
 
-Not only 
+% We will later see that idempotence
+We have seen how full-confidence updates are idempotent; is the reverse true as well?
+That is, if an update is idempotent, then is it full-confidence? 
+With the rest of our axioms, this will indeed be the case.
+% Trivially, the answer is no, because the identity $F^0_\phi$ is idempotent as well.
+% Aside from the identities that arise from no confidence $F^0_\phi$,
+ % we will see that 
+% it will turn out that 
+% as a consequence of our later axioms,
+% if $\phi$ is nontrivial, then
+% the update $F^\chi_\phi$ is idempotent iff $\chi\in\{0,1\}$.
 
-\begin{CFaxioms}
-	\item[\ref*{ax:idemp}']
-	% Full-confidence updates are idempotent.
-	% For all $\phi \in \Phi$, the update $F_\phi$ is idempotent.
-    % That is, for all $\phi \in \Phi$,  $F^1_\phi \circ F^1_\phi = F^1_\phi$.
-    % That is, for all $\phi \in \Phi$ and $\theta \in \Theta$,  $F^1_\phi \circ F^1_\phi = F^1_\phi$.
-    % (i.e., $F^1_\phi \circ F^1_\phi = F_\phi$).
-	$F^\chi_\phi \circ F^\chi_\phi = F^\chi_\phi$ iff $\chi \in \{0,1\}$
-		or $\phi$ is trivial (in the sense that $F^\chi_\phi(\theta) = \theta$ for all $\phi,\chi,\theta$).
-	\label{ax:idemp-strong}
-\end{CFaxioms}
+\begin{prop}
+	If $F$ satisfies
+	\cref{ax:funcform,ax:zero,ax:idemp,ax:cont,%
+		ax:diffble,%unnecessary
+		ax:seq-for-more,ax:nopause}
+ 	% $\exists\phi,\chi,\theta.~$ 
+	and
+ 	 $\theta,\chi,\phi$ are such that 
+	$F_\phi^\chi(\theta) \ne \theta$,
+	and also
+	$F^\chi_\phi \circ F^\chi_\phi = F^\chi_\phi$, then $\chi=1$. 
+\end{prop}
 
+% Not only 
+% 
+% \begin{CFaxioms}
+% 	\item[\ref*{ax:idemp}']
+% 	% Full-confidence updates are idempotent.
+% 	% For all $\phi \in \Phi$, the update $F_\phi$ is idempotent.
+%     % That is, for all $\phi \in \Phi$,  $F^1_\phi \circ F^1_\phi = F^1_\phi$.
+%     % That is, for all $\phi \in \Phi$ and $\theta \in \Theta$,  $F^1_\phi \circ F^1_\phi = F^1_\phi$.
+%     % (i.e., $F^1_\phi \circ F^1_\phi = F_\phi$).
+% 	$F^\chi_\phi \circ F^\chi_\phi = F^\chi_\phi$ iff $\chi \in \{0,1\}$
+% 		or $\phi$ is trivial (in the sense that $F^\chi_\phi(\theta) = \theta$ for all $\phi,\chi,\theta$).
+% 	\label{ax:idemp-strong}
+% \end{CFaxioms}
+% 
 
 
 
 \subsection{%
 	% Continuity and
- 	The Path of Middling Confidence}
+ 	% The Path of Middling Confidence
+	Paths of Intermediate Confidence
+	}
 
 Full updates are quite extreme.
 An agent that updates by conditioning, for instance,
@@ -312,9 +380,11 @@ This is the role of intermediate values of confidence.
 \textbf{Continuity.}
 Recall that a path in a topological space $X$ is a continuous map $p : [0,1] \to X$. 
 Fix an observation $\phi$ and prior belief $\theta$. 
-Since confidence is supposed to interpolate
+Since confidence interpolates 
 between prior belief and a full update,
-we would like every $\chi \mapsto F(\theta,\chi,\phi) : [0,1] \to \Theta$
+we would like 
+$\chi \mapsto F(\theta,\chi,\phi)$
+% $: [0,1] \to \Theta$
 for fixed $\phi$ to be a path
 in belief space starting at $\theta$.
 
@@ -387,8 +457,20 @@ In the probabilistic case, for instance:
 % 	now \cref{ax:cont-strong} implies that 	
 % \end{example}%
 \begin{prop}
-	There is no continuous extension of conditioning to a function
-	$F$ satisfying \cref{ax:cont-strong}.
+	%joe3: I don’t understand what you mean by this.
+	% There is no continuous extension of conditioning to a function
+	% $F$ satisfying \cref{ax:cont-strong}.
+	There is no extension of conditioning that satisfies \cref{ax:cont-strong}.
+	%
+	% That is, if $(W, \mathcal F)$ is a measurable space $\Phi = \mathcal F$,
+	% and $\Theta$ consists of all probability measures on $(W, \mathcal F)$, then
+	% there is no continous function $F : $
+	In particular, 
+	% if $\Theta = \Delta W$ and $\phi\subset W$ is an event,
+	for $\phi\subsetneq W$,
+	there is no continuous function
+	$F_\phi : \Delta W \times [0,1] \to \Delta W$
+	such that $F_\phi(\mu, 1) = \mu|\phi$ when $\mu(\phi) > 0$. 
 	% nor even one whose restriction to  $ [0,\epsilon) \times \Phi \times \Theta \to \Theta$
 	% is continuous, for $\epsilon > 0$.
 \end{prop}
@@ -434,7 +516,8 @@ continuous, but differentiable as well.
 	carries a differentiable structure,
 	\unskip\footnote{
 		That is, either 
-		$\Theta$ is either a subset of $\mathbb R^n$,
+		% $\Theta$ is either a subset of $\mathbb R^n$,
+		$\Theta$ is either the image of a $C^\infty$ function,
 	 	or a differentiable manifold (with corners) 
 		\parencite{lee2013smooth,joyce2009manifolds-w/corners}.}
 	% and for all $\phi \in \Phi$ and $\theta \in \Theta$, 
@@ -459,7 +542,7 @@ in $\phi$, which can be done with a second update
 	% More precisely, 
 	% If $\chi_2 > \chi_1$, 
 	% If $0 \le \chi_1 < \chi_2 < 1$, 
-	If $0 < \chi_1 < \chi_2 < 1$, 
+	If $0 < \chi_1 < \chi_2 < \top$, 
 	then for all $\theta \in \Theta$, 
 	there exists 
 	% $\chi_{1{\to}2}^\theta \in [0,1]$
@@ -525,6 +608,9 @@ we make this precise via differentiability (\cref{ax:diffble}).
 	$F^{\chi'}_\phi(\theta) = \theta$.	 
 \end{CFaxioms}
 
+%joe3: CF6 also says that there are no saddle points. Why is that reasonable?
+%oli3: since confidence is 1-dimensional, the notion of a saddle point doesn't apply. We're just talking about a differentiable path in belief space, and we're saying that it does not halt.
+
 Intuitively, \cref{ax:nopause} amounts to requiring that updates
 do not ``temporarily pause'' for intermediate values of confidence,
 and then resume for higher values of confidence.
@@ -546,18 +632,69 @@ update function that takes confidence into account.
 
 
 
-Path update functions capture some important aspects of uncertain
-updating%
----but a number $\chi \in [0,1]$ is not the only useful
-way to quantify confidence.
-For the full picture of of how these concepts are related, we will
-need to look at confidence from several more angles.
+% Path update functions capture some important aspects of uncertain
+% updating%
+% ---but a number $\chi \in [0,1]$ is not the only useful
+% way to quantify confidence.
+% For the full picture of of how these concepts are related, we will
+% need to look at confidence from several more angles.
 
-% If $\phi_1$ and $\phi_2$ are such that
-% $F_{\phi_1}$ and $\phi_2$
+\subsection{Independence of Observations}
+% When does it make sense to 
+It turns out \cref{ax:funcform} is not as anodyne as it
+looks, now that we can describe intermediate confidence levels. 
+For example, while Shafer argues for Dempster's rule of combination
+as a way of incorporating information, he is very careful to emphasize
+that it only makes sense to combine \emph{independent} information,
+for reasons we will now see.
+
+\begin{example}\label{ex:dupl}
+	We have initial belief state $\theta_0$.
+	Now, a friend tells us $\phi$ is true, 
+	which we trust to some intermediate degree of confidence 
+	% $c \notin\{ 0, 1 \}$.
+	$0 < c < 1$. 
+	So, in accordance with \Cref{ax:funcform}, we use $F$ to update your beliefs, partially incorporating $\phi$ arrive at some belief state $\theta_1 := F^c_\phi(\theta_0)$.
+	Immediately afterwards, the friend repeats herself: $\phi$ is true.
+	% Your
+	Supposing our
+ 	confidence remains the same,
+	then by \Cref{ax:funcform}
+	we must again update our beliefs with $F$,
+	arriving at $\theta_2 := F^c_\phi(\theta_1)$.
+	% Except in very special circumstances (e.g., you already know that $\phi$ is true, or $c \in \{\bot,\top\}$), typically $\theta_2$.
+	Unless you were already certian that $\phi$ is true, then $\theta_1 \ne \theta_2$.
+	And yet, it seems your your attitude towards $\phi$ ought to be the same whether you've heard it twice or only once.
+\end{example}
+
+To take another example, many of the theoretical guarantees we have 
+about machine learning models learning things quickly assume that samples
+are drawn i.i.d. from a fixed distribution, so that each observation is 
+an independent source of information. 
+
+So, one resolution to these problems is to follow Shafer,
+and place strict limitations on when one should use $F$ to update beliefs:
+\cref{ax:funcform} only applies if the new information is entirely independent
+of our current beliefs. 
+Unfortunately, new information is almost never independent of what we already know,
+and worse, there is often know way of knowing whether or not this is the case.
+But we must update our beliefs nonetheless.
+
+A related approach to adopt an incremental conception of confidence.
+If in fact the new information is independent of our beliefs, incremental
+and absolute confidence will be the same.  But if it is only partially 
+In this case, the second example \cref{ex:dupl} has zero incremental confidence
+because it's clearly not new information, and so we leave our beliefs alone. 
+
+This is the approach we took implicitly
+% How then, shall we make sense of
+when arguing for \cref{ax:seq-for-more}: even though the second update 
+($F^{\chi_3}_\phi$) is not independent of the first one 
+($F^{\chi_1}\phi$),
+$\chi_3$ measures the \emph{additional} confidence in $\phi$ we wish
+to incorporate, or put another way
 
 
-
-% Intuitively,
-% \cref{ax:seq-for-more} 
-% says that 
+% Now, we're not quite in the same position as Shafer.
+% Shafer was prescribing a concrete representation of $\Theta$ (a belief function) and a concrete update rule $F$ (Dempster's rule of combination), and so he needed to defend these choices.
+% We only need to defend something much more modest: we only need to defend the assumption that, if $\Theta$ and $\Phi$ properly model the relevant aspects of the scenario at hand, then there exists \emph{some} function $F$ which performs updates appropriately.
