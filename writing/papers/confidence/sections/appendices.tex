@@ -413,11 +413,221 @@ to the linear update rule from \cref{ex:prob-simple}.
     
 \end{lproof}
 
+\section{More Examples}
+
+
+Next, and example in which we have an additive flow update rule,
+that is not an optimizing update rule, and hence has no loss representation.
+
+\begin{example}[Weighted Average]
+    Suppose we recieve vectors $\phi \in \mathbb R^n$, 
+    say estimates of a quantity from different sources.
+    Suppose further that our belief state
+    $(\mat x,w) \in \Theta$ consists a current estimate
+    $\mat x$ of the quantity of interest, and a weight $w$ of the total internal confidence in the estimate.
+    In other words:    
+	\begin{align*}
+		\Theta = \mathbb R^n \times [0,\infty];
+		\qquad
+        \text{and}
+        \qquad
+		\Phi = \mathbb R^n %; \qquad
+        .
+	\end{align*}
+
+	Updating proceeds by taking a weighted average of the previous estimate and the new input, weighted by their respective confidences, which is captured by:
+	\begin{align*}
+		F^\beta_{\mat y}(\mat x, w) &=  \left( \frac{ w \mat x + \beta \mat y}{w + \beta} , w + \beta \right)
+		\qquad\text{and}\qquad
+		F^{\beta}_{\mat y}(\mat x, \infty) = (\mat x, \infty)
+	\end{align*}
+	It is additive, since
+	\begin{align*}
+		&F^{\beta_2}_{\mat y} \circ F^{\beta_1}_{\mat y}(\mat x, w) \\
+		&= \left( \frac{ (w + \beta_1) \frac{ w \mat x + \beta_1 \mat y}{w + \beta_1} + \beta_2 \mat y}{(w + \beta_1) + \beta_2}, (w  + \beta_1) + \beta_2 \right) \\
+		&= \left( \frac{  w \mat x + (\beta_1 + \beta_2) \mat y}{w + (\beta_1 + \beta_2)}, w  + (\beta_1 + \beta_2)\right)
+		= F^{\beta_1 + \beta_2}_{\mat y}(\mat x, w).
+	\end{align*}
+	And it is clearly differentiable, with a simple calculation revealing that
+	$ F'_{\mat y}(\mat x, w) = \left( \frac{\mat y - \mat x}{w}, 1\right) $.
+
+	Observations:
+	\begin{itemize}
+		\item The update rule cannot be extended differentiably to states $\theta = (\mat x, w)$ with $w = 0$.
+			Intuitively, we need to have some estimate with positive confidence to update beliefs in a differentiable way.
+        This is related to the fact that plain emperical risk minimization (ERM) is unstable, but stable with even a small amount of regularization.
+			% It is also similar to the fact that one needs a prior in order to do
+			% In this case, the prior may be arbitrarily weak.
+		\item The certainties are given by
+		\[
+			\lim_{\beta \to \infty} F^{\beta}_{\mat y}(\mat x, w) = (\mat y, \infty)
+		\]
+		% \item In this case,
+		\item $F$ is commutative, invertible, and symmetric with respect to permutation of the dimensions, but it is not conservative: if we had $U(\mat x, w, \mat y)$ twice differentiable such that $\nabla_{\mat x, w} U = F'$, then we would have
+        \begin{align*}
+        \frac{\partial^2}{\partial w \partial x_i} U &=
+			\frac\partial{\partial w} \frac{y_i - x_i}{w} = \frac{x_i - y_i}{w^2},\quad\text{but}
+            \\
+		\frac{\partial^2}{\partial x_1 \partial w} U
+			&= \frac\partial{\partial x_i} 1 = 0    
+        \end{align*}
+		violating Clairaut's theorem (which asserts equality of mixed partials).
+		Therefore, $F'$ cannot be written as the gradient of a function,
+        and so $F$ is not an optimizing update rule. \qedhere
+	\end{itemize}
+\end{example}
+
+Next, a toy example that showcases an assortment of other features and themes that can be captured with our definition of confidence.
+
+\begin{example}\label{ex:jugo}
+% \def\Gpressed(#1,#2){\mathsf{G}_{#1}\text{-}\mathit{pressed}(\mathsf{G},#1,#2)}
+% \def\Gpressed(#1,#2){\mathit{pressed}(#1,\mathsf{G},#2)}
+\def\pressed(#1,#2,#3){\mathit{pressed}(#1,\mathsf{#2},#3)}
+Jugo is an impartial juror.
+Like the other jurors, she has two buttons in front of her,
+labeled $\sf G$ and $\sf N$.
+% The button labeled $\mathsf G$ increases the probability 
+% of a guilty verdict, while the button labeled $\mathsf N$ increases
+% the probability of a not-guilty verdict. 
+Her instructions are to listen to evidence, and press $\sf G$ to 
+increase the probability of a guilty verdict, and $\sf N$ 
+to increase the probability of a not-guilty verdict.
+
+More concretely, the system works as follows.
+There are $J$ jurors, labeled $\{1, \ldots, J\}$;
+let 
+% $G_j(t)$ be
+$\pressed(j,B,t)$ be
+a variable that is equal to one if juror $j \in $
+is pressing button  $\mathsf B$ button at time $t$, and zero otherwise.
+% ; symmetrically, let $N_j(t)$ indicate whether $j$ is pressing the $\mathsf N$ at time $t$.
+The ``belief state'' of this automated system is
+a single number $g \in [0,1]$, representing the probability of a guilty verdict.
+When a single juror presses $\mathsf G$, $g$ approaches 1
+exponentially, and if they instead press $\sf N$, $g$ decays to zero.
+In the first case ($\sf G$ is pressed) the system evoves according to 
+$\frac{\mathrm dg}{\mathrm dt} = (1-g)$
+while in the second, 
+$\frac{\mathrm dg}{\mathrm dt} = -g$.
+The first is the vector field associated with the $\mathsf G$ button,
+and the second is the vector field associated with $\sf N$. 
+The total effect of all buttons is then the sum of that of all buttons across all vector fields, when they are active:
+% in which case $g(t) = 1 + (g(0) - 1)e^{-t} $.
+% Concretely, their dynamics are governed by:
+\[
+	\frac{\mathrm dg}{\mathrm dt} = 
+	\sum_{j = 1}^J 
+		% G_j(t)
+		\pressed(j,G,t)
+		(1-g) 
+		-
+		% N_j(t)
+		\pressed(j,N,t)
+		(g)
+		~,
+	% \begin{cases}
+	% 	(1 - p)	& \text{button $\uparrow$ pressed} \\
+	% 	-p & \text{button $\downarrow$ pressed}
+	% \end{cases}	
+\]
+so that $g$ exponentially approahces $1$ when more $\mathsf G$ buttons are pressed than $\mathsf N$ buttons,
+and symmetricaly, exponentially approaches $0$ when more $\mathsf N$ buttons than $\mathsf G$ buttons are pressed.
+At the end of the trial, the defendant is convicted with probability
+equal to the final value of $g$. 
+
+Let $\phi$ represent a piece of evidence suggesting guilt, presented by the
+prosecution from time $t_1$ to time $t_2$,
+and suppose for now that only buttons labeled $\mathsf G$ are pressed
+in this interval.
+% Many aspects of this scenario can be understood in terms of confidence.
+%
+	% The amount of time that 
+	% What is the confidence of the system in that evidence, as it understands it from the Jurors?
+% First, suppose that only $\mathsf G$ buttons are pressed
+	 % between $t_1$ and $t_2$. 
+% in between times $t_1$ and $t_2$.
+The system measures $j$'s confidence in $\phi$ by
+\[
+	w_j := \!\int_{t_1}^{t_2}\!\! G_j(t) \mathrm d t 
+	= \text{ total time $j$ presses $\mathsf G$ during $\phi$,}
+\]
+Note that $w_j = 0$ if and only if $j$ does not press any buttons,
+which (a) indicates that $j$ does not trust the evidence $\phi$, 
+and (b) communicates this fact to the system, by telling it to ignore 
+the evidence. 
+Note that this is an additive representation of confidence, since
+pressing the button for four seconds, and then three more later, is
+by definition the same as pressing it for seven. 
+While the maximum possible confidence of $w_j$ is $(t_2 - t_1)$,
+this system does not allow a juror to express \emph{full} confidence in $\phi$
+because no finite amount of $\mathsf G$-pressing will result in a 
+guilty verdict with probability one; it is always possible to increase
+the value of $g$ through additional evidence. 
+
+% Now, recall that ,
+Altogether, the system's confidence in $\phi$ can be measured by
+as the unique value $W$ for which
+\begin{align*}
+	% \int_{t_1}^{t_2} W (1-g(t)) \mathrm d t = \int_{t_1}^{t_2} \sum_{j=1}^J G_j(t) (1-g(t)) \mathrm d t,
+	\int_{t_1}^{t_2} W (1-g(t)) \mathrm d t =
+	 g(t_2) - g(t_1),
+	% \\
+	% W = \frac{1}{t_2-t_1 - \int_{t_1}^{t_2}g(t) \mathrm dt} \int_{t_1}^{t_2} \sum_{j=1}^J G_j(t) (1-g(t)) \mathrm d t
+\end{align*}
+which, so long as only $\mathsf G$ buttons are pressed, equals
+$W := \sum_{j} w_j$, so this measure of confidence is additive 
+across jurors as well as across time. 
+This is appropriate, since the jurors are independent and 
+not communicating with each other.
+% This is a weighted sum of $w_i's$
+As before, $W = 0$ if and only if no juror presses any buttons between times $t_1$ and $t_2$,
+indicating zero trust leant to $\phi$. In such a case, the system ignores $\phi$ in updating its beliefs.
+And just as no individual juror can send a full-confidence update to the system,
+	the system cannot recieve a full-confidence from the jurors as a whole.
+	
+The picture gets significantly more complicated if we consider the possibility
+that jurors might press the $\mathsf N$ button. For example, if $\phi$, which was intended
+as evidence of guilt, has the effect of getting jurors to press $\mathsf N$, there is a sense
+in which they have \emph{negative} confidence in $\phi$, since the belief update happened in the opposite direction of what $\phi$ represents; rather than \emph{no} trust, this is represents \emph{distrust}. 
+Small negative updates are always possible except at the boundary of belief space, but in this paper, we focus almost entirely on positive confidence updates.
+
+The introduction of the second button also uncovers a significant source of complexity:
+unlike \cref{ex:prob-simple,ex:classifier,ex:shafer}, 
+the order that evidence is presented matters, when there is more than one possible response to it.
+Evidence presented later has a larger effect,
+meaning that this system exhibits a recency bias.
+% (This lack of commutativity corresponds to possibility that,
+%	as a Lie algebra, the bracket may not be identically zero.)
+
+Now consider a variant of this system that does
+not trust all jurors equally; rather, it trusts each juror $j$
+to a degree $\beta_j \in [0, \infty]$, and now $g$ evolves
+according to
+\[
+	\frac{\mathrm dg}{\mathrm dt} = 
+	\sum_{j = 1}^J \beta_j \Big( G_j(t) (1-g) 
+		- g N_j(t) \Big).
+	% \begin{cases}
+	% 	(1 - p)	& \text{button $\uparrow$ pressed} \\
+	% 	-p & \text{button $\downarrow$ pressed}
+	% \end{cases}	
+\]
+In this case, the system can be said to have trust $\beta_j$ in juror
+$j$, since $j$'s buttons are ignored when $\beta_j = 0$. 
+When $\beta_j = \infty$ (an expression of full confidence in $j$),
+$g$ immediately jumps to 0 when $j$ presses 
+$\mathsf N$, or to 1 if $j$ presses $\mathsf G$ (unless canceled by
+another full-confidence juror pressing the opposite button).
+If all jurors have full confidence, then the verdict of this system is
+a majority vote at the last moment a button was pressed. 
+Thus, the weights attached to weighted combinations are (additive) expressions 
+of confidence as well. 
+\end{example}
 
 \section{Counter-Examples}
 
-\subsection{Dropping {\cref*{ax:seq-for-more}}}
-
+\subsection{Nonmonotonic Updates (Dropping \ref{ax:seq-for-more})}
+    % strangely, doesn't work with \cref, or \ref* or \cref*.
 Without \cref{ax:seq-for-more}, we could have a situation like the below,
 in which resuming an update could take you to a completely different position
 if you were interrupted in the middle of the path. 
@@ -438,7 +648,8 @@ if you were interrupted in the middle of the path.
 \end{center}
 
 
-\subsection{Halting updates}
+\subsection{Halting Updates (Dropping \ref{ax:nopause})}
+The next two examples further explore the motivation behind \cref{ax:nopause}
 
 \begin{example}
 Suppose $\Theta = \mathbb R \cup \{-\infty, \infty\}$, $\Phi = \{\star\}$ is a singleton, and
@@ -480,3 +691,5 @@ $
     {^+}F^t_{\!\star}(\theta) = \theta. 
 $
 \end{example}
+
+\subsection{}
